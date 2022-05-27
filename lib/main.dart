@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:game_note/core/constants/constants.dart';
 import 'package:game_note/injection_container.dart' as di;
+import 'package:game_note/model/two_player_round.dart';
 import 'package:game_note/views/add_player_view.dart';
 import 'package:game_note/views/two_player_round_view.dart';
 
@@ -37,6 +39,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<TwoPlayerRound> rounds = [];
+  @override
+  void initState() {
+    super.initState();
+    getRounds();
+  }
+
+  getRounds() async {
+    var list = await di.getIt<DatabaseManager>().rounds();
+    setState(() {
+      rounds = list;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -70,10 +87,36 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
               child: const Text("New Two-Player-Round"),
-            )
+            ),
+            const Divider(height: 16, color: Colors.black),
+            Expanded(child: _listRound()),
           ],
         ),
       ),
+    );
+  }
+
+  _listRound() {
+    return ListView.builder(
+      itemCount: rounds.length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TwoPlayerRoundView(
+                  twoPlayerRound: rounds[index],
+                ),
+              ),
+            );
+          },
+          child: Text(
+            rounds[index].name ?? "No title",
+            style: boldTextStyle,
+          ),
+        );
+      },
     );
   }
 }

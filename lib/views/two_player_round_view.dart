@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/injection_container.dart';
 import 'package:game_note/model/two_player_round.dart';
 import 'package:game_note/views/components/score_view.dart';
 import 'package:game_note/views/components/submit_game_view.dart';
@@ -7,7 +9,8 @@ import 'add_player_view.dart';
 import 'components/select_player_view.dart';
 
 class TwoPlayerRoundView extends StatefulWidget {
-  const TwoPlayerRoundView({Key? key}) : super(key: key);
+  final TwoPlayerRound? twoPlayerRound;
+  const TwoPlayerRoundView({Key? key, this.twoPlayerRound}) : super(key: key);
 
   @override
   State<TwoPlayerRoundView> createState() => _TwoPlayerRoundViewState();
@@ -17,6 +20,7 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
   TwoPlayerRound? twoPlayerRound;
   @override
   void initState() {
+    twoPlayerRound = widget.twoPlayerRound;
     super.initState();
   }
 
@@ -28,7 +32,7 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
         child: Scaffold(
           appBar: AppBar(
             title: twoPlayerRound != null
-                ? const Text("Two-Player-Round")
+                ? Text(twoPlayerRound!.name ?? "Two-Player-Round")
                 : const Text("Select Players"),
             actions: [
               IconButton(
@@ -47,10 +51,13 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
               ? _twoPlayerRound()
               : SelectPlayerView(
                   2,
-                  onSelectDone: (players) {
+                  onSelectDone: (players) async {
+                    int id = await getIt<DatabaseManager>()
+                        .insertTwoPlayerRound(TwoPlayerRound(
+                            player1: players[0], player2: players[1]));
+                    var round = await getIt<DatabaseManager>().round(id);
                     setState(() {
-                      twoPlayerRound = TwoPlayerRound(
-                          player1: players[0], player2: players[1]);
+                      twoPlayerRound = round;
                     });
                   },
                 ),
@@ -86,10 +93,16 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
               ),
             ),
             SubmitGameView(twoPlayerRound!.player1, twoPlayerRound!.player2,
-                onSubmitGame: (game) {
-              setState(() {
-                twoPlayerRound?.games.insert(0, game);
-              });
+                onSubmitGame: (game) async {
+              var id = await getIt<DatabaseManager>().insertTwoPlayerGame(game);
+              var g = await getIt<DatabaseManager>().game(id);
+
+              if (g != null) {
+                setState(() {
+                  twoPlayerRound?.games.insert(0, g);
+                });
+                await getIt<DatabaseManager>().updateRound(twoPlayerRound!);
+              }
             })
           ],
         ),

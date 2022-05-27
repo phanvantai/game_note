@@ -6,23 +6,46 @@ class TwoPlayerGame {
   int? score1;
   int? score2;
   String? photoUrl;
+  int? id;
 
   TwoPlayerGame({
     required this.player1,
     required this.player2,
+    this.score1,
+    this.score2,
+    this.photoUrl,
+    this.id,
   });
 
   Player? get winner {
+    Player? winner;
     if (score1 == null || score2 == null) {
-      return null;
+      winner = null;
     } else {
       if (score1! > score2!) {
-        return player1;
+        winner = player1;
       } else if (score1 == score2) {
-        return null;
+        winner = null;
       } else {
-        return player2;
+        winner = player2;
       }
     }
+    return winner;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'player1': player1.id,
+      'player2': player2.id,
+      'score1': score1,
+      'score2': score2,
+      'photoUrl': photoUrl,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'Game{id: $id, player1: ${player1.fullname} $score1 - $score2 ${player2.fullname}}';
   }
 }

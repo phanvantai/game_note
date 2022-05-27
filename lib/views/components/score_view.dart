@@ -23,7 +23,7 @@ class ScoreView extends StatelessWidget {
                 bold: true,
               ),
               Text(
-                twoPlayerRound.countWin(twoPlayerRound.player1).toString(),
+                twoPlayerRound.player1Score.toString(),
                 style: boldTextStyle,
               ),
             ],
@@ -34,7 +34,7 @@ class ScoreView extends StatelessWidget {
             child: Row(
           children: [
             Text(
-              twoPlayerRound.countWin(twoPlayerRound.player2).toString(),
+              twoPlayerRound.player2Score.toString(),
               style: boldTextStyle,
             ),
             PlayerView(
