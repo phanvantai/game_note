@@ -26,13 +26,13 @@ class DatabaseManager {
   Future<void> createTwoPlayerGamesTable() async {
     var db = await database;
     return db.execute(
-        'CREATE TABLE IF NOT EXISTS $twoPlayerGames(id INTEGER PRIMARY KEY AUTOINCREMENT, player1 INTEGER, player2 INTEGER, score1 INTEGER, score2 INTEGER, photoUrl TEXT');
+        'CREATE TABLE IF NOT EXISTS $twoPlayerGames(id INTEGER PRIMARY KEY AUTOINCREMENT, player1 INTEGER, player2 INTEGER, score1 INTEGER, score2 INTEGER, photoUrl TEXT)');
   }
 
   Future<void> createTwoPlayerRoundsTable() async {
     var db = await database;
     return db.execute(
-        'CREATE TABLE IF NOT EXISTS $twoPlayerRounds(id INTEGER PRIMARY KEY AUTOINCREMENT, player1 INTEGER, player2 INTEGER, games TEXT');
+        'CREATE TABLE IF NOT EXISTS $twoPlayerRounds(id INTEGER PRIMARY KEY AUTOINCREMENT, player1 INTEGER, player2 INTEGER, games TEXT)');
   }
 
   Future<void> insertPlayer(Player player) async {
@@ -54,6 +54,17 @@ class DatabaseManager {
         level: maps[i]['level'],
       );
     });
+  }
+
+  Future<Player> player(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps =
+        await db.query(playerTable, where: "id = $id");
+    return Player(
+      fullname: maps.first['fullname'],
+      id: maps.first['id'],
+      level: maps.first['level'],
+    );
   }
 
   Future<void> updatePlayer(Player player) async {

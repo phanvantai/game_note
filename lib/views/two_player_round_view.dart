@@ -36,8 +36,7 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const AddPlayerView(),
-                    ),
+                        builder: (context) => const AddPlayerView()),
                   );
                 },
                 icon: const Icon(Icons.person_add),
