@@ -46,11 +46,12 @@ class _MyHomePageState extends State<MyHomePage> {
     getRounds();
   }
 
-  getRounds() async {
+  Future<void> getRounds() async {
     var list = await di.getIt<DatabaseManager>().rounds();
     setState(() {
       rounds = list;
     });
+    return;
   }
 
   @override
@@ -97,26 +98,42 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _listRound() {
-    return ListView.builder(
-      itemCount: rounds.length,
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TwoPlayerRoundView(
-                  twoPlayerRound: rounds[index],
+    return RefreshIndicator(
+      child: ListView.builder(
+        itemCount: rounds.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TwoPlayerRoundView(
+                    twoPlayerRound: rounds[index],
+                  ),
                 ),
+              );
+            },
+            child: Dismissible(
+              key: Key(rounds[index].id.toString()),
+              child: Text(
+                rounds[index].name ?? "No title",
+                style: boldTextStyle,
               ),
-            );
-          },
-          child: Text(
-            rounds[index].name ?? "No title",
-            style: boldTextStyle,
-          ),
-        );
-      },
+              onDismissed: (direction) async {
+                // TODO: - Delete rounds, games
+                // ScaffoldMessenger.of(context).showSnackBar(
+                //   const SnackBar(
+                //     content: Text(
+                //       'Deleted',
+                //     ),
+                //   ),
+                // );
+              },
+            ),
+          );
+        },
+      ),
+      onRefresh: getRounds,
     );
   }
 }
