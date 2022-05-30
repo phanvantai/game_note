@@ -38,6 +38,7 @@ dependencies:
   path: ^1.8.0
   get_it: ^7.2.0
   multi_select_item: ^1.0.3
+  flutter_fortune_wheel: ^1.2.0
 
 dev_dependencies:
   flutter_test:

@@ -3,9 +3,10 @@ import 'package:game_note/core/constants/constants.dart';
 import 'package:game_note/injection_container.dart' as di;
 import 'package:game_note/model/two_player_round.dart';
 import 'package:game_note/views/add_player_view.dart';
-import 'package:game_note/views/two_player_round_view.dart';
+import 'package:game_note/views/round/two_player_round_view.dart';
 
 import 'core/database/database_manager.dart';
+import 'views/round/round_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,11 +84,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TwoPlayerRoundView(),
+                    builder: (context) => const RoundView(),
                   ),
                 );
               },
-              child: const Text("New Two-Player-Round"),
+              child: const Text("New Round"),
             ),
             const Divider(height: 16, color: Colors.black),
             Expanded(child: _listRound()),
@@ -113,22 +114,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               );
             },
-            child: Dismissible(
-              key: Key(rounds[index].id.toString()),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
               child: Text(
                 rounds[index].name ?? "No title",
                 style: boldTextStyle,
               ),
-              onDismissed: (direction) async {
-                // TODO: - Delete rounds, games
-                // ScaffoldMessenger.of(context).showSnackBar(
-                //   const SnackBar(
-                //     content: Text(
-                //       'Deleted',
-                //     ),
-                //   ),
-                // );
-              },
             ),
           );
         },

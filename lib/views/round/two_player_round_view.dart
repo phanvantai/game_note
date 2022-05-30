@@ -5,8 +5,7 @@ import 'package:game_note/model/two_player_round.dart';
 import 'package:game_note/views/components/score_view.dart';
 import 'package:game_note/views/components/submit_game_view.dart';
 
-import 'add_player_view.dart';
-import 'components/select_player_view.dart';
+import '../components/select_player_view.dart';
 
 class TwoPlayerRoundView extends StatefulWidget {
   final TwoPlayerRound? twoPlayerRound;
@@ -26,46 +25,21 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      child: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: Scaffold(
-          appBar: AppBar(
-            title: twoPlayerRound != null
-                ? Text(twoPlayerRound!.name ?? "Two-Player-Round")
-                : const Text("Select Players"),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddPlayerView()),
-                  );
-                },
-                icon: const Icon(Icons.person_add),
-              )
-            ],
-          ),
-          body: twoPlayerRound != null
-              ? _twoPlayerRound()
-              : SelectPlayerView(
-                  2,
-                  onSelectDone: (players) async {
-                    int id = await getIt<DatabaseManager>()
-                        .insertTwoPlayerRound(TwoPlayerRound(
-                            player1: players[0], player2: players[1]));
-                    var round = await getIt<DatabaseManager>().round(id);
-                    setState(() {
-                      twoPlayerRound = round;
-                    });
-                  },
-                ),
-        ),
-      ),
-      onWillPop: () async {
-        return true;
-      },
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: twoPlayerRound != null
+          ? _twoPlayerRound()
+          : SelectPlayerView(
+              2,
+              onSelectDone: (players) async {
+                int id = await getIt<DatabaseManager>().insertTwoPlayerRound(
+                    TwoPlayerRound(player1: players[0], player2: players[1]));
+                var round = await getIt<DatabaseManager>().round(id);
+                setState(() {
+                  twoPlayerRound = round;
+                });
+              },
+            ),
     );
   }
 
