@@ -25,6 +25,32 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.twoPlayerRound != null) {
+      return GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Scaffold(
+          appBar: AppBar(
+            title: twoPlayerRound != null
+                ? Text(twoPlayerRound!.name ?? "Two-Player-Round")
+                : const Text("Select Players"),
+          ),
+          body: twoPlayerRound != null
+              ? _twoPlayerRound()
+              : SelectPlayerView(
+                  2,
+                  onSelectDone: (players) async {
+                    int id = await getIt<DatabaseManager>()
+                        .insertTwoPlayerRound(TwoPlayerRound(
+                            player1: players[0], player2: players[1]));
+                    var round = await getIt<DatabaseManager>().round(id);
+                    setState(() {
+                      twoPlayerRound = round;
+                    });
+                  },
+                ),
+        ),
+      );
+    }
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: twoPlayerRound != null

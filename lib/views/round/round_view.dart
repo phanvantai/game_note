@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/views/round/two_player_round_view.dart';
-import 'package:game_note/views/round/wheel_spinner_view.dart';
 
 import '../add_player_view.dart';
+import 'random_view.dart';
 
 class RoundView extends StatefulWidget {
   const RoundView({Key? key}) : super(key: key);
@@ -14,7 +14,7 @@ class RoundView extends StatefulWidget {
 class _RoundViewState extends State<RoundView> {
   List<Widget> listTabs = [
     const TwoPlayerRoundView(),
-    const WheelSpinnerView(),
+    const RandomView(),
   ];
   @override
   Widget build(BuildContext context) {
