@@ -73,6 +73,10 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
     if (twoPlayerRound == null) {
       return Container();
     } else {
+      var draw = twoPlayerRound!.games
+          .where((element) => element.winner == null)
+          .toList()
+          .length;
       return Container(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -82,28 +86,34 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
               height: 4,
               color: Colors.black,
             ),
-            const Text("Recent Matchs"),
+            Text("Total Games: ${twoPlayerRound!.games.length}"),
+            Text("Draw: $draw"),
             Expanded(
               child: ListView.builder(
                 itemCount: twoPlayerRound!.games.length,
                 itemBuilder: (context, index) {
                   var game = twoPlayerRound!.games[index];
-                  return Center(child: Text("${game.score1} - ${game.score2}"));
+                  return Center(
+                      child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text("${game.score1} - ${game.score2}")));
                 },
               ),
             ),
-            SubmitGameView(twoPlayerRound!.player1, twoPlayerRound!.player2,
-                onSubmitGame: (game) async {
-              var id = await getIt<DatabaseManager>().insertTwoPlayerGame(game);
-              var g = await getIt<DatabaseManager>().game(id);
+            if (widget.twoPlayerRound == null)
+              SubmitGameView(twoPlayerRound!.player1, twoPlayerRound!.player2,
+                  onSubmitGame: (game) async {
+                var id =
+                    await getIt<DatabaseManager>().insertTwoPlayerGame(game);
+                var g = await getIt<DatabaseManager>().game(id);
 
-              if (g != null) {
-                setState(() {
-                  twoPlayerRound?.games.insert(0, g);
-                });
-                await getIt<DatabaseManager>().updateRound(twoPlayerRound!);
-              }
-            })
+                if (g != null) {
+                  setState(() {
+                    twoPlayerRound?.games.insert(0, g);
+                  });
+                  await getIt<DatabaseManager>().updateRound(twoPlayerRound!);
+                }
+              })
           ],
         ),
       );
