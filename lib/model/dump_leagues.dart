@@ -1,47 +1,55 @@
-class League {
+import 'package:game_note/model/club_model.dart';
+
+class LeagueModel {
   final String title;
-  final List<String> clubs;
+  final List<ClubModel> clubs;
 
-  League(this.title, this.clubs);
+  LeagueModel(this.title, this.clubs);
 
-  static List<League> leagues = [epl, laliga, seriea, bundesliga, eredivisie];
+  static List<LeagueModel> leagues = [
+    epl,
+    laliga,
+    seriea,
+    bundesliga,
+    eredivisie
+  ];
 
-  static League epl = League("EPL", [
-    "Manchester City",
-    "Liverpool",
-    "Chelsea",
-    "Tottenham",
-    "Arsenal",
-    "Manchester United"
+  static LeagueModel epl = LeagueModel("EPL", [
+    ClubModel("Manchester City"),
+    ClubModel("Liverpool"),
+    ClubModel("Chelsea"),
+    ClubModel("Tottenham"),
+    ClubModel("Arsenal"),
+    ClubModel("Manchester United"),
   ]);
-  static League laliga = League("Laliga", [
-    "Real Madrid",
-    "Barcelona",
-    "Atletico Madrid",
-    "Sevilla",
+  static LeagueModel laliga = LeagueModel("Laliga", [
+    ClubModel("Real Madrid"),
+    ClubModel("Barcelona"),
+    ClubModel("Atletico Madrid"),
+    ClubModel("Sevilla"),
   ]);
-  static League seriea = League("Serie A", [
-    "AC Milan",
-    "Inter Milan",
-    "Napoli",
-    "Juventus",
-    "Roma",
-    "Atalanta",
+  static LeagueModel seriea = LeagueModel("Serie A", [
+    ClubModel("AC Milan"),
+    ClubModel("Inter Milan"),
+    ClubModel("Napoli"),
+    ClubModel("Juventus"),
+    ClubModel("Roma"),
+    ClubModel("Atalanta"),
   ]);
-  static League bundesliga = League("Bundesliga", [
-    "Bayern Munich",
-    "Dortmund",
-    "Bayer Leverkusen",
-    "Leipzig",
+  static LeagueModel bundesliga = LeagueModel("Bundesliga", [
+    ClubModel("Bayern Munich"),
+    ClubModel("Dortmund"),
+    ClubModel("Bayer Leverkusen"),
+    ClubModel("Leipzig"),
   ]);
-  static League ligue1 = League("Ligue 1", [
-    "PSG",
-    "Marseille",
-    "Monaco",
-    "Lyon",
+  static LeagueModel ligue1 = LeagueModel("Ligue 1", [
+    ClubModel("PSG"),
+    ClubModel("Marseille"),
+    ClubModel("Monaco"),
+    ClubModel("Lyon"),
   ]);
-  static League eredivisie = League("Eredivisie", [
-    "Ajax",
-    "PSV",
+  static LeagueModel eredivisie = LeagueModel("Eredivisie", [
+    ClubModel("Ajax"),
+    ClubModel("PSV"),
   ]);
 }

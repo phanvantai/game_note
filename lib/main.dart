@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:game_note/core/constants/constants.dart';
 import 'package:game_note/injection_container.dart' as di;
 import 'package:game_note/model/two_player_round.dart';
+import 'package:game_note/viewmodels/random_view_model.dart';
 import 'package:game_note/views/add_player_view.dart';
 import 'package:game_note/views/round/two_player_round_view.dart';
+import 'package:provider/provider.dart';
 
 import 'core/database/database_manager.dart';
 import 'views/round/round_view.dart';
@@ -12,7 +14,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await di.init();
   await di.getIt<DatabaseManager>().open();
-  runApp(const MyApp());
+
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (context) => RandomWheelViewModel()),
+    ],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/model/dump_leagues.dart';
+import 'package:game_note/model/club_model.dart';
+import 'package:game_note/viewmodels/random_view_model.dart';
+import 'package:game_note/views/components/club_view.dart';
+import 'package:game_note/views/components/league_view.dart';
 import 'package:game_note/views/round/wheel_spinner_view.dart';
-import 'package:sticky_headers/sticky_headers.dart';
+import 'package:provider/provider.dart';
 
 class RandomView extends StatefulWidget {
   const RandomView({Key? key}) : super(key: key);
@@ -11,8 +15,6 @@ class RandomView extends StatefulWidget {
 }
 
 class _RandomViewState extends State<RandomView> {
-  bool picking = true;
-  List<String> selecteds = <String>[];
   @override
   void initState() {
     super.initState();
@@ -20,41 +22,29 @@ class _RandomViewState extends State<RandomView> {
 
   @override
   Widget build(BuildContext context) {
-    return picking ? _listLeague() : WheelSpinnerView(list: selecteds);
+    return Consumer<RandomWheelViewModel>(
+        builder: ((context, viewmodel, child) {
+      return viewmodel.picking
+          ? _listLeague(viewmodel)
+          : WheelSpinnerView(list: viewmodel.listSelected);
+    }));
   }
 
-  _listLeague() {
+  _listLeague(RandomWheelViewModel viewModel) {
     return Column(
       children: [
         const SizedBox(height: 12),
-        const Text("Selecting "),
+        Text("Selected ${viewModel.listSelected.length}"),
         const SizedBox(height: 12),
         Expanded(
           child: ListView.builder(
-            itemCount: League.leagues.length,
+            itemCount: viewModel.listLeague.length,
             itemBuilder: (context, index) {
-              return StickyHeader(
-                header: Container(
-                  height: 50.0,
-                  color: Colors.greenAccent[700],
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  alignment: Alignment.center,
-                  child: Text(
-                    League.leagues[index].title.toUpperCase(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-                content: SizedBox(
-                  height: 300,
-                  child: ListView.builder(
-                      itemCount: League.leagues[index].clubs.length,
-                      itemBuilder: (context, index2) {
-                        return Text(
-                          League.leagues[index].clubs[index2],
-                          style: TextStyle(color: Colors.black),
-                        );
-                      }),
-                ),
+              return LeagueView(
+                league: viewModel.listLeague[index],
+                callback: () {
+                  viewModel.updateSelection();
+                },
               );
             },
           ),

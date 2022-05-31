@@ -27,7 +27,7 @@ class _WheelSpinnerViewState extends State<WheelSpinnerView> {
   }
 
   loadValue() {
-    var abc = League.leagues.map((e) => e.clubs).toList();
+    var abc = LeagueModel.leagues.map((e) => e.clubs).toList();
   }
 
   @override
