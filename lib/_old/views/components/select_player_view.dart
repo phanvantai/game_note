@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/views/components/player_view.dart';
+import 'package:game_note/_old/views/components/player_view.dart';
+import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/injection_container.dart';
 
-import '../../core/database/database_manager.dart';
-import '../../injection_container.dart';
 import '../../model/player.dart';
 
 class SelectPlayerView extends StatefulWidget {

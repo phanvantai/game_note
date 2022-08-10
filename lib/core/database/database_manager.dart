@@ -1,6 +1,6 @@
-import 'package:game_note/model/player.dart';
-import 'package:game_note/model/two_player_game.dart';
-import 'package:game_note/model/two_player_round.dart';
+import 'package:game_note/_old/model/player.dart';
+import 'package:game_note/_old/model/two_player_game.dart';
+import 'package:game_note/_old/model/two_player_round.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -244,9 +244,9 @@ class DatabaseManager {
         where: 'id = ?', whereArgs: [round.id]);
   }
 
-  Future<void> deletePlayer(Player player) async {
+  Future<int> deletePlayer(Player player) async {
     final db = await database;
-    await db.delete(
+    return await db.delete(
       playerTable,
       where: 'id = ?',
       whereArgs: [player.id],

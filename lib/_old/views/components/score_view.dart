@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/model/two_player_round.dart';
-
-import '../../core/constants/constants.dart';
+import 'package:game_note/_old/model/two_player_round.dart';
+import 'package:game_note/core/constants/constants.dart';
 import 'player_view.dart';
 
 class ScoreView extends StatelessWidget {

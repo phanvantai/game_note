@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
 
-import '../../model/dump_leagues.dart';
-
 class WheelSpinnerView extends StatefulWidget {
   final List<String> list;
   const WheelSpinnerView({Key? key, required this.list}) : super(key: key);
@@ -26,9 +24,7 @@ class _WheelSpinnerViewState extends State<WheelSpinnerView> {
     });
   }
 
-  loadValue() {
-    var abc = LeagueModel.leagues.map((e) => e.clubs).toList();
-  }
+  loadValue() {}
 
   @override
   Widget build(BuildContext context) {

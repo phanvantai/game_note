@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/model/dump_leagues.dart';
+
+import '../model/dump_leagues.dart';
 
 class RandomWheelViewModel extends ChangeNotifier {
   bool _picking = true;
@@ -29,7 +30,6 @@ class RandomWheelViewModel extends ChangeNotifier {
           .where((element) => element.isSelecting == true)
           .map((e) => e.title));
     }
-    print(abc.length);
     return abc;
   }
 

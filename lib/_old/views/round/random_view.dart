@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/model/dump_leagues.dart';
-import 'package:game_note/model/club_model.dart';
-import 'package:game_note/viewmodels/random_view_model.dart';
-import 'package:game_note/views/components/club_view.dart';
-import 'package:game_note/views/components/league_view.dart';
-import 'package:game_note/views/round/wheel_spinner_view.dart';
+import 'package:game_note/_old/viewmodels/random_view_model.dart';
+import 'package:game_note/_old/views/components/league_view.dart';
+import 'package:game_note/_old/views/round/wheel_spinner_view.dart';
 import 'package:provider/provider.dart';
 
 class RandomView extends StatefulWidget {

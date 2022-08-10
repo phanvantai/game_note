@@ -1,4 +1,4 @@
-import 'package:game_note/model/player.dart';
+import 'player.dart';
 
 class TwoPlayerGame {
   final Player player1;

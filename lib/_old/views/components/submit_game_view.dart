@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/model/two_player_game.dart';
+import 'package:game_note/_old/model/two_player_game.dart';
 
 import '../../model/player.dart';
 import 'player_view.dart';

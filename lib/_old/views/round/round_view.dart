@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/views/round/two_player_round_view.dart';
+import 'package:game_note/_old/views/round/two_player_round_view.dart';
 
 import '../add_player_view.dart';
 import 'random_view.dart';

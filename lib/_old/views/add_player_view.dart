@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:game_note/_old/model/player.dart';
+import 'package:game_note/_old/views/components/player_view.dart';
+import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
-import 'package:game_note/model/player.dart';
-import 'package:game_note/views/components/player_view.dart';
-
-import '../core/database/database_manager.dart';
 
 class AddPlayerView extends StatefulWidget {
   const AddPlayerView({Key? key}) : super(key: key);
@@ -81,6 +80,9 @@ class _AddPlayerViewState extends State<AddPlayerView> {
                   itemCount: players.length,
                   itemBuilder: (context, index) {
                     return Dismissible(
+                      confirmDismiss: (direction) {
+                        return Future.value(true);
+                      },
                       key: Key(players[index].id.toString()),
                       onDismissed: (direction) async {
                         await getIt<DatabaseManager>()

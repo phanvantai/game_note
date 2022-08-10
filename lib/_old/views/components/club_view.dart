@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/model/club_model.dart';
+
+import '../../model/club_model.dart';
 
 class ClubView extends StatefulWidget {
-  final ClubModel model;
-  final Function(ClubModel)? onClick;
+  final ClubOldModel model;
+  final Function(ClubOldModel)? onClick;
   const ClubView({
     Key? key,
     required this.model,
@@ -24,7 +25,6 @@ class _ClubViewState extends State<ClubView> {
 
   @override
   Widget build(BuildContext context) {
-    print("build clubs ${widget.model.title}");
     return GestureDetector(
       onTap: widget.onClick == null
           ? null

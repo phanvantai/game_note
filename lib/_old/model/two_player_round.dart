@@ -1,5 +1,4 @@
-import 'package:game_note/model/player.dart';
-
+import 'player.dart';
 import 'two_player_game.dart';
 
 class TwoPlayerRound {

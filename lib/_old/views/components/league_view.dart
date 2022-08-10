@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/model/dump_leagues.dart';
 
+import '../../model/dump_leagues.dart';
 import 'club_view.dart';
 
 class LeagueView extends StatelessWidget {
@@ -14,7 +14,6 @@ class LeagueView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("build ${league.title}");
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
