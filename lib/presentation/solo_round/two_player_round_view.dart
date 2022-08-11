@@ -5,7 +5,7 @@ import 'package:game_note/_old/views/components/submit_game_view.dart';
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
 
-import '../components/select_player_view.dart';
+import '../../_old/views/components/select_player_view.dart';
 
 class TwoPlayerRoundView extends StatefulWidget {
   final TwoPlayerRound? twoPlayerRound;
@@ -29,7 +29,10 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
       return GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: Scaffold(
+          backgroundColor: Colors.black,
           appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
             title: twoPlayerRound != null
                 ? Text(twoPlayerRound!.name ?? "Two-Player-Round")
                 : const Text("Select Players"),
@@ -55,16 +58,19 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: twoPlayerRound != null
           ? _twoPlayerRound()
-          : SelectPlayerView(
-              2,
-              onSelectDone: (players) async {
-                int id = await getIt<DatabaseManager>().insertTwoPlayerRound(
-                    TwoPlayerRound(player1: players[0], player2: players[1]));
-                var round = await getIt<DatabaseManager>().round(id);
-                setState(() {
-                  twoPlayerRound = round;
-                });
-              },
+          : Container(
+              color: Colors.black,
+              child: SelectPlayerView(
+                2,
+                onSelectDone: (players) async {
+                  int id = await getIt<DatabaseManager>().insertTwoPlayerRound(
+                      TwoPlayerRound(player1: players[0], player2: players[1]));
+                  var round = await getIt<DatabaseManager>().round(id);
+                  setState(() {
+                    twoPlayerRound = round;
+                  });
+                },
+              ),
             ),
     );
   }

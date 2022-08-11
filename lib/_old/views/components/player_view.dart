@@ -35,9 +35,9 @@ class _PlayerViewState extends State<PlayerView> {
             : const EdgeInsets.symmetric(vertical: 4, horizontal: 24),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.green : Colors.white,
+          color: isSelected ? Colors.orange : Colors.grey,
           border: Border.all(
-            color: isSelected ? Colors.green : Colors.white,
+            color: isSelected ? Colors.orange : Colors.grey,
           ),
           borderRadius: BorderRadius.circular(16),
         ),

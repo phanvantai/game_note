@@ -4,14 +4,14 @@ import 'package:game_note/_old/views/components/player_view.dart';
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
 
-class AddPlayerView extends StatefulWidget {
-  const AddPlayerView({Key? key}) : super(key: key);
+class MembersView extends StatefulWidget {
+  const MembersView({Key? key}) : super(key: key);
 
   @override
-  State<AddPlayerView> createState() => _AddPlayerViewState();
+  State<MembersView> createState() => _MembersViewState();
 }
 
-class _AddPlayerViewState extends State<AddPlayerView> {
+class _MembersViewState extends State<MembersView> {
   late TextEditingController controller;
   String fullname = "";
   List<Player> players = [];
@@ -31,9 +31,8 @@ class _AddPlayerViewState extends State<AddPlayerView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Add new player")),
-      body: Container(
+    return SafeArea(
+      child: Container(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [

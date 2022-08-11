@@ -29,7 +29,7 @@ class TwoPlayerRound {
 
   String getName() {
     var date = DateTime.now();
-    return '${date.day}-${date.month}-${date.year}-${player1.fullname}-${player2.fullname}';
+    return '${date.day}-${date.month}-${date.year}';
   }
 
   Map<String, dynamic> toMap() {

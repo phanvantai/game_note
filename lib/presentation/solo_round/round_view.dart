@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/_old/views/round/two_player_round_view.dart';
-
-import '../add_player_view.dart';
-import 'random_view.dart';
+import 'package:game_note/presentation/random_view.dart';
+import 'package:game_note/presentation/solo_round/two_player_round_view.dart';
 
 class RoundView extends StatefulWidget {
   const RoundView({Key? key}) : super(key: key);
@@ -21,6 +19,7 @@ class _RoundViewState extends State<RoundView> {
     return DefaultTabController(
       length: listTabs.length,
       child: Scaffold(
+        backgroundColor: Colors.black,
         appBar: AppBar(
           title: const Text("NewRound"),
           bottom: const TabBar(tabs: [
@@ -31,18 +30,7 @@ class _RoundViewState extends State<RoundView> {
               text: "Random Wheel",
             )
           ]),
-          actions: [
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const AddPlayerView()),
-                );
-              },
-              icon: const Icon(Icons.person_add),
-            )
-          ],
+          backgroundColor: Colors.black,
         ),
         body: TabBarView(children: listTabs),
       ),
