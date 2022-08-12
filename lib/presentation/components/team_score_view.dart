@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/_old/model/player.dart';
 import 'package:game_note/_old/model/two_player_round.dart';
+import 'package:game_note/core/constants/constants.dart';
 
 class TeamScoreView extends StatelessWidget {
   final TwoPlayerRound round;
@@ -17,7 +18,14 @@ class TeamScoreView extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8),
       child: Row(
         children: [
-          const Icon(Icons.abc),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              color: randomObject(Colors.primaries),
+              width: 24,
+              height: 24,
+            ),
+          ),
           const SizedBox(width: 16),
           Text(
             player.fullname,

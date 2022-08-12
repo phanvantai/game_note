@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/_old/model/two_player_round.dart';
+import 'package:game_note/presentation/solo_round/components/old_game_view.dart';
 import 'package:game_note/presentation/solo_round/components/score_view.dart';
-import 'package:game_note/_old/views/components/submit_game_view.dart';
+import 'package:game_note/presentation/solo_round/components/submit_game_view.dart';
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
 
@@ -83,15 +84,19 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
           .where((element) => element.winner == null)
           .toList()
           .length;
-      return Container(
-        padding: const EdgeInsets.all(16),
+      return SafeArea(
+          child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ScoreView(twoPlayerRound: twoPlayerRound!),
+            const SizedBox(height: 8),
             const Divider(
-              height: 4,
-              color: Colors.black,
+              height: 1,
+              color: Colors.white,
             ),
+            const SizedBox(height: 16),
             Text("Total Games: ${twoPlayerRound!.games.length}"),
             Text("Draw: $draw"),
             Expanded(
@@ -99,10 +104,7 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
                 itemCount: twoPlayerRound!.games.length,
                 itemBuilder: (context, index) {
                   var game = twoPlayerRound!.games[index];
-                  return Center(
-                      child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text("${game.score1} - ${game.score2}")));
+                  return OldGameView(game: game);
                 },
               ),
             ),
@@ -122,7 +124,7 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
               })
           ],
         ),
-      );
+      ));
     }
   }
 }

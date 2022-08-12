@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/_old/model/two_player_game.dart';
 
-import '../../model/player.dart';
-import 'player_view.dart';
+import '../../../_old/model/player.dart';
+import '../../../_old/views/components/player_view.dart';
 
 class SubmitGameView extends StatefulWidget {
   final Player player1;
@@ -35,6 +35,7 @@ class _SubmitGameViewState extends State<SubmitGameView> {
           PlayerView(widget.player1, onClick: null),
           Expanded(
             child: TextField(
+              cursorColor: Colors.white,
               controller: controller1,
               textAlign: TextAlign.right,
               keyboardType: TextInputType.number,
@@ -49,6 +50,7 @@ class _SubmitGameViewState extends State<SubmitGameView> {
           const Text("   -   "),
           Expanded(
             child: TextField(
+              cursorColor: Colors.white,
               controller: controller2,
               keyboardType: TextInputType.number,
               maxLength: 2,
@@ -78,6 +80,13 @@ class _SubmitGameViewState extends State<SubmitGameView> {
                 });
               },
         child: const Text("Submit result"),
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all<Color>(
+            controller1.text.isEmpty || controller2.text.isEmpty
+                ? Colors.orange.withOpacity(0.5)
+                : Colors.orange,
+          ),
+        ),
       ),
     ];
   }
