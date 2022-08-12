@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/members_view.dart';
+import 'package:game_note/presentation/members/members_view.dart';
 import 'package:game_note/presentation/solo_round/solo_round_view.dart';
-import 'package:game_note/presentation/tournament_view.dart';
+import 'package:game_note/presentation/tournament/tournament_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -41,6 +41,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         children: tabs.values.toList(),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
         items: tabs.keys.toList(),
         currentIndex: _tabController.index,
         onTap: _onItemTapped,

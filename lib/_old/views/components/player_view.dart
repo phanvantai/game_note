@@ -30,26 +30,24 @@ class _PlayerViewState extends State<PlayerView> {
               }
             },
       child: Container(
-        margin: widget.onClick == null
-            ? null
-            : const EdgeInsets.symmetric(vertical: 4, horizontal: 24),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected ? Colors.orange : Colors.grey,
           border: Border.all(
             color: isSelected ? Colors.orange : Colors.grey,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
-            child: Text(
-          widget.player.fullname,
-          style: widget.bold == true
-              ? boldTextStyle
-              : widget.onClick != null
-                  ? boldTextStyle
-                  : null,
-        )),
+          child: Text(
+            widget.player.fullname,
+            style: widget.bold == true
+                ? boldTextStyle
+                : widget.onClick != null
+                    ? boldTextStyle
+                    : null,
+          ),
+        ),
       ),
     );
   }

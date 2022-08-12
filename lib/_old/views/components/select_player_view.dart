@@ -34,27 +34,40 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
       child: Column(
         children: [
           ElevatedButton(
-              onPressed: selectedPlayers.length == widget.numberOfPlayer
-                  ? () {
-                      widget.onSelectDone(selectedPlayers);
-                    }
-                  : null,
-              child: const Text("Done")),
+            onPressed: selectedPlayers.length == widget.numberOfPlayer
+                ? () {
+                    widget.onSelectDone(selectedPlayers);
+                  }
+                : null,
+            child: const Text("Done"),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all<Color>(
+                selectedPlayers.length == widget.numberOfPlayer
+                    ? Colors.orange
+                    : Colors.orange.withOpacity(0.5),
+              ),
+            ),
+          ),
           Text("Selecting 2 player. Selected: ${selectedPlayers.length}"),
           const SizedBox(height: 16),
           Expanded(
             child: ListView.builder(
               itemCount: players.length,
               itemBuilder: (context, index) {
-                return PlayerView(
-                  players[index],
-                  onClick: (isSelected) {
-                    setState(() {
-                      isSelected
-                          ? selectedPlayers.add(players[index])
-                          : selectedPlayers.remove(players[index]);
-                    });
-                  },
+                return Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    PlayerView(
+                      players[index],
+                      onClick: (isSelected) {
+                        setState(() {
+                          isSelected
+                              ? selectedPlayers.add(players[index])
+                              : selectedPlayers.remove(players[index]);
+                        });
+                      },
+                    )
+                  ],
                 );
               },
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/_old/viewmodels/random_view_model.dart';
 import 'package:game_note/_old/views/components/league_view.dart';
-import 'package:game_note/presentation/wheel_spinner_view.dart';
+import 'package:game_note/presentation/components/wheel_spinner_view.dart';
 import 'package:provider/provider.dart';
 
 class RandomView extends StatefulWidget {

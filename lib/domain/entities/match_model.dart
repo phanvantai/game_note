@@ -9,5 +9,5 @@ class MatchModel extends Equatable {
   MatchModel({required this.home, required this.away});
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [home, away, created];
 }

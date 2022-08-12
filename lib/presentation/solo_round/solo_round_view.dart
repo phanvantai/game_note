@@ -25,7 +25,7 @@ class _SoloRoundViewState extends State<SoloRoundView>
   Future<void> getRounds() async {
     var list = await getIt<DatabaseManager>().rounds();
     setState(() {
-      rounds = list;
+      rounds = list.reversed.toList();
     });
     return;
   }

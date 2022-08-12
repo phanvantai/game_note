@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/_old/model/two_player_round.dart';
-import 'package:game_note/_old/views/components/score_view.dart';
+import 'package:game_note/presentation/solo_round/components/score_view.dart';
 import 'package:game_note/_old/views/components/submit_game_view.dart';
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';

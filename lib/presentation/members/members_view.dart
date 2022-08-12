@@ -78,28 +78,33 @@ class _MembersViewState extends State<MembersView> {
               child: ListView.builder(
                   itemCount: players.length,
                   itemBuilder: (context, index) {
-                    return Dismissible(
-                      confirmDismiss: (direction) {
-                        return Future.value(true);
-                      },
-                      key: Key(players[index].id.toString()),
-                      onDismissed: (direction) async {
-                        await getIt<DatabaseManager>()
-                            .deletePlayer(players[index]);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Deleted ${players[index].fullname}',
-                            ),
+                    return Column(
+                      children: [
+                        const SizedBox(height: 8),
+                        Dismissible(
+                          confirmDismiss: (direction) {
+                            return Future.value(true);
+                          },
+                          key: Key(players[index].id.toString()),
+                          onDismissed: (direction) async {
+                            await getIt<DatabaseManager>()
+                                .deletePlayer(players[index]);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Deleted ${players[index].fullname}',
+                                ),
+                              ),
+                            );
+                          },
+                          background: Container(color: Colors.red),
+                          child: PlayerView(
+                            players[index],
+                            onClick: null,
+                            bold: true,
                           ),
-                        );
-                      },
-                      background: Container(color: Colors.red),
-                      child: PlayerView(
-                        players[index],
-                        onClick: null,
-                        bold: true,
-                      ),
+                        )
+                      ],
                     );
                   }),
             ),
