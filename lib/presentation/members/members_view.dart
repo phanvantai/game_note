@@ -30,6 +30,7 @@ class _MembersViewState extends State<MembersView>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
