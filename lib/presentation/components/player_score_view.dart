@@ -24,7 +24,7 @@ class PlayerScoreView extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Text(
-            model.playerModel.name,
+            model.playerModel.fullname,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

@@ -1,8 +1,8 @@
-import 'player.dart';
+import '../../domain/entities/player_model.dart';
 
 class TwoPlayerGame {
-  final Player player1;
-  final Player player2;
+  final PlayerModel player1;
+  final PlayerModel player2;
   int? score1;
   int? score2;
   String? photoUrl;
@@ -17,8 +17,8 @@ class TwoPlayerGame {
     this.id,
   });
 
-  Player? get winner {
-    Player? winner;
+  PlayerModel? get winner {
+    PlayerModel? winner;
     if (score1 == null || score2 == null) {
       winner = null;
     } else {

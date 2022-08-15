@@ -1,4 +1,4 @@
-import 'package:game_note/_old/model/player.dart';
+import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/_old/model/two_player_game.dart';
 import 'package:game_note/_old/model/two_player_round.dart';
 import 'package:path/path.dart';
@@ -34,7 +34,7 @@ class DatabaseManager {
         'CREATE TABLE IF NOT EXISTS $twoPlayerRounds(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, player1 INTEGER, player2 INTEGER, games TEXT)');
   }
 
-  Future<void> insertPlayer(Player player) async {
+  Future<void> insertPlayer(PlayerModel player) async {
     final db = await database;
     await db.insert(
       playerTable,
@@ -61,11 +61,11 @@ class DatabaseManager {
     );
   }
 
-  Future<List<Player>> players() async {
+  Future<List<PlayerModel>> players() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(playerTable);
     return List.generate(maps.length, (i) {
-      return Player(
+      return PlayerModel(
         id: maps[i]['id'],
         fullname: maps[i]['fullname'],
         level: maps[i]['level'],
@@ -73,14 +73,14 @@ class DatabaseManager {
     });
   }
 
-  Future<Player?> player(int? id) async {
+  Future<PlayerModel?> player(int? id) async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
         await db.query(playerTable, where: "id = $id");
     if (maps.isEmpty) {
       return null;
     }
-    return Player(
+    return PlayerModel(
       fullname: maps.first['fullname'],
       id: maps.first['id'],
       level: maps.first['level'],
@@ -97,9 +97,9 @@ class DatabaseManager {
       int? score2 = map['score2'];
       String? photoUrl = map['photoUrl'];
       int? player1Id = map['player1'] as int?;
-      Player? player1 = await player(player1Id);
+      PlayerModel? player1 = await player(player1Id);
       int? player2Id = map['player2'] as int?;
-      Player? player2 = await player(player2Id);
+      PlayerModel? player2 = await player(player2Id);
       if (player1 != null && player2 != null) {
         abc.add(TwoPlayerGame(
           player1: player1,
@@ -127,9 +127,9 @@ class DatabaseManager {
     int? score2 = map['score2'];
     String? photoUrl = map['photoUrl'];
     int? player1Id = map['player1'] as int?;
-    Player? player1 = await player(player1Id);
+    PlayerModel? player1 = await player(player1Id);
     int? player2Id = map['player2'] as int?;
-    Player? player2 = await player(player2Id);
+    PlayerModel? player2 = await player(player2Id);
     if (player1 != null && player2 != null) {
       var game = TwoPlayerGame(
         player1: player1,
@@ -154,9 +154,9 @@ class DatabaseManager {
       String? name = map['name'];
       String? games = map['games'];
       int? player1Id = map['player1'] as int?;
-      Player? player1 = await player(player1Id);
+      PlayerModel? player1 = await player(player1Id);
       int? player2Id = map['player2'] as int?;
-      Player? player2 = await player(player2Id);
+      PlayerModel? player2 = await player(player2Id);
       if (player1 != null && player2 != null) {
         var round = TwoPlayerRound(
           player1: player1,
@@ -197,9 +197,9 @@ class DatabaseManager {
     String? name = map['name'];
     String? games = map['games'];
     int? player1Id = map['player1'] as int?;
-    Player? player1 = await player(player1Id);
+    PlayerModel? player1 = await player(player1Id);
     int? player2Id = map['player2'] as int?;
-    Player? player2 = await player(player2Id);
+    PlayerModel? player2 = await player(player2Id);
     if (player1 != null && player2 != null) {
       var round = TwoPlayerRound(
         player1: player1,
@@ -228,7 +228,7 @@ class DatabaseManager {
     }
   }
 
-  Future<void> updatePlayer(Player player) async {
+  Future<void> updatePlayer(PlayerModel player) async {
     final db = await database;
     await db.update(
       playerTable,
@@ -244,7 +244,7 @@ class DatabaseManager {
         where: 'id = ?', whereArgs: [round.id]);
   }
 
-  Future<int> deletePlayer(Player player) async {
+  Future<int> deletePlayer(PlayerModel player) async {
     final db = await database;
     return await db.delete(
       playerTable,

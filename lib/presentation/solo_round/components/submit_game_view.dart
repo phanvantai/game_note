@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/_old/model/two_player_game.dart';
 
-import '../../../_old/model/player.dart';
+import '../../../domain/entities/player_model.dart';
 import '../../../_old/views/components/player_view.dart';
 
 class SubmitGameView extends StatefulWidget {
-  final Player player1;
-  final Player player2;
+  final PlayerModel player1;
+  final PlayerModel player2;
   final Function(TwoPlayerGame) onSubmitGame;
   const SubmitGameView(this.player1, this.player2,
       {Key? key, required this.onSubmitGame})

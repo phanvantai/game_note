@@ -1,18 +1,21 @@
 import 'package:equatable/equatable.dart';
-import 'package:game_note/domain/entities/player_model.dart';
 
 import 'club_model.dart';
+import 'player_model.dart';
 
 class ResultModel extends Equatable {
-  final int score;
+  // status: finished: true, not finished: false
+  final bool status;
+  final int? score;
   final PlayerModel playerModel;
   final ClubModel? clubModel;
 
   const ResultModel({
-    required this.score,
+    this.status = false,
+    this.score,
     required this.playerModel,
     this.clubModel,
   });
   @override
-  List<Object?> get props => [playerModel, score, clubModel];
+  List<Object?> get props => [playerModel, score, clubModel, status];
 }

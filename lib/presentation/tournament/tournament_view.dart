@@ -33,6 +33,13 @@ class TournamentView extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addNewTournament,
+        tooltip: 'Add New Round',
+        child: const Icon(Icons.add),
+      ),
     );
   }
+
+  _addNewTournament() {}
 }

@@ -1,9 +1,9 @@
-import 'player.dart';
+import '../../domain/entities/player_model.dart';
 import 'two_player_game.dart';
 
 class TwoPlayerRound {
-  final Player player1;
-  final Player player2;
+  final PlayerModel player1;
+  final PlayerModel player2;
   List<TwoPlayerGame> games = [];
   int? id;
   String? name;
@@ -19,7 +19,7 @@ class TwoPlayerRound {
   int get player1Score => countWin(player1);
   int get player2Score => countWin(player2);
 
-  int countWin(Player player) {
+  int countWin(PlayerModel player) {
     return games
         .map((e) => e.winner)
         .where((element) => element?.id == player.id)

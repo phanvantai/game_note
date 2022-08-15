@@ -3,11 +3,11 @@ import 'package:game_note/_old/views/components/player_view.dart';
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
 
-import '../../model/player.dart';
+import '../../../domain/entities/player_model.dart';
 
 class SelectPlayerView extends StatefulWidget {
   final int numberOfPlayer;
-  final Function(List<Player>) onSelectDone;
+  final Function(List<PlayerModel>) onSelectDone;
   const SelectPlayerView(
     this.numberOfPlayer, {
     Key? key,
@@ -19,8 +19,8 @@ class SelectPlayerView extends StatefulWidget {
 }
 
 class _SelectPlayerViewState extends State<SelectPlayerView> {
-  List<Player> players = [];
-  List<Player> selectedPlayers = [];
+  List<PlayerModel> players = [];
+  List<PlayerModel> selectedPlayers = [];
   @override
   void initState() {
     super.initState();

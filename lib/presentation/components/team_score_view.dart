@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/_old/model/player.dart';
+import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/_old/model/two_player_round.dart';
 import 'package:game_note/core/constants/constants.dart';
 
 class TeamScoreView extends StatelessWidget {
   final TwoPlayerRound round;
-  final Player player;
+  final PlayerModel player;
   const TeamScoreView({
     Key? key,
     required this.player,

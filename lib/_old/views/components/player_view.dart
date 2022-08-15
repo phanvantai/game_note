@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/core/constants/constants.dart';
 
-import '../../model/player.dart';
+import '../../../domain/entities/player_model.dart';
 
 class PlayerView extends StatefulWidget {
   final bool? bold;
-  final Player player;
+  final PlayerModel player;
   final Function(bool)? onClick;
   const PlayerView(this.player, {Key? key, required this.onClick, this.bold})
       : super(key: key);
