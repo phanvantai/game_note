@@ -2,13 +2,22 @@ import 'package:equatable/equatable.dart';
 import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 
-enum TournamentStatus { error, loading, addPlayer, list }
+enum TournamentStatus {
+  error,
+  loading,
+  addPlayer,
+  list,
+  tournament,
+  updatingTournament
+}
 
 extension TournamentStatusX on TournamentStatus {
   bool get isError => this == TournamentStatus.error;
   bool get isLoading => this == TournamentStatus.loading;
   bool get isAddPlayer => this == TournamentStatus.addPlayer;
   bool get isList => this == TournamentStatus.list;
+  bool get isTournament => this == TournamentStatus.tournament;
+  bool get isUpdatingTournament => this == TournamentStatus.updatingTournament;
 }
 
 class TournamentState extends Equatable {

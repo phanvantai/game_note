@@ -7,6 +7,7 @@ import 'package:game_note/presentation/tournament/tournament_add_new_view.dart';
 import 'package:game_note/presentation/tournament/tournament_list_view.dart';
 import 'package:game_note/presentation/tournament/tournament_error_view.dart';
 import 'package:game_note/presentation/tournament/tournament_loading_view.dart';
+import 'package:game_note/presentation/tournament/tournament_processing_view.dart';
 
 class TournamentView extends StatelessWidget {
   const TournamentView({Key? key}) : super(key: key);
@@ -25,6 +26,9 @@ class TournamentView extends StatelessWidget {
           return const TournamentAddNewView();
         } else if (state.status.isList) {
           return const TournamentListView();
+        } else if (state.status.isTournament ||
+            state.status.isUpdatingTournament) {
+          return const TournamentProcessingView();
         } else {
           return const SizedBox.shrink();
         }

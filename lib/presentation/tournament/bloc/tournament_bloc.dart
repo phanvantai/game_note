@@ -28,6 +28,12 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
 
   _addPlayersToTournament(
       AddPlayersToTournament event, Emitter<TournamentState> emit) async {
-    emit(state.copyWith(players: event.players));
+    emit(state.copyWith(status: TournamentStatus.list, lastState: state));
+    emit(state.copyWith(
+      status: TournamentStatus.tournament,
+      players: event.players,
+      matches: [],
+      lastState: state,
+    ));
   }
 }
