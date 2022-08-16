@@ -27,7 +27,9 @@ class TournamentAddNewView extends StatelessWidget {
             children: [
               Expanded(
                 child: SelectPlayerView(onSelectDone: (players) {
-                  print('abcdef ${players.length}');
+                  // add list player to bloc
+                  BlocProvider.of<TournamentBloc>(context)
+                      .add(AddPlayersToTournament(players: players));
                 }),
               ),
             ],

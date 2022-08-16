@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 
@@ -7,6 +8,7 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
     on<LoadListTournamentEvent>(_loadListTournament);
     on<AddNewTournamentEvent>(_addNewTournament);
     on<CloseToLastStateEvent>(_closeToLastState);
+    on<AddPlayersToTournament>(_addPlayersToTournament);
   }
 
   _loadListTournament(
@@ -22,5 +24,10 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
   _closeToLastState(
       CloseToLastStateEvent event, Emitter<TournamentState> emit) {
     emit(state.lastState ?? state);
+  }
+
+  _addPlayersToTournament(
+      AddPlayersToTournament event, Emitter<TournamentState> emit) async {
+    emit(state.copyWith(players: event.players));
   }
 }

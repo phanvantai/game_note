@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:game_note/domain/entities/match_model.dart';
+import 'package:game_note/domain/entities/player_model.dart';
 
 enum TournamentStatus { error, loading, addPlayer, list }
 
@@ -12,21 +14,29 @@ extension TournamentStatusX on TournamentStatus {
 class TournamentState extends Equatable {
   final TournamentStatus status;
   final TournamentState? lastState;
+  final List<PlayerModel> players;
+  final List<MatchModel> matches;
   const TournamentState({
     this.status = TournamentStatus.loading,
     this.lastState,
+    this.players = const [],
+    this.matches = const [],
   });
 
   TournamentState copyWith({
     TournamentStatus? status,
     TournamentState? lastState,
+    List<PlayerModel>? players,
+    List<MatchModel>? matches,
   }) {
     return TournamentState(
       status: status ?? this.status,
       lastState: lastState ?? this.lastState,
+      players: players ?? this.players,
+      matches: matches ?? this.matches,
     );
   }
 
   @override
-  List<Object?> get props => [status];
+  List<Object?> get props => [status, lastState, players];
 }
