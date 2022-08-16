@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:game_note/_old/model/two_player_game.dart';
 
 import '../../../domain/entities/player_model.dart';
-import '../../../_old/views/components/player_view.dart';
+import '../../components/player_view.dart';
 
 class SubmitGameView extends StatefulWidget {
   final PlayerModel player1;

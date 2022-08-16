@@ -6,7 +6,7 @@ import 'package:game_note/presentation/solo_round/components/submit_game_view.da
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
 
-import '../../_old/views/components/select_player_view.dart';
+import '../components/select_player_view.dart';
 
 class TwoPlayerRoundView extends StatefulWidget {
   final TwoPlayerRound? twoPlayerRound;
@@ -41,7 +41,7 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
           body: twoPlayerRound != null
               ? _twoPlayerRound()
               : SelectPlayerView(
-                  2,
+                  numberOfPlayer: 2,
                   onSelectDone: (players) async {
                     int id = await getIt<DatabaseManager>()
                         .insertTwoPlayerRound(TwoPlayerRound(
@@ -62,7 +62,7 @@ class _TwoPlayerRoundViewState extends State<TwoPlayerRoundView> {
           : Container(
               color: Colors.black,
               child: SelectPlayerView(
-                2,
+                numberOfPlayer: 2,
                 onSelectDone: (players) async {
                   int id = await getIt<DatabaseManager>().insertTwoPlayerRound(
                       TwoPlayerRound(player1: players[0], player2: players[1]));

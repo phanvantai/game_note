@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/core/constants/constants.dart';
 
-import '../../../domain/entities/player_model.dart';
+import '../../domain/entities/player_model.dart';
 
 class PlayerView extends StatefulWidget {
   final bool? bold;
@@ -36,7 +36,7 @@ class _PlayerViewState extends State<PlayerView> {
           border: Border.all(
             color: isSelected ? Colors.orange : Colors.grey,
           ),
-          borderRadius: BorderRadius.circular(8),
+          //borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
           child: Text(

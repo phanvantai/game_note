@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/_old/views/components/player_view.dart';
+import 'package:game_note/presentation/components/player_view.dart';
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
 
-import '../../../domain/entities/player_model.dart';
+import '../../domain/entities/player_model.dart';
 
 class SelectPlayerView extends StatefulWidget {
-  final int numberOfPlayer;
+  final int? numberOfPlayer;
   final Function(List<PlayerModel>) onSelectDone;
-  const SelectPlayerView(
-    this.numberOfPlayer, {
+  const SelectPlayerView({
     Key? key,
+    this.numberOfPlayer,
     required this.onSelectDone,
   }) : super(key: key);
 
@@ -34,7 +34,7 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
       child: Column(
         children: [
           ElevatedButton(
-            onPressed: selectedPlayers.length == widget.numberOfPlayer
+            onPressed: enableDoneButton
                 ? () {
                     widget.onSelectDone(selectedPlayers);
                   }
@@ -42,13 +42,14 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
             child: const Text("Done"),
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(
-                selectedPlayers.length == widget.numberOfPlayer
-                    ? Colors.orange
-                    : Colors.orange.withOpacity(0.5),
+                enableDoneButton ? Colors.orange : Colors.grey,
               ),
             ),
           ),
-          Text("Selecting 2 player. Selected: ${selectedPlayers.length}"),
+          if (widget.numberOfPlayer != null)
+            Text("Selecting 2 player. Selected: ${selectedPlayers.length}")
+          else
+            Text("Selected: ${selectedPlayers.length}"),
           const SizedBox(height: 16),
           Expanded(
             child: ListView.builder(
@@ -75,6 +76,14 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
         ],
       ),
     );
+  }
+
+  bool get enableDoneButton {
+    if (widget.numberOfPlayer == null) {
+      return selectedPlayers.length > 1;
+    } else {
+      return selectedPlayers.length == widget.numberOfPlayer;
+    }
   }
 
   void loadPlayer() async {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/domain/entities/player_model.dart';
-import 'package:game_note/_old/views/components/player_view.dart';
+import 'package:game_note/presentation/components/player_view.dart';
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/members/add_player_dialog.dart';
@@ -48,9 +48,11 @@ class _MembersViewState extends State<MembersView>
                         children: [
                           const SizedBox(height: 8),
                           Dismissible(
-                            confirmDismiss: (direction) {
-                              return Future.value(true);
-                            },
+                            direction: DismissDirection.endToStart,
+                            // confirmDismiss: (direction) {
+                            //   return Future.value(
+                            //       direction == DismissDirection.endToStart);
+                            // },
                             key: Key(players[index].id.toString()),
                             onDismissed: (direction) async {
                               await getIt<DatabaseManager>()

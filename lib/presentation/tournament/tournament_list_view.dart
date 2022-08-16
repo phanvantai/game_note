@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
+import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/matches_view.dart';
 import 'package:game_note/presentation/tournament/table_view.dart';
 
-class TournamentDoneView extends StatelessWidget {
-  const TournamentDoneView({Key? key}) : super(key: key);
+class TournamentListView extends StatelessWidget {
+  const TournamentListView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +37,10 @@ class TournamentDoneView extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        tooltip: 'Add New Round',
+        onPressed: () {
+          BlocProvider.of<TournamentBloc>(context).add(AddNewTournamentEvent());
+        },
+        tooltip: 'Add New Tournament',
         child: const Icon(Icons.add),
       ),
     );

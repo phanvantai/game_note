@@ -6,4 +6,8 @@ class TournamentEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class LoadListTournamentEvent extends TournamentEvent {}
+
 class AddNewTournamentEvent extends TournamentEvent {}
+
+class CloseToLastStateEvent extends TournamentEvent {}
