@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/core/constants/constants.dart';
+import 'package:game_note/core/ultils.dart';
 
 class PlayerItemView extends StatelessWidget {
   final String text;

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/_old/model/two_player_round.dart';
-import 'package:game_note/core/constants/constants.dart';
 
 class TeamScoreView extends StatelessWidget {
   final TwoPlayerRound round;
@@ -21,7 +20,7 @@ class TeamScoreView extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              color: randomObject(Colors.primaries),
+              color: player.color,
               width: 24,
               height: 24,
             ),

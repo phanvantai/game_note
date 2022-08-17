@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 const boldTextStyle = TextStyle(
@@ -23,8 +21,3 @@ const MaterialColor primaryBlack = MaterialColor(
   },
 );
 const int _blackPrimaryValue = 0xFF000000;
-
-T randomObject<T>(List<T> list) {
-  final random = Random();
-  return list[random.nextInt(list.length)];
-}

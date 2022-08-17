@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/core/constants/constants.dart';
 import 'package:game_note/domain/entities/result_model.dart';
 
 class PlayerScoreView extends StatelessWidget {
@@ -15,7 +14,7 @@ class PlayerScoreView extends StatelessWidget {
           ClipRRect(
             child: Container(
               decoration: BoxDecoration(
-                color: randomObject(Colors.primaries),
+                color: model.playerModel.color,
                 borderRadius: BorderRadius.circular(12),
               ),
               width: 24,
@@ -32,10 +31,8 @@ class PlayerScoreView extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            model.score.toString(),
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+            model.score != null ? model.score.toString() : '__',
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 8),
         ],

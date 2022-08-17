@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/presentation/components/match_view.dart';
-import 'package:game_note/presentation/models/match.dart';
 
 class ListMatchesView extends StatelessWidget {
-  const ListMatchesView({Key? key}) : super(key: key);
+  final List<MatchModel> list;
+  const ListMatchesView({Key? key, required this.list}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: Match.dump.length,
+      itemCount: list.length,
       itemBuilder: ((context, index) {
-        return MatchView(model: Match.dump[index]);
+        return MatchView(
+          model: list[index],
+          callback: () {
+            print('abcdef');
+          },
+        );
       }),
     );
   }

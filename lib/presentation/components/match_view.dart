@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/presentation/components/player_score_view.dart';
-import 'package:game_note/presentation/models/match.dart';
 
 class MatchView extends StatelessWidget {
-  final Match model;
-  const MatchView({Key? key, required this.model}) : super(key: key);
+  final MatchModel model;
+  final VoidCallback? callback;
+  const MatchView({Key? key, required this.model, this.callback})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        children: [
-          const ClipRRect(child: Icon(Icons.people_alt_rounded)),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              children: [
-                PlayerScoreView(model: model.matchModel.home),
-                PlayerScoreView(model: model.matchModel.away),
-              ],
+    return GestureDetector(
+      onTap: model.status == false ? callback : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  PlayerScoreView(model: model.home),
+                  PlayerScoreView(model: model.away),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

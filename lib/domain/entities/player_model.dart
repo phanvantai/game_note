@@ -1,11 +1,14 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:game_note/core/ultils.dart';
 
 class PlayerModel extends Equatable {
   final String fullname;
   final String level;
   final int? id;
+  final Color? color = randomObject(Colors.accents);
 
-  const PlayerModel({required this.fullname, this.level = "Noob", this.id});
+  PlayerModel({required this.fullname, this.level = "Noob", this.id});
 
   Map<String, dynamic> toMap() {
     return {

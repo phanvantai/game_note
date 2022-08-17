@@ -47,5 +47,5 @@ class TournamentState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, lastState, players];
+  List<Object?> get props => [status, lastState, players, matches];
 }
