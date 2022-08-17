@@ -39,19 +39,47 @@ class TableItemView extends StatelessWidget {
             ),
             flex: 9,
           ),
-          Expanded(child: Center(child: Text(model.wins.toString())), flex: 2),
-          Expanded(child: Center(child: Text(model.draws.toString())), flex: 2),
           Expanded(
             child: Center(
-              child: Text(model.losses.toString()),
+              child: Text(
+                model.wins.toString(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             flex: 2,
           ),
           Expanded(
-              child: Center(child: Text(model.goalsDifference.toString())),
-              flex: 3),
+              child: Center(
+                child: Text(
+                  model.draws.toString(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              flex: 2),
           Expanded(
-            child: Center(child: Text(model.points.toString())),
+            child: Center(
+              child: Text(
+                model.losses.toString(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            flex: 2,
+          ),
+          Expanded(
+            child: Center(
+                child: Text(
+              model.goalsDifference.toString(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            )),
+            flex: 3,
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                model.points.toString(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
             flex: 3,
           ),
         ],

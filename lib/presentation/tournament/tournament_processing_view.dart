@@ -21,13 +21,16 @@ class TournamentProcessingView extends StatelessWidget {
           },
         ),
       ),
-      body: SafeArea(
-        child: Column(
-          children: const [
-            TableView(),
-            SizedBox(height: 12),
-            Expanded(child: MatchesView()),
-          ],
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: Column(
+            children: const [
+              TableView(),
+              SizedBox(height: 12),
+              Expanded(child: MatchesView()),
+            ],
+          ),
         ),
       ),
     );

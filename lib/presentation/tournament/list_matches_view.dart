@@ -13,8 +13,8 @@ class ListMatchesView extends StatelessWidget {
       itemBuilder: ((context, index) {
         return MatchView(
           model: list[index],
-          callback: () {
-            print('abcdef');
+          callback: (match) {
+            print(match);
           },
         );
       }),

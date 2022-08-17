@@ -9,11 +9,18 @@ import 'package:game_note/presentation/tournament/tournament_error_view.dart';
 import 'package:game_note/presentation/tournament/tournament_loading_view.dart';
 import 'package:game_note/presentation/tournament/tournament_processing_view.dart';
 
-class TournamentView extends StatelessWidget {
+class TournamentView extends StatefulWidget {
   const TournamentView({Key? key}) : super(key: key);
 
   @override
+  State<TournamentView> createState() => _TournamentViewState();
+}
+
+class _TournamentViewState extends State<TournamentView>
+    with AutomaticKeepAliveClientMixin<TournamentView> {
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return BlocProvider(
       create: (_) => TournamentBloc()..add(LoadListTournamentEvent()),
       child: BlocBuilder<TournamentBloc, TournamentState>(
@@ -35,4 +42,7 @@ class TournamentView extends StatelessWidget {
       }),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
