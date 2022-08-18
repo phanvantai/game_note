@@ -33,6 +33,13 @@ class TournamentProcessingView extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          BlocProvider.of<TournamentBloc>(context).add(AddNewTournamentEvent());
+        },
+        tooltip: 'Add New Tournament',
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

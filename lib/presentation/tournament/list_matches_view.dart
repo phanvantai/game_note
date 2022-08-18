@@ -14,7 +14,7 @@ class ListMatchesView extends StatelessWidget {
         return MatchView(
           model: list[index],
           callback: (match) {
-            print(match);
+            //print(match);
           },
         );
       }),

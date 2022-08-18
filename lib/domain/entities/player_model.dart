@@ -25,4 +25,6 @@ class PlayerModel extends Equatable {
 
   @override
   List<Object?> get props => [fullname, level, id];
+
+  static PlayerModel get virtualPlayer => PlayerModel(fullname: "Bot");
 }

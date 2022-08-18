@@ -11,6 +11,8 @@ class LoadListTournamentEvent extends TournamentEvent {}
 
 class AddNewTournamentEvent extends TournamentEvent {}
 
+class AddNewRoundEvent extends TournamentEvent {}
+
 class CloseToLastStateEvent extends TournamentEvent {}
 
 class AddPlayersToTournament extends TournamentEvent {

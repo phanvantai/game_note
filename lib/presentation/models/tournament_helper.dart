@@ -5,8 +5,12 @@ import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/presentation/models/player_stats.dart';
 
 class TournamentHelper {
-  static List<Map<T, T>> createMatches<T>(List<T> players) {
+  static List<Map<T, T>> createMatches<T>(List<T> players, T virtual) {
     List<Map<T, T>> matches = [];
+    // n is odd, add a virtual player
+    if (players.length % 2 != 0) {
+      players.add(virtual);
+    }
     // create first round matches
     matches.addAll(createMaps(players));
     // // rotate n-2 times
@@ -16,7 +20,13 @@ class TournamentHelper {
       // create matches
       matches.addAll(createMaps(players));
     }
-    return matches;
+    // remove virtual player
+    players.remove(virtual);
+    // remove matches have virtual player
+    return matches
+        .where((element) =>
+            element.keys.first != virtual && element.values.first != virtual)
+        .toList();
   }
 
   static PlayerStats getStats(PlayerModel player, List<MatchModel> matches) {
