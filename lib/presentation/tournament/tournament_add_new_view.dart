@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/presentation/components/select_player_view.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 
-class TournamentAddNewView extends StatelessWidget {
+class TournamentAddNewView extends StatefulWidget {
   const TournamentAddNewView({Key? key}) : super(key: key);
+
+  @override
+  State<TournamentAddNewView> createState() => _TournamentAddNewViewState();
+}
+
+class _TournamentAddNewViewState extends State<TournamentAddNewView> {
+  List<PlayerModel> players = [];
+  bool enable = false;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +28,17 @@ class TournamentAddNewView extends StatelessWidget {
                   .add(CloseToLastStateEvent());
             },
           ),
+          actions: [
+            if (enable)
+              IconButton(
+                onPressed: () {
+                  // add list player to bloc
+                  BlocProvider.of<TournamentBloc>(context)
+                      .add(AddPlayersToTournament(players: players));
+                },
+                icon: const Icon(Icons.done),
+              ),
+          ],
           backgroundColor: Colors.black,
         ),
         backgroundColor: Colors.black,
@@ -26,10 +46,11 @@ class TournamentAddNewView extends StatelessWidget {
           child: Column(
             children: [
               Expanded(
-                child: SelectPlayerView(onSelectDone: (players) {
-                  // add list player to bloc
-                  BlocProvider.of<TournamentBloc>(context)
-                      .add(AddPlayersToTournament(players: players));
+                child: SelectPlayerView(enableSection: (players, enable) {
+                  setState(() {
+                    this.players = players;
+                    this.enable = enable;
+                  });
                 }),
               ),
             ],

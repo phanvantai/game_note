@@ -11,7 +11,7 @@ class TournamentListView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       body: const SafeArea(
-        child: Text('list tournament'),
+        child: Center(child: Text('list tournament')),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

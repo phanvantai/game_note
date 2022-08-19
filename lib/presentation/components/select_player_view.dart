@@ -7,11 +7,13 @@ import '../../domain/entities/player_model.dart';
 
 class SelectPlayerView extends StatefulWidget {
   final int? numberOfPlayer;
-  final Function(List<PlayerModel>) onSelectDone;
+  final Function(List<PlayerModel>)? onSelectDone;
+  final Function(List<PlayerModel>, bool)? enableSection;
   const SelectPlayerView({
     Key? key,
     this.numberOfPlayer,
-    required this.onSelectDone,
+    this.onSelectDone,
+    this.enableSection,
   }) : super(key: key);
 
   @override
@@ -33,19 +35,20 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          ElevatedButton(
-            onPressed: enableDoneButton
-                ? () {
-                    widget.onSelectDone(selectedPlayers);
-                  }
-                : null,
-            child: const Text("Done"),
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all<Color>(
-                enableDoneButton ? Colors.orange : Colors.grey,
+          if (widget.onSelectDone != null)
+            ElevatedButton(
+              onPressed: enableDoneButton
+                  ? () {
+                      widget.onSelectDone!(selectedPlayers);
+                    }
+                  : null,
+              child: const Text("Done"),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  enableDoneButton ? Colors.orange : Colors.grey,
+                ),
               ),
             ),
-          ),
           if (widget.numberOfPlayer != null)
             Text("Selecting 2 player. Selected: ${selectedPlayers.length}")
           else
@@ -66,6 +69,10 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
                               ? selectedPlayers.add(players[index])
                               : selectedPlayers.remove(players[index]);
                         });
+                        if (widget.enableSection != null) {
+                          widget.enableSection!(
+                              selectedPlayers, enableDoneButton);
+                        }
                       },
                     )
                   ],
