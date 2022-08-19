@@ -17,7 +17,7 @@ class TableItemView extends StatelessWidget {
       child: Flex(
         direction: Axis.horizontal,
         children: [
-          Expanded(child: Center(child: Text(model.rank.toString())), flex: 2),
+          Expanded(child: Center(child: Text(model.rank)), flex: 2),
           const SizedBox(width: 8),
           ClipRRect(
             child: Container(
@@ -42,20 +42,30 @@ class TableItemView extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                model.wins.toString(),
+                model.played,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             flex: 2,
           ),
           Expanded(
-              child: Center(
-                child: Text(
-                  model.draws.toString(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+            child: Center(
+              child: Text(
+                model.wins,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              flex: 2),
+            ),
+            flex: 2,
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                model.draws,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            flex: 2,
+          ),
           Expanded(
             child: Center(
               child: Text(
@@ -68,7 +78,9 @@ class TableItemView extends StatelessWidget {
           Expanded(
             child: Center(
                 child: Text(
-              model.goalsDifference.toString(),
+              model.goalsDifference == -10000
+                  ? "GD"
+                  : model.goalsDifference.toString(),
               style: const TextStyle(fontWeight: FontWeight.bold),
             )),
             flex: 3,
@@ -76,7 +88,7 @@ class TableItemView extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                model.points.toString(),
+                model.points == -10000 ? "PTS" : model.points.toString(),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),

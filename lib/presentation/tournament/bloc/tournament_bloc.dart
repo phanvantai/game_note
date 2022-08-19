@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/domain/entities/player_model.dart';
+import 'package:game_note/domain/entities/result_model.dart';
 import 'package:game_note/presentation/models/tournament_helper.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
@@ -12,6 +13,7 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
     on<CloseToLastStateEvent>(_closeToLastState);
     on<AddPlayersToTournament>(_addPlayersToTournament);
     on<AddNewRoundEvent>(_addNewRound);
+    on<UpdateMatchEvent>(_updateMatch);
   }
 
   _loadListTournament(
@@ -43,6 +45,29 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
 
   _addNewRound(AddNewRoundEvent event, Emitter<TournamentState> emit) async {
     emit(state.copyWith(status: TournamentStatus.updatingTournament));
-    // TODO: -
+    var abcdef = MatchModelX.from(TournamentHelper.createMatches(
+        state.players, PlayerModel.virtualPlayer));
+    state.matches.addAll(abcdef);
+    emit(state.copyWith(status: TournamentStatus.tournament));
+  }
+
+  _updateMatch(UpdateMatchEvent event, Emitter<TournamentState> emit) async {
+    emit(state.copyWith(status: TournamentStatus.updatingTournament));
+    var index = state.matches.indexOf(event.matchModel);
+    state.matches[index] = MatchModel(
+      home: ResultModel(
+        playerModel: event.matchModel.home.playerModel,
+        score: event.home,
+      ),
+      away: ResultModel(
+        playerModel: event.matchModel.away.playerModel,
+        score: event.away,
+      ),
+      status: true,
+    );
+    emit(state.copyWith(
+      status: TournamentStatus.tournament,
+      matches: state.matches,
+    ));
   }
 }

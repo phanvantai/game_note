@@ -4,7 +4,9 @@ import 'package:game_note/presentation/components/match_view.dart';
 
 class ListMatchesView extends StatelessWidget {
   final List<MatchModel> list;
-  const ListMatchesView({Key? key, required this.list}) : super(key: key);
+  final Function(MatchModel)? callback;
+  const ListMatchesView({Key? key, required this.list, this.callback})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,9 +15,7 @@ class ListMatchesView extends StatelessWidget {
       itemBuilder: ((context, index) {
         return MatchView(
           model: list[index],
-          callback: (match) {
-            //print(match);
-          },
+          callback: callback,
         );
       }),
     );

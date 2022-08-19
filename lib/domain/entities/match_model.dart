@@ -25,8 +25,8 @@ extension ResultTypeX on ResultType {
 
   static ResultType result(PlayerModel player, MatchModel match) {
     if (match.status == false ||
-        match.home.playerModel != player ||
-        match.away.playerModel != player ||
+        (match.home.playerModel != player &&
+            match.away.playerModel != player) ||
         match.home.score == null ||
         match.away.score == null) {
       return ResultType.unknown;

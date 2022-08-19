@@ -8,8 +8,8 @@ class PlayerStats extends Equatable {
   final String wins;
   final String draws;
   final String losses;
-  final String goalsDifference;
-  final String points;
+  final int goalsDifference;
+  final int points;
   final Color color;
 
   const PlayerStats(this.rank, this.name, this.played, this.wins, this.draws,
@@ -20,5 +20,5 @@ class PlayerStats extends Equatable {
       [rank, name, played, wins, draws, losses, goalsDifference, points];
 
   static PlayerStats get virtualStats => const PlayerStats(
-      '#', "PLAYER", "P", "W", "D", "L", "GD", "PTS", Colors.white);
+      '#', "PLAYER", "P", "W", "D", "L", -10000, -10000, Colors.white);
 }

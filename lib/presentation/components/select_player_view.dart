@@ -80,7 +80,7 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
 
   bool get enableDoneButton {
     if (widget.numberOfPlayer == null) {
-      return selectedPlayers.length > 1;
+      return selectedPlayers.length > 2;
     } else {
       return selectedPlayers.length == widget.numberOfPlayer;
     }

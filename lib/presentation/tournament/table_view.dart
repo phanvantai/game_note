@@ -15,9 +15,9 @@ class TableView extends StatelessWidget {
       builder: (context, state) => Column(
         children: [
           TableItemView(model: PlayerStats.virtualStats),
-          for (var player in state.players)
-            TableItemView(
-                model: TournamentHelper.getStats(player, state.matches)),
+          ...TournamentHelper.createTable(state.players, state.matches)
+              .map((e) => TableItemView(model: e))
+              .toList(),
         ],
       ),
     );

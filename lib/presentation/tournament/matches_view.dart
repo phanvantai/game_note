@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/domain/entities/match_model.dart';
+import 'package:game_note/presentation/components/update_match_dialog.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
+import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 import 'package:game_note/presentation/tournament/list_matches_view.dart';
 
@@ -28,9 +31,13 @@ class MatchesView extends StatelessWidget {
               builder: (context, state) => TabBarView(
                 children: [
                   ListMatchesView(
-                      list: state.matches
-                          .where((element) => element.status == false)
-                          .toList()),
+                    list: state.matches
+                        .where((element) => element.status == false)
+                        .toList(),
+                    callback: (match) {
+                      _updateMatch(match, context);
+                    },
+                  ),
                   ListMatchesView(
                       list: state.matches
                           .where((element) => element.status == true)
@@ -40,6 +47,19 @@ class MatchesView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _updateMatch(MatchModel model, BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => UpdateMatchDialog(
+        model: model,
+        callback: (match, home, away) {
+          BlocProvider.of<TournamentBloc>(context)
+              .add(UpdateMatchEvent(matchModel: match, home: home, away: away));
+        },
       ),
     );
   }

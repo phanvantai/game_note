@@ -32,10 +32,10 @@ class _PlayerViewState extends State<PlayerView> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.orange : Colors.grey,
-          border: Border.all(
-            color: isSelected ? Colors.orange : Colors.grey,
-          ),
+          color: isSelected ? Colors.orange : Colors.grey.withOpacity(0.3),
+          // border: Border.all(
+          //   color: isSelected ? Colors.orange : Colors.grey,
+          // ),
           //borderRadius: BorderRadius.circular(8),
         ),
         child: Center(

@@ -29,6 +29,28 @@ class TournamentHelper {
         .toList();
   }
 
+  static List<PlayerStats> createTable(
+      List<PlayerModel> players, List<MatchModel> matches) {
+    var list =
+        players.map((e) => TournamentHelper.getStats(e, matches)).toList();
+    list.sort((a, b) => b.points.compareTo(a.points));
+    list.sort((a, b) => b.goalsDifference.compareTo(a.goalsDifference));
+    return list;
+  }
+
+  static int goalDifference(PlayerModel player, MatchModel match) {
+    if (match.status == false ||
+        (match.home.playerModel != player &&
+            match.away.playerModel != player) ||
+        match.home.score == null ||
+        match.away.score == null) {
+      return 0;
+    }
+    return player == match.home.playerModel
+        ? match.home.score! - match.away.score!
+        : match.away.score! - match.home.score!;
+  }
+
   static PlayerStats getStats(PlayerModel player, List<MatchModel> matches) {
     var matchesPlayed = matches
         .where((element) =>
@@ -48,6 +70,10 @@ class TournamentHelper {
         .where((e) => ResultTypeX.result(player, e).isLost)
         .toList()
         .length;
+    int gd = 0;
+    for (var match in matchesPlayed) {
+      gd += goalDifference(player, match);
+    }
     return PlayerStats(
         0.toString(),
         player.fullname,
@@ -55,8 +81,8 @@ class TournamentHelper {
         wins.toString(),
         draws.toString(),
         losses.toString(),
-        0.toString(),
-        (wins * 3 + draws * 1).toString(),
+        gd,
+        wins * 3 + draws * 1,
         player.color ?? randomObject(Colors.primaries));
   }
 }
