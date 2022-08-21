@@ -33,8 +33,21 @@ class TournamentHelper {
       List<PlayerModel> players, List<MatchModel> matches) {
     var list =
         players.map((e) => TournamentHelper.getStats(e, matches)).toList();
-    list.sort((a, b) => b.points.compareTo(a.points));
-    list.sort((a, b) => b.goalsDifference.compareTo(a.goalsDifference));
+    list.sort((a, b) {
+      if (a.points > b.points) {
+        return -1;
+      } else if (a.points < b.points) {
+        return 1;
+      } else {
+        if (a.goalsDifference > b.goalsDifference) {
+          return -1;
+        } else if (a.goalsDifference < b.goalsDifference) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    });
     return list;
   }
 
