@@ -8,6 +8,10 @@ class DatabaseManager {
   final String playerTable = "players";
   final String twoPlayerGames = "two_player_games";
   final String twoPlayerRounds = "two_player_rounds";
+  final String playerMatchTable = "player_match_table";
+  final String matchesTable = "matches_table";
+  final String roundsTable = "rounds_table";
+  final String tournamentsTable = "tournament_table";
   late Future<Database> database;
   Future<void> open() async {
     database = openDatabase(
@@ -32,6 +36,14 @@ class DatabaseManager {
         'CREATE TABLE IF NOT EXISTS $twoPlayerGames(id INTEGER PRIMARY KEY AUTOINCREMENT, player1 INTEGER, player2 INTEGER, score1 INTEGER, score2 INTEGER, photoUrl TEXT)');
     db.execute(
         'CREATE TABLE IF NOT EXISTS $twoPlayerRounds(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, player1 INTEGER, player2 INTEGER, games TEXT)');
+    db.execute(
+        'CREATE TABLE IF NOT EXISTS $tournamentsTable(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, time TEXT)');
+    db.execute(
+        'CREATE TABLE IF NOT EXISTS $roundsTable(id INTEGER PRIMARY KEY AUTOINCREMENT, tournament_id INTEGER)');
+    db.execute(
+        'CREATE TABLE IF NOT EXISTS $matchesTable(id INTEGER PRIMARY KEY AUTOINCREMENT, datetime TEXT, status INTEGER)');
+    db.execute(
+        'CREATE TABLE IF NOT EXISTS $playerMatchTable(id INTEGER PRIMARY KEY AUTOINCREMENT, player_id INTEGER, match_id INTEGER, player_score INTEGER)');
   }
 
   Future<void> insertPlayer(PlayerModel player) async {
