@@ -3,16 +3,37 @@ import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/entities/result_model.dart';
 
 class MatchModel extends Equatable {
+  final int? id;
   // status: finished: true, not finished: false
   final bool status;
   final ResultModel home;
   final ResultModel away;
-  final DateTime created = DateTime.now();
+  //final DateTime created = DateTime.now();
 
-  MatchModel({required this.home, required this.away, this.status = false});
+  const MatchModel({
+    this.id,
+    required this.home,
+    required this.away,
+    this.status = false,
+  });
+
+  MatchModel copyWith({
+    int? id,
+    bool? status,
+    ResultModel? home,
+    ResultModel? away,
+  }) {
+    return MatchModel(
+      id: id ?? this.id,
+      home: home ?? this.home,
+      away: away ?? this.away,
+      status: status ?? this.status,
+      //created: created ?? this.created,
+    );
+  }
 
   @override
-  List<Object?> get props => [home, away, created, status];
+  List<Object?> get props => [home, away, status];
 }
 
 enum ResultType { win, draw, lost, unknown }

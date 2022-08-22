@@ -11,7 +11,7 @@ class DatabaseManager {
   final String playerMatchTable = "player_match_table";
   final String matchesTable = "matches_table";
   final String roundsTable = "rounds_table";
-  final String tournamentsTable = "tournament_table";
+  final String leaguesTable = "leagues_table";
   late Future<Database> database;
   Future<void> open() async {
     database = openDatabase(
@@ -37,7 +37,7 @@ class DatabaseManager {
     db.execute(
         'CREATE TABLE IF NOT EXISTS $twoPlayerRounds(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, player1 INTEGER, player2 INTEGER, games TEXT)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $tournamentsTable(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, time TEXT)');
+        'CREATE TABLE IF NOT EXISTS $leaguesTable(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, time TEXT)');
     db.execute(
         'CREATE TABLE IF NOT EXISTS $roundsTable(id INTEGER PRIMARY KEY AUTOINCREMENT, tournament_id INTEGER)');
     db.execute(
