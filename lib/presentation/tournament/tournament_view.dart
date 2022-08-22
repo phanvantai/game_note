@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 import 'package:game_note/presentation/tournament/tournament_add_new_view.dart';
-import 'package:game_note/presentation/tournament/leagues/tournament_list_view.dart';
+import 'package:game_note/presentation/tournament/league_list/tournament_list_view.dart';
 import 'package:game_note/presentation/tournament/tournament_error_view.dart';
 import 'package:game_note/presentation/tournament/tournament_loading_view.dart';
 import 'package:game_note/presentation/tournament/tournament_processing_view.dart';
@@ -22,7 +23,7 @@ class _TournamentViewState extends State<TournamentView>
   Widget build(BuildContext context) {
     super.build(context);
     return BlocProvider(
-      create: (_) => TournamentBloc()..add(LoadListTournamentEvent()),
+      create: (_) => TournamentBloc(getIt())..add(LoadListTournamentEvent()),
       child: BlocBuilder<TournamentBloc, TournamentState>(
           builder: (context, state) {
         if (state.status.isLoading) {

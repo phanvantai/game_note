@@ -2,12 +2,14 @@ import 'package:bloc/bloc.dart';
 import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/entities/result_model.dart';
+import 'package:game_note/domain/usecases/create_league.dart';
 import 'package:game_note/presentation/models/tournament_helper.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 
 class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
-  TournamentBloc() : super(const TournamentState()) {
+  final CreateLeague createLeague;
+  TournamentBloc(this.createLeague) : super(const TournamentState()) {
     on<LoadListTournamentEvent>(_loadListTournament);
     on<AddNewTournamentEvent>(_addNewTournament);
     on<CloseToLastStateEvent>(_closeToLastState);

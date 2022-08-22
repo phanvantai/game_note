@@ -7,5 +7,3 @@ class LeagueListEvent extends Equatable {
 }
 
 class LeagueListStarted extends LeagueListEvent {}
-
-class LeagueListCreateNewOne extends LeagueListEvent {}

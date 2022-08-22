@@ -10,7 +10,13 @@ class TournamentEvent extends Equatable {
 
 class LoadListTournamentEvent extends TournamentEvent {}
 
-class AddNewTournamentEvent extends TournamentEvent {}
+class AddNewTournamentEvent extends TournamentEvent {
+  final String name;
+
+  const AddNewTournamentEvent(this.name);
+  @override
+  List<Object?> get props => [name];
+}
 
 class AddNewRoundEvent extends TournamentEvent {}
 
