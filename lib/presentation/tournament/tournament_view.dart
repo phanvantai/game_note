@@ -4,7 +4,7 @@ import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 import 'package:game_note/presentation/tournament/tournament_add_new_view.dart';
-import 'package:game_note/presentation/tournament/tournament_list_view.dart';
+import 'package:game_note/presentation/tournament/leagues/tournament_list_view.dart';
 import 'package:game_note/presentation/tournament/tournament_error_view.dart';
 import 'package:game_note/presentation/tournament/tournament_loading_view.dart';
 import 'package:game_note/presentation/tournament/tournament_processing_view.dart';

@@ -19,6 +19,8 @@ dependencies:
   equatable: ^2.0.3
   bloc: ^8.1.0
   flutter_bloc: ^8.0.1
+  # Functional programming thingies
+  dartz: ^0.10.1
 
 dev_dependencies:
   flutter_test:

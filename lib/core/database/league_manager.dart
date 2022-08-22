@@ -12,7 +12,7 @@ extension LeagueManager on DatabaseManager {
     );
   }
 
-  Future<List<LeagueModel>> leagues() async {
+  Future<List<LeagueModel>> getLeagues() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(leaguesTable);
 
@@ -26,7 +26,7 @@ extension LeagueManager on DatabaseManager {
     );
   }
 
-  Future<LeagueModel?> league(int id) async {
+  Future<LeagueModel?> getLeague(int id) async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
         await db.query(leaguesTable, where: 'id = $id');
