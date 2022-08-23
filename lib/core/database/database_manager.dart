@@ -9,6 +9,7 @@ class DatabaseManager {
   final String twoPlayerGames = "two_player_games";
   final String twoPlayerRounds = "two_player_rounds";
   final String playerMatchTable = "player_match_table";
+  final String playerLeagueTable = "player_league_table";
   final String matchesTable = "matches_table";
   final String roundsTable = "rounds_table";
   final String leaguesTable = "leagues_table";
@@ -39,11 +40,13 @@ class DatabaseManager {
     db.execute(
         'CREATE TABLE IF NOT EXISTS $leaguesTable(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, time TEXT)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $roundsTable(id INTEGER PRIMARY KEY AUTOINCREMENT, tournament_id INTEGER)');
+        'CREATE TABLE IF NOT EXISTS $roundsTable(id INTEGER PRIMARY KEY AUTOINCREMENT, league_id INTEGER)');
     db.execute(
         'CREATE TABLE IF NOT EXISTS $matchesTable(id INTEGER PRIMARY KEY AUTOINCREMENT, datetime TEXT, status INTEGER)');
     db.execute(
         'CREATE TABLE IF NOT EXISTS $playerMatchTable(id INTEGER PRIMARY KEY AUTOINCREMENT, player_id INTEGER, match_id INTEGER, player_score INTEGER)');
+    db.execute(
+        'CREATE TABLE IF NOT EXISTS $playerLeagueTable(id INTEGER PRIMARY KEY AUTOINCREMENT, player_id INTEGER, league_id INTEGER)');
   }
 
   Future<void> insertPlayer(PlayerModel player) async {
