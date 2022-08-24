@@ -38,7 +38,7 @@ class DatabaseManager {
     db.execute(
         'CREATE TABLE IF NOT EXISTS $twoPlayerRounds(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, player1 INTEGER, player2 INTEGER, games TEXT)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $leaguesTable(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, time TEXT)');
+        'CREATE TABLE IF NOT EXISTS $leaguesTable(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, date_time TEXT)');
     db.execute(
         'CREATE TABLE IF NOT EXISTS $roundsTable(id INTEGER PRIMARY KEY AUTOINCREMENT, league_id INTEGER)');
     db.execute(

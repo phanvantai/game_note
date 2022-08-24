@@ -16,10 +16,10 @@ class App extends MaterialApp {
             backgroundColor: Colors.black,
             dividerColor: Colors.black12,
             colorScheme: ColorScheme.fromSwatch(
-                    primarySwatch: primaryBlack,
-                    primaryColorDark: Colors.black,
-                    brightness: Brightness.dark)
-                .copyWith(secondary: Colors.white),
+              primarySwatch: primaryBlack,
+              primaryColorDark: Colors.black,
+              brightness: Brightness.dark,
+            ).copyWith(secondary: Colors.white),
           ),
         );
 }

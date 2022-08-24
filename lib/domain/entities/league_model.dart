@@ -1,13 +1,16 @@
 import 'package:equatable/equatable.dart';
+import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/entities/round_model.dart';
 
 class LeagueModel extends Equatable {
   final int? id;
   final String name;
+  final List<PlayerModel> players;
   final List<RoundModel> rounds;
   final DateTime dateTime;
 
   const LeagueModel({
+    this.players = const [],
     this.id,
     required this.name,
     this.rounds = const [],
@@ -18,7 +21,7 @@ class LeagueModel extends Equatable {
     return {
       'id': id,
       'name': name,
-      'datetime': dateTime.toString(),
+      'date_time': dateTime.toString(),
     };
   }
 
@@ -26,6 +29,7 @@ class LeagueModel extends Equatable {
     int? id,
     String? name,
     List<RoundModel>? rounds,
+    List<PlayerModel>? players,
     DateTime? dateTime,
   }) =>
       LeagueModel(
@@ -33,6 +37,7 @@ class LeagueModel extends Equatable {
         name: name ?? this.name,
         dateTime: dateTime ?? this.dateTime,
         rounds: rounds ?? this.rounds,
+        players: players ?? this.players,
       );
 
   @override

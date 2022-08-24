@@ -10,51 +10,64 @@ import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
   final CreateLeague createLeague;
   TournamentBloc(this.createLeague) : super(const TournamentState()) {
-    on<LoadListTournamentEvent>(_loadListTournament);
-    on<AddNewTournamentEvent>(_addNewTournament);
-    on<CloseToLastStateEvent>(_closeToLastState);
+    on<LoadListLeagueEvent>(_loadListTournament);
+    on<AddNewLeagueEvent>(_createNewLeague);
+    on<SelectLeagueEvent>(_selectLeague);
+    on<CloseLeagueDetailEvent>(_closeLeagueDetail);
     on<AddPlayersToTournament>(_addPlayersToTournament);
     on<AddNewRoundEvent>(_addNewRound);
     on<UpdateMatchEvent>(_updateMatch);
   }
 
   _loadListTournament(
-      LoadListTournamentEvent event, Emitter<TournamentState> emit) async {
-    emit(state.copyWith(status: TournamentStatus.list, lastState: state));
+      LoadListLeagueEvent event, Emitter<TournamentState> emit) async {
+    emit(state.copyWith(status: TournamentStatus.list));
   }
 
-  _addNewTournament(
-      AddNewTournamentEvent event, Emitter<TournamentState> emit) {
-    emit(state.copyWith(status: TournamentStatus.addPlayer, lastState: state));
+  _createNewLeague(
+      AddNewLeagueEvent event, Emitter<TournamentState> emit) async {
+    emit(state.copyWith(status: TournamentStatus.loading));
+    // create league
+    var now = DateTime.now();
+    var name = '${now.year}-${now.month}-${now.day} ${event.name}';
+    var result = await createLeague.call(CreateLeagueParam(name));
+    result.fold(
+      (l) => emit(state.copyWith(status: TournamentStatus.error)),
+      (r) =>
+          emit(state.copyWith(status: TournamentStatus.league, leagueModel: r)),
+    );
   }
 
-  _closeToLastState(
-      CloseToLastStateEvent event, Emitter<TournamentState> emit) {
-    emit(state.lastState ?? state);
+  _selectLeague(SelectLeagueEvent event, Emitter<TournamentState> emit) {
+    print(event.leagueModel.name);
+    emit(state.copyWith(
+        status: TournamentStatus.league, leagueModel: event.leagueModel));
+  }
+
+  _closeLeagueDetail(
+      CloseLeagueDetailEvent event, Emitter<TournamentState> emit) {
+    emit(state.copyWith(status: TournamentStatus.list));
   }
 
   _addPlayersToTournament(
       AddPlayersToTournament event, Emitter<TournamentState> emit) async {
-    emit(state.copyWith(status: TournamentStatus.list, lastState: state));
+    emit(state.copyWith(status: TournamentStatus.list));
     emit(state.copyWith(
-      status: TournamentStatus.tournament,
+      status: TournamentStatus.league,
       players: event.players,
       matches: MatchModelX.from(TournamentHelper.createMatches(
           event.players, PlayerModel.virtualPlayer)),
-      lastState: state,
     ));
   }
 
   _addNewRound(AddNewRoundEvent event, Emitter<TournamentState> emit) async {
-    emit(state.copyWith(status: TournamentStatus.updatingTournament));
     var abcdef = MatchModelX.from(TournamentHelper.createMatches(
         state.players, PlayerModel.virtualPlayer));
     state.matches.addAll(abcdef);
-    emit(state.copyWith(status: TournamentStatus.tournament));
+    emit(state.copyWith(status: TournamentStatus.league));
   }
 
   _updateMatch(UpdateMatchEvent event, Emitter<TournamentState> emit) async {
-    emit(state.copyWith(status: TournamentStatus.updatingTournament));
     var index = state.matches.indexOf(event.matchModel);
     state.matches[index] = MatchModel(
       home: ResultModel(
@@ -68,7 +81,7 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
       status: true,
     );
     emit(state.copyWith(
-      status: TournamentStatus.tournament,
+      status: TournamentStatus.league,
       matches: state.matches,
     ));
   }

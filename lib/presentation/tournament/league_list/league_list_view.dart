@@ -8,8 +8,8 @@ import 'package:game_note/presentation/tournament/league_list/bloc/league_list_b
 import 'package:game_note/presentation/tournament/league_list/bloc/league_list_event.dart';
 import 'package:game_note/presentation/tournament/league_list/bloc/league_list_state.dart';
 
-class TournamentListView extends StatelessWidget {
-  const TournamentListView({Key? key}) : super(key: key);
+class LeagueListView extends StatelessWidget {
+  const LeagueListView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,19 @@ class TournamentListView extends StatelessWidget {
               return const Center(
                   child: CircularProgressIndicator(color: Colors.white));
             }
-            return const Text('list view');
+            return Column(
+              children: [
+                for (var league in state.leagues)
+                  GestureDetector(
+                    onTap: () => BlocProvider.of<TournamentBloc>(context)
+                        .add(SelectLeagueEvent(league)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Center(child: Text(league.name)),
+                    ),
+                  ),
+              ],
+            );
           }),
         ),
       ),
@@ -38,7 +50,7 @@ class TournamentListView extends StatelessWidget {
             context: context,
             builder: (buildContext) => AddLeagueDialog(callback: (name) {
               BlocProvider.of<TournamentBloc>(context)
-                  .add(AddNewTournamentEvent(name));
+                  .add(AddNewLeagueEvent(name));
             }),
           );
         },

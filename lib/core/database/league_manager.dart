@@ -21,7 +21,7 @@ extension LeagueManager on DatabaseManager {
       (index) => LeagueModel(
         id: maps[index]['id'],
         name: maps[index]['name'],
-        dateTime: DateTime.parse(maps[index]['datetime']),
+        dateTime: DateTime.parse(maps[index]['date_time']),
       ),
     );
   }
@@ -35,7 +35,7 @@ extension LeagueManager on DatabaseManager {
         : LeagueModel(
             id: maps.first['id'],
             name: maps.first['name'],
-            dateTime: DateTime.parse(maps.first['datetime']),
+            dateTime: DateTime.parse(maps.first['date_time']),
           );
   }
 
