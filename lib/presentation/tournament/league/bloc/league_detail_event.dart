@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:game_note/domain/entities/league_model.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 
 abstract class LeagueDetailEvent extends Equatable {
@@ -8,17 +7,8 @@ abstract class LeagueDetailEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class InitilizeLeagueEvent extends LeagueDetailEvent {
-  final LeagueModel model;
-
-  const InitilizeLeagueEvent(this.model);
-
-  @override
-  List<Object?> get props => [model];
-}
-
 class LoadLeagueEvent extends LeagueDetailEvent {
-  final String leagueId;
+  final int leagueId;
 
   const LoadLeagueEvent(this.leagueId);
 

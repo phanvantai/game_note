@@ -4,10 +4,11 @@ import 'package:game_note/presentation/tournament/league/bloc/league_detail_stat
 
 class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   LeagueDetailBloc() : super(const LeagueDetailState()) {
-    on<InitilizeLeagueEvent>(_initlize);
+    on<LoadLeagueEvent>(_loadLeague);
   }
 
-  _initlize(InitilizeLeagueEvent event, Emitter<LeagueDetailState> emit) {
-    emit(state.copyWith(status: LeagueDetailStatus.loaded, model: event.model));
+  _loadLeague(LoadLeagueEvent event, Emitter<LeagueDetailState> emit) {
+    // get league model from db
+    emit(state.copyWith(status: LeagueDetailStatus.loaded));
   }
 }

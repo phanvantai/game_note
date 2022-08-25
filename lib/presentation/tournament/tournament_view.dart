@@ -38,11 +38,6 @@ class _TournamentViewState extends State<TournamentView>
           return LeagueDetailView(model: state.leagueModel!);
         }
         return const SizedBox.shrink();
-        // if (state.status.isAddPlayer) {
-        //   return const TournamentAddNewView();
-        // } else if (state.status.isLeague || state.status.isUpdatingTournament) {
-        //   return const TournamentProcessingView();
-        // }
       }),
     );
   }

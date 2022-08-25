@@ -15,7 +15,7 @@ class LeagueDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => LeagueDetailBloc()..add(InitilizeLeagueEvent(model)),
+      create: (_) => LeagueDetailBloc()..add(LoadLeagueEvent(model.id!)),
       child: BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
         builder: (context, state) => Scaffold(
           backgroundColor: Colors.black,

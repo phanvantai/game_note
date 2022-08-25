@@ -39,7 +39,6 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
   }
 
   _selectLeague(SelectLeagueEvent event, Emitter<TournamentState> emit) {
-    print(event.leagueModel.name);
     emit(state.copyWith(
         status: TournamentStatus.league, leagueModel: event.leagueModel));
   }

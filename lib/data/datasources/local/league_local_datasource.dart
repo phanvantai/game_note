@@ -7,6 +7,7 @@ abstract class LeagueLocalDatasource {
   // datasource
   // error throw database exception
   Future<LeagueModel> createLeague(String name);
+  Future<LeagueModel> getLeague(int id);
   Future<List<LeagueModel>> getLeagues();
 }
 
@@ -34,6 +35,19 @@ class LeagueLocalDatasourceImpl implements LeagueLocalDatasource {
   Future<List<LeagueModel>> getLeagues() async {
     try {
       return await databaseManager.getLeagues();
+    } catch (e) {
+      throw DatabaseException();
+    }
+  }
+
+  @override
+  Future<LeagueModel> getLeague(int id) async {
+    try {
+      var league = await databaseManager.getLeague(id);
+      if (league != null) {
+        return league;
+      }
+      throw DatabaseException();
     } catch (e) {
       throw DatabaseException();
     }

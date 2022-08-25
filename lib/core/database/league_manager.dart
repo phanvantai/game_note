@@ -30,6 +30,8 @@ extension LeagueManager on DatabaseManager {
     final db = await database;
     final List<Map<String, dynamic>> maps =
         await db.query(leaguesTable, where: 'id = $id');
+    // TODO: - get players
+    // TODO: - get rounds
     return maps.isEmpty
         ? null
         : LeagueModel(
