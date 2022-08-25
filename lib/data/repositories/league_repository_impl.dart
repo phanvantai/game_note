@@ -19,9 +19,12 @@ class LeagueRepositoryImpl implements LeagueRepository {
   }
 
   @override
-  Future<Either<Failure, LeagueModel>> getLeague(int id) {
-    // TODO: implement getLeague
-    throw UnimplementedError();
+  Future<Either<Failure, LeagueModel>> getLeague(int id) async {
+    try {
+      return Right(await localDatasource.getLeague(id));
+    } on DatabaseException catch (e) {
+      return Left(LocalFailure(e.toString()));
+    }
   }
 
   @override
