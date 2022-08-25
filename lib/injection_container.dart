@@ -3,6 +3,7 @@ import 'package:game_note/data/datasources/local/league_local_datasource.dart';
 import 'package:game_note/data/repositories/league_repository_impl.dart';
 import 'package:game_note/domain/repositories/league_repository.dart';
 import 'package:game_note/domain/usecases/create_league.dart';
+import 'package:game_note/domain/usecases/get_league.dart';
 import 'package:game_note/domain/usecases/get_leagues.dart';
 import 'package:get_it/get_it.dart';
 
@@ -24,4 +25,5 @@ Future<void> init() async {
   // usecases
   getIt.registerSingleton(GetLeagues(getIt()));
   getIt.registerSingleton(CreateLeague(getIt()));
+  getIt.registerSingleton(GetLeague(getIt()));
 }

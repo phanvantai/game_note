@@ -41,5 +41,5 @@ class LeagueModel extends Equatable {
       );
 
   @override
-  List<Object?> get props => [id, name, rounds, dateTime];
+  List<Object?> get props => [id, name, rounds, dateTime, players];
 }
