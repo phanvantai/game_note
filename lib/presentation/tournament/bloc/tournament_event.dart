@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:game_note/domain/entities/league_model.dart';
-import 'package:game_note/domain/entities/match_model.dart';
-import 'package:game_note/domain/entities/player_model.dart';
 
 class TournamentEvent extends Equatable {
   const TournamentEvent();
@@ -29,17 +27,3 @@ class SelectLeagueEvent extends TournamentEvent {
 }
 
 class CloseLeagueDetailEvent extends TournamentEvent {}
-
-// TODO: - need to migrate
-class AddNewRoundEvent extends TournamentEvent {}
-
-class CloseToLastStateEvent extends TournamentEvent {}
-
-class AddPlayersToTournament extends TournamentEvent {
-  final List<PlayerModel> players;
-
-  const AddPlayersToTournament({required this.players});
-
-  @override
-  List<Object?> get props => [players];
-}
