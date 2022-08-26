@@ -43,15 +43,3 @@ class AddPlayersToTournament extends TournamentEvent {
   @override
   List<Object?> get props => [players];
 }
-
-class UpdateMatchEvent extends TournamentEvent {
-  final MatchModel matchModel;
-  final int home;
-  final int away;
-
-  const UpdateMatchEvent(
-      {required this.matchModel, required this.home, required this.away});
-
-  @override
-  List<Object?> get props => [matchModel, home, away];
-}

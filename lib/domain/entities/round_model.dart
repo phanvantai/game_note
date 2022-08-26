@@ -8,10 +8,22 @@ class RoundModel extends Equatable {
   final List<MatchModel> matches;
 
   const RoundModel({
-    required this.id,
+    this.id,
     required this.leagueId,
-    required this.matches,
+    this.matches = const [],
   });
+
+  RoundModel copyWith({
+    int? id,
+    int? leagueId,
+    List<MatchModel>? matches,
+  }) {
+    return RoundModel(
+      id: id,
+      leagueId: leagueId ?? this.leagueId,
+      matches: matches ?? this.matches,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {

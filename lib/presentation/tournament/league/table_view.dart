@@ -15,12 +15,14 @@ class TableView extends StatelessWidget {
         children: [
           TableItemView(model: PlayerStats.virtualStats),
           ...List.generate(
-              state.model!.players.length,
-              (index) => TableItemView(
-                  model: PlayerStats.from(index, state.model!.players[index]))),
-          // ...TournamentHelper.createTable(state.players, state.matches)
-          //     .map((e) => TableItemView(model: e))
-          //     .toList(),
+            state.model!.players.length,
+            (index) => TableItemView(
+              model: PlayerStats.fromModel(
+                index,
+                state.model!.players[index],
+              ),
+            ),
+          ),
         ],
       ),
     );

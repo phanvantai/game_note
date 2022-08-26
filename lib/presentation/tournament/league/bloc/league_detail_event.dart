@@ -28,3 +28,5 @@ class AddPlayersToLeague extends LeagueDetailEvent {
 }
 
 class ConfirmPlayersInLeague extends LeagueDetailEvent {}
+
+class AddNewRounds extends LeagueDetailEvent {}

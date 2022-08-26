@@ -72,8 +72,8 @@ extension MatchModelX on MatchModel {
     List<MatchModel> matches = [];
     for (var element in map) {
       matches.add(MatchModel(
-        home: ResultModel(playerModel: element.entries.first.key),
-        away: ResultModel(playerModel: element.entries.first.value),
+        home: ResultModel(playerModel: element.entries.first.key, matchId: 1),
+        away: ResultModel(playerModel: element.entries.first.value, matchId: 1),
       ));
     }
     return matches;

@@ -24,7 +24,7 @@ class PlayerStats extends Equatable {
   static PlayerStats get virtualStats => const PlayerStats(
       '#', "PLAYER", "P", "W", "D", "L", -10000, -10000, Colors.white);
 
-  static PlayerStats from(int index, PlayerStatsModel model) {
+  static PlayerStats fromModel(int index, PlayerStatsModel model) {
     return PlayerStats(
       (index + 1).toString(),
       model.playerModel.fullname,

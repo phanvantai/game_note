@@ -68,8 +68,7 @@ class LeagueDetailView extends StatelessWidget {
     if (state.status.isLoaded || state.status.isUpdating) {
       return FloatingActionButton(
         onPressed: () {
-          print('add new ');
-          //BlocProvider.of<TournamentBloc>(context).add(AddNewRoundEvent());
+          BlocProvider.of<LeagueDetailBloc>(context).add(AddNewRounds());
         },
         tooltip: 'Add New Round',
         child: const Icon(Icons.add),

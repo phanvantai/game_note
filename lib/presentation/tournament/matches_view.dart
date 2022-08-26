@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/presentation/components/update_match_dialog.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 import 'package:game_note/presentation/tournament/list_matches_view.dart';
 
@@ -57,8 +56,7 @@ class MatchesView extends StatelessWidget {
       builder: (_) => UpdateMatchDialog(
         model: model,
         callback: (match, home, away) {
-          BlocProvider.of<TournamentBloc>(context)
-              .add(UpdateMatchEvent(matchModel: match, home: home, away: away));
+          // TODO: - update match
         },
       ),
     );
