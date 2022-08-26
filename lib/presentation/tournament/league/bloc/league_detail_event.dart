@@ -16,6 +16,8 @@ class LoadLeagueEvent extends LeagueDetailEvent {
   List<Object?> get props => [leagueId];
 }
 
+class AddPlayersStarted extends LeagueDetailEvent {}
+
 class AddPlayersToLeague extends LeagueDetailEvent {
   final List<PlayerModel> players;
 

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/league_model.dart';
 import 'package:game_note/injection_container.dart';
+import 'package:game_note/presentation/components/select_player_view.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
-import 'package:game_note/presentation/tournament/league/tournament_add_new_view.dart';
 
 class LeagueDetailView extends StatelessWidget {
   final LeagueModel model;
@@ -19,28 +19,88 @@ class LeagueDetailView extends StatelessWidget {
       create: (_) =>
           LeagueDetailBloc(getLeague: getIt())..add(LoadLeagueEvent(model.id!)),
       child: BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
-        builder: (context, state) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            leading: BackButton(
-              onPressed: () => BlocProvider.of<TournamentBloc>(context)
-                  .add(CloseLeagueDetailEvent()),
-            ),
-            title: Text(state.model?.name ?? ''),
+        builder: (context, state) {
+          return Scaffold(
             backgroundColor: Colors.black,
-          ),
-          body: SafeArea(child: _leagueDetail(state)),
-        ),
+            appBar: AppBar(
+              leading: BackButton(
+                onPressed: () => BlocProvider.of<TournamentBloc>(context)
+                    .add(CloseLeagueDetailEvent()),
+              ),
+              title: Text(state.model?.name ?? ''),
+              backgroundColor: Colors.black,
+              actions: [
+                BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
+                  buildWhen: (previous, current) =>
+                      previous.players.length != current.players.length,
+                  builder: (context, state) {
+                    print('abcdef ${state.players.length}');
+                    if (state.status.isAddingPlayer &&
+                        state.enableConfirmSelectPlayers) {
+                      return IconButton(
+                        onPressed: () {
+                          // confirm players
+                          // do stuff
+                        },
+                        icon: const Icon(Icons.done),
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  },
+                ),
+              ],
+            ),
+            body: SafeArea(child: _leagueDetail(context, state)),
+            floatingActionButton: _floatingButton(context, state),
+          );
+        },
       ),
     );
   }
 
-  _leagueDetail(LeagueDetailState state) {
+  Widget? _floatingButton(BuildContext context, LeagueDetailState state) {
     if (state.status.isEmpty) {
-      return const Text('data');
+      return FloatingActionButton(
+        onPressed: () {
+          BlocProvider.of<LeagueDetailBloc>(context).add(AddPlayersStarted());
+        },
+        tooltip: 'Add Players',
+        child: const Icon(Icons.add),
+      );
+    }
+    if (state.status.isLoaded || state.status.isUpdating) {
+      return FloatingActionButton(
+        onPressed: () {
+          print('add new ');
+          //BlocProvider.of<TournamentBloc>(context).add(AddNewRoundEvent());
+        },
+        tooltip: 'Add New Round',
+        child: const Icon(Icons.add),
+      );
+    }
+    return null;
+  }
+
+  _leagueDetail(BuildContext context, LeagueDetailState state) {
+    if (state.status.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(
+          child: Text(
+            'The league is not configure. Click plus button below to add players and start the league.',
+            style: TextStyle(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
     if (state.status.isAddingPlayer) {
-      return const TournamentAddNewView();
+      return SelectPlayerView(
+        enableSection: (players, enable) =>
+            BlocProvider.of<LeagueDetailBloc>(context)
+                .add(AddPlayersToLeague(players)),
+      );
     }
     if (state.status.isError) {
       return const Text('error league ');
