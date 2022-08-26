@@ -1,6 +1,6 @@
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/domain/entities/league_model.dart';
-import 'package:sqflite/sql.dart';
+import 'package:sqflite/sqflite.dart';
 
 extension LeagueManager on DatabaseManager {
   Future<int> createLeague(LeagueModel league) async {
@@ -19,9 +19,9 @@ extension LeagueManager on DatabaseManager {
     return List.generate(
       maps.length,
       (index) => LeagueModel(
-        id: maps[index]['id'],
-        name: maps[index]['name'],
-        dateTime: DateTime.parse(maps[index]['date_time']),
+        id: maps[index][DBTableColumn.leagueId],
+        name: maps[index][DBTableColumn.fullname],
+        dateTime: DateTime.parse(maps[index][DBTableColumn.dateTime]),
       ),
     );
   }
@@ -29,15 +29,14 @@ extension LeagueManager on DatabaseManager {
   Future<LeagueModel?> getLeague(int id) async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
-        await db.query(leaguesTable, where: 'id = $id');
-    // TODO: - get players
-    // TODO: - get rounds
+        await db.query(leaguesTable, where: '${DBTableColumn.leagueId} = $id');
+    // TODO: - get players stats, rounds
     return maps.isEmpty
         ? null
         : LeagueModel(
-            id: maps.first['id'],
-            name: maps.first['name'],
-            dateTime: DateTime.parse(maps.first['date_time']),
+            id: maps.first[DBTableColumn.leagueId],
+            name: maps.first[DBTableColumn.fullname],
+            dateTime: DateTime.parse(maps.first[DBTableColumn.dateTime]),
           );
   }
 
@@ -45,7 +44,7 @@ extension LeagueManager on DatabaseManager {
     final db = await database;
     return await db.delete(
       leaguesTable,
-      where: 'id = ?',
+      where: '${DBTableColumn.leagueId} = ?',
       whereArgs: [id],
     );
   }

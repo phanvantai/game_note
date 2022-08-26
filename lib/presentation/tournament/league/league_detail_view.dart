@@ -8,6 +8,8 @@ import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
+import 'package:game_note/presentation/tournament/matches_view.dart';
+import 'package:game_note/presentation/tournament/table_view.dart';
 
 class LeagueDetailView extends StatelessWidget {
   final LeagueModel model;
@@ -30,25 +32,15 @@ class LeagueDetailView extends StatelessWidget {
               title: Text(state.model?.name ?? ''),
               backgroundColor: Colors.black,
               actions: [
-                BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
-                  buildWhen: (previous, current) =>
-                      previous.players.length != current.players.length,
-                  builder: (context, state) {
-                    print('abcdef ${state.players.length}');
-                    if (state.status.isAddingPlayer &&
-                        state.enableConfirmSelectPlayers) {
-                      return IconButton(
-                        onPressed: () {
-                          // confirm players
-                          // do stuff
-                        },
-                        icon: const Icon(Icons.done),
-                      );
-                    } else {
-                      return const SizedBox.shrink();
-                    }
-                  },
-                ),
+                if (state.status.isAddingPlayer &&
+                    state.enableConfirmSelectPlayers)
+                  IconButton(
+                    onPressed: () {
+                      BlocProvider.of<LeagueDetailBloc>(context)
+                          .add(ConfirmPlayersInLeague());
+                    },
+                    icon: const Icon(Icons.done),
+                  ),
               ],
             ),
             body: SafeArea(child: _leagueDetail(context, state)),
@@ -106,7 +98,18 @@ class LeagueDetailView extends StatelessWidget {
       return const Text('error league ');
     }
     if (state.status.isLoaded || state.status.isUpdating) {
-      return const Text('loaded');
+      return GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: Column(
+            children: const [
+              TableView(),
+              SizedBox(height: 12),
+              Expanded(child: MatchesView()),
+            ],
+          ),
+        ),
+      );
     }
     if (state.status.isLoading) {
       return const Center(

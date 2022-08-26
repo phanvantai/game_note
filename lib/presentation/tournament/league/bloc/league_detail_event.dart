@@ -27,4 +27,4 @@ class AddPlayersToLeague extends LeagueDetailEvent {
   List<Object?> get props => [players];
 }
 
-class AddNewRoundToLeague extends LeagueDetailEvent {}
+class ConfirmPlayersInLeague extends LeagueDetailEvent {}

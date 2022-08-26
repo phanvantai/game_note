@@ -11,6 +11,7 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     on<LoadLeagueEvent>(_loadLeague);
     on<AddPlayersStarted>(_startAddPlayers);
     on<AddPlayersToLeague>(_addPlayers);
+    on<ConfirmPlayersInLeague>(_confirmPlayers);
   }
 
   _loadLeague(LoadLeagueEvent event, Emitter<LeagueDetailState> emit) async {
@@ -35,5 +36,13 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     List<PlayerModel> players = [];
     players.addAll(event.players);
     emit(state.copyWith(players: players, enable: players.length > 2));
+  }
+
+  _confirmPlayers(
+      ConfirmPlayersInLeague event, Emitter<LeagueDetailState> emit) async {
+    // create round/match/player stats
+    // create player stats
+    print('create player stats');
+    emit(state.copyWith(status: LeagueDetailStatus.loaded));
   }
 }

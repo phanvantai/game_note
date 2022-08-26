@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/core/ultils.dart';
 
 class PlayerModel extends Equatable {
@@ -12,9 +13,9 @@ class PlayerModel extends Equatable {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'fullname': fullname,
-      'level': level,
+      DBTableColumn.playerId: id,
+      DBTableColumn.fullname: fullname,
+      DBTableColumn.playerLevel: level,
     };
   }
 

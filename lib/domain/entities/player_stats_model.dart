@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/domain/entities/league_model.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 
@@ -24,6 +25,21 @@ class PlayerStatsModel extends Equatable {
     this.goalDifferent = 0,
     this.points = 0,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      DBTableColumn.playerLeagueId: id,
+      DBTableColumn.playerId: playerModel.id,
+      DBTableColumn.leagueId: leagueModel.id,
+      DBTableColumn.playerLeagueTotal: totalPlayed,
+      DBTableColumn.playerLeagueWins: wins,
+      DBTableColumn.playerLeagueDraws: draws,
+      DBTableColumn.playerLeagueLosses: losses,
+      DBTableColumn.playerLeagueGD: goalDifferent,
+      DBTableColumn.playerLeaguePoints: points,
+    };
+  }
+
   @override
   List<Object?> get props => [
         id,

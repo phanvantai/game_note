@@ -4,7 +4,37 @@ import 'package:game_note/_old/model/two_player_round.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+class DBTableColumn {
+  static const String id = 'id';
+  static const String dateTime = 'date_time';
+  static const String fullname = 'fullname';
+
+  static const String playerId = "player_id";
+  static const String playerLevel = 'level';
+
+  static const String leagueId = 'league_id';
+
+  static const String roundId = 'round_id';
+
+  static const String matchId = 'match_id';
+  static const String matchStatus = 'status';
+
+  static const String playerMatchId = 'player_match_id';
+  static const String playerMatchPlayerScore = 'player_score';
+
+  static const String playerLeagueId = 'player_league_id';
+  static const String playerLeagueTotal = 'total_played';
+  static const String playerLeagueWins = 'wins';
+  static const String playerLeagueDraws = 'draws';
+  static const String playerLeagueLosses = 'losses';
+  static const String playerLeagueGD = 'goal_different';
+  static const String playerLeaguePoints = 'points';
+}
+
 class DatabaseManager {
+  final String createTable = 'CREATE TABLE IF NOT EXISTS';
+  final String primaryAuto = 'PRIMARY KEY AUTOINCREMENT';
+  final String integer = 'INTEGER';
   final String playerTable = "players";
   final String twoPlayerGames = "two_player_games";
   final String twoPlayerRounds = "two_player_rounds";
@@ -32,21 +62,21 @@ class DatabaseManager {
   Future<void> createTables() async {
     final db = await database;
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $playerTable(id INTEGER PRIMARY KEY AUTOINCREMENT, fullname TEXT, level TEXT)');
+        '$createTable $playerTable(${DBTableColumn.playerId} $integer $primaryAuto, ${DBTableColumn.fullname} TEXT, ${DBTableColumn.playerLevel} TEXT)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $twoPlayerGames(id INTEGER PRIMARY KEY AUTOINCREMENT, player1 INTEGER, player2 INTEGER, score1 INTEGER, score2 INTEGER, photoUrl TEXT)');
+        '$createTable $twoPlayerGames(${DBTableColumn.id} $integer $primaryAuto, player1 $integer, player2 $integer, score1 $integer, score2 $integer, photoUrl TEXT)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $twoPlayerRounds(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, player1 INTEGER, player2 INTEGER, games TEXT)');
+        '$createTable $twoPlayerRounds(${DBTableColumn.id} $integer $primaryAuto, name TEXT, player1 $integer, player2 $integer, games TEXT)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $leaguesTable(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, date_time TEXT)');
+        '$createTable $leaguesTable(${DBTableColumn.leagueId} $integer $primaryAuto, ${DBTableColumn.fullname} TEXT, ${DBTableColumn.dateTime} TEXT)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $roundsTable(id INTEGER PRIMARY KEY AUTOINCREMENT, league_id INTEGER)');
+        '$createTable $roundsTable(${DBTableColumn.roundId} $integer $primaryAuto, ${DBTableColumn.leagueId} $integer)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $matchesTable(id INTEGER PRIMARY KEY AUTOINCREMENT, datetime TEXT, status INTEGER)');
+        '$createTable $matchesTable(${DBTableColumn.matchId} $integer $primaryAuto, ${DBTableColumn.roundId} $integer, ${DBTableColumn.dateTime} TEXT, ${DBTableColumn.matchStatus} $integer)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $playerMatchTable(id INTEGER PRIMARY KEY AUTOINCREMENT, player_id INTEGER, match_id INTEGER, player_score INTEGER)');
+        '$createTable $playerMatchTable(${DBTableColumn.playerMatchId} $integer $primaryAuto, ${DBTableColumn.playerId} $integer, ${DBTableColumn.matchId} $integer, ${DBTableColumn.playerMatchPlayerScore} $integer)');
     db.execute(
-        'CREATE TABLE IF NOT EXISTS $playerLeagueTable(id INTEGER PRIMARY KEY AUTOINCREMENT, player_id INTEGER, league_id INTEGER)');
+        '$createTable $playerLeagueTable(${DBTableColumn.playerLeagueId} $integer $primaryAuto, ${DBTableColumn.playerId} $integer, ${DBTableColumn.leagueId} $integer, ${DBTableColumn.playerLeagueTotal} $integer, ${DBTableColumn.playerLeagueWins} $integer, ${DBTableColumn.playerLeagueDraws} $integer, ${DBTableColumn.playerLeagueLosses} $integer, ${DBTableColumn.playerLeagueGD} $integer, ${DBTableColumn.playerLeaguePoints} $integer)');
   }
 
   Future<void> insertPlayer(PlayerModel player) async {

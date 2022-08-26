@@ -1,11 +1,12 @@
 import 'package:equatable/equatable.dart';
-import 'package:game_note/domain/entities/player_model.dart';
+import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/domain/entities/player_stats_model.dart';
 import 'package:game_note/domain/entities/round_model.dart';
 
 class LeagueModel extends Equatable {
   final int? id;
   final String name;
-  final List<PlayerModel> players;
+  final List<PlayerStatsModel> players;
   final List<RoundModel> rounds;
   final DateTime dateTime;
 
@@ -19,9 +20,9 @@ class LeagueModel extends Equatable {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'name': name,
-      'date_time': dateTime.toString(),
+      DBTableColumn.leagueId: id,
+      DBTableColumn.fullname: name,
+      DBTableColumn.dateTime: dateTime.toString(),
     };
   }
 
@@ -29,7 +30,7 @@ class LeagueModel extends Equatable {
     int? id,
     String? name,
     List<RoundModel>? rounds,
-    List<PlayerModel>? players,
+    List<PlayerStatsModel>? players,
     DateTime? dateTime,
   }) =>
       LeagueModel(
