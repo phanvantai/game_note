@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/matches_view.dart';
-import 'package:game_note/presentation/tournament/table_view.dart';
+import 'package:game_note/presentation/tournament/league/table_view.dart';
 
 class TournamentProcessingView extends StatelessWidget {
   const TournamentProcessingView({Key? key}) : super(key: key);
@@ -26,7 +26,7 @@ class TournamentProcessingView extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: const [
-              TableView(),
+              //TableView(),
               SizedBox(height: 12),
               Expanded(child: MatchesView()),
             ],

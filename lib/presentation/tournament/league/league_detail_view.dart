@@ -9,7 +9,7 @@ import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
 import 'package:game_note/presentation/tournament/matches_view.dart';
-import 'package:game_note/presentation/tournament/table_view.dart';
+import 'package:game_note/presentation/tournament/league/table_view.dart';
 
 class LeagueDetailView extends StatelessWidget {
   final LeagueModel model;
@@ -18,8 +18,12 @@ class LeagueDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          LeagueDetailBloc(getLeague: getIt())..add(LoadLeagueEvent(model.id!)),
+      create: (_) => LeagueDetailBloc(
+        getLeague: getIt(),
+        createPlayerStats: getIt(),
+        getPlayerStats: getIt(),
+        updatePlayerStats: getIt(),
+      )..add(LoadLeagueEvent(model.id!)),
       child: BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
         builder: (context, state) {
           return Scaffold(

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:game_note/core/ultils.dart';
+import 'package:game_note/domain/entities/player_stats_model.dart';
 
 class PlayerStats extends Equatable {
   final String rank;
@@ -21,4 +23,18 @@ class PlayerStats extends Equatable {
 
   static PlayerStats get virtualStats => const PlayerStats(
       '#', "PLAYER", "P", "W", "D", "L", -10000, -10000, Colors.white);
+
+  static PlayerStats from(int index, PlayerStatsModel model) {
+    return PlayerStats(
+      (index + 1).toString(),
+      model.playerModel.fullname,
+      model.totalPlayed.toString(),
+      model.wins.toString(),
+      model.draws.toString(),
+      model.losses.toString(),
+      model.goalDifferent,
+      model.points,
+      randomObject(Colors.primaries),
+    );
+  }
 }

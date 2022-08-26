@@ -1,13 +1,25 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/domain/entities/league_model.dart';
 import 'package:game_note/domain/entities/player_model.dart';
+import 'package:game_note/domain/entities/player_stats_model.dart';
+import 'package:game_note/domain/usecases/create_player_stats.dart';
 import 'package:game_note/domain/usecases/get_league.dart';
+import 'package:game_note/domain/usecases/get_player_stats.dart';
+import 'package:game_note/domain/usecases/update_player_stats.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
 
 class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   final GetLeague getLeague;
-  LeagueDetailBloc({required this.getLeague})
-      : super(const LeagueDetailState()) {
+  final CreatePlayerStats createPlayerStats;
+  final GetPlayerStats getPlayerStats;
+  final UpdatePlayerStats updatePlayerStats;
+  LeagueDetailBloc({
+    required this.getLeague,
+    required this.createPlayerStats,
+    required this.getPlayerStats,
+    required this.updatePlayerStats,
+  }) : super(const LeagueDetailState()) {
     on<LoadLeagueEvent>(_loadLeague);
     on<AddPlayersStarted>(_startAddPlayers);
     on<AddPlayersToLeague>(_addPlayers);
@@ -41,8 +53,15 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   _confirmPlayers(
       ConfirmPlayersInLeague event, Emitter<LeagueDetailState> emit) async {
     // create round/match/player stats
-    // create player stats
-    print('create player stats');
-    emit(state.copyWith(status: LeagueDetailStatus.loaded));
+    emit(state.copyWith(status: LeagueDetailStatus.updating));
+    // create players stats
+    List<PlayerStatsModel> playersStats = [];
+    for (var player in state.players) {
+      var abc = await createPlayerStats.call(CreatePlayerStatsParams(
+          PlayerStatsModel(playerModel: player, leagueId: state.model!.id!)));
+      abc.fold((l) => null, (r) => playersStats.add(r));
+    }
+    var league = state.model!.copyWith(players: playersStats);
+    emit(state.copyWith(status: LeagueDetailStatus.loaded, model: league));
   }
 }

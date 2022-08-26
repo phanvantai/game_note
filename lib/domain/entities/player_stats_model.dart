@@ -6,7 +6,7 @@ import 'package:game_note/domain/entities/player_model.dart';
 class PlayerStatsModel extends Equatable {
   final int? id;
   final PlayerModel playerModel;
-  final LeagueModel leagueModel;
+  final int leagueId;
   final int totalPlayed;
   final int wins;
   final int draws;
@@ -17,7 +17,7 @@ class PlayerStatsModel extends Equatable {
   const PlayerStatsModel({
     this.id,
     required this.playerModel,
-    required this.leagueModel,
+    required this.leagueId,
     this.totalPlayed = 0,
     this.wins = 0,
     this.draws = 0,
@@ -26,11 +26,35 @@ class PlayerStatsModel extends Equatable {
     this.points = 0,
   });
 
+  PlayerStatsModel copyWith({
+    int? id,
+    PlayerModel? playerModel,
+    int? leagueId,
+    int? totalPlayed,
+    int? wins,
+    int? draws,
+    int? losses,
+    int? goalDifferent,
+    int? points,
+  }) {
+    return PlayerStatsModel(
+      id: id ?? this.id,
+      playerModel: playerModel ?? this.playerModel,
+      leagueId: leagueId ?? this.leagueId,
+      totalPlayed: totalPlayed ?? this.totalPlayed,
+      wins: wins ?? this.wins,
+      draws: draws ?? this.draws,
+      losses: losses ?? this.losses,
+      goalDifferent: goalDifferent ?? this.goalDifferent,
+      points: points ?? this.points,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       DBTableColumn.playerLeagueId: id,
       DBTableColumn.playerId: playerModel.id,
-      DBTableColumn.leagueId: leagueModel.id,
+      DBTableColumn.leagueId: leagueId,
       DBTableColumn.playerLeagueTotal: totalPlayed,
       DBTableColumn.playerLeagueWins: wins,
       DBTableColumn.playerLeagueDraws: draws,
@@ -44,7 +68,7 @@ class PlayerStatsModel extends Equatable {
   List<Object?> get props => [
         id,
         playerModel,
-        leagueModel,
+        leagueId,
         totalPlayed,
         wins,
         draws,

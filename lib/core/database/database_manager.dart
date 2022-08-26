@@ -35,6 +35,7 @@ class DatabaseManager {
   final String createTable = 'CREATE TABLE IF NOT EXISTS';
   final String primaryAuto = 'PRIMARY KEY AUTOINCREMENT';
   final String integer = 'INTEGER';
+
   final String playerTable = "players";
   final String twoPlayerGames = "two_player_games";
   final String twoPlayerRounds = "two_player_rounds";
@@ -111,9 +112,9 @@ class DatabaseManager {
     final List<Map<String, dynamic>> maps = await db.query(playerTable);
     return List.generate(maps.length, (i) {
       return PlayerModel(
-        id: maps[i]['id'],
-        fullname: maps[i]['fullname'],
-        level: maps[i]['level'],
+        id: maps[i][DBTableColumn.playerId],
+        fullname: maps[i][DBTableColumn.fullname],
+        level: maps[i][DBTableColumn.playerLevel],
       );
     });
   }
@@ -121,14 +122,14 @@ class DatabaseManager {
   Future<PlayerModel?> player(int? id) async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
-        await db.query(playerTable, where: "id = $id");
+        await db.query(playerTable, where: "${DBTableColumn.playerId} = $id");
     if (maps.isEmpty) {
       return null;
     }
     return PlayerModel(
-      fullname: maps.first['fullname'],
-      id: maps.first['id'],
-      level: maps.first['level'],
+      fullname: maps.first[DBTableColumn.fullname],
+      id: maps.first[DBTableColumn.playerId],
+      level: maps.first[DBTableColumn.playerLevel],
     );
   }
 
@@ -278,7 +279,7 @@ class DatabaseManager {
     await db.update(
       playerTable,
       player.toMap(),
-      where: 'id = ?',
+      where: '${DBTableColumn.playerId} = ?',
       whereArgs: [player.id],
     );
   }
@@ -293,7 +294,7 @@ class DatabaseManager {
     final db = await database;
     return await db.delete(
       playerTable,
-      where: 'id = ?',
+      where: '${DBTableColumn.playerId} = ?',
       whereArgs: [player.id],
     );
   }

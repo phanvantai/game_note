@@ -1,4 +1,5 @@
 import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/core/database/player_stats_manager.dart';
 import 'package:game_note/domain/entities/league_model.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -30,12 +31,14 @@ extension LeagueManager on DatabaseManager {
     final db = await database;
     final List<Map<String, dynamic>> maps =
         await db.query(leaguesTable, where: '${DBTableColumn.leagueId} = $id');
-    // TODO: - get players stats, rounds
+    // TODO: - get, rounds
+    var playersStats = await getPlayerStats(id);
     return maps.isEmpty
         ? null
         : LeagueModel(
             id: maps.first[DBTableColumn.leagueId],
             name: maps.first[DBTableColumn.fullname],
+            players: playersStats,
             dateTime: DateTime.parse(maps.first[DBTableColumn.dateTime]),
           );
   }
