@@ -15,8 +15,10 @@ extension PlayerStatsManager on DatabaseManager {
 
   Future<List<PlayerStatsModel>> getPlayerStats(int leagueId) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(playerLeagueTable,
-        where: '${DBTableColumn.leagueId} = $leagueId');
+    final List<Map<String, dynamic>> maps = await db.query(
+      playerLeagueTable,
+      where: '${DBTableColumn.leagueId} = $leagueId',
+    );
 
     List<PlayerStatsModel> list = [];
     for (var element in maps) {

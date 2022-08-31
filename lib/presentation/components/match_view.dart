@@ -30,8 +30,8 @@ class MatchView extends StatelessWidget {
             Expanded(
               child: Column(
                 children: [
-                  PlayerScoreView(model: model.home),
-                  PlayerScoreView(model: model.away),
+                  PlayerScoreView(model: model.home!),
+                  PlayerScoreView(model: model.away!),
                 ],
               ),
             ),

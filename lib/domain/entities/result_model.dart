@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:game_note/core/database/database_manager.dart';
 
 import 'club_model.dart';
 import 'player_model.dart';
@@ -32,6 +33,15 @@ class ResultModel extends Equatable {
       playerModel: playerModel ?? this.playerModel,
       clubModel: clubModel ?? this.clubModel,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      DBTableColumn.playerMatchId: id,
+      DBTableColumn.matchId: matchId,
+      DBTableColumn.playerId: playerModel.id,
+      DBTableColumn.playerMatchPlayerScore: score,
+    };
   }
 
   @override

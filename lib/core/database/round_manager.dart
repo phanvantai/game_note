@@ -1,4 +1,6 @@
 import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/core/database/match_manager.dart';
+import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/domain/entities/round_model.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -19,11 +21,11 @@ extension RoundManager on DatabaseManager {
     List<RoundModel> list = [];
     for (var element in maps) {
       var id = element[DBTableColumn.roundId];
-      // get matches with roundId
-
+      List<MatchModel> matches = await getMatches(id);
       list.add(RoundModel(
         leagueId: element[DBTableColumn.leagueId],
         id: id,
+        matches: matches,
       ));
     }
     return list;

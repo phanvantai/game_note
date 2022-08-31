@@ -31,7 +31,7 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
                       ClipRRect(
                         child: Container(
                           decoration: BoxDecoration(
-                            color: widget.model.home.playerModel.color,
+                            color: widget.model.home?.playerModel.color,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           width: 24,
@@ -40,7 +40,7 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
                       ),
                       const SizedBox(width: 16),
                       Text(
-                        widget.model.home.playerModel.fullname,
+                        widget.model.home?.playerModel.fullname ?? '',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.normal,
@@ -67,7 +67,7 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
                       ClipRRect(
                         child: Container(
                           decoration: BoxDecoration(
-                            color: widget.model.away.playerModel.color,
+                            color: widget.model.away?.playerModel.color,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           width: 24,
@@ -76,7 +76,7 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
                       ),
                       const SizedBox(width: 16),
                       Text(
-                        widget.model.away.playerModel.fullname,
+                        widget.model.away?.playerModel.fullname ?? '',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.normal,

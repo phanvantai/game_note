@@ -3,9 +3,11 @@ import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/entities/player_stats_model.dart';
 import 'package:game_note/domain/entities/round_model.dart';
+import 'package:game_note/domain/usecases/create_match.dart';
 import 'package:game_note/domain/usecases/create_player_stats.dart';
 import 'package:game_note/domain/usecases/create_round.dart';
 import 'package:game_note/domain/usecases/get_league.dart';
+import 'package:game_note/domain/usecases/get_matches.dart';
 import 'package:game_note/domain/usecases/get_player_stats.dart';
 import 'package:game_note/domain/usecases/get_rounds.dart';
 import 'package:game_note/domain/usecases/update_player_stats.dart';
@@ -22,6 +24,9 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
 
   final CreateRound createRound;
   final GetRounds getRounds;
+
+  final CreateMatch createMatch;
+  final GetMatches getMatches;
   LeagueDetailBloc({
     required this.getLeague,
     required this.createPlayerStats,
@@ -29,6 +34,8 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     required this.updatePlayerStats,
     required this.createRound,
     required this.getRounds,
+    required this.createMatch,
+    required this.getMatches,
   }) : super(const LeagueDetailState()) {
     on<LoadLeagueEvent>(_loadLeague);
     on<AddPlayersStarted>(_startAddPlayers);
@@ -42,7 +49,6 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     result.fold(
       (l) => emit(state.copyWith(status: LeagueDetailStatus.error)),
       (r) {
-        print(r);
         if (r.players.isEmpty) {
           emit(state.copyWith(status: LeagueDetailStatus.empty, model: r));
         } else {
@@ -84,6 +90,7 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   _addNewRounds(AddNewRounds event, Emitter<LeagueDetailState> emit) async {
     // create rounds
     emit(state.copyWith(status: LeagueDetailStatus.updating));
+    //
     var listMaps = TournamentHelper.createRounds(
       state.players,
       PlayerModel.virtualPlayer,
@@ -96,11 +103,16 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
       if (resultRound.isLeft()) {
         continue;
       }
-      resultRound.fold((l) => null, (r) {
+      resultRound.fold((l) => null, (roundModel) async {
         // create matches
-        // create result for match
-        print(r);
-        rounds.add(r);
+        var resultMatch = await createMatch
+            .call(CreateMatchParams(MatchModel(roundId: roundModel.id!)));
+        resultMatch.fold((l) => null, (matchModel) async {
+          print(matchModel);
+          // create result for match
+          print(roundModel);
+          rounds.add(roundModel);
+        });
       });
       List<MatchModel> matches = [];
     }
