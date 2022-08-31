@@ -20,9 +20,13 @@ class PlayerStatsRepositoryImpl implements PlayerStatsRepository {
   }
 
   @override
-  Future<Either<Failure, List<PlayerStatsModel>>> getPlayerStats(int leagueId) {
-    // TODO: implement getPlayerStats
-    throw UnimplementedError();
+  Future<Either<Failure, List<PlayerStatsModel>>> getPlayerStats(
+      int leagueId) async {
+    try {
+      return Right(await localDatasource.getPlayerStats(leagueId));
+    } on DatabaseException catch (e) {
+      return Left(LocalFailure(e.toString()));
+    }
   }
 
   @override

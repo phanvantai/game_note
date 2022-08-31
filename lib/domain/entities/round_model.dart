@@ -33,5 +33,5 @@ class RoundModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, matches];
+  List<Object?> get props => [id, leagueId, matches];
 }

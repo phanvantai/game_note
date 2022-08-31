@@ -6,8 +6,8 @@ import 'package:sqflite/sqflite.dart';
 
 class DBTableColumn {
   static const String id = 'id';
-  static const String dateTime = 'date_time';
-  static const String fullname = 'fullname';
+  static const String datetime = 'datetime';
+  static const String fullname = 'full_name';
 
   static const String playerId = "player_id";
   static const String playerLevel = 'level';
@@ -69,11 +69,11 @@ class DatabaseManager {
     db.execute(
         '$createTable $twoPlayerRounds(${DBTableColumn.id} $integer $primaryAuto, name TEXT, player1 $integer, player2 $integer, games TEXT)');
     db.execute(
-        '$createTable $leaguesTable(${DBTableColumn.leagueId} $integer $primaryAuto, ${DBTableColumn.fullname} TEXT, ${DBTableColumn.dateTime} TEXT)');
+        '$createTable $leaguesTable(${DBTableColumn.leagueId} $integer $primaryAuto, ${DBTableColumn.fullname} TEXT, ${DBTableColumn.datetime} TEXT)');
     db.execute(
         '$createTable $roundsTable(${DBTableColumn.roundId} $integer $primaryAuto, ${DBTableColumn.leagueId} $integer)');
     db.execute(
-        '$createTable $matchesTable(${DBTableColumn.matchId} $integer $primaryAuto, ${DBTableColumn.roundId} $integer, ${DBTableColumn.dateTime} TEXT, ${DBTableColumn.matchStatus} $integer)');
+        '$createTable $matchesTable(${DBTableColumn.matchId} $integer $primaryAuto, ${DBTableColumn.roundId} $integer, ${DBTableColumn.datetime} TEXT, ${DBTableColumn.matchStatus} $integer)');
     db.execute(
         '$createTable $playerMatchTable(${DBTableColumn.playerMatchId} $integer $primaryAuto, ${DBTableColumn.playerId} $integer, ${DBTableColumn.matchId} $integer, ${DBTableColumn.playerMatchPlayerScore} $integer)');
     db.execute(

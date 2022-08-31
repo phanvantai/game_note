@@ -4,8 +4,10 @@ import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/entities/player_stats_model.dart';
 import 'package:game_note/domain/entities/round_model.dart';
 import 'package:game_note/domain/usecases/create_player_stats.dart';
+import 'package:game_note/domain/usecases/create_round.dart';
 import 'package:game_note/domain/usecases/get_league.dart';
 import 'package:game_note/domain/usecases/get_player_stats.dart';
+import 'package:game_note/domain/usecases/get_rounds.dart';
 import 'package:game_note/domain/usecases/update_player_stats.dart';
 import 'package:game_note/presentation/models/tournament_helper.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
@@ -13,14 +15,20 @@ import 'package:game_note/presentation/tournament/league/bloc/league_detail_stat
 
 class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   final GetLeague getLeague;
+
   final CreatePlayerStats createPlayerStats;
   final GetPlayerStats getPlayerStats;
   final UpdatePlayerStats updatePlayerStats;
+
+  final CreateRound createRound;
+  final GetRounds getRounds;
   LeagueDetailBloc({
     required this.getLeague,
     required this.createPlayerStats,
     required this.getPlayerStats,
     required this.updatePlayerStats,
+    required this.createRound,
+    required this.getRounds,
   }) : super(const LeagueDetailState()) {
     on<LoadLeagueEvent>(_loadLeague);
     on<AddPlayersStarted>(_startAddPlayers);
@@ -34,6 +42,7 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     result.fold(
       (l) => emit(state.copyWith(status: LeagueDetailStatus.error)),
       (r) {
+        print(r);
         if (r.players.isEmpty) {
           emit(state.copyWith(status: LeagueDetailStatus.empty, model: r));
         } else {
@@ -81,9 +90,19 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     );
     List<RoundModel> rounds = [];
     for (var element in listMaps) {
-      RoundModel roundModel = RoundModel(leagueId: state.model!.id!);
+      // create round
+      var resultRound = await createRound
+          .call(CreateRoundParams(RoundModel(leagueId: state.model!.id!)));
+      if (resultRound.isLeft()) {
+        continue;
+      }
+      resultRound.fold((l) => null, (r) {
+        // create matches
+        // create result for match
+        print(r);
+        rounds.add(r);
+      });
       List<MatchModel> matches = [];
-      print(element);
     }
   }
 }

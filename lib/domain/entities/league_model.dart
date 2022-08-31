@@ -22,7 +22,7 @@ class LeagueModel extends Equatable {
     return {
       DBTableColumn.leagueId: id,
       DBTableColumn.fullname: name,
-      DBTableColumn.dateTime: dateTime.toString(),
+      DBTableColumn.datetime: dateTime.toString(),
     };
   }
 

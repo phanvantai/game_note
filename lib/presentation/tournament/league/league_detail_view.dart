@@ -23,6 +23,8 @@ class LeagueDetailView extends StatelessWidget {
         createPlayerStats: getIt(),
         getPlayerStats: getIt(),
         updatePlayerStats: getIt(),
+        createRound: getIt(),
+        getRounds: getIt(),
       )..add(LoadLeagueEvent(model.id!)),
       child: BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
         builder: (context, state) {
