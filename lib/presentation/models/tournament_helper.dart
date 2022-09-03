@@ -1,4 +1,7 @@
 import 'package:game_note/core/ultils.dart';
+import 'package:game_note/domain/entities/match_model.dart';
+import 'package:game_note/domain/entities/player_model.dart';
+import 'package:game_note/domain/entities/player_stats_model.dart';
 
 class TournamentHelper {
   static List<List<Map<T, T>>> createRounds<T>(List<T> players, T virtual) {
@@ -52,6 +55,28 @@ class TournamentHelper {
         .toList();
   }
 
+  static PlayerStatsModel updateStats(
+      PlayerStatsModel statsModel, MatchModel matchModel) {
+    var player = statsModel.playerModel;
+    var result = ResultTypeX.result(player, matchModel);
+    return PlayerStatsModel(
+      id: statsModel.id,
+      playerModel: player,
+      leagueId: statsModel.leagueId,
+      totalPlayed: statsModel.totalPlayed + 1,
+      wins: result.isWin ? statsModel.wins + 1 : statsModel.wins,
+      draws: result.isDraw ? statsModel.draws + 1 : statsModel.draws,
+      losses: result.isLost ? statsModel.losses + 1 : statsModel.losses,
+      goalDifferent:
+          statsModel.goalDifferent + goalDifference(player, matchModel),
+      points: result.isWin
+          ? statsModel.points + 3
+          : result.isDraw
+              ? statsModel.points + 1
+              : statsModel.points,
+    );
+  }
+
   // static List<PlayerStats> createTable(
   //     List<PlayerModel> players, List<MatchModel> matches) {
   //   var list =
@@ -74,18 +99,18 @@ class TournamentHelper {
   //   return list;
   // }
 
-  // static int goalDifference(PlayerModel player, MatchModel match) {
-  //   if (match.status == false ||
-  //       (match.home.playerModel != player &&
-  //           match.away.playerModel != player) ||
-  //       match.home.score == null ||
-  //       match.away.score == null) {
-  //     return 0;
-  //   }
-  //   return player == match.home.playerModel
-  //       ? match.home.score! - match.away.score!
-  //       : match.away.score! - match.home.score!;
-  // }
+  static int goalDifference(PlayerModel player, MatchModel match) {
+    if (match.status == false ||
+        (match.home!.playerModel != player &&
+            match.away!.playerModel != player) ||
+        match.home!.score == null ||
+        match.away!.score == null) {
+      return 0;
+    }
+    return player == match.home!.playerModel
+        ? match.home!.score! - match.away!.score!
+        : match.away!.score! - match.home!.score!;
+  }
 
   // static PlayerStats getStats(PlayerModel player, List<MatchModel> matches) {
   //   var matchesPlayed = matches

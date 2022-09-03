@@ -36,4 +36,32 @@ extension ResultManager on DatabaseManager {
     }
     return list;
   }
+
+  Future<ResultModel?> getResult(int resultId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(playerMatchTable,
+        where: '${DBTableColumn.playerMatchId} = $resultId');
+    if (maps.isEmpty) {
+      return null;
+    }
+    var playerId = maps.first[DBTableColumn.playerId];
+    var playerModel = await player(playerId);
+    return playerModel == null
+        ? null
+        : ResultModel(
+            id: maps.first[DBTableColumn.playerMatchId],
+            matchId: maps.first[DBTableColumn.matchId],
+            score: maps.first[DBTableColumn.playerMatchPlayerScore],
+            playerModel: playerModel);
+  }
+
+  Future<void> updateResult(ResultModel resultModel) async {
+    final db = await database;
+    await db.update(
+      playerMatchTable,
+      resultModel.toMap(),
+      where: '${DBTableColumn.playerMatchId} = ?',
+      whereArgs: [resultModel.id],
+    );
+  }
 }

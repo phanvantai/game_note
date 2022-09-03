@@ -52,7 +52,6 @@ class LeagueManager {
   }
 
   createRounds() async {
-    //
     var listMaps = TournamentHelper.createRounds(
       players,
       PlayerModel.virtualPlayer,
@@ -66,9 +65,7 @@ class LeagueManager {
 
       // create matches
       List<MatchModel> matches = [];
-      print('------------------------------------------------------------');
       for (var map in list) {
-        print('==========================================================');
         // create match
         var match = MatchModel(roundId: roundId);
         var matchId = await databaseManager.createMatch(match);
@@ -79,30 +76,50 @@ class LeagueManager {
             ResultModel(matchId: matchId, playerModel: map.keys.first);
         var resultHomeId = await databaseManager.createResult(resultHome);
         resultHome = resultHome.copyWith(id: resultHomeId);
-        print(resultHome);
 
         // create result away
         var resultAway =
             ResultModel(matchId: matchId, playerModel: map.values.first);
         var resultAwayId = await databaseManager.createResult(resultAway);
         resultAway = resultAway.copyWith(id: resultAwayId);
-        print(resultAway);
 
-        match.copyWith(
+        match = match.copyWith(
           home: resultHome,
           away: resultAway,
           created: DateTime.now().toString(),
         );
         matches.add(match);
-        print('==========================================================');
       }
-
-      round.copyWith(matches: matches);
-
+      round = round.copyWith(matches: matches);
       rounds.add(round);
-      print('////////////////////////////////////////////////////////////');
     }
 
     setLeague(league.copyWith(rounds: rounds));
+  }
+
+  updateMatch(MatchModel model, int home, int away) async {
+    // update result home
+    await databaseManager.updateResult(model.home!.copyWith(score: home));
+    // update result away
+    await databaseManager.updateResult(model.away!.copyWith(score: away));
+    // update match
+    await databaseManager.updateMatch(model.copyWith(status: true));
+
+    // update player stats
+    MatchModel currentMatch = await databaseManager.getMatch(model.id!);
+    var playerStatsHome = league.players
+        .lastWhere((element) => element.playerModel == model.home!.playerModel);
+    var abc = TournamentHelper.updateStats(playerStatsHome, currentMatch);
+    await databaseManager.updatePlayerStats(abc);
+    var playerStatsAway = league.players
+        .lastWhere((element) => element.playerModel == model.away!.playerModel);
+    var def = TournamentHelper.updateStats(playerStatsAway, currentMatch);
+    await databaseManager.updatePlayerStats(def);
+
+    // reload
+    var newLeague = await databaseManager.getLeague(league.id!);
+    if (newLeague != null) {
+      setLeague(newLeague);
+    }
   }
 }

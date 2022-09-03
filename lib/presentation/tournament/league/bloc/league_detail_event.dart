@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 
 abstract class LeagueDetailEvent extends Equatable {
@@ -30,3 +31,18 @@ class AddPlayersToLeague extends LeagueDetailEvent {
 class ConfirmPlayersInLeague extends LeagueDetailEvent {}
 
 class AddNewRounds extends LeagueDetailEvent {}
+
+class UpdateMatch extends LeagueDetailEvent {
+  final MatchModel matchModel;
+  final int homeScore;
+  final int awayScore;
+
+  const UpdateMatch({
+    required this.matchModel,
+    required this.homeScore,
+    required this.awayScore,
+  });
+
+  @override
+  List<Object?> get props => [matchModel, homeScore, awayScore];
+}

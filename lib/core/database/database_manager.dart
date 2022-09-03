@@ -123,14 +123,13 @@ class DatabaseManager {
     final db = await database;
     final List<Map<String, dynamic>> maps =
         await db.query(playerTable, where: "${DBTableColumn.playerId} = $id");
-    if (maps.isEmpty) {
-      return null;
-    }
-    return PlayerModel(
-      fullname: maps.first[DBTableColumn.fullname],
-      id: maps.first[DBTableColumn.playerId],
-      level: maps.first[DBTableColumn.playerLevel],
-    );
+    return maps.isEmpty
+        ? null
+        : PlayerModel(
+            fullname: maps.first[DBTableColumn.fullname],
+            id: maps.first[DBTableColumn.playerId],
+            level: maps.first[DBTableColumn.playerLevel],
+          );
   }
 
   Future<List<TwoPlayerGame>> games() async {

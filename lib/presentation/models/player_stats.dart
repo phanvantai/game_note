@@ -12,29 +12,46 @@ class PlayerStats extends Equatable {
   final String losses;
   final int goalsDifference;
   final int points;
-  final Color color;
+  final Color? color;
 
-  const PlayerStats(this.rank, this.name, this.played, this.wins, this.draws,
-      this.losses, this.goalsDifference, this.points, this.color);
+  const PlayerStats({
+    required this.rank,
+    required this.name,
+    required this.played,
+    required this.wins,
+    required this.draws,
+    required this.losses,
+    required this.goalsDifference,
+    required this.points,
+    this.color,
+  });
 
   @override
   List<Object?> get props =>
       [rank, name, played, wins, draws, losses, goalsDifference, points];
 
   static PlayerStats get virtualStats => const PlayerStats(
-      '#', "PLAYER", "P", "W", "D", "L", -10000, -10000, Colors.white);
+        rank: '#',
+        name: "PLAYER",
+        played: "P",
+        wins: "W",
+        draws: "D",
+        losses: "L",
+        goalsDifference: -10000,
+        points: -10000,
+      );
 
   static PlayerStats fromModel(int index, PlayerStatsModel model) {
     return PlayerStats(
-      (index + 1).toString(),
-      model.playerModel.fullname,
-      model.totalPlayed.toString(),
-      model.wins.toString(),
-      model.draws.toString(),
-      model.losses.toString(),
-      model.goalDifferent,
-      model.points,
-      randomObject(Colors.primaries),
+      rank: (index + 1).toString(),
+      name: model.playerModel.fullname,
+      played: model.totalPlayed.toString(),
+      wins: model.wins.toString(),
+      draws: model.draws.toString(),
+      losses: model.losses.toString(),
+      goalsDifference: model.goalDifferent,
+      points: model.points,
+      //randomObject(Colors.primaries),
     );
   }
 }

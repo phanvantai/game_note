@@ -39,4 +39,35 @@ extension MatchManager on DatabaseManager {
     }
     return list;
   }
+
+  Future<MatchModel> getMatch(int matchId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(matchesTable,
+        where: '${DBTableColumn.matchId} = $matchId');
+    if (maps.isEmpty) {
+      throw 'empty data from database';
+    }
+    List<ResultModel> results = await getResults(matchId);
+    if (results.length < 2) {
+      throw 'result of match is error';
+    }
+    return MatchModel(
+      id: matchId,
+      roundId: maps.first[DBTableColumn.roundId],
+      status: maps.first[DBTableColumn.matchStatus] == 1 ? true : false,
+      created: maps.first[DBTableColumn.datetime],
+      home: results[0],
+      away: results[1],
+    );
+  }
+
+  Future<void> updateMatch(MatchModel matchModel) async {
+    final db = await database;
+    await db.update(
+      matchesTable,
+      matchModel.toMap(),
+      where: '${DBTableColumn.matchId} = ?',
+      whereArgs: [matchModel.id],
+    );
+  }
 }

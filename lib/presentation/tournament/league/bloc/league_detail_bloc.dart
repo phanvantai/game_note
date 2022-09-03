@@ -12,6 +12,7 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     on<AddPlayersToLeague>(_addPlayers);
     on<ConfirmPlayersInLeague>(_confirmPlayers);
     on<AddNewRounds>(_addNewRounds);
+    on<UpdateMatch>(_updateMatch);
   }
 
   _loadLeague(LoadLeagueEvent event, Emitter<LeagueDetailState> emit) async {
@@ -57,5 +58,17 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     emit(state.copyWith(status: LeagueDetailStatus.updating));
     LeagueManager leagueManager = getIt();
     await leagueManager.createRounds();
+    print(leagueManager.league);
+    emit(state.copyWith(
+        status: LeagueDetailStatus.loaded, model: leagueManager.league));
+  }
+
+  _updateMatch(UpdateMatch event, Emitter<LeagueDetailState> emit) async {
+    emit(state.copyWith(status: LeagueDetailStatus.updating));
+    LeagueManager leagueManager = getIt();
+    await leagueManager.updateMatch(
+        event.matchModel, event.homeScore, event.awayScore);
+    emit(state.copyWith(
+        status: LeagueDetailStatus.loaded, model: leagueManager.league));
   }
 }

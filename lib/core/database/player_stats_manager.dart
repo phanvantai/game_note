@@ -42,6 +42,66 @@ extension PlayerStatsManager on DatabaseManager {
         ),
       );
     }
+    list.sort((a, b) {
+      if (a.points > b.points) {
+        return -1;
+      } else if (a.points < b.points) {
+        return 1;
+      } else {
+        if (a.goalDifferent > b.goalDifferent) {
+          return -1;
+        } else if (a.goalDifferent < b.goalDifferent) {
+          return 1;
+        } else {
+          if (a.totalPlayed > b.totalPlayed) {
+            return -1;
+          } else if (a.totalPlayed < b.totalPlayed) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
+      }
+    });
+
     return list;
+  }
+
+  Future<void> updatePlayerStats(PlayerStatsModel model) async {
+    final db = await database;
+    await db.update(
+      playerLeagueTable,
+      model.toMap(),
+      where: '${DBTableColumn.playerLeagueId} = ?',
+      whereArgs: [model.id],
+    );
+  }
+
+  Future<PlayerStatsModel> getPlayerStat(int playerStatsId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      playerLeagueTable,
+      where: '${DBTableColumn.playerLeagueId} = $playerStatsId',
+    );
+    if (maps.isEmpty) {
+      throw 'empty data in db';
+    }
+    int playerId = maps.first[DBTableColumn.playerId];
+    PlayerModel? playerModel = await player(playerId);
+    if (playerModel == null) {
+      throw 'get player model error';
+    }
+
+    return PlayerStatsModel(
+      id: maps.first[DBTableColumn.playerLeagueId],
+      playerModel: playerModel,
+      leagueId: maps.first[DBTableColumn.leagueId],
+      totalPlayed: maps.first[DBTableColumn.playerLeagueTotal],
+      wins: maps.first[DBTableColumn.playerLeagueWins],
+      draws: maps.first[DBTableColumn.playerLeagueDraws],
+      losses: maps.first[DBTableColumn.playerLeagueLosses],
+      goalDifferent: maps.first[DBTableColumn.playerLeagueGD],
+      points: maps.first[DBTableColumn.playerLeaguePoints],
+    );
   }
 }
