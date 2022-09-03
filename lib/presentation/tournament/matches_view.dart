@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/match_model.dart';
 import 'package:game_note/presentation/components/update_match_dialog.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
-import 'package:game_note/presentation/tournament/list_matches_view.dart';
+import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
+import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
+import 'package:game_note/presentation/tournament/list_rounds_view.dart';
 
 class MatchesView extends StatelessWidget {
   const MatchesView({Key? key}) : super(key: key);
@@ -19,28 +19,26 @@ class MatchesView extends StatelessWidget {
             indicatorSize: TabBarIndicatorSize.label,
             tabs: [
               Tab(child: Text('Fixtures')),
-              Tab(icon: Text('Results')),
+              Tab(child: Text('Results')),
             ],
             indicatorColor: Colors.orange,
             indicatorWeight: 4,
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: BlocBuilder<TournamentBloc, TournamentState>(
+            child: BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
               builder: (context, state) => TabBarView(
                 children: [
-                  ListMatchesView(
-                    list: state.matches
-                        .where((element) => element.status == false)
-                        .toList(),
+                  ListRoundsView(
+                    list: state.model?.rounds ?? [],
                     callback: (match) {
                       _updateMatch(match, context);
                     },
                   ),
-                  ListMatchesView(
-                      list: state.matches
-                          .where((element) => element.status == true)
-                          .toList()),
+                  ListRoundsView(
+                    list: state.model?.rounds ?? [],
+                    status: true,
+                  ),
                 ],
               ),
             ),
@@ -55,7 +53,7 @@ class MatchesView extends StatelessWidget {
       context: context,
       builder: (_) => UpdateMatchDialog(
         model: model,
-        callback: (match, home, away) {
+        callback: (match, home, away) async {
           // TODO: - update match
         },
       ),

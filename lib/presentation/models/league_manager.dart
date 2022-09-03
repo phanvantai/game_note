@@ -25,7 +25,6 @@ class LeagueManager {
   setLeague(LeagueModel leagueModel) async {
     _leagueModel = leagueModel;
     setPlayers(_leagueModel.players.map((e) => e.playerModel).toList());
-    print(_leagueModel);
   }
 
   List<PlayerModel> get players => _players;
