@@ -21,12 +21,15 @@ import 'package:game_note/domain/usecases/get_matches.dart';
 import 'package:game_note/domain/usecases/get_player_stats.dart';
 import 'package:game_note/domain/usecases/get_rounds.dart';
 import 'package:game_note/domain/usecases/update_player_stats.dart';
+import 'package:game_note/presentation/models/league_manager.dart';
 import 'package:get_it/get_it.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> init() async {
   getIt.registerSingleton(DatabaseManager());
+
+  getIt.registerSingleton(LeagueManager(getIt()));
 
   // bloc
   //getIt.registerFactory<LeagueListBloc>(() => LeagueListBloc(getLeagues: getLeagues))

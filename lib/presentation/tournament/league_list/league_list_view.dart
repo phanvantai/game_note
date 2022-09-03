@@ -28,15 +28,40 @@ class LeagueListView extends StatelessWidget {
               return const Center(
                   child: CircularProgressIndicator(color: Colors.white));
             }
+            if (state.leagues.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No tournaments have been created yet. Click plus button below to create new one.',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }
             return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text("List league"),
+                ),
                 for (var league in state.leagues)
                   GestureDetector(
                     onTap: () => BlocProvider.of<TournamentBloc>(context)
                         .add(SelectLeagueEvent(league)),
-                    child: Padding(
+                    child: Container(
+                      color: Colors.grey.withOpacity(0.3),
                       padding: const EdgeInsets.all(16),
-                      child: Center(child: Text(league.name)),
+                      margin: const EdgeInsets.only(
+                          bottom: 16, left: 16, right: 16),
+                      child: Center(
+                        child: Text(
+                          league.name,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
               ],

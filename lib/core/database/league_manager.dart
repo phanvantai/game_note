@@ -4,7 +4,7 @@ import 'package:game_note/core/database/round_manager.dart';
 import 'package:game_note/domain/entities/league_model.dart';
 import 'package:sqflite/sqflite.dart';
 
-extension LeagueManager on DatabaseManager {
+extension LeagueManagerX on DatabaseManager {
   Future<int> createLeague(LeagueModel league) async {
     final db = await database;
     return await db.insert(

@@ -31,7 +31,7 @@ extension MatchManager on DatabaseManager {
       list.add(MatchModel(
         id: id,
         roundId: roundId,
-        status: element[DBTableColumn.matchStatus],
+        status: element[DBTableColumn.matchStatus] == 1 ? true : false,
         created: element[DBTableColumn.datetime],
         home: results[0],
         away: results[1],
