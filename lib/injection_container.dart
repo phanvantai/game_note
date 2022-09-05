@@ -12,7 +12,6 @@ import 'package:game_note/domain/repositories/match_repository.dart';
 import 'package:game_note/domain/repositories/player_stats_repository.dart';
 import 'package:game_note/domain/repositories/round_repository.dart';
 import 'package:game_note/domain/usecases/create_league.dart';
-import 'package:game_note/domain/usecases/create_match.dart';
 import 'package:game_note/domain/usecases/create_player_stats.dart';
 import 'package:game_note/domain/usecases/create_round.dart';
 import 'package:game_note/domain/usecases/get_league.dart';
@@ -20,6 +19,7 @@ import 'package:game_note/domain/usecases/get_leagues.dart';
 import 'package:game_note/domain/usecases/get_matches.dart';
 import 'package:game_note/domain/usecases/get_player_stats.dart';
 import 'package:game_note/domain/usecases/get_rounds.dart';
+import 'package:game_note/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/domain/usecases/update_player_stats.dart';
 import 'package:game_note/data/models/league_manager.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
@@ -35,7 +35,7 @@ Future<void> init() async {
   // bloc
   //getIt.registerFactory<LeagueListBloc>(() => LeagueListBloc(getLeagues: getLeagues))
   getIt.registerFactory<LeagueDetailBloc>(
-      () => LeagueDetailBloc(getLeague: getIt()));
+      () => LeagueDetailBloc(getLeague: getIt(), setPlayersForLeague: getIt()));
 
   // datasources
   getIt.registerSingleton<LeagueLocalDatasource>(
@@ -59,6 +59,8 @@ Future<void> init() async {
   getIt.registerSingleton(CreateLeague(getIt()));
   getIt.registerSingleton(GetLeague(getIt()));
 
+  getIt.registerSingleton(SetPlayersForLeague(getIt()));
+
   getIt.registerSingleton(CreatePlayerStats(getIt()));
   getIt.registerSingleton(GetPlayerStats(getIt()));
   getIt.registerSingleton(UpdatePlayerStats(getIt()));
@@ -66,6 +68,5 @@ Future<void> init() async {
   getIt.registerSingleton(CreateRound(getIt()));
   getIt.registerSingleton(GetRounds(getIt()));
 
-  getIt.registerSingleton(CreateMatch(getIt()));
   getIt.registerSingleton(GetMatches(getIt()));
 }

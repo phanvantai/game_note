@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/usecases/get_league.dart';
+import 'package:game_note/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/data/models/league_manager.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
@@ -8,8 +9,11 @@ import 'package:game_note/presentation/tournament/league/bloc/league_detail_stat
 
 class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   final GetLeague getLeague;
-  LeagueDetailBloc({required this.getLeague})
-      : super(const LeagueDetailState()) {
+  final SetPlayersForLeague setPlayersForLeague;
+  LeagueDetailBloc({
+    required this.getLeague,
+    required this.setPlayersForLeague,
+  }) : super(const LeagueDetailState()) {
     on<LoadLeagueEvent>(_loadLeague);
     on<AddPlayersStarted>(_startAddPlayers);
     on<AddPlayersToLeague>(_addPlayers);
@@ -46,14 +50,13 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
 
   _confirmPlayers(
       ConfirmPlayersInLeague event, Emitter<LeagueDetailState> emit) async {
-    // create player stats
     emit(state.copyWith(status: LeagueDetailStatus.updating));
-    // create players stats
-    LeagueManager leagueManager = getIt();
-    await leagueManager.setPlayers(state.players);
-    await leagueManager.addPlayersToLeague();
-    emit(state.copyWith(
-        status: LeagueDetailStatus.loaded, model: leagueManager.league));
+    var result = await setPlayersForLeague
+        .call(SetPlayersForLeagueParams(state.players));
+    result.fold(
+      (l) => null,
+      (r) => emit(state.copyWith(status: LeagueDetailStatus.loaded, model: r)),
+    );
   }
 
   _addNewRounds(AddNewRounds event, Emitter<LeagueDetailState> emit) async {

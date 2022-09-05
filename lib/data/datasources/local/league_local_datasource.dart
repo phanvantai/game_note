@@ -2,6 +2,7 @@ import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/core/database/league_manager.dart';
 import 'package:game_note/core/error/exception.dart';
 import 'package:game_note/domain/entities/league_model.dart';
+import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/data/models/league_manager.dart';
 
@@ -11,6 +12,7 @@ abstract class LeagueLocalDatasource {
   Future<LeagueModel> createLeague(String name);
   Future<LeagueModel> getLeague(int id);
   Future<List<LeagueModel>> getLeagues();
+  Future<LeagueModel> setPlayersForLeague(List<PlayerModel> players);
 }
 
 class LeagueLocalDatasourceImpl implements LeagueLocalDatasource {
@@ -47,6 +49,18 @@ class LeagueLocalDatasourceImpl implements LeagueLocalDatasource {
     try {
       LeagueManager leagueManager = getIt();
       await leagueManager.getLeague(id);
+      return leagueManager.league;
+    } catch (e) {
+      throw DatabaseException();
+    }
+  }
+
+  @override
+  Future<LeagueModel> setPlayersForLeague(List<PlayerModel> players) async {
+    try {
+      LeagueManager leagueManager = getIt();
+      await leagueManager.setPlayers(players);
+      await leagueManager.addPlayersToLeague();
       return leagueManager.league;
     } catch (e) {
       throw DatabaseException();
