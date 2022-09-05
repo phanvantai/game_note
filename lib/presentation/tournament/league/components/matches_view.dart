@@ -5,7 +5,7 @@ import 'package:game_note/presentation/components/update_match_dialog.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
-import 'package:game_note/presentation/tournament/league/list_rounds_view.dart';
+import 'package:game_note/presentation/tournament/league/components/list_rounds_view.dart';
 
 class MatchesView extends StatelessWidget {
   const MatchesView({Key? key}) : super(key: key);
@@ -55,8 +55,8 @@ class MatchesView extends StatelessWidget {
       builder: (_) => UpdateMatchDialog(
         model: model,
         callback: (match, home, away) async {
-          BlocProvider.of<LeagueDetailBloc>(context).add(
-              UpdateMatch(matchModel: match, homeScore: home, awayScore: away));
+          BlocProvider.of<LeagueDetailBloc>(context).add(UpdateMatchEvent(
+              matchModel: match, homeScore: home, awayScore: away));
         },
       ),
     );

@@ -1,15 +1,15 @@
-import 'package:dartz/dartz.dart';
 import 'package:game_note/core/error/failure.dart';
+import 'package:dartz/dartz.dart';
 import 'package:game_note/core/usecase/usecase.dart';
 import 'package:game_note/domain/entities/league_model.dart';
 import 'package:game_note/domain/repositories/league_repository.dart';
 
-class GetLeagues implements UseCase<List<LeagueModel>, GetLeaguesParams> {
+class UpdateMatch implements UseCase<LeagueModel, UpdateMatchParams> {
   final LeagueRepository repository;
 
-  GetLeagues(this.repository);
+  UpdateMatch(this.repository);
   @override
-  Future<Either<Failure, List<LeagueModel>>> call(GetLeaguesParams params) {
-    return repository.getLeagues(params);
+  Future<Either<Failure, LeagueModel>> call(UpdateMatchParams params) {
+    return repository.updateMatch(params);
   }
 }

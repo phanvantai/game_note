@@ -1,25 +1,30 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/player_model.dart';
+import 'package:game_note/domain/repositories/league_repository.dart';
+import 'package:game_note/domain/usecases/create_rounds.dart';
 import 'package:game_note/domain/usecases/get_league.dart';
 import 'package:game_note/domain/usecases/set_players_for_league.dart';
-import 'package:game_note/injection_container.dart';
-import 'package:game_note/data/models/league_manager.dart';
+import 'package:game_note/domain/usecases/update_match.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
 
 class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   final GetLeague getLeague;
   final SetPlayersForLeague setPlayersForLeague;
+  final CreateRounds createRounds;
+  final UpdateMatch updateMatch;
   LeagueDetailBloc({
     required this.getLeague,
     required this.setPlayersForLeague,
+    required this.createRounds,
+    required this.updateMatch,
   }) : super(const LeagueDetailState()) {
     on<LoadLeagueEvent>(_loadLeague);
     on<AddPlayersStarted>(_startAddPlayers);
     on<AddPlayersToLeague>(_addPlayers);
     on<ConfirmPlayersInLeague>(_confirmPlayers);
     on<AddNewRounds>(_addNewRounds);
-    on<UpdateMatch>(_updateMatch);
+    on<UpdateMatchEvent>(_updateMatch);
   }
 
   _loadLeague(LoadLeagueEvent event, Emitter<LeagueDetailState> emit) async {
@@ -62,18 +67,22 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   _addNewRounds(AddNewRounds event, Emitter<LeagueDetailState> emit) async {
     // create rounds
     emit(state.copyWith(status: LeagueDetailStatus.updating));
-    LeagueManager leagueManager = getIt();
-    await leagueManager.createRounds();
-    emit(state.copyWith(
-        status: LeagueDetailStatus.loaded, model: leagueManager.league));
+    var result = await createRounds.call(CreateRoundsParams());
+    result.fold(
+      (l) => null,
+      (r) => emit(state.copyWith(status: LeagueDetailStatus.loaded, model: r)),
+    );
   }
 
-  _updateMatch(UpdateMatch event, Emitter<LeagueDetailState> emit) async {
+  _updateMatch(UpdateMatchEvent event, Emitter<LeagueDetailState> emit) async {
     emit(state.copyWith(status: LeagueDetailStatus.updating));
-    LeagueManager leagueManager = getIt();
-    await leagueManager.updateMatch(
-        event.matchModel, event.homeScore, event.awayScore);
-    emit(state.copyWith(
-        status: LeagueDetailStatus.loaded, model: leagueManager.league));
+    var result = await updateMatch.call(UpdateMatchParams(
+        matchModel: event.matchModel,
+        homeScore: event.homeScore,
+        awayScore: event.awayScore));
+    result.fold(
+      (l) => null,
+      (r) => emit(state.copyWith(status: LeagueDetailStatus.loaded, model: r)),
+    );
   }
 }

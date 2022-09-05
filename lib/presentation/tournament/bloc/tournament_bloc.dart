@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:game_note/domain/repositories/league_repository.dart';
 import 'package:game_note/domain/usecases/create_league.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
@@ -23,7 +24,7 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
     // create league
     var now = DateTime.now();
     var name = '${now.year}-${now.month}-${now.day} ${event.name}';
-    var result = await createLeague.call(CreateLeagueParam(name));
+    var result = await createLeague.call(CreateLeagueParams(name));
     result.fold(
       (l) => emit(state.copyWith(status: TournamentStatus.error)),
       (r) =>

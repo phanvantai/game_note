@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
-import 'package:game_note/presentation/tournament/league_list/add_league_dialog.dart';
+import 'package:game_note/presentation/tournament/league_list/components/add_league_dialog.dart';
 import 'package:game_note/presentation/tournament/league_list/bloc/league_list_bloc.dart';
 import 'package:game_note/presentation/tournament/league_list/bloc/league_list_event.dart';
 import 'package:game_note/presentation/tournament/league_list/bloc/league_list_state.dart';

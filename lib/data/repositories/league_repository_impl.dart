@@ -3,7 +3,6 @@ import 'package:game_note/data/datasources/local/league_local_datasource.dart';
 import 'package:game_note/domain/entities/league_model.dart';
 import 'package:game_note/core/error/failure.dart';
 import 'package:dartz/dartz.dart';
-import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/repositories/league_repository.dart';
 
 class LeagueRepositoryImpl implements LeagueRepository {
@@ -11,25 +10,48 @@ class LeagueRepositoryImpl implements LeagueRepository {
 
   LeagueRepositoryImpl(this.localDatasource);
   @override
-  Future<Either<Failure, LeagueModel>> createLeague(String name) async {
+  Future<Either<Failure, LeagueModel>> createLeague(
+      CreateLeagueParams params) async {
     try {
-      return Right(await localDatasource.createLeague(name));
+      return Right(await localDatasource.createLeague(params.name));
     } on DatabaseException catch (e) {
       return Left(LocalFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, LeagueModel>> getLeague(int id) async {
+  Future<Either<Failure, LeagueModel>> updateMatch(
+      UpdateMatchParams params) async {
     try {
-      return Right(await localDatasource.getLeague(id));
+      return Right(await localDatasource.updateMatch(
+          params.matchModel, params.homeScore, params.awayScore));
+    } catch (e) {
+      return Left(LocalFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LeagueModel>> createRounds(
+      CreateRoundsParams params) async {
+    try {
+      return Right(await localDatasource.createRounds());
     } on DatabaseException catch (e) {
       return Left(LocalFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<LeagueModel>>> getLeagues() async {
+  Future<Either<Failure, LeagueModel>> getLeague(GetLeagueParams params) async {
+    try {
+      return Right(await localDatasource.getLeague(params.id));
+    } on DatabaseException catch (e) {
+      return Left(LocalFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<LeagueModel>>> getLeagues(
+      GetLeaguesParams params) async {
     try {
       return Right(await localDatasource.getLeagues());
     } on DatabaseException catch (e) {
@@ -39,9 +61,9 @@ class LeagueRepositoryImpl implements LeagueRepository {
 
   @override
   Future<Either<Failure, LeagueModel>> setPlayersForLeague(
-      List<PlayerModel> players) async {
+      SetPlayersForLeagueParams params) async {
     try {
-      return Right(await localDatasource.setPlayersForLeague(players));
+      return Right(await localDatasource.setPlayersForLeague(params.players));
     } on DatabaseException catch (e) {
       return Left(LocalFailure(e.toString()));
     }

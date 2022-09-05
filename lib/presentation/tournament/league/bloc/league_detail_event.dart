@@ -32,12 +32,12 @@ class ConfirmPlayersInLeague extends LeagueDetailEvent {}
 
 class AddNewRounds extends LeagueDetailEvent {}
 
-class UpdateMatch extends LeagueDetailEvent {
+class UpdateMatchEvent extends LeagueDetailEvent {
   final MatchModel matchModel;
   final int homeScore;
   final int awayScore;
 
-  const UpdateMatch({
+  const UpdateMatchEvent({
     required this.matchModel,
     required this.homeScore,
     required this.awayScore,

@@ -6,8 +6,8 @@ import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
 import 'package:game_note/presentation/tournament/league/league_detail_view.dart';
 import 'package:game_note/presentation/tournament/league_list/league_list_view.dart';
-import 'package:game_note/presentation/tournament/tournament_error_view.dart';
-import 'package:game_note/presentation/tournament/tournament_loading_view.dart';
+import 'package:game_note/presentation/tournament/components/tournament_error_view.dart';
+import 'package:game_note/presentation/tournament/components/tournament_loading_view.dart';
 
 class TournamentView extends StatefulWidget {
   const TournamentView({Key? key}) : super(key: key);

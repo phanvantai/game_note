@@ -8,8 +8,8 @@ import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
-import 'package:game_note/presentation/tournament/league/matches_view.dart';
-import 'package:game_note/presentation/tournament/league/table_view.dart';
+import 'package:game_note/presentation/tournament/league/components/matches_view.dart';
+import 'package:game_note/presentation/tournament/league/components/table_view.dart';
 
 class LeagueDetailView extends StatelessWidget {
   final LeagueModel model;

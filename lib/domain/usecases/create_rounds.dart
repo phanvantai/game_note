@@ -4,12 +4,12 @@ import 'package:game_note/core/usecase/usecase.dart';
 import 'package:game_note/domain/entities/league_model.dart';
 import 'package:game_note/domain/repositories/league_repository.dart';
 
-class GetLeagues implements UseCase<List<LeagueModel>, GetLeaguesParams> {
+class CreateRounds implements UseCase<LeagueModel, CreateRoundsParams> {
   final LeagueRepository repository;
 
-  GetLeagues(this.repository);
+  CreateRounds(this.repository);
   @override
-  Future<Either<Failure, List<LeagueModel>>> call(GetLeaguesParams params) {
-    return repository.getLeagues(params);
+  Future<Either<Failure, LeagueModel>> call(CreateRoundsParams params) {
+    return repository.createRounds(params);
   }
 }
