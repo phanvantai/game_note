@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:game_note/core/ultils.dart';
 import 'package:game_note/domain/entities/player_stats_model.dart';
 
 class PlayerStats extends Equatable {
