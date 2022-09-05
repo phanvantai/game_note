@@ -21,7 +21,8 @@ import 'package:game_note/domain/usecases/get_matches.dart';
 import 'package:game_note/domain/usecases/get_player_stats.dart';
 import 'package:game_note/domain/usecases/get_rounds.dart';
 import 'package:game_note/domain/usecases/update_player_stats.dart';
-import 'package:game_note/presentation/models/league_manager.dart';
+import 'package:game_note/data/models/league_manager.dart';
+import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 final getIt = GetIt.instance;
@@ -33,6 +34,8 @@ Future<void> init() async {
 
   // bloc
   //getIt.registerFactory<LeagueListBloc>(() => LeagueListBloc(getLeagues: getLeagues))
+  getIt.registerFactory<LeagueDetailBloc>(
+      () => LeagueDetailBloc(getLeague: getIt()));
 
   // datasources
   getIt.registerSingleton<LeagueLocalDatasource>(

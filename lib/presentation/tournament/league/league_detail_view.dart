@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/league_model.dart';
+import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/components/select_player_view.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
-import 'package:game_note/presentation/tournament/matches_view.dart';
+import 'package:game_note/presentation/tournament/league/matches_view.dart';
 import 'package:game_note/presentation/tournament/league/table_view.dart';
 
 class LeagueDetailView extends StatelessWidget {
@@ -17,7 +18,7 @@ class LeagueDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => LeagueDetailBloc()..add(LoadLeagueEvent(model.id!)),
+      create: (_) => getIt<LeagueDetailBloc>()..add(LoadLeagueEvent(model.id!)),
       child: BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
         builder: (context, state) {
           return Scaffold(

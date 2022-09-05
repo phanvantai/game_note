@@ -5,7 +5,7 @@ import 'package:game_note/presentation/components/update_match_dialog.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
-import 'package:game_note/presentation/tournament/list_rounds_view.dart';
+import 'package:game_note/presentation/tournament/league/list_rounds_view.dart';
 
 class MatchesView extends StatelessWidget {
   const MatchesView({Key? key}) : super(key: key);

@@ -10,7 +10,7 @@ import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/entities/player_stats_model.dart';
 import 'package:game_note/domain/entities/result_model.dart';
 import 'package:game_note/domain/entities/round_model.dart';
-import 'package:game_note/presentation/models/tournament_helper.dart';
+import 'package:game_note/data/models/tournament_helper.dart';
 
 class LeagueManager {
   final DatabaseManager databaseManager;
