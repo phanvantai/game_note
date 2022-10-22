@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/league_model.dart';
-import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/components/select_player_view.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
@@ -10,6 +9,7 @@ import 'package:game_note/presentation/tournament/league/bloc/league_detail_even
 import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
 import 'package:game_note/presentation/tournament/league/components/matches_view.dart';
 import 'package:game_note/presentation/tournament/league/components/table_view.dart';
+import 'package:game_note/presentation/tournament/league/league_detail_floating_button.dart';
 
 class LeagueDetailView extends StatelessWidget {
   final LeagueModel model;
@@ -17,59 +17,36 @@ class LeagueDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<LeagueDetailBloc>()..add(LoadLeagueEvent(model.id!)),
-      child: BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
-        builder: (context, state) {
-          return Scaffold(
-            backgroundColor: Colors.black,
-            appBar: AppBar(
-              leading: BackButton(
-                onPressed: () => BlocProvider.of<TournamentBloc>(context)
-                    .add(CloseLeagueDetailEvent()),
-              ),
-              title: Text(state.model?.name ?? ''),
-              backgroundColor: Colors.black,
-              actions: [
-                if (state.status.isAddingPlayer &&
-                    state.enableConfirmSelectPlayers)
-                  IconButton(
-                    onPressed: () {
-                      BlocProvider.of<LeagueDetailBloc>(context)
-                          .add(ConfirmPlayersInLeague());
-                    },
-                    icon: const Icon(Icons.done),
-                  ),
-              ],
+    return BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            leading: BackButton(
+              onPressed: () => BlocProvider.of<TournamentBloc>(context)
+                  .add(CloseLeagueDetailEvent()),
             ),
-            body: SafeArea(child: _leagueDetail(context, state)),
-            floatingActionButton: _floatingButton(context, state),
-          );
-        },
-      ),
+            title: Text(state.model?.name ?? ''),
+            backgroundColor: Colors.black,
+            actions: [
+              if (state.status.isAddingPlayer &&
+                  state.enableConfirmSelectPlayers)
+                IconButton(
+                  onPressed: () {
+                    BlocProvider.of<LeagueDetailBloc>(context)
+                        .add(ConfirmPlayersInLeague());
+                  },
+                  icon: const Icon(Icons.done),
+                ),
+            ],
+          ),
+          body: SafeArea(child: _leagueDetail(context, state)),
+          floatingActionButton: state.status.needFloatButton
+              ? const LeagueDetailFloatingButton()
+              : null,
+        );
+      },
     );
-  }
-
-  Widget? _floatingButton(BuildContext context, LeagueDetailState state) {
-    if (state.status.isEmpty) {
-      return FloatingActionButton(
-        onPressed: () {
-          BlocProvider.of<LeagueDetailBloc>(context).add(AddPlayersStarted());
-        },
-        tooltip: 'Add Players',
-        child: const Icon(Icons.add),
-      );
-    }
-    if (state.status.isLoaded || state.status.isUpdating) {
-      return FloatingActionButton(
-        onPressed: () {
-          BlocProvider.of<LeagueDetailBloc>(context).add(AddNewRounds());
-        },
-        tooltip: 'Add New Round',
-        child: const Icon(Icons.add),
-      );
-    }
-    return null;
   }
 
   _leagueDetail(BuildContext context, LeagueDetailState state) {

@@ -18,6 +18,8 @@ extension LeagueDetailStatusX on LeagueDetailStatus {
   bool get isAddingPlayer => this == LeagueDetailStatus.addingPlayer;
   bool get isLoaded => this == LeagueDetailStatus.loaded;
   bool get isUpdating => this == LeagueDetailStatus.updating;
+
+  bool get needFloatButton => isEmpty || isLoaded;
 }
 
 class LeagueDetailState extends Equatable {

@@ -9,6 +9,11 @@ import 'package:game_note/presentation/tournament/league_list/league_list_view.d
 import 'package:game_note/presentation/tournament/components/tournament_error_view.dart';
 import 'package:game_note/presentation/tournament/components/tournament_loading_view.dart';
 
+import 'league/bloc/league_detail_bloc.dart';
+import 'league/bloc/league_detail_event.dart';
+import 'league_list/bloc/league_list_bloc.dart';
+import 'league_list/bloc/league_list_event.dart';
+
 class TournamentView extends StatefulWidget {
   const TournamentView({Key? key}) : super(key: key);
 
@@ -21,24 +26,39 @@ class _TournamentViewState extends State<TournamentView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocProvider(
-      create: (_) => TournamentBloc(getIt())..add(LoadListLeagueEvent()),
-      child: BlocBuilder<TournamentBloc, TournamentState>(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+            create: (_) => TournamentBloc(getIt())..add(LoadListLeagueEvent())),
+        BlocProvider(create: (_) => LeagueListBloc(getLeagues: getIt())),
+        BlocProvider(create: (_) => getIt<LeagueDetailBloc>())
+      ],
+      child: BlocListener<TournamentBloc, TournamentState>(
+        listener: (context, state) {
+          if (state.status.isList) {
+            context.read<LeagueListBloc>().add(LeagueListStarted());
+          }
+          if (state.status.isLeague) {
+            context
+                .read<LeagueDetailBloc>()
+                .add(LoadLeagueEvent(state.leagueModel!.id!));
+          }
+        },
+        child: BlocBuilder<TournamentBloc, TournamentState>(
           builder: (context, state) {
-        if (state.status.isLoading) {
-          return const TournamentLoadingView();
-        }
-        if (state.status.isError) {
-          return const TournamentErrorView();
-        }
-        if (state.status.isList) {
-          return const LeagueListView();
-        }
-        if (state.status.isLeague) {
-          return LeagueDetailView(model: state.leagueModel!);
-        }
-        return const SizedBox.shrink();
-      }),
+            switch (state.status) {
+              case TournamentStatus.error:
+                return const TournamentErrorView();
+              case TournamentStatus.loading:
+                return const TournamentLoadingView();
+              case TournamentStatus.list:
+                return const LeagueListView();
+              case TournamentStatus.league:
+                return LeagueDetailView(model: state.leagueModel!);
+            }
+          },
+        ),
+      ),
     );
   }
 

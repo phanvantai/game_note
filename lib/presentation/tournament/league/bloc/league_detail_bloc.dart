@@ -28,6 +28,7 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   }
 
   _loadLeague(LoadLeagueEvent event, Emitter<LeagueDetailState> emit) async {
+    emit(const LeagueDetailState());
     emit(state.copyWith(status: LeagueDetailStatus.loading));
     var result = await getLeague.call(GetLeagueParams(event.leagueId));
     result.fold((l) => null, (r) {
