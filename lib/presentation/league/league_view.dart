@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/injection_container.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
-import 'package:game_note/presentation/tournament/league/league_detail_view.dart';
-import 'package:game_note/presentation/tournament/league_list/league_list_view.dart';
-import 'package:game_note/presentation/tournament/components/tournament_error_view.dart';
-import 'package:game_note/presentation/tournament/components/tournament_loading_view.dart';
+import 'package:game_note/presentation/league/bloc/tournament_bloc.dart';
+import 'package:game_note/presentation/league/bloc/tournament_event.dart';
+import 'package:game_note/presentation/league/bloc/tournament_state.dart';
+import 'package:game_note/presentation/league/league/league_detail_view.dart';
+import 'package:game_note/presentation/league/league_list/league_list_view.dart';
+import 'package:game_note/presentation/league/components/tournament_error_view.dart';
+import 'package:game_note/presentation/league/components/tournament_loading_view.dart';
 
 import 'league/bloc/league_detail_bloc.dart';
 import 'league/bloc/league_detail_event.dart';
 import 'league_list/bloc/league_list_bloc.dart';
 import 'league_list/bloc/league_list_event.dart';
 
-class TournamentView extends StatefulWidget {
-  const TournamentView({Key? key}) : super(key: key);
+class LeagueView extends StatefulWidget {
+  const LeagueView({Key? key}) : super(key: key);
 
   @override
-  State<TournamentView> createState() => _TournamentViewState();
+  State<LeagueView> createState() => _LeagueViewState();
 }
 
-class _TournamentViewState extends State<TournamentView>
-    with AutomaticKeepAliveClientMixin<TournamentView> {
+class _LeagueViewState extends State<LeagueView>
+    with AutomaticKeepAliveClientMixin<LeagueView> {
   @override
   Widget build(BuildContext context) {
     super.build(context);

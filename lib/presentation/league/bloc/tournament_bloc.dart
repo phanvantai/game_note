@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:game_note/domain/repositories/league_repository.dart';
 import 'package:game_note/domain/usecases/create_league.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_state.dart';
+import 'package:game_note/presentation/league/bloc/tournament_event.dart';
+import 'package:game_note/presentation/league/bloc/tournament_state.dart';
 
 class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
   final CreateLeague createLeague;

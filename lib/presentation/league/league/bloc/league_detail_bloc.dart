@@ -5,8 +5,8 @@ import 'package:game_note/domain/usecases/create_rounds.dart';
 import 'package:game_note/domain/usecases/get_league.dart';
 import 'package:game_note/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/domain/usecases/update_match.dart';
-import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
-import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
+import 'package:game_note/presentation/league/league/bloc/league_detail_event.dart';
+import 'package:game_note/presentation/league/league/bloc/league_detail_state.dart';
 
 class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   final GetLeague getLeague;

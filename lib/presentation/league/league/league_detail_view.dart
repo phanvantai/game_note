@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/league_model.dart';
 import 'package:game_note/presentation/components/select_player_view.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_bloc.dart';
-import 'package:game_note/presentation/tournament/bloc/tournament_event.dart';
-import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
-import 'package:game_note/presentation/tournament/league/bloc/league_detail_event.dart';
-import 'package:game_note/presentation/tournament/league/bloc/league_detail_state.dart';
-import 'package:game_note/presentation/tournament/league/components/matches_view.dart';
-import 'package:game_note/presentation/tournament/league/components/table_view.dart';
-import 'package:game_note/presentation/tournament/league/league_detail_floating_button.dart';
+import 'package:game_note/presentation/league/bloc/tournament_bloc.dart';
+import 'package:game_note/presentation/league/bloc/tournament_event.dart';
+import 'package:game_note/presentation/league/league/bloc/league_detail_bloc.dart';
+import 'package:game_note/presentation/league/league/bloc/league_detail_event.dart';
+import 'package:game_note/presentation/league/league/bloc/league_detail_state.dart';
+import 'package:game_note/presentation/league/league/components/matches_view.dart';
+import 'package:game_note/presentation/league/league/components/table_view.dart';
+import 'package:game_note/presentation/league/league/league_detail_floating_button.dart';
 
 class LeagueDetailView extends StatelessWidget {
   final LeagueModel model;

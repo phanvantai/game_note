@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/presentation/members/members_view.dart';
 import 'package:game_note/presentation/solo_round/solo_round_view.dart';
-import 'package:game_note/presentation/tournament/tournament_view.dart';
+import 'package:game_note/presentation/league/league_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -14,15 +14,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Map<BottomNavigationBarItem, Widget> tabs = const {
     BottomNavigationBarItem(
       icon: Icon(Icons.sports_soccer),
-      label: 'Tournaments',
-    ): TournamentView(),
+      label: 'Leagues',
+    ): LeagueView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.sports_baseball),
       label: 'Solo',
     ): SoloRoundView(),
     BottomNavigationBarItem(
-      icon: Icon(Icons.people),
-      label: 'Members',
+      icon: Icon(Icons.menu),
+      label: 'More',
     ): MembersView(),
   };
   late TabController _tabController;

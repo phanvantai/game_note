@@ -9,7 +9,7 @@ import 'package:game_note/domain/usecases/get_leagues.dart';
 import 'package:game_note/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/data/models/league_manager.dart';
 import 'package:game_note/domain/usecases/update_match.dart';
-import 'package:game_note/presentation/tournament/league/bloc/league_detail_bloc.dart';
+import 'package:game_note/presentation/league/league/bloc/league_detail_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 final getIt = GetIt.instance;
