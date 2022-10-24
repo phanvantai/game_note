@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/presentation/components/player_view.dart';
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
-import 'package:game_note/presentation/members/add_player_dialog.dart';
+import 'package:game_note/presentation/menu/bloc/menu_bloc.dart';
+import 'package:game_note/presentation/menu/members/add_player_dialog.dart';
 
 class MembersView extends StatefulWidget {
   const MembersView({Key? key}) : super(key: key);
@@ -33,6 +35,13 @@ class _MembersViewState extends State<MembersView>
     super.build(context);
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Members'),
+        backgroundColor: Colors.black,
+        leading: BackButton(
+          onPressed: () => context.read<MenuBloc>().add(ShowMenuEvent()),
+        ),
+      ),
       body: SafeArea(
         child: Container(
           padding: const EdgeInsets.all(16),

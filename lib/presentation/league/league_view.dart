@@ -2,17 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/league/bloc/tournament_bloc.dart';
-import 'package:game_note/presentation/league/bloc/tournament_event.dart';
-import 'package:game_note/presentation/league/bloc/tournament_state.dart';
-import 'package:game_note/presentation/league/league/league_detail_view.dart';
+import 'package:game_note/presentation/league/league_detail/league_detail_view.dart';
 import 'package:game_note/presentation/league/league_list/league_list_view.dart';
 import 'package:game_note/presentation/league/components/tournament_error_view.dart';
 import 'package:game_note/presentation/league/components/tournament_loading_view.dart';
 
-import 'league/bloc/league_detail_bloc.dart';
-import 'league/bloc/league_detail_event.dart';
+import 'league_detail/bloc/league_detail_bloc.dart';
 import 'league_list/bloc/league_list_bloc.dart';
-import 'league_list/bloc/league_list_event.dart';
 
 class LeagueView extends StatefulWidget {
   const LeagueView({Key? key}) : super(key: key);

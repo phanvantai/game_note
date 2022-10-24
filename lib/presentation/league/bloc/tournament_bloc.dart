@@ -1,8 +1,14 @@
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:game_note/domain/repositories/league_repository.dart';
 import 'package:game_note/domain/usecases/create_league.dart';
-import 'package:game_note/presentation/league/bloc/tournament_event.dart';
-import 'package:game_note/presentation/league/bloc/tournament_state.dart';
+
+import '../../../domain/entities/league_model.dart';
+import '../../../domain/entities/match_model.dart';
+import '../../../domain/entities/player_model.dart';
+
+part 'tournament_event.dart';
+part 'tournament_state.dart';
 
 class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
   final CreateLeague createLeague;

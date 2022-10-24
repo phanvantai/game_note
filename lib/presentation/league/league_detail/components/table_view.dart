@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/presentation/league/league/bloc/league_detail_bloc.dart';
-import 'package:game_note/presentation/league/league/bloc/league_detail_state.dart';
-import 'package:game_note/presentation/league/league/components/table_item_view.dart';
+import 'package:game_note/presentation/league/league_detail/bloc/league_detail_bloc.dart';
+import 'package:game_note/presentation/league/league_detail/components/table_item_view.dart';
 import 'package:game_note/presentation/models/player_stats.dart';
 
 class TableView extends StatelessWidget {

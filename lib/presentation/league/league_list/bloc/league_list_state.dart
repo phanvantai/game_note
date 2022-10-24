@@ -1,5 +1,4 @@
-import 'package:equatable/equatable.dart';
-import 'package:game_note/domain/entities/league_model.dart';
+part of 'league_list_bloc.dart';
 
 enum LeagueListStatus { error, loading, loaded }
 

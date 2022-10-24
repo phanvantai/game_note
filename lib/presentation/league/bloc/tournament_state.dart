@@ -1,7 +1,4 @@
-import 'package:equatable/equatable.dart';
-import 'package:game_note/domain/entities/league_model.dart';
-import 'package:game_note/domain/entities/match_model.dart';
-import 'package:game_note/domain/entities/player_model.dart';
+part of 'tournament_bloc.dart';
 
 enum TournamentStatus {
   error,

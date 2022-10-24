@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'bloc/league_detail_bloc.dart';
-import 'bloc/league_detail_event.dart';
-import 'bloc/league_detail_state.dart';
 
 class LeagueDetailFloatingButton extends StatelessWidget {
   const LeagueDetailFloatingButton({Key? key}) : super(key: key);

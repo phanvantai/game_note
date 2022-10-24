@@ -25,16 +25,10 @@ class MatchView extends StatelessWidget {
           color: Colors.grey.withOpacity(0.3),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-              child: Column(
-                children: [
-                  PlayerScoreView(model: model.home!),
-                  PlayerScoreView(model: model.away!),
-                ],
-              ),
-            ),
+            PlayerScoreView(model: model.home!),
+            PlayerScoreView(model: model.away!),
           ],
         ),
       ),

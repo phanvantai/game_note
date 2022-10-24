@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/tournament_bloc.dart';
-import '../bloc/tournament_event.dart';
 import 'components/add_league_dialog.dart';
 
 class AddTournamentButton extends StatelessWidget {

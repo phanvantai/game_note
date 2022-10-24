@@ -1,6 +1,4 @@
-import 'package:equatable/equatable.dart';
-import 'package:game_note/domain/entities/match_model.dart';
-import 'package:game_note/domain/entities/player_model.dart';
+part of 'league_detail_bloc.dart';
 
 abstract class LeagueDetailEvent extends Equatable {
   const LeagueDetailEvent();

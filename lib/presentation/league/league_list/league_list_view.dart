@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/presentation/league/league_list/bloc/league_list_bloc.dart';
-import 'package:game_note/presentation/league/league_list/bloc/league_list_state.dart';
 
 import 'add_tournament_button.dart';
+import 'bloc/league_list_bloc.dart';
 import 'league_list_body.dart';
 
 class LeagueListView extends StatelessWidget {

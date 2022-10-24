@@ -1,8 +1,12 @@
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:game_note/domain/repositories/league_repository.dart';
 import 'package:game_note/domain/usecases/get_leagues.dart';
-import 'package:game_note/presentation/league/league_list/bloc/league_list_event.dart';
-import 'package:game_note/presentation/league/league_list/bloc/league_list_state.dart';
+
+import '../../../../domain/entities/league_model.dart';
+
+part 'league_list_event.dart';
+part 'league_list_state.dart';
 
 class LeagueListBloc extends Bloc<LeagueListEvent, LeagueListState> {
   final GetLeagues getLeagues;

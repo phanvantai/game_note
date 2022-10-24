@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/domain/repositories/league_repository.dart';
@@ -5,8 +6,12 @@ import 'package:game_note/domain/usecases/create_rounds.dart';
 import 'package:game_note/domain/usecases/get_league.dart';
 import 'package:game_note/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/domain/usecases/update_match.dart';
-import 'package:game_note/presentation/league/league/bloc/league_detail_event.dart';
-import 'package:game_note/presentation/league/league/bloc/league_detail_state.dart';
+
+import '../../../../domain/entities/league_model.dart';
+import '../../../../domain/entities/match_model.dart';
+
+part 'league_detail_event.dart';
+part 'league_detail_state.dart';
 
 class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   final GetLeague getLeague;

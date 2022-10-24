@@ -1,4 +1,4 @@
-import 'package:equatable/equatable.dart';
+part of 'league_list_bloc.dart';
 
 class LeagueListEvent extends Equatable {
   const LeagueListEvent();
