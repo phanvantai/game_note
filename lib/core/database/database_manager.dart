@@ -1,6 +1,7 @@
 import 'package:game_note/domain/entities/player_model.dart';
 import 'package:game_note/_old/model/two_player_game.dart';
 import 'package:game_note/_old/model/two_player_round.dart';
+import 'package:game_note/main.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -44,13 +45,17 @@ class DatabaseManager {
   final String matchesTable = "matches_table";
   final String roundsTable = "rounds_table";
   final String leaguesTable = "leagues_table";
+
+  final String databaseFileName = 'game_note_database.db';
   late Future<Database> database;
   Future<void> open() async {
+    var path = join(await getDatabasesPath(), databaseFileName);
+    dataFile = path;
     database = openDatabase(
       // Set the path to the database. Note: Using the `join` function from the
       // `path` package is best practice to ensure the path is correctly
       // constructed for each platform.
-      join(await getDatabasesPath(), 'game_note_database.db'),
+      path,
       // onCreate: (db, version) {
       //   return db.execute(
       //       'CREATE TABLE IF NOT EXISTS $playerTable(id INTEGER PRIMARY KEY AUTOINCREMENT, fullname TEXT, level TEXT)');
@@ -58,6 +63,10 @@ class DatabaseManager {
       version: 1,
     );
     createTables();
+  }
+
+  close() async {
+    await (await database).close();
   }
 
   Future<void> createTables() async {
@@ -91,7 +100,7 @@ class DatabaseManager {
 
   Future<int> insertTwoPlayerGame(TwoPlayerGame game) async {
     final db = await database;
-    return await db.insert(
+    return db.insert(
       twoPlayerGames,
       game.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -100,7 +109,7 @@ class DatabaseManager {
 
   Future<int> insertTwoPlayerRound(TwoPlayerRound round) async {
     final db = await database;
-    return await db.insert(
+    return db.insert(
       twoPlayerRounds,
       round.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,

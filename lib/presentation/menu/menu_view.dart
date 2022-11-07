@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/constants/assets_path.dart';
+import 'package:game_note/main.dart';
 import 'package:game_note/presentation/menu/bloc/menu_bloc.dart';
 import 'package:game_note/presentation/menu/components/menu_item_view.dart';
 import 'package:game_note/presentation/menu/members/members_view.dart';
+import 'package:share_plus/share_plus.dart';
 
 class MenuView extends StatelessWidget {
   const MenuView({Key? key}) : super(key: key);
@@ -36,7 +37,12 @@ class MenuView extends StatelessWidget {
                   callback: () => context.read<MenuBloc>().add(MembersEvent()),
                 ),
                 const MenuItemView(title: 'Import data'),
-                const MenuItemView(title: 'Export data'),
+                MenuItemView(
+                  title: 'Export data',
+                  callback: () {
+                    Share.shareFiles([dataFile]);
+                  },
+                ),
               ],
             ),
           ),
