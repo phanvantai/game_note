@@ -20,24 +20,34 @@ class MenuView extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.black,
           appBar: AppBar(
-            actions: [
-              Switch.adaptive(
-                value: true,
-                onChanged: (value) =>
-                    context.read<MenuBloc>().add(SwitchThemeEvent()),
-              )
-            ],
+            automaticallyImplyLeading: false,
+            title: const Text('Menu'),
+            centerTitle: true,
+            // actions: [],
             backgroundColor: Colors.black,
           ),
           body: SafeArea(
             child: Column(
               children: [
                 MenuItemView(
+                  title: 'Community Mode',
+                  icon: const Icon(Icons.accessibility),
+                  trailing: Switch(
+                    value: true,
+                    onChanged: (value) {},
+                  ),
+                ),
+                MenuItemView(
+                  icon: const Icon(Icons.people),
                   title: 'Members',
                   callback: () => context.read<MenuBloc>().add(MembersEvent()),
                 ),
-                const MenuItemView(title: 'Import data'),
+                const MenuItemView(
+                  icon: Icon(Icons.download),
+                  title: 'Import data',
+                ),
                 MenuItemView(
+                  icon: const Icon(Icons.share),
                   title: 'Export data',
                   callback: () {
                     Share.shareFiles([dataFile]);

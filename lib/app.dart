@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/core/constants/constants.dart';
-import 'package:game_note/presentation/home_view.dart';
+import 'package:game_note/presentation/app/general_view.dart';
 
 class App extends MaterialApp {
   App({Key? key})
       : super(
           key: key,
-          home: const HomeView(),
+          home: const GeneralView(),
           debugShowCheckedModeBanner: false,
           themeMode: ThemeMode.dark,
           darkTheme: ThemeData(

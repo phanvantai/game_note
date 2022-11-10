@@ -4,7 +4,7 @@ import 'package:game_note/presentation/menu/menu_view.dart';
 import 'package:game_note/presentation/solo_round/solo_round_view.dart';
 import 'package:game_note/presentation/league/league_view.dart';
 
-import 'menu/bloc/menu_bloc.dart';
+import '../menu/bloc/menu_bloc.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -54,6 +54,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             onTap: _onItemTapped,
             selectedItemColor: Colors.orange,
             unselectedItemColor: Colors.grey,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ));
   }
