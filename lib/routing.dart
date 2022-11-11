@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/app/bloc/app_view.dart';
+import 'package:game_note/presentation/app/app_view.dart';
 
 import 'presentation/app/splash_view.dart';
 

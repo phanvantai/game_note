@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/main.dart';
@@ -37,16 +40,36 @@ class MenuView extends StatelessWidget {
                   title: 'Members',
                   callback: () => context.read<MenuBloc>().add(MembersEvent()),
                 ),
-                const MenuItemView(
-                  icon: Icon(Icons.download),
+                MenuItemView(
+                  icon: const Icon(Icons.download),
                   title: 'Import data',
+                  callback: () async {
+                    FilePickerResult? result =
+                        await FilePicker.platform.pickFiles();
+
+                    if (result != null) {
+                      // close current db
+                      // await getIt<DatabaseManager>().close();
+
+                      // get content picked file
+                      // print(result.files.single.path);
+                      File file = File(result.files.single.path!);
+                      // print(await file.length());
+
+                      // write data to file in db
+
+                      // open current db
+
+                    } else {
+                      // User canceled the picker
+                      // do nothing
+                    }
+                  },
                 ),
                 MenuItemView(
                   icon: const Icon(Icons.share),
                   title: 'Export data',
-                  callback: () {
-                    Share.shareFiles([dataFile]);
-                  },
+                  callback: () => Share.shareFiles([dataFile]),
                 ),
               ],
             ),

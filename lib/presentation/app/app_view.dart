@@ -12,16 +12,24 @@ class AppView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AppBloc, AppState>(
       buildWhen: (previous, current) => previous.status != current.status,
-      builder: (context, state) {
-        switch (state.status) {
-          case AppStatus.community:
-            return const OnlineView();
-          case AppStatus.offline:
-            return const OfflineView();
-          default:
-            return const GeneralView();
-        }
-      },
+      builder: (context, state) => AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return ScaleTransition(scale: animation, child: child);
+        },
+        child: _appView(context, state),
+      ),
     );
+  }
+
+  _appView(BuildContext context, AppState state) {
+    switch (state.status) {
+      case AppStatus.community:
+        return const OnlineView();
+      case AppStatus.offline:
+        return const OfflineView();
+      default:
+        return const GeneralView();
+    }
   }
 }
