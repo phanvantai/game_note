@@ -23,6 +23,7 @@ dependencies:
   dartz: ^0.10.1
 
   share_plus: ^6.0.1
+  shared_preferences: ^2.0.15
 
 dev_dependencies:
   flutter_test:

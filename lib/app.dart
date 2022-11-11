@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/core/constants/constants.dart';
-import 'package:game_note/presentation/app/general_view.dart';
+
+import 'routing.dart';
 
 class App extends MaterialApp {
   App({Key? key})
       : super(
           key: key,
-          home: const GeneralView(),
+          onGenerateRoute: Routing.generateRoute,
+          initialRoute: Routing.splash,
           debugShowCheckedModeBanner: false,
           themeMode: ThemeMode.dark,
           darkTheme: ThemeData(

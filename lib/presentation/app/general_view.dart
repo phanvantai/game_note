@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/constants/assets_path.dart';
-import 'package:game_note/presentation/app/home_view.dart';
+import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 import 'package:game_note/presentation/widgets/custom_button.dart';
 
 class GeneralView extends StatelessWidget {
@@ -30,22 +31,17 @@ class GeneralView extends StatelessWidget {
               paddingHorizontal: 32,
               buttonText: 'Offline mode',
               backgroundColor: Colors.cyan,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeView(),
-                  ),
-                );
-              },
+              onPressed: () => context
+                  .read<AppBloc>()
+                  .add(const SwitchAppMode(AppStatus.offline)),
             ),
             const SizedBox(height: 16),
             CustomButton(
               paddingHorizontal: 32,
               buttonText: 'Community mode',
-              onPressed: () {
-                print('community mode');
-              },
+              onPressed: () => context
+                  .read<AppBloc>()
+                  .add(const SwitchAppMode(AppStatus.community)),
             ),
             const Spacer(),
             const Spacer(),
