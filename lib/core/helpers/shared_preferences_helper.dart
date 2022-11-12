@@ -12,12 +12,22 @@ class SharedPreferencesHelper {
   static const String fcmToken = 'fcm_token';
 
   static const String communityMode = 'community_mode';
+  static const String loggedIn = 'logged_in';
 
   // shared pref instance
   final SharedPreferences _sharedPreferences;
 
   // constructor
   SharedPreferencesHelper(this._sharedPreferences);
+
+  bool get isLoggedIn {
+    return _sharedPreferences.getBool(SharedPreferencesHelper.loggedIn) ??
+        false;
+  }
+
+  setLoggedIn(bool value) {
+    return _sharedPreferences.setBool(SharedPreferencesHelper.loggedIn, value);
+  }
 
   bool? get isCommunityMode {
     return _sharedPreferences.getBool(SharedPreferencesHelper.communityMode);

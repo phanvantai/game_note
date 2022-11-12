@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/presentation/app/bloc/app_bloc.dart';
+import 'package:game_note/presentation/features/community/main_view.dart';
 import 'package:game_note/presentation/features/community/online_view.dart';
 import 'package:game_note/presentation/app/general_view.dart';
 import 'package:game_note/presentation/features/offline/offline_view.dart';
@@ -25,7 +26,7 @@ class AppView extends StatelessWidget {
   _appView(BuildContext context, AppState state) {
     switch (state.status) {
       case AppStatus.community:
-        return const OnlineView();
+        return const MainView();
       case AppStatus.offline:
         return const OfflineView();
       default:
