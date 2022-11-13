@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,7 +51,7 @@ class MenuView extends StatelessWidget {
 
                       // get content picked file
                       // print(result.files.single.path);
-                      File file = File(result.files.single.path!);
+                      // File file = File(result.files.single.path!);
                       // print(await file.length());
 
                       // write data to file in db
