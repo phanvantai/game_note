@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 import 'package:game_note/presentation/features/community/main_view.dart';
-import 'package:game_note/presentation/features/community/online_view.dart';
 import 'package:game_note/presentation/app/general_view.dart';
 import 'package:game_note/presentation/features/offline/offline_view.dart';
 

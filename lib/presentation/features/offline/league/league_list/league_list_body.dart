@@ -17,21 +17,24 @@ class LeagueListBody extends StatelessWidget {
             padding: EdgeInsets.all(16),
             child: Text("List league"),
           ),
-          ListView.builder(
-            itemCount: state.leagues.length,
-            itemBuilder: (context, index) => GestureDetector(
-              onTap: () => BlocProvider.of<TournamentBloc>(context)
-                  .add(SelectLeagueEvent(state.leagues[index])),
-              child: Container(
-                color: Colors.grey.withOpacity(0.3),
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-                child: Center(
-                  child: Text(
-                    state.leagues[index].name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+          Expanded(
+            child: ListView.builder(
+              itemCount: state.leagues.length,
+              itemBuilder: (context, index) => GestureDetector(
+                onTap: () => BlocProvider.of<TournamentBloc>(context)
+                    .add(SelectLeagueEvent(state.leagues[index])),
+                child: Container(
+                  color: Colors.grey.withOpacity(0.3),
+                  padding: const EdgeInsets.all(16),
+                  margin:
+                      const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+                  child: Center(
+                    child: Text(
+                      state.leagues[index].name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
