@@ -46,7 +46,7 @@ class DatabaseManager {
   final String roundsTable = "rounds_table";
   final String leaguesTable = "leagues_table";
 
-  final String databaseFileName = 'game_note_database.db';
+  static String databaseFileName = 'game_note_database.db';
   late Future<Database> database;
   Future<void> open() async {
     var path = join(await getDatabasesPath(), databaseFileName);

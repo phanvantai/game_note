@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 
@@ -17,4 +19,19 @@ AppStatus get appStatus {
 
 setAppStatus(AppStatus status) {
   getIt<SharedPreferencesHelper>().setCommunityMode(status.isCommunity);
+}
+
+showAlertDialog(BuildContext context, String content) {
+  showDialog(
+    context: context,
+    builder: (context) => CupertinoAlertDialog(
+      content: Text(content),
+      actions: [
+        CupertinoDialogAction(
+          child: const Text('OK'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+    ),
+  );
 }

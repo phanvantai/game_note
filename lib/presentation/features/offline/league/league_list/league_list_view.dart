@@ -24,11 +24,22 @@ class LeagueListView extends StatelessWidget {
               );
             case LeagueListStatus.loaded:
               if (state.leagues.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'No tournaments have been created yet. Click plus button below to create new one.',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.center,
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: () => context
+                            .read<LeagueListBloc>()
+                            .add(LeagueListStarted()),
+                        icon: const Icon(Icons.refresh),
+                      ),
+                      const Text(
+                        'No tournaments have been created yet. Click plus button below to create new one.',
+                        style: TextStyle(fontSize: 16),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 );
               } else {
