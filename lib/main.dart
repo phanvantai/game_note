@@ -1,7 +1,8 @@
-import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/app.dart';
 import 'package:game_note/injection_container.dart' as di;
+import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 import 'package:game_note/simple_bloc_observer.dart';
 
 import 'core/database/database_manager.dart';
@@ -13,5 +14,12 @@ void main() async {
   await di.getIt<DatabaseManager>().open();
   Bloc.observer = SimpleBlocObserver();
 
-  runApp(App());
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => AppBloc()),
+      ],
+      child: App(),
+    ),
+  );
 }
