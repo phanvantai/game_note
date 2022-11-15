@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+const double kDefaultPadding = 16;
+
 const boldTextStyle = TextStyle(
   fontWeight: FontWeight.bold,
   fontSize: 24,

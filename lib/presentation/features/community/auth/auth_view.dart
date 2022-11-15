@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/presentation/features/community/bloc/community_bloc.dart';
 
-import '../../../core/constants/assets_path.dart';
-import '../../widgets/custom_button.dart';
+import '../../../../core/constants/assets_path.dart';
+import '../../../app/bloc/app_bloc.dart';
+import '../../../widgets/custom_button.dart';
 
-class LoginView extends StatelessWidget {
-  const LoginView({Key? key}) : super(key: key);
+class AuthView extends StatelessWidget {
+  const AuthView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +53,47 @@ class LoginView extends StatelessWidget {
               backgroundColor: Colors.grey,
               onPressed: () {},
             ),
+            const SizedBox(height: 16),
+            CustomButton(
+              paddingHorizontal: 32,
+              buttonText: 'Sign up with email',
+              backgroundColor: Colors.red,
+              onPressed: () {},
+            ),
             const Spacer(),
             const Spacer(),
             const Spacer(),
+            Row(
+              children: [
+                const Spacer(),
+                Expanded(
+                  child: Container(
+                    height: 1,
+                    width: double.infinity,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Text('Or', style: TextStyle(color: Colors.grey)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Container(
+                    height: 1,
+                    width: double.infinity,
+                    color: Colors.grey,
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
+            const SizedBox(height: 4),
+            CustomButton(
+              paddingHorizontal: 64,
+              buttonText: 'Switch to offline mode',
+              onPressed: () => context
+                  .read<AppBloc>()
+                  .add(const SwitchAppMode(AppStatus.offline)),
+            ),
           ],
         ),
       ),

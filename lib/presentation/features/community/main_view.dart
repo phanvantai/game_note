@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/presentation/features/community/bloc/community_bloc.dart';
-import 'package:game_note/presentation/features/community/login_view.dart';
+import 'package:game_note/presentation/features/community/auth/auth_view.dart';
 import 'package:game_note/presentation/features/community/online_view.dart';
 
 class MainView extends StatelessWidget {
@@ -30,7 +30,7 @@ class MainView extends StatelessWidget {
       case CommunityStatus.loggedIn:
         return const OnlineView();
       default:
-        return const LoginView();
+        return const AuthView();
     }
   }
 }
