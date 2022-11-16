@@ -1,4 +1,4 @@
-import '../../domain/entities/player_model.dart';
+import '../../features/offline/domain/entities/player_model.dart';
 
 class TwoPlayerGame {
   final PlayerModel player1;

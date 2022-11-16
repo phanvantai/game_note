@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/app/app_view.dart';
+import 'package:game_note/features/common/presentation/app_view.dart';
 
-import 'presentation/app/splash_view.dart';
+import 'features/common/presentation/splash_view.dart';
 
 class Routing {
   static const String splash = '/';

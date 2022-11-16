@@ -1,4 +1,4 @@
-import 'package:game_note/domain/entities/player_model.dart';
+import 'package:game_note/features/offline/domain/entities/player_model.dart';
 import 'package:game_note/_old/model/two_player_game.dart';
 import 'package:game_note/_old/model/two_player_round.dart';
 import 'package:game_note/main.dart';

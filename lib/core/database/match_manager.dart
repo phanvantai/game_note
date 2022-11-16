@@ -1,7 +1,7 @@
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/core/database/result_manager.dart';
-import 'package:game_note/domain/entities/match_model.dart';
-import 'package:game_note/domain/entities/result_model.dart';
+import 'package:game_note/features/offline/domain/entities/match_model.dart';
+import 'package:game_note/features/offline/domain/entities/result_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 extension MatchManager on DatabaseManager {

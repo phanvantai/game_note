@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/app.dart';
 import 'package:game_note/injection_container.dart' as di;
-import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 import 'package:game_note/simple_bloc_observer.dart';
 
 import 'core/database/database_manager.dart';
+import 'features/common/presentation/bloc/app_bloc.dart';
 
 var dataFile = '';
 void main() async {

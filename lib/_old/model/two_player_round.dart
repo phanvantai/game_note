@@ -1,4 +1,4 @@
-import '../../domain/entities/player_model.dart';
+import '../../features/offline/domain/entities/player_model.dart';
 import 'two_player_game.dart';
 
 class TwoPlayerRound {
