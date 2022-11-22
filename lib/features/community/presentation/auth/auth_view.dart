@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
 import 'package:game_note/features/community/presentation/auth/create_account_view.dart';
-import 'package:game_note/features/community/presentation/auth/sign_in_view.dart';
+import 'package:game_note/features/community/presentation/auth/forgot_password_view.dart';
+import 'package:game_note/features/community/presentation/auth/sign_in/sign_in_view.dart';
 
 import '../../../../core/constants/assets_path.dart';
 import '../../../../features/community/presentation/widgets/custom_button.dart';
@@ -90,6 +91,8 @@ class AuthView extends StatelessWidget {
         return const CreateAccountView();
       case AuthStatus.signInMail:
         return const SignInView();
+      case AuthStatus.forgotPassword:
+        return const ForgotPasswordView();
       default:
         return const AuthButtonsView();
     }

@@ -4,6 +4,7 @@ enum AuthStatus {
   initial,
   signInMail,
   createAccount,
+  forgotPassword,
 }
 
 extension AuthStatusX on AuthStatus {
@@ -26,5 +27,5 @@ class AuthState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [status];
 }

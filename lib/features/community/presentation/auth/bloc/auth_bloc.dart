@@ -8,6 +8,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc() : super(const AuthState()) {
     on<SignInEmailEvent>(_onSignInEmail);
     on<CreateAccountEvent>(_onCreateAccount);
+    on<InitialEvent>(_onInitial);
+  }
+
+  _onInitial(InitialEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthState());
   }
 
   _onSignInEmail(SignInEmailEvent event, Emitter<AuthState> emit) async {

@@ -9,3 +9,5 @@ abstract class AuthEvent extends Equatable {
 class SignInEmailEvent extends AuthEvent {}
 
 class CreateAccountEvent extends AuthEvent {}
+
+class InitialEvent extends AuthEvent {}
