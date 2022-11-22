@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
 import 'package:game_note/features/community/presentation/online_view.dart';
 
+import '../../offline/presentation/menu/bloc/menu_bloc.dart';
 import 'auth/auth_view.dart';
 import 'bloc/community_bloc.dart';
 
@@ -10,8 +12,12 @@ class MainView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CommunityBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => CommunityBloc()),
+        BlocProvider(create: (_) => AuthBloc()),
+        BlocProvider(create: (_) => MenuBloc()),
+      ],
       child: BlocBuilder<CommunityBloc, CommunityState>(
         builder: (context, state) {
           return AnimatedSwitcher(

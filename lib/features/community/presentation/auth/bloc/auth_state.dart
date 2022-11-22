@@ -3,13 +3,13 @@ part of 'auth_bloc.dart';
 enum AuthStatus {
   initial,
   signInMail,
-  signUpMail,
+  createAccount,
 }
 
 extension AuthStatusX on AuthStatus {
   bool get isInitial => this == AuthStatus.initial;
   bool get isSignIn => this == AuthStatus.signInMail;
-  bool get isSignUp => this == AuthStatus.signUpMail;
+  bool get isCreateAccount => this == AuthStatus.createAccount;
 }
 
 class AuthState extends Equatable {

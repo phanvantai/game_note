@@ -51,13 +51,8 @@ class _MembersViewState extends State<MembersView>
             itemBuilder: (context, index) {
               return Column(
                 children: [
-                  const SizedBox(height: 8),
                   Dismissible(
                     direction: DismissDirection.endToStart,
-                    // confirmDismiss: (direction) {
-                    //   return Future.value(
-                    //       direction == DismissDirection.endToStart);
-                    // },
                     key: Key(players[index].id.toString()),
                     onDismissed: (direction) async {
                       await getIt<DatabaseManager>()
@@ -76,7 +71,8 @@ class _MembersViewState extends State<MembersView>
                       onClick: null,
                       bold: true,
                     ),
-                  )
+                  ),
+                  const SizedBox(height: 8),
                 ],
               );
             },

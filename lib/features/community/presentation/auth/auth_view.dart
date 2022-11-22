@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
+import 'package:game_note/features/community/presentation/auth/create_account_view.dart';
+import 'package:game_note/features/community/presentation/auth/sign_in_view.dart';
 
 import '../../../../core/constants/assets_path.dart';
 import '../../../../features/community/presentation/widgets/custom_button.dart';
 import '../../../common/presentation/bloc/app_bloc.dart';
-import '../bloc/community_bloc.dart';
+import 'buttons_view.dart';
 
 class AuthView extends StatelessWidget {
   const AuthView({Key? key}) : super(key: key);
@@ -18,14 +21,10 @@ class AuthView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            GestureDetector(
-              onDoubleTap: () =>
-                  context.read<CommunityBloc>().add(LoginEvent()),
-              child: Image.asset(
-                AssetsPath.appIcon,
-                color: Colors.white,
-                width: MediaQuery.of(context).size.width / 3,
-              ),
+            Image.asset(
+              AssetsPath.appIcon,
+              color: Colors.white,
+              width: MediaQuery.of(context).size.width / 3,
             ),
             const SizedBox(height: 48, width: double.maxFinite),
             const Text(
@@ -33,32 +32,14 @@ class AuthView extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
             ),
             const SizedBox(height: 48, width: double.maxFinite),
-            CustomButton(
-              paddingHorizontal: 32,
-              buttonText: 'Sign in with Google',
-              backgroundColor: Colors.purpleAccent,
-              onPressed: () {},
-            ),
-            const SizedBox(height: 16),
-            CustomButton(
-              paddingHorizontal: 32,
-              buttonText: 'Sign in with Apple',
-              backgroundColor: Colors.indigoAccent,
-              onPressed: () {},
-            ),
-            const SizedBox(height: 16),
-            CustomButton(
-              paddingHorizontal: 32,
-              buttonText: 'Sign in with email',
-              backgroundColor: Colors.grey,
-              onPressed: () {},
-            ),
-            const SizedBox(height: 16),
-            CustomButton(
-              paddingHorizontal: 32,
-              buttonText: 'Sign up with email',
-              backgroundColor: Colors.red,
-              onPressed: () {},
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) => AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return ScaleTransition(scale: animation, child: child);
+                },
+                child: _buildWidget(context, state),
+              ),
             ),
             const Spacer(),
             const Spacer(),
@@ -88,7 +69,8 @@ class AuthView extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             CustomButton(
-              paddingHorizontal: 64,
+              backgroundColor: Colors.grey,
+              paddingHorizontal: 32,
               buttonText: 'Switch to offline mode',
               onPressed: () => context
                   .read<AppBloc>()
@@ -98,5 +80,18 @@ class AuthView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  _buildWidget(BuildContext context, AuthState state) {
+    switch (state.status) {
+      case AuthStatus.initial:
+        return const AuthButtonsView();
+      case AuthStatus.createAccount:
+        return const CreateAccountView();
+      case AuthStatus.signInMail:
+        return const SignInView();
+      default:
+        return const AuthButtonsView();
+    }
   }
 }

@@ -5,3 +5,7 @@ abstract class AuthEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
+
+class SignInEmailEvent extends AuthEvent {}
+
+class CreateAccountEvent extends AuthEvent {}

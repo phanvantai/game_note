@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
-  final String buttonText;
+  final String? buttonText;
   final TextStyle? textStyle;
   final double? width;
   final double height;
@@ -15,7 +15,7 @@ class CustomButton extends StatelessWidget {
 
   const CustomButton({
     Key? key,
-    required this.buttonText,
+    this.buttonText,
     required this.onPressed,
     this.width, // = double.maxFinite,
     this.height = 44,
@@ -63,7 +63,7 @@ class CustomButton extends StatelessWidget {
           alignment: Alignment.center,
           child: child ??
               Text(
-                buttonText,
+                buttonText ?? '',
                 style: textStyle ??
                     const TextStyle(
                       fontSize: 16,

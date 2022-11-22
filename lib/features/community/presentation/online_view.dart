@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/features/community/presentation/community/community_view.dart';
 import 'package:game_note/features/community/presentation/profile/profile_view.dart';
 import 'package:game_note/features/community/presentation/tournament/tournament_view.dart';
-
-import '../../offline/presentation/menu/bloc/menu_bloc.dart';
 
 class OnlineView extends StatefulWidget {
   const OnlineView({Key? key}) : super(key: key);
@@ -38,25 +35,20 @@ class _OnlineViewState extends State<OnlineView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => MenuBloc()),
-      ],
-      child: Scaffold(
-        body: TabBarView(
-          physics: const NeverScrollableScrollPhysics(),
-          controller: _tabController,
-          children: tabs.values.toList(),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Colors.black,
-          items: tabs.keys.toList(),
-          currentIndex: _tabController.index,
-          onTap: _onItemTapped,
-          selectedItemColor: Colors.orange,
-          unselectedItemColor: Colors.grey,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+    return Scaffold(
+      body: TabBarView(
+        physics: const NeverScrollableScrollPhysics(),
+        controller: _tabController,
+        children: tabs.values.toList(),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
+        items: tabs.keys.toList(),
+        currentIndex: _tabController.index,
+        onTap: _onItemTapped,
+        selectedItemColor: Colors.orange,
+        unselectedItemColor: Colors.grey,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
   }
