@@ -1,6 +1,6 @@
 import 'package:game_note/core/database/database_manager.dart';
 import 'package:game_note/core/database/league_manager.dart';
-import 'package:game_note/core/error/exception.dart';
+import 'package:game_note/core/common/exception.dart';
 import 'package:game_note/features/offline/domain/entities/league_model.dart';
 import 'package:game_note/features/offline/domain/entities/match_model.dart';
 import 'package:game_note/features/offline/domain/entities/player_model.dart';

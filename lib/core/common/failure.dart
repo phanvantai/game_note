@@ -12,3 +12,7 @@ abstract class Failure extends Equatable {
 class LocalFailure extends Failure {
   const LocalFailure(String message) : super(message);
 }
+
+class RemoteFailure extends Failure {
+  const RemoteFailure(String message) : super(message);
+}

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "256841801977",
+    "project_id": "gamenoteapp",
+    "storage_bucket": "gamenoteapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:256841801977:android:2dcf003c30d77f616b8228",
+        "android_client_info": {
+          "package_name": "com.example.game_note"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmoQjpmoGK8SpW7a9YU3Q3-0mnvwC0I0U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

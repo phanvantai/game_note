@@ -4,7 +4,7 @@ import 'package:game_note/core/constants/constants.dart';
 import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
 import 'package:game_note/features/community/presentation/widgets/custom_button.dart';
 
-import '../widgets/custom_text_form_field.dart';
+import '../../widgets/custom_text_form_field.dart';
 
 class CreateAccountView extends StatelessWidget {
   const CreateAccountView({Key? key}) : super(key: key);

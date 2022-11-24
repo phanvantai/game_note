@@ -17,9 +17,9 @@ class ProfileView extends StatelessWidget {
           children: [
             const SwitchModeWidget(),
             MenuItemView(
-              title: 'Logout',
+              title: 'Sign Out',
               icon: const Icon(Icons.start),
-              callback: () => context.read<CommunityBloc>().add(LogoutEvent()),
+              callback: () => context.read<CommunityBloc>().add(SignOutEvent()),
             ),
           ],
         ),
