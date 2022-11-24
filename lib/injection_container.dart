@@ -1,4 +1,5 @@
 import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/features/community/data/datasources/auth_datasource.dart';
 import 'package:game_note/features/community/data/repositories/auth_repository_impl.dart';
 import 'package:game_note/features/community/domain/repositories/auth_repository.dart';
 import 'package:game_note/features/community/domain/usecases/sign_in_with_email.dart';
@@ -35,10 +36,12 @@ Future<void> init() async {
   getIt.registerSingleton<LeagueLocalDatasource>(
       LeagueLocalDatasourceImpl(getIt()));
 
+  getIt.registerFactory(() => AuthDatasource());
+
   // repositories
   getIt.registerSingleton<LeagueRepository>(LeagueRepositoryImpl(getIt()));
 
-  getIt.registerFactory<AuthRepository>(() => AuthRepositoryImpl());
+  getIt.registerFactory<AuthRepository>(() => AuthRepositoryImpl(getIt()));
 
   // usecases
   getIt.registerSingleton(GetLeagues(getIt()));

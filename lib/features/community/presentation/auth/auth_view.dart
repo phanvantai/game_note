@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
-import 'package:game_note/features/community/presentation/auth/create_account_view.dart';
+import 'package:game_note/features/community/presentation/auth/sign_up/create_account_view.dart';
 import 'package:game_note/features/community/presentation/auth/forgot_password_view.dart';
 import 'package:game_note/features/community/presentation/auth/sign_in/sign_in_view.dart';
 
