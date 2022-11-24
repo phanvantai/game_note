@@ -14,7 +14,7 @@ class MainView extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => CommunityBloc()),
+        BlocProvider(create: (_) => CommunityBloc()..add(InitialComEvent())),
         BlocProvider(create: (_) => AuthBloc()),
         BlocProvider(create: (_) => MenuBloc()),
       ],

@@ -6,6 +6,14 @@ abstract class CommunityEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoginEvent extends CommunityEvent {}
+class InitialComEvent extends CommunityEvent {}
 
-class LogoutEvent extends CommunityEvent {}
+class LoginEvent extends CommunityEvent {
+  final UserModel userModel;
+
+  const LoginEvent(this.userModel);
+  @override
+  List<Object?> get props => [userModel];
+}
+
+class SignOutEvent extends CommunityEvent {}

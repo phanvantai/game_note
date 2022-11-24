@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/features/community/domain/entities/user_model.dart';
 import 'package:game_note/features/community/domain/usecases/sign_in_with_email.dart';
 
 part 'sign_in_event.dart';
@@ -16,29 +17,26 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
 
   _onEmailChanged(SignInEmailChanged event, Emitter<SignInState> emit) async {
     emit(state.copyWith(email: event.email));
-    debugPrint(state.toString());
   }
 
   _onPasswordChanged(
       SignInPasswordChanged event, Emitter<SignInState> emit) async {
     emit(state.copyWith(password: event.password));
-    debugPrint(state.toString());
   }
 
   _onSubmitted(SignInSubmitted event, Emitter<SignInState> emit) async {
     // check valid input
     debugPrint('onSignInSubmitted');
     // do stuff
+    emit(state.copyWith(status: SignInStatus.loading));
     // do sign in with firebase
     var abc = await signInWithEmail
         .call(SignInWithEmailParams(state.email, state.password));
     abc.when(
-      (error) {
-        print(error.message);
-      },
-      (success) {
-        print(success);
-      },
+      (error) => emit(
+          state.copyWith(status: SignInStatus.error, error: error.message)),
+      (success) => emit(
+          state.copyWith(status: SignInStatus.success, userModel: success)),
     );
   }
 }

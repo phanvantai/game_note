@@ -24,4 +24,9 @@ class AuthDatasource {
       throw ServerException(e.toString());
     }
   }
+
+  Future<bool> signOut() async {
+    await FirebaseAuth.instance.signOut();
+    return true;
+  }
 }

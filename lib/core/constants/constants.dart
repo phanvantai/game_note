@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 
 const double kDefaultPadding = 16;
 
+const Widget kDefaultLoading = Padding(
+  padding: EdgeInsets.symmetric(vertical: 8),
+  child: FittedBox(
+    child: CircularProgressIndicator(
+      color: Colors.white,
+    ),
+  ),
+);
+
 const TextStyle kDefaultBoldWhite = TextStyle(
   fontSize: 16,
   color: Colors.white,
