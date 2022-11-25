@@ -13,8 +13,20 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Result<Failure, UserModel>> signInWithEmail(
       String email, String password) async {
     try {
-      // login
+      // sign in
       return Success(await datasource.signInWithEmail(email, password));
+    } on ServerException catch (e) {
+      return Error(RemoteFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Result<Failure, UserModel>> signUpWithEmail(
+      String email, String password) async {
+    try {
+      // sign up
+      return Success(
+          await datasource.createUserWithEmailAndPassword(email, password));
     } on ServerException catch (e) {
       return Error(RemoteFailure(e.message));
     }

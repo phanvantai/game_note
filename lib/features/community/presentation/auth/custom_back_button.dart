@@ -9,7 +9,7 @@ class CustomBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: () => context.read<AuthBloc>().add(InitialEvent()),
+      onPressed: () => context.read<AuthBloc>().add(AuthInitialEvent()),
       child: const Text(
         'Back',
         style: TextStyle(color: Colors.white),

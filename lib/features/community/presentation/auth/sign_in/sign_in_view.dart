@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
 import 'package:game_note/features/community/presentation/auth/custom_back_button.dart';
 import 'package:game_note/features/community/presentation/bloc/community_bloc.dart';
 
@@ -37,10 +38,9 @@ class SignInView extends StatelessWidget {
               ),
               backgroundColor: Colors.grey,
             ));
-            // abc with user model
-
             //
             context.read<CommunityBloc>().add(LoginEvent(state.userModel!));
+            context.read<AuthBloc>().add(AuthInitialEvent());
           }
         },
         child: Padding(
@@ -52,10 +52,10 @@ class SignInView extends StatelessWidget {
               SignInPassword(),
               SizedBox(height: kDefaultPadding),
               SizedBox(height: kDefaultPadding),
-              Text(
-                'Forgot password?',
-                style: TextStyle(decoration: TextDecoration.underline),
-              ),
+              // Text(
+              //   'Forgot password?',
+              //   style: TextStyle(decoration: TextDecoration.underline),
+              // ),
               SizedBox(height: kDefaultPadding),
               SignInButton(),
               SizedBox(height: 16),

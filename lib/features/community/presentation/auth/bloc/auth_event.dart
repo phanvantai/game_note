@@ -10,4 +10,4 @@ class SignInEmailEvent extends AuthEvent {}
 
 class CreateAccountEvent extends AuthEvent {}
 
-class InitialEvent extends AuthEvent {}
+class AuthInitialEvent extends AuthEvent {}
