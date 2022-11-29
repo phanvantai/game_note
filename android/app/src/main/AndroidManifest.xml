@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.game_note">
    <application
-        android:label="game_note"
+        android:label="Game Note"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
