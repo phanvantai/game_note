@@ -3,33 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/constants/assets_path.dart';
 import 'package:game_note/core/helpers/app_helper.dart';
 
-import '../../../routing.dart';
 import 'bloc/app_bloc.dart';
 
-class SplashView extends StatefulWidget {
+class SplashView extends StatelessWidget {
   const SplashView({Key? key}) : super(key: key);
 
   @override
-  State<SplashView> createState() => _SplashViewState();
-}
-
-class _SplashViewState extends State<SplashView> {
-  @override
-  void initState() {
-    super.initState();
-
-    initAppState();
-  }
-
-  initAppState() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    context.read<AppBloc>().add(SwitchAppMode(appStatus));
-    Navigator.of(context).pushNamed(Routing.app);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    Future.delayed(const Duration(milliseconds: 600))
+        .then((value) => context.read<AppBloc>().add(SwitchAppMode(appStatus)));
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(

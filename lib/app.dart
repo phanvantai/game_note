@@ -8,7 +8,7 @@ class App extends MaterialApp {
       : super(
           key: key,
           onGenerateRoute: Routing.generateRoute,
-          initialRoute: Routing.splash,
+          initialRoute: Routing.app,
           debugShowCheckedModeBanner: false,
           themeMode: ThemeMode.dark,
           darkTheme: ThemeData(

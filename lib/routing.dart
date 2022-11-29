@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/features/common/presentation/app_view.dart';
 
-import 'features/common/presentation/splash_view.dart';
-
 class Routing {
-  static const String splash = '/';
-  static const String app = '/app';
+  static const String app = '/';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return fadeThrough(settings, (context) {
       switch (settings.name) {
         case Routing.app:
           return const AppView();
-        case Routing.splash:
-          return const SplashView();
         default:
-          return const SplashView();
+          return const AppView();
       }
     });
   }

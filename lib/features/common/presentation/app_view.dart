@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/features/common/presentation/splash_view.dart';
 import 'package:game_note/features/community/presentation/main_view.dart';
 import 'package:game_note/features/common/presentation/general_view.dart';
 import 'package:game_note/features/offline/presentation/offline_view.dart';
@@ -29,8 +30,10 @@ class AppView extends StatelessWidget {
         return const MainView();
       case AppStatus.offline:
         return const OfflineView();
-      default:
+      case AppStatus.none:
         return const GeneralView();
+      default:
+        return const SplashView();
     }
   }
 }

@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAmoQjpmoGK8SpW7a9YU3Q3-0mnvwC0I0U',
-    appId: '1:256841801977:android:2dcf003c30d77f616b8228',
+    appId: '1:256841801977:android:34ed79428e1c2ce16b8228',
     messagingSenderId: '256841801977',
     projectId: 'gamenoteapp',
     storageBucket: 'gamenoteapp.appspot.com',
