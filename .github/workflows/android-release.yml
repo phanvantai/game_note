@@ -10,30 +10,30 @@ on:
 
 # 4
 jobs:
-  version:
-    name: Create version number
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      - uses: actions/checkout@v3
-      # 2
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.7
-        with:
-          versionSpec: "5.x"
-      - name: Use GitVersion
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.9.7
-      # 3
-      - name: Create version.txt with nuGetVersion
-        run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
-      # 4
-      - name: Upload version.txt
-        uses: actions/upload-artifact@v2
-        with:
-          name: gitversion
-          path: version.txt
+  # version:
+  #   name: Create version number
+  #   # The type of runner that the job will run on
+  #   runs-on: ubuntu-latest
+  #   # Steps represent a sequence of tasks that will be executed as part of the job
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     # 2
+  #     - name: Install GitVersion
+  #       uses: gittools/actions/gitversion/setup@v0.9.7
+  #       with:
+  #         versionSpec: "5.x"
+  #     - name: Use GitVersion
+  #       id: gitversion
+  #       uses: gittools/actions/gitversion/execute@v0.9.7
+  #     # 3
+  #     - name: Create version.txt with nuGetVersion
+  #       run: echo ${{ steps.gitversion.outputs.nuGetVersion  }} > version.txt
+  #     # 4
+  #     - name: Upload version.txt
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: gitversion
+  #         path: version.txt
   # 5
   build:
     name: Create Android Build
@@ -47,23 +47,23 @@ jobs:
       # 8
       - uses: actions/checkout@v3
       # 2   
-      - name: Get version.txt
-        uses: actions/download-artifact@v2
-        with:
-          name: gitversion
+      # - name: Get version.txt
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: gitversion
       # 3
-      - name: Create new file without newline char from version.txt
-        run: tr -d '\n' < version.txt > version1.txt
+      # - name: Create new file without newline char from version.txt
+      #   run: tr -d '\n' < version.txt > version1.txt
       
       # 4
-      - name: Read version
-        id: version
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: version1.txt
+      # - name: Read version
+      #   id: version
+      #   uses: juliangruber/read-file-action@v1
+      #   with:
+      #     path: version1.txt
       # 5
-      - name: Update version in YAML
-        run: sed -i 's/99.99.99+99/${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
+      # - name: Update version in YAML
+      #   run: sed -i 's/99.99.99+99/${{ steps.version.outputs.content }}+${{ github.run_number }}/g' pubspec.yaml
       # 6
       - name: Download Android keystore
         id: android_keystore
