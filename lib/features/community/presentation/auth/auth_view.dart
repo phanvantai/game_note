@@ -8,7 +8,7 @@ import 'package:game_note/features/community/presentation/auth/sign_in/sign_in_v
 import '../../../../core/constants/assets_path.dart';
 import '../../../../features/community/presentation/widgets/custom_button.dart';
 import '../../../common/presentation/bloc/app_bloc.dart';
-import 'buttons_view.dart';
+import 'auth_buttons_view.dart';
 
 class AuthView extends StatelessWidget {
   const AuthView({Key? key}) : super(key: key);
