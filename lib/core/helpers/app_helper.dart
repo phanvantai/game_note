@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:game_note/injection_container.dart';
-import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 
+import '../../features/common/presentation/bloc/app_bloc.dart';
 import 'shared_preferences_helper.dart';
 
 AppStatus get appStatus {
