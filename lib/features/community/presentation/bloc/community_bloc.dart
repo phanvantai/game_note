@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/features/community/data/datasources/auth_datasource.dart';
 import 'package:game_note/features/community/domain/entities/user_model.dart';
@@ -17,8 +18,13 @@ class CommunityBloc extends Bloc<CommunityEvent, CommunityState> {
 
   _onInitial(InitialComEvent event, Emitter<CommunityState> emit) {
     // check login state
-    if (FirebaseAuth.instance.currentUser != null) {
-      emit(state.copyWith(status: CommunityStatus.loggedIn));
+    var user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      debugPrint(user.toString());
+      emit(state.copyWith(
+        status: CommunityStatus.loggedIn,
+        userModel: UserModel(uid: user.uid, email: user.email),
+      ));
     }
   }
 

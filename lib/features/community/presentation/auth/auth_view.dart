@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
-import 'package:game_note/features/community/presentation/auth/sign_up/create_account_view.dart';
-import 'package:game_note/features/community/presentation/auth/forgot_password_view.dart';
+import 'package:game_note/features/community/presentation/auth/sign_up/sign_up_view.dart';
+import 'package:game_note/features/community/presentation/auth/forgot_password/forgot_password_view.dart';
 import 'package:game_note/features/community/presentation/auth/sign_in/sign_in_view.dart';
 
 import '../../../../core/constants/assets_path.dart';
 import '../../../../features/community/presentation/widgets/custom_button.dart';
 import '../../../common/presentation/bloc/app_bloc.dart';
-import 'buttons_view.dart';
+import 'auth_buttons_view.dart';
 
 class AuthView extends StatelessWidget {
   const AuthView({Key? key}) : super(key: key);
@@ -88,7 +88,7 @@ class AuthView extends StatelessWidget {
       case AuthStatus.initial:
         return const AuthButtonsView();
       case AuthStatus.createAccount:
-        return const CreateAccountView();
+        return const SignUpView();
       case AuthStatus.signInMail:
         return const SignInView();
       case AuthStatus.forgotPassword:
