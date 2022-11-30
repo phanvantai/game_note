@@ -126,5 +126,5 @@ jobs:
         serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
         packageName: com.november.game_note
         releaseFiles: app-release.aab
-        track: alpha
+        track: beta
         status: completed
