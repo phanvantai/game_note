@@ -127,4 +127,4 @@ jobs:
         packageName: com.november.game_note
         releaseFiles: app-release.aab
         track: beta
-        status: completed
+        status: draft
