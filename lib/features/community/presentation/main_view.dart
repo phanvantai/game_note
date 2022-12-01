@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
 import 'package:game_note/features/community/presentation/online_view.dart';
 
-import '../../offline/presentation/menu/bloc/menu_bloc.dart';
 import 'auth/auth_view.dart';
 import 'bloc/community_bloc.dart';
 
@@ -16,7 +15,6 @@ class MainView extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => CommunityBloc()..add(InitialComEvent())),
         BlocProvider(create: (_) => AuthBloc()),
-        BlocProvider(create: (_) => MenuBloc()),
       ],
       child: BlocBuilder<CommunityBloc, CommunityState>(
         builder: (context, state) {
