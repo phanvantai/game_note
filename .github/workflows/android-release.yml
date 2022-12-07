@@ -1,21 +1,101 @@
-name: Android Release
+# name: Android Release
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
+
+#   # allow manual trigger on actions tab
+#   workflow_dispatch:
+
+# # 4
+# jobs:
+#   # build & export artifact
+#   build:
+#     name: Create Android Build
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - name: Download Android keystore
+#         id: android_keystore
+#         uses: timheuer/base64-to-file@v1.0.3
+#         with:
+#           fileName: november-keystore.jks
+#           encodedString: ${{ secrets.KEYSTORE_BASE64 }}
+#       - name: Create key.properties
+#         run: |
+#           echo "storeFile=${{ steps.android_keystore.outputs.filePath }}" > android/key.properties
+#           echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+#           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+#           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+#       - uses: actions/setup-java@v3
+#         with:
+#           distribution: 'zulu'
+#           java-version: "12.x"
+#           cache: 'gradle'
+#       - uses: subosito/flutter-action@v2
+#         with:
+#           flutter-version: "3.0.0"
+#           channel: 'stable'
+#           cache: true
+#       # 12
+#       - name: Get dependencies
+#         run: flutter pub get
+#       - name: Start release build
+#         run: flutter build appbundle
+#       # 8
+#       - name: Upload Android Release
+#         uses: actions/upload-artifact@v2
+#         with:
+#           name: android-release
+#           path: build/app/outputs/bundle/release/app-release.aab
+  
+#   # deploy to play store
+#   deploy:
+#     name: Deploy Android Build
+#     # required job build
+#     needs: build
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - uses: actions/checkout@v3
+#     - name: Get Android Build from artifacts
+#       uses: actions/download-artifact@v2
+#       with:
+#         name: android-release
+#     - name: Release Build to internal track
+#       uses: r0adkll/upload-google-play@v1
+#       with:
+#         serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+#         packageName: com.november.game_note
+#         releaseFiles: app-release.aab
+#         # build open testing
+#         track: beta
+#         status: completed
+
+name: Deploy
+
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
-  # allow manual trigger on actions tab
-  workflow_dispatch:
-
-# 4
 jobs:
-  # build & export artifact
-  build:
-    name: Create Android Build
+  distribute:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
+
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+      - name: Install bundle
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+      
       - name: Download Android keystore
         id: android_keystore
         uses: timheuer/base64-to-file@v1.0.3
@@ -38,37 +118,13 @@ jobs:
           flutter-version: "3.0.0"
           channel: 'stable'
           cache: true
-      # 12
-      - name: Get dependencies
-        run: flutter pub get
-      - name: Start release build
-        run: flutter build appbundle
-      # 8
-      - name: Upload Android Release
-        uses: actions/upload-artifact@v2
-        with:
-          name: android-release
-          path: build/app/outputs/bundle/release/app-release.aab
-  
-  # deploy to play store
-  deploy:
-    name: Deploy Android Build
-    # required job build
-    needs: build
-    runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
-    - name: Get Android Build from artifacts
-      uses: actions/download-artifact@v2
-      with:
-        name: android-release
-    - name: Release Build to internal track
-      uses: r0adkll/upload-google-play@v1
-      with:
-        serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
-        packageName: com.november.game_note
-        releaseFiles: app-release.aab
-        # build open testing
-        track: beta
-        status: completed
+      - name: Create Google Play Config file
+        run : |
+          echo "$PLAY_CONFIG_JSON" > play_config.json.b64
+          base64 -d -i play_config.json.b64 > play_config.json
+        env:
+          PLAY_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+
+      - name: Distribute app to Beta track 🚀
+        run: bundle exec fastlane beta
