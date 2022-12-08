@@ -1,14 +1,15 @@
 name: Publish (iOS)
 
 on:
-  # Allow manual builds of this workflow
-  workflow_dispatch: 
   # Run the workflow whenever a new tag named 'v*' is pushed
   push:
     branches:
       - "!*"
     tags:
       - "v*"
+
+  # Allow manual builds of this workflow
+  workflow_dispatch: 
 
 jobs:
   build_and_publish:
@@ -43,6 +44,12 @@ jobs:
             ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
       - name: Download dependencies
         run: flutter pub get
+
+      - name: Run pod install
+        run: |
+            cd ios
+            bundle exec pod install
+            cd ..
       - name: Build & Publish to TestFlight with Fastlane
         env:
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
