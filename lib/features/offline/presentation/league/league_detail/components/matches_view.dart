@@ -31,13 +31,14 @@ class MatchesView extends StatelessWidget {
                 children: [
                   ListRoundsView(
                     list: state.model?.rounds ?? [],
-                    callback: (match) {
+                    updateMatchCallback: (match) {
                       _updateMatch(match, context);
                     },
                   ),
                   ListRoundsView(
                     list: state.model?.rounds ?? [],
                     status: true,
+                    reUpdateMatchCallback: (p0) {},
                   ),
                 ],
               ),

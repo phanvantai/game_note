@@ -83,9 +83,10 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
   _updateMatch(UpdateMatchEvent event, Emitter<LeagueDetailState> emit) async {
     emit(state.copyWith(status: LeagueDetailStatus.updating));
     var result = await updateMatch.call(UpdateMatchParams(
-        matchModel: event.matchModel,
-        homeScore: event.homeScore,
-        awayScore: event.awayScore));
+      matchModel: event.matchModel,
+      homeScore: event.homeScore,
+      awayScore: event.awayScore,
+    ));
     result.fold(
       (l) => null,
       (r) => emit(state.copyWith(status: LeagueDetailStatus.loaded, model: r)),

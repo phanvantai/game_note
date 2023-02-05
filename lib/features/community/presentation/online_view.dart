@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/features/community/presentation/community/community_view.dart';
+import 'package:game_note/features/community/presentation/friends/friends_view.dart';
 import 'package:game_note/features/community/presentation/profile/profile_view.dart';
 import 'package:game_note/features/community/presentation/tournament/tournament_view.dart';
 
@@ -20,6 +21,10 @@ class _OnlineViewState extends State<OnlineView> with TickerProviderStateMixin {
       icon: Icon(Icons.sports_soccer),
       label: 'Tournaments',
     ): TournamentView(),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.people),
+      label: 'Friends',
+    ): FriendsView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.person),
       label: 'Profile',
