@@ -5,12 +5,22 @@ import 'package:game_note/features/offline/presentation/components/player_score_
 class MatchView extends StatelessWidget {
   final MatchModel model;
   final Function(MatchModel)? callback;
-  const MatchView({Key? key, required this.model, this.callback})
-      : super(key: key);
+  final Function(MatchModel)? reUpdateMatchCallback;
+  const MatchView({
+    Key? key,
+    required this.model,
+    this.callback,
+    this.reUpdateMatchCallback,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onLongPress: () {
+        if (reUpdateMatchCallback != null) {
+          reUpdateMatchCallback!(model);
+        }
+      },
       onTap: model.status == false
           ? () {
               if (callback != null) {

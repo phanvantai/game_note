@@ -5,13 +5,15 @@ import 'package:game_note/features/offline/presentation/components/match_view.da
 
 class ListRoundsView extends StatelessWidget {
   final List<RoundModel> list;
-  final Function(MatchModel)? callback;
+  final Function(MatchModel)? updateMatchCallback;
+  final Function(MatchModel)? reUpdateMatchCallback;
   final bool status;
   const ListRoundsView({
     Key? key,
     required this.list,
-    this.callback,
+    this.updateMatchCallback,
     this.status = false,
+    this.reUpdateMatchCallback,
   }) : super(key: key);
 
   @override
@@ -31,7 +33,8 @@ class ListRoundsView extends StatelessWidget {
                 if (match.status == status)
                   MatchView(
                     model: match,
-                    callback: callback,
+                    callback: updateMatchCallback,
+                    reUpdateMatchCallback: reUpdateMatchCallback,
                   )
             ],
           ),
