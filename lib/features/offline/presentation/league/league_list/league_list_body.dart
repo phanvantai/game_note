@@ -16,7 +16,7 @@ class LeagueListBody extends StatelessWidget {
         children: [
           const Padding(
             padding: EdgeInsets.all(kDefaultPadding),
-            child: Text("List league"),
+            child: Text("Danh sách giải đấu"),
           ),
           Expanded(
             child: ListView.builder(

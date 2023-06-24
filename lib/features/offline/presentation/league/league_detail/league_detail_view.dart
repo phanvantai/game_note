@@ -53,7 +53,7 @@ class LeagueDetailView extends StatelessWidget {
         padding: EdgeInsets.all(16),
         child: Center(
           child: Text(
-            'The league is not configure. Click plus button below to add players and start the league.',
+            'Giải đấu chưa được thiết lập.\nBấm nút + bên dưới để thêm người chơi và bắt đầu giải đấu',
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
@@ -71,11 +71,16 @@ class LeagueDetailView extends StatelessWidget {
       return const Text('error league ');
     }
     if (state.status.isLoaded || state.status.isUpdating) {
+      // for (var element in state.model?.rounds ?? <RoundModel>[]) {
+      //   element.matches.where((element) => element.status).forEach((element) {
+      //     print(element);
+      //   });
+      // }
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
+        child: const SafeArea(
           child: Column(
-            children: const [
+            children: [
               TableView(),
               SizedBox(height: 12),
               Expanded(child: MatchesView()),

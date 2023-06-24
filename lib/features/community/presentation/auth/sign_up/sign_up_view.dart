@@ -35,10 +35,10 @@ class SignUpView extends StatelessWidget {
             context.read<AuthBloc>().add(AuthInitialEvent());
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 32),
           child: Column(
-            children: const [
+            children: [
               SignUpEmail(),
               SizedBox(height: kDefaultPadding),
               SignUpPassword(),

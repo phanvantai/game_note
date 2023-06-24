@@ -25,7 +25,7 @@ class LeagueManager {
 
   setLeague(LeagueModel leagueModel) async {
     _leagueModel = leagueModel;
-    setPlayers(_leagueModel.players.map((e) => e.playerModel).toList());
+    await setPlayers(_leagueModel.players.map((e) => e.playerModel).toList());
   }
 
   List<PlayerModel> get players => _players;
@@ -107,20 +107,56 @@ class LeagueManager {
     await databaseManager.updateMatch(model.copyWith(status: true));
 
     // update player stats
-    MatchModel currentMatch = await databaseManager.getMatch(model.id!);
-    var playerStatsHome = league.players
-        .lastWhere((element) => element.playerModel == model.home!.playerModel);
-    var abc = TournamentHelper.updateStats(playerStatsHome, currentMatch);
-    await databaseManager.updatePlayerStats(abc);
-    var playerStatsAway = league.players
-        .lastWhere((element) => element.playerModel == model.away!.playerModel);
-    var def = TournamentHelper.updateStats(playerStatsAway, currentMatch);
-    await databaseManager.updatePlayerStats(def);
+    final homeStats = await updatePlayerStats(league.players.lastWhere(
+        (element) => element.playerModel == model.home!.playerModel));
+    if (homeStats != null) {
+      await databaseManager.updatePlayerStats(homeStats);
+    }
+    final awayStats = await updatePlayerStats(league.players.lastWhere(
+        (element) => element.playerModel == model.away!.playerModel));
+    if (awayStats != null) {
+      await databaseManager.updatePlayerStats(awayStats);
+    }
 
     // reload
     var newLeague = await databaseManager.getLeague(league.id!);
     if (newLeague != null) {
-      setLeague(newLeague);
+      await setLeague(newLeague);
     }
+  }
+
+  Future<PlayerStatsModel?> updatePlayerStats(
+      PlayerStatsModel playerStatsModel) async {
+    // get league
+    final newLeague =
+        await databaseManager.getLeague(playerStatsModel.leagueId);
+    if (newLeague == null) {
+      return null;
+    }
+    // get matchs in league
+    // filter matchs with player model
+    List<MatchModel> matchs = [];
+    for (var element in newLeague.rounds) {
+      // only count match done and has player model
+      matchs.addAll(element.matches.where((element) =>
+          (element.away != null && element.home != null && element.status) &&
+          (element.home!.playerModel.id == playerStatsModel.playerModel.id ||
+              element.away!.playerModel.id ==
+                  playerStatsModel.playerModel.id)));
+    }
+
+    // create player stats
+    var newStatsModel = playerStatsModel.copyWith(
+      totalPlayed: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      goalDifferent: 0,
+      points: 0,
+    );
+    for (var match in matchs) {
+      newStatsModel = TournamentHelper.updateStats(newStatsModel, match);
+    }
+    return newStatsModel;
   }
 }

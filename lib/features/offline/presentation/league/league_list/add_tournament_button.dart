@@ -19,7 +19,7 @@ class AddTournamentButton extends StatelessWidget {
           }),
         );
       },
-      tooltip: 'Add New Tournament',
+      tooltip: 'Thêm giải đấu mới',
       child: const Icon(Icons.add),
     );
   }

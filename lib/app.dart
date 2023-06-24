@@ -15,9 +15,9 @@ class App extends MaterialApp {
             primarySwatch: primaryBlack,
             primaryColor: Colors.black,
             brightness: Brightness.dark,
-            backgroundColor: Colors.black,
             dividerColor: Colors.black12,
             colorScheme: ColorScheme.fromSwatch(
+              backgroundColor: Colors.black,
               primarySwatch: primaryBlack,
               primaryColorDark: Colors.black,
               brightness: Brightness.dark,

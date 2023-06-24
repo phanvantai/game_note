@@ -77,28 +77,6 @@ class TournamentHelper {
     );
   }
 
-  // static List<PlayerStats> createTable(
-  //     List<PlayerModel> players, List<MatchModel> matches) {
-  //   var list =
-  //       players.map((e) => TournamentHelper.getStats(e, matches)).toList();
-  //   list.sort((a, b) {
-  //     if (a.points > b.points) {
-  //       return -1;
-  //     } else if (a.points < b.points) {
-  //       return 1;
-  //     } else {
-  //       if (a.goalsDifference > b.goalsDifference) {
-  //         return -1;
-  //       } else if (a.goalsDifference < b.goalsDifference) {
-  //         return 1;
-  //       } else {
-  //         return 0;
-  //       }
-  //     }
-  //   });
-  //   return list;
-  // }
-
   static int goalDifference(PlayerModel player, MatchModel match) {
     if (match.status == false ||
         (match.home!.playerModel != player &&
@@ -111,39 +89,4 @@ class TournamentHelper {
         ? match.home!.score! - match.away!.score!
         : match.away!.score! - match.home!.score!;
   }
-
-  // static PlayerStats getStats(PlayerModel player, List<MatchModel> matches) {
-  //   var matchesPlayed = matches
-  //       .where((element) =>
-  //           element.status == true &&
-  //           (element.home.playerModel == player ||
-  //               element.away.playerModel == player))
-  //       .toList();
-  //   var wins = matchesPlayed
-  //       .where((e) => ResultTypeX.result(player, e).isWin)
-  //       .toList()
-  //       .length;
-  //   var draws = matchesPlayed
-  //       .where((e) => ResultTypeX.result(player, e).isDraw)
-  //       .toList()
-  //       .length;
-  //   var losses = matchesPlayed
-  //       .where((e) => ResultTypeX.result(player, e).isLost)
-  //       .toList()
-  //       .length;
-  //   int gd = 0;
-  //   for (var match in matchesPlayed) {
-  //     gd += goalDifference(player, match);
-  //   }
-  //   return PlayerStats(
-  //       0.toString(),
-  //       player.fullname,
-  //       matchesPlayed.length.toString(),
-  //       wins.toString(),
-  //       draws.toString(),
-  //       losses.toString(),
-  //       gd,
-  //       wins * 3 + draws * 1,
-  //       player.color ?? randomObject(Colors.primaries));
-  // }
 }
