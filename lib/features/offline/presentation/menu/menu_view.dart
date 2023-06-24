@@ -81,7 +81,7 @@ class MenuView extends StatelessWidget {
                 MenuItemView(
                   icon: const Icon(Icons.share),
                   title: 'Export data',
-                  callback: () => Share.shareFiles([dataFile]),
+                  callback: () => Share.shareXFiles([XFile(dataFile)]),
                 ),
               ],
             ),

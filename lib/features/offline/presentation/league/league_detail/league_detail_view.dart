@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/features/offline/domain/entities/league_model.dart';
+import 'package:game_note/features/offline/domain/entities/round_model.dart';
 import 'package:game_note/features/offline/presentation/components/select_player_view.dart';
 
 import '../bloc/tournament_bloc.dart';
@@ -71,11 +72,16 @@ class LeagueDetailView extends StatelessWidget {
       return const Text('error league ');
     }
     if (state.status.isLoaded || state.status.isUpdating) {
+      // for (var element in state.model?.rounds ?? <RoundModel>[]) {
+      //   element.matches.where((element) => element.status).forEach((element) {
+      //     print(element);
+      //   });
+      // }
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
+        child: const SafeArea(
           child: Column(
-            children: const [
+            children: [
               TableView(),
               SizedBox(height: 12),
               Expanded(child: MatchesView()),

@@ -45,5 +45,7 @@
 	<false/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow user choose file to import datbase</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>

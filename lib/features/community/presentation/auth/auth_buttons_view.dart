@@ -54,9 +54,9 @@ class AuthButtonsView extends StatelessWidget {
           paddingHorizontal: 32,
           backgroundColor: Colors.green,
           onPressed: () => context.read<AuthBloc>().add(SignInEmailEvent()),
-          child: Row(
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
+            children: [
               Icon(Icons.email, size: 20),
               SizedBox(width: 8),
               Text(
@@ -71,9 +71,9 @@ class AuthButtonsView extends StatelessWidget {
           paddingHorizontal: 32,
           backgroundColor: Colors.red,
           onPressed: () => context.read<AuthBloc>().add(CreateAccountEvent()),
-          child: Row(
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
+            children: [
               Icon(Icons.edit, size: 20),
               SizedBox(width: 8),
               Text(
