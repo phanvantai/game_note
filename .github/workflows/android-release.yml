@@ -68,7 +68,9 @@ jobs:
         packageName: com.november.game_note
         releaseFiles: app-release.aab
         # build open testing
-        track: beta
+        # track: beta
+        # build production
+        track: production
         status: completed
 
 # name: Deploy
