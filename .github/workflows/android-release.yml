@@ -1,8 +1,7 @@
 name: Android Release
 on:
   push:
-    branches:
-      - master
+    branches: [ "main" ]
 
   # allow manual trigger on actions tab
   workflow_dispatch:
