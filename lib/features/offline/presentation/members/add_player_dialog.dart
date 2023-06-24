@@ -29,8 +29,9 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
           children: [
             const SizedBox(height: 16),
             TextField(
+              autofocus: true,
               decoration:
-                  const InputDecoration.collapsed(hintText: 'Player name'),
+                  const InputDecoration.collapsed(hintText: 'Tên người chơi'),
               controller: controller,
               onChanged: (string) {
                 setState(() {
@@ -41,6 +42,9 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
+              style: const ButtonStyle(
+                backgroundColor: MaterialStatePropertyAll(Colors.orange),
+              ),
               onPressed: fullname.length > 2
                   ? () async {
                       var player =
@@ -56,7 +60,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                       }
                     }
                   : null,
-              child: const Text("Add"),
+              child: const Text('Thêm'),
             ),
           ],
         ),

@@ -12,7 +12,7 @@ class SwitchModeWidget extends StatelessWidget {
     return BlocBuilder<AppBloc, AppState>(
       buildWhen: (previous, current) => previous.status != current.status,
       builder: (context, state) => MenuItemView(
-        title: 'Community Mode',
+        title: 'Cộng đồng',
         icon: const Icon(Icons.accessibility),
         trailing: Switch(
           activeColor: Colors.orange,

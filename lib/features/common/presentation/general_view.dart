@@ -30,7 +30,7 @@ class GeneralView extends StatelessWidget {
             const SizedBox(height: 48, width: double.maxFinite),
             CustomButton(
               paddingHorizontal: 32,
-              buttonText: 'Offline mode',
+              buttonText: 'Offline',
               backgroundColor: Colors.cyan,
               onPressed: () => context
                   .read<AppBloc>()
@@ -39,7 +39,7 @@ class GeneralView extends StatelessWidget {
             const SizedBox(height: 16),
             CustomButton(
               paddingHorizontal: 32,
-              buttonText: 'Community mode',
+              buttonText: 'Cộng đồng',
               onPressed: () => context
                   .read<AppBloc>()
                   .add(const SwitchAppMode(AppStatus.community)),

@@ -35,8 +35,7 @@ class LeagueListView extends StatelessWidget {
                         icon: const Icon(Icons.refresh),
                       ),
                       const Text(
-                        'No tournaments have been created yet. Click plus button below to create new one.',
-                        style: TextStyle(fontSize: 16),
+                        'Chưa có giải đấu nào được tạo.\nBấm nút + bên dưới để tạo một giải đấu',
                         textAlign: TextAlign.center,
                       ),
                     ],

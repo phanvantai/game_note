@@ -15,7 +15,7 @@ class LeagueDetailFloatingButton extends StatelessWidget {
           onPressed: () {
             BlocProvider.of<LeagueDetailBloc>(context).add(AddPlayersStarted());
           },
-          tooltip: 'Add Players',
+          tooltip: 'Thêm người chơi',
           child: const Icon(Icons.add),
         );
       }
@@ -24,7 +24,7 @@ class LeagueDetailFloatingButton extends StatelessWidget {
           onPressed: () {
             BlocProvider.of<LeagueDetailBloc>(context).add(AddNewRounds());
           },
-          tooltip: 'Add New Round',
+          tooltip: 'Thêm vòng đấu',
           child: const Icon(Icons.add),
         );
       }
