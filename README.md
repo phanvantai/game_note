@@ -1,5 +1,10 @@
 # game_note
-Simple App for creating tournament game, solo game and record result with ranking.
+
+Simple App for creating tournament game and record result with ranking.
+
+## Google Play
+
+[Game Note](https://play.google.com/store/apps/details?id=com.november.game_note)
 
 ## Database scheme in tournament
 
