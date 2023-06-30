@@ -13,7 +13,33 @@ class LeagueListBody extends StatelessWidget {
     return BlocBuilder<LeagueListBloc, LeagueListState>(
       builder: (context, state) => ListView.builder(
         itemCount: state.leagues.length,
-        itemBuilder: (context, index) => GestureDetector(
+        itemBuilder: (context, index) => InkWell(
+          onDoubleTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('Xoá giải đấu ${state.leagues[index].name}?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      'Huỷ',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text(
+                      'Đồng ý',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
           onTap: () => BlocProvider.of<TournamentBloc>(context)
               .add(SelectLeagueEvent(state.leagues[index])),
           child: Container(
