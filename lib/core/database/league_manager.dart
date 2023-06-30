@@ -45,12 +45,16 @@ extension LeagueManagerX on DatabaseManager {
           );
   }
 
-  Future<int> deleteLeague(int id) async {
+  Future<int> deleteLeague(int leagueId) async {
     final db = await database;
+    // delete rounds
+    await deleteRoundsWithLeagueId(leagueId);
+    // delete player league
+    await deletePlayersStatsWithLeagueId(leagueId);
     return await db.delete(
       leaguesTable,
       where: '${DBTableColumn.leagueId} = ?',
-      whereArgs: [id],
+      whereArgs: [leagueId],
     );
   }
 }

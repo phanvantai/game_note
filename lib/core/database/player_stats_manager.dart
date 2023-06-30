@@ -77,6 +77,24 @@ extension PlayerStatsManager on DatabaseManager {
     );
   }
 
+  Future<int> deletePlayerStatsWithId(int playerStatsId) async {
+    final db = await database;
+    return db.delete(
+      playerLeagueTable,
+      where: '${DBTableColumn.playerLeagueId} = ?',
+      whereArgs: [playerStatsId],
+    );
+  }
+
+  Future<void> deletePlayersStatsWithLeagueId(int leagueId) async {
+    final playersStats = await getPlayerStats(leagueId);
+    for (var element in playersStats) {
+      if (element.id != null) {
+        await deletePlayerStatsWithId(element.id!);
+      }
+    }
+  }
+
   Future<PlayerStatsModel> getPlayerStat(int playerStatsId) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(

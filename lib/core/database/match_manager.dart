@@ -70,4 +70,21 @@ extension MatchManager on DatabaseManager {
       whereArgs: [matchModel.id],
     );
   }
+
+  Future<int> deleteMatchWithId(int matchId) async {
+    final db = await database;
+    // delete player match
+    await deletePlayersMatchWithMatchId(matchId);
+    return db.delete(matchesTable,
+        where: '${DBTableColumn.matchId} = ?', whereArgs: [matchId]);
+  }
+
+  Future<void> deleteMatchsWithRoundId(int roundId) async {
+    final matchs = await getMatches(roundId);
+    for (var element in matchs) {
+      if (element.id != null) {
+        await deleteMatchWithId(element.id!);
+      }
+    }
+  }
 }
