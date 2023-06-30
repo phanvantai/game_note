@@ -12,6 +12,10 @@ class LeagueListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Giải đấu'),
+        backgroundColor: Colors.black,
+      ),
       body: SafeArea(
         child: BlocBuilder<LeagueListBloc, LeagueListState>(
             builder: (context, state) {

@@ -7,3 +7,12 @@ class LeagueListEvent extends Equatable {
 }
 
 class LeagueListStarted extends LeagueListEvent {}
+
+class DeleteLeagueEvent extends LeagueListEvent {
+  final LeagueModel leagueModel;
+
+  const DeleteLeagueEvent(this.leagueModel);
+
+  @override
+  List<Object?> get props => [leagueModel];
+}

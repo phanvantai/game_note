@@ -64,4 +64,22 @@ extension ResultManager on DatabaseManager {
       whereArgs: [resultModel.id],
     );
   }
+
+  Future<int> deletePlayerMatchWithId(int playerMatchId) async {
+    final db = await database;
+    return db.delete(
+      playerMatchTable,
+      where: '${DBTableColumn.playerMatchId} = ?',
+      whereArgs: [playerMatchId],
+    );
+  }
+
+  Future<void> deletePlayersMatchWithMatchId(int matchId) async {
+    final playersMatch = await getResults(matchId);
+    for (var element in playersMatch) {
+      if (element.id != null) {
+        await deletePlayerMatchWithId(element.id!);
+      }
+    }
+  }
 }

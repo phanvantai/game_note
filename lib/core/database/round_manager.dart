@@ -30,4 +30,25 @@ extension RoundManager on DatabaseManager {
     }
     return list;
   }
+
+  Future<int> deleteRoundWithId(int roundId) async {
+    final db = await database;
+    // delete matchs
+    await deleteMatchsWithRoundId(roundId);
+    return db.delete(
+      roundsTable,
+      where: '${DBTableColumn.roundId} = ?',
+      whereArgs: [roundId],
+    );
+  }
+
+  Future<void> deleteRoundsWithLeagueId(int leagueId) async {
+    // get rounds
+    final rounds = await getRounds(leagueId);
+    for (var element in rounds) {
+      if (element.id != null) {
+        await deleteRoundWithId(element.id!);
+      }
+    }
+  }
 }

@@ -18,6 +18,7 @@ abstract class LeagueLocalDatasource {
   Future<LeagueModel> createRounds();
   Future<LeagueModel> updateMatch(
       MatchModel matchModel, int homeScore, int awayScore);
+  Future<int> deleteLeague(int leagueId);
 }
 
 class LeagueLocalDatasourceImpl implements LeagueLocalDatasource {
@@ -92,6 +93,16 @@ class LeagueLocalDatasourceImpl implements LeagueLocalDatasource {
       return leagueManager.league;
     } catch (e) {
       throw DatabaseException();
+    }
+  }
+
+  @override
+  Future<int> deleteLeague(int leagueId) {
+    try {
+      final dm = getIt<DatabaseManager>();
+      return dm.deleteLeague(leagueId);
+    } catch (e) {
+      rethrow;
     }
   }
 }
