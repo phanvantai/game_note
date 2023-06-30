@@ -14,6 +14,7 @@ abstract class LeagueRepository {
       SetPlayersForLeagueParams params);
   Future<Either<Failure, LeagueModel>> createRounds(CreateRoundsParams params);
   Future<Either<Failure, LeagueModel>> updateMatch(UpdateMatchParams params);
+  Future<Either<Failure, int>> deleteLeauge(GetLeagueParams params);
 }
 
 class CreateLeagueParams extends Equatable {

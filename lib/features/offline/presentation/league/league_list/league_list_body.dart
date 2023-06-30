@@ -17,11 +17,11 @@ class LeagueListBody extends StatelessWidget {
           onDoubleTap: () {
             showDialog(
               context: context,
-              builder: (context) => AlertDialog(
+              builder: (dialogContext) => AlertDialog(
                 title: Text('Xoá giải đấu ${state.leagues[index].name}?'),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => Navigator.of(dialogContext).pop(),
                     child: const Text(
                       'Huỷ',
                       style: TextStyle(color: Colors.white),
@@ -29,7 +29,10 @@ class LeagueListBody extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      context
+                          .read<LeagueListBloc>()
+                          .add(DeleteLeagueEvent(state.leagues[index]));
+                      Navigator.of(dialogContext).pop();
                     },
                     child: const Text(
                       'Đồng ý',

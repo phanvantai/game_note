@@ -26,7 +26,9 @@ class _LeagueViewState extends State<LeagueView>
       providers: [
         BlocProvider(
             create: (_) => TournamentBloc(getIt())..add(LoadListLeagueEvent())),
-        BlocProvider(create: (_) => LeagueListBloc(getLeagues: getIt())),
+        BlocProvider(
+            create: (_) =>
+                LeagueListBloc(getLeagues: getIt(), deleteLeague: getIt())),
         BlocProvider(create: (_) => getIt<LeagueDetailBloc>())
       ],
       child: BlocListener<TournamentBloc, TournamentState>(

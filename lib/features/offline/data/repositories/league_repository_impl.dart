@@ -68,4 +68,13 @@ class LeagueRepositoryImpl implements LeagueRepository {
       return Left(LocalFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, int>> deleteLeauge(GetLeagueParams params) async {
+    try {
+      return Right(await localDatasource.deleteLeague(params.id));
+    } catch (e) {
+      return Left(LocalFailure(e.toString()));
+    }
+  }
 }

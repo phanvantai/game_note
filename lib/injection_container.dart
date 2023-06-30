@@ -10,6 +10,7 @@ import 'package:game_note/features/offline/data/repositories/league_repository_i
 import 'package:game_note/features/offline/domain/repositories/league_repository.dart';
 import 'package:game_note/features/offline/domain/usecases/create_league.dart';
 import 'package:game_note/features/offline/domain/usecases/create_rounds.dart';
+import 'package:game_note/features/offline/domain/usecases/delete_league.dart';
 import 'package:game_note/features/offline/domain/usecases/get_league.dart';
 import 'package:game_note/features/offline/domain/usecases/get_leagues.dart';
 import 'package:game_note/features/offline/domain/usecases/set_players_for_league.dart';
@@ -49,6 +50,7 @@ Future<void> init() async {
   getIt.registerSingleton(GetLeagues(getIt()));
   getIt.registerSingleton(CreateLeague(getIt()));
   getIt.registerSingleton(GetLeague(getIt()));
+  getIt.registerSingleton(DeleteLeague(getIt()));
 
   getIt.registerSingleton(SetPlayersForLeague(getIt()));
   getIt.registerSingleton(CreateRounds(getIt()));
