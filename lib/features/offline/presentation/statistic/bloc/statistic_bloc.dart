@@ -6,7 +6,6 @@ import 'package:game_note/injection_container.dart';
 
 import '../../../../../core/common/view_status.dart';
 import '../models/personal_statistic.dart';
-import 'package:collection/collection.dart';
 
 part 'statistic_event.dart';
 part 'statistic_state.dart';
@@ -31,10 +30,9 @@ class StatisticBloc extends Bloc<StatisticEvent, StatisticState> {
         if (league.id != null) {
           final realLeague = await dm.getLeague(league.id!);
           if (realLeague != null) {
-            personalStatistics.mapIndexed((index, element) {
-              personalStatistics[index] =
-                  element.getStatisticWithLeague(realLeague);
-            }).toList();
+            personalStatistics = personalStatistics
+                .map((element) => element.getStatisticWithLeague(realLeague))
+                .toList();
           }
         }
       }

@@ -83,18 +83,30 @@ class PersonalStatistic extends Equatable {
   }
 
   int get percentWin {
-    return ((countWins / countMatches) * 100).toInt();
+    if (countMatches < 1) {
+      return 0;
+    }
+    return ((countWins / countMatches) * 100).round();
   }
 
   int get percentDraw {
-    return ((countDraws / countMatches) * 100).toInt();
+    if (countMatches < 1) {
+      return 0;
+    }
+    return ((countDraws / countMatches) * 100).round();
   }
 
   int get percentLose {
-    return ((countLoses / countMatches) * 100).toInt();
+    if (countMatches < 1) {
+      return 0;
+    }
+    return ((countLoses / countMatches) * 100).round();
   }
 
   double get pointPerMatch {
+    if (countMatches < 1) {
+      return 0;
+    }
     return countPoints / countMatches;
   }
 
