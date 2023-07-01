@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/features/offline/data/database/database_manager.dart';
 import 'package:game_note/features/offline/domain/entities/match_model.dart';
 
 class RoundModel extends Equatable {

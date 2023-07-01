@@ -1,6 +1,6 @@
-import 'package:game_note/core/database/database_manager.dart';
-import 'package:game_note/core/database/player_stats_manager.dart';
-import 'package:game_note/core/database/round_manager.dart';
+import 'package:game_note/features/offline/data/database/database_manager.dart';
+import 'package:game_note/features/offline/data/database/player_stats_manager.dart';
+import 'package:game_note/features/offline/data/database/round_manager.dart';
 import 'package:game_note/features/offline/domain/entities/league_model.dart';
 import 'package:sqflite/sqflite.dart';
 

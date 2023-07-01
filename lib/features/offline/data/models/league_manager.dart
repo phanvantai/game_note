@@ -1,9 +1,9 @@
-import 'package:game_note/core/database/database_manager.dart';
-import 'package:game_note/core/database/league_manager.dart';
-import 'package:game_note/core/database/match_manager.dart';
-import 'package:game_note/core/database/player_stats_manager.dart';
-import 'package:game_note/core/database/result_manager.dart';
-import 'package:game_note/core/database/round_manager.dart';
+import 'package:game_note/features/offline/data/database/database_manager.dart';
+import 'package:game_note/features/offline/data/database/league_manager.dart';
+import 'package:game_note/features/offline/data/database/match_manager.dart';
+import 'package:game_note/features/offline/data/database/player_stats_manager.dart';
+import 'package:game_note/features/offline/data/database/result_manager.dart';
+import 'package:game_note/features/offline/data/database/round_manager.dart';
 import 'package:game_note/features/offline/domain/entities/league_model.dart';
 import 'package:game_note/features/offline/domain/entities/match_model.dart';
 import 'package:game_note/features/offline/domain/entities/player_model.dart';

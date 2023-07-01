@@ -5,7 +5,7 @@ import 'package:game_note/app.dart';
 import 'package:game_note/injection_container.dart' as di;
 import 'package:game_note/simple_bloc_observer.dart';
 
-import 'core/database/database_manager.dart';
+import 'features/offline/data/database/database_manager.dart';
 import 'features/common/presentation/bloc/app_bloc.dart';
 import 'firebase_options.dart';
 
