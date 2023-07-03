@@ -1,7 +1,11 @@
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:game_note/features/offline/presentation/statistic/models/personal_statistic.dart';
+
+import 'legends_list_widget.dart';
 
 class TotalStatistic extends StatelessWidget {
   final List<PersonalStatistic> statistics;
@@ -10,6 +14,9 @@ class TotalStatistic extends StatelessWidget {
     required this.statistics,
   }) : super(key: key);
 
+  final Color colorPointPerMatch = Colors.deepOrange;
+  final Color colorGDPerMatch = Colors.greenAccent;
+
   @override
   Widget build(BuildContext context) {
     // calcualate
@@ -17,29 +24,34 @@ class TotalStatistic extends StatelessWidget {
     statistics.sort(
       (a, b) => b.pointPerMatch.compareTo(a.pointPerMatch),
     );
-    return BarChart(BarChartData(
-      barTouchData: barTouchData,
-      titlesData: titlesData,
-      borderData: borderData,
-      barGroups: barGroups,
-      gridData: const FlGridData(show: false),
-      alignment: BarChartAlignment.spaceAround,
-      maxY: 2,
-    ));
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        LegendsListWidget(
+          legends: [
+            Legend('Điểm TB', colorPointPerMatch),
+            Legend('Hiệu số bàn thắng TB', colorGDPerMatch),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: BarChart(
+            BarChartData(
+              barTouchData: barTouchData,
+              titlesData: titlesData,
+              borderData: FlBorderData(show: false),
+              barGroups: barGroups,
+              gridData: const FlGridData(show: false),
+              alignment: BarChartAlignment.spaceAround,
+              maxY: statistics.map((e) => e.pointPerMatch).reduce(max) + 0.15,
+              minY: statistics.map((e) => e.goalDifferentPerMatch).reduce(min) -
+                  0.15,
+            ),
+          ),
+        )
+      ],
+    );
   }
-
-  LinearGradient get _barsGradient => const LinearGradient(
-        colors: [
-          Colors.deepOrange,
-          Colors.orange,
-        ],
-        begin: Alignment.bottomCenter,
-        end: Alignment.topCenter,
-      );
-
-  FlBorderData get borderData => FlBorderData(
-        show: false,
-      );
 
   BarTouchData get barTouchData => BarTouchData(
         enabled: false,
@@ -83,7 +95,7 @@ class TotalStatistic extends StatelessWidget {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 30,
+            reservedSize: 28,
             getTitlesWidget: getTitles,
           ),
         ),
@@ -104,10 +116,14 @@ class TotalStatistic extends StatelessWidget {
             barRods: [
               BarChartRodData(
                 toY: e.pointPerMatch,
-                gradient: _barsGradient,
-              )
+                color: colorPointPerMatch,
+              ),
+              BarChartRodData(
+                toY: e.goalDifferentPerMatch,
+                color: Colors.greenAccent,
+              ),
             ],
-            showingTooltipIndicators: [0],
+            showingTooltipIndicators: [0, 1],
           ))
       .toList();
 }

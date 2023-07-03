@@ -4,6 +4,7 @@ import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/core/constants/constants.dart';
 import 'package:game_note/features/offline/presentation/statistic/bloc/statistic_bloc.dart';
 import 'package:game_note/features/offline/presentation/statistic/widgets/multi_statistic.dart';
+import 'package:game_note/features/offline/presentation/statistic/widgets/percent_statistic.dart';
 import 'package:game_note/features/offline/presentation/statistic/widgets/total_statistic.dart';
 
 class StatisticBody extends StatefulWidget {
@@ -17,7 +18,7 @@ class _StatisticBodyState extends State<StatisticBody> {
   final tabs = const [
     Tab(
       icon: FittedBox(
-        child: Text('Điểm/Trận'),
+        child: Text('Điểm/Hiệu số'),
       ),
     ),
     Tab(
@@ -25,11 +26,11 @@ class _StatisticBodyState extends State<StatisticBody> {
         child: Text('Vô địch/Á quân'),
       ),
     ),
-    // Tab(
-    //   icon: FittedBox(
-    //     child: Text('Thắng/Hoà/Thua'),
-    //   ),
-    // ),
+    Tab(
+      icon: FittedBox(
+        child: Text('Thắng/Hoà/Thua'),
+      ),
+    ),
   ];
   @override
   void initState() {
@@ -57,7 +58,7 @@ class _StatisticBodyState extends State<StatisticBody> {
                   children: [
                     TotalStatistic(statistics: state.listStatistic),
                     MultiStatistic(statistics: state.listStatistic),
-                    //MultiStatistic(statistics: state.listStatistic),
+                    PercentStatistic(statistics: state.listStatistic),
                   ],
                 ),
               ),

@@ -89,39 +89,39 @@ class PersonalStatistic extends Equatable {
     }
   }
 
-  int get percentWin {
+  double get percentWin {
     if (countMatches < 1) {
       return 0;
     }
-    return ((countWins / countMatches) * 100).round();
+    return ((countWins / countMatches) * 100);
   }
 
-  int get percentDraw {
+  double get percentDraw {
     if (countMatches < 1) {
       return 0;
     }
-    return ((countDraws / countMatches) * 100).round();
+    return ((countDraws / countMatches) * 100);
   }
 
-  int get percentLose {
+  double get percentLose {
     if (countMatches < 1) {
       return 0;
     }
-    return ((countLoses / countMatches) * 100).round();
+    return ((countLoses / countMatches) * 100);
   }
 
-  int get percentWinLeague {
+  double get percentWinLeague {
     if (countJoin < 1) {
       return 0;
     }
-    return ((countWinsLeague / countJoin) * 100).round();
+    return ((countWinsLeague / countJoin) * 100);
   }
 
-  int get percentRunnerUpLeague {
+  double get percentRunnerUpLeague {
     if (countJoin < 1) {
       return 0;
     }
-    return ((countRunnerUp / countJoin) * 100).round();
+    return ((countRunnerUp / countJoin) * 100);
   }
 
   double get pointPerMatch {
@@ -129,6 +129,13 @@ class PersonalStatistic extends Equatable {
       return 0;
     }
     return countPoints / countMatches;
+  }
+
+  double get goalDifferentPerMatch {
+    if (countMatches < 1) {
+      return 0;
+    }
+    return countGD / countMatches;
   }
 }
 

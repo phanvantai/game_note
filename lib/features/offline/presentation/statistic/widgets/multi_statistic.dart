@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:game_note/core/constants/constants.dart';
 
 import '../models/personal_statistic.dart';
+import 'legends_list_widget.dart';
 
 class MultiStatistic extends StatelessWidget {
   final List<PersonalStatistic> statistics;
@@ -11,6 +12,10 @@ class MultiStatistic extends StatelessWidget {
 
   static const Color colorChampion = Colors.orange;
   static const Color colorRunnerUp = Colors.green;
+  final Color colorPointPerMatch = Colors.red;
+
+  final double widthChampion = 16;
+  final double widthRunnerUp = 12;
 
   @override
   Widget build(BuildContext context) {
@@ -21,40 +26,21 @@ class MultiStatistic extends StatelessWidget {
     );
 
     final items = statistics
-        .mapIndexed((index, e) => makeGroupData(index,
-            e.percentWinLeague.toDouble(), e.percentRunnerUpLeague.toDouble()))
+        .mapIndexed((index, e) =>
+            makeGroupData(index, e.percentWinLeague, e.percentRunnerUpLeague))
         .toList();
 
     rawBarGroups = items;
 
     showingBarGroups = rawBarGroups;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: kDefaultPadding),
-        Row(
-          children: [
-            const Expanded(flex: 1, child: Text('Tỉ lệ vô địch:')),
-            Flexible(
-              flex: 3,
-              child: Container(
-                color: colorChampion,
-                width: 16,
-                height: 16,
-              ),
-            )
-          ],
-        ),
-        Row(
-          children: [
-            const Expanded(flex: 1, child: Text('Tỉ lệ á quân:')),
-            Flexible(
-              flex: 3,
-              child: Container(
-                color: colorRunnerUp,
-                width: 16,
-                height: 16,
-              ),
-            )
+        LegendsListWidget(
+          legends: [
+            Legend('Tỉ lệ vô địch', colorChampion),
+            Legend('Tỉ lệ á quân', colorRunnerUp),
           ],
         ),
         Expanded(
@@ -65,33 +51,10 @@ class MultiStatistic extends StatelessWidget {
                 touchTooltipData: BarTouchTooltipData(
                   tooltipBgColor: Colors.grey,
                   getTooltipItem: (a, b, c, d) => BarTooltipItem(
-                      c.toY.toStringAsFixed(0), const TextStyle()),
+                      c.toY.toStringAsFixed(2), const TextStyle()),
                 ),
               ),
-              titlesData: FlTitlesData(
-                show: true,
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: bottomTitles,
-                    reservedSize: 42,
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 28,
-                    interval: 1,
-                    getTitlesWidget: leftTitles,
-                  ),
-                ),
-              ),
+              titlesData: titlesData,
               borderData: FlBorderData(
                 show: false,
               ),
@@ -103,6 +66,31 @@ class MultiStatistic extends StatelessWidget {
       ],
     );
   }
+
+  FlTitlesData get titlesData => FlTitlesData(
+        show: true,
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: bottomTitles,
+            reservedSize: 42,
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 28,
+            interval: 1,
+            getTitlesWidget: leftTitles,
+          ),
+        ),
+      );
 
   Widget leftTitles(double value, TitleMeta meta) {
     const style = TextStyle(
@@ -160,12 +148,12 @@ class MultiStatistic extends StatelessWidget {
         BarChartRodData(
           toY: y1,
           color: colorChampion,
-          width: 12,
+          width: widthChampion,
         ),
         BarChartRodData(
           toY: y2,
           color: colorRunnerUp,
-          width: 6,
+          width: widthRunnerUp,
         ),
       ],
     );
