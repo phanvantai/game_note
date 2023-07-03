@@ -1,4 +1,4 @@
-import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/features/offline/data/database/database_manager.dart';
 import 'package:game_note/features/community/data/datasources/auth_datasource.dart';
 import 'package:game_note/features/community/data/repositories/auth_repository_impl.dart';
 import 'package:game_note/features/community/domain/repositories/auth_repository.dart';

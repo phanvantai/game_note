@@ -28,6 +28,8 @@ class DBTableColumn {
   static const String playerLeagueLosses = 'losses';
   static const String playerLeagueGD = 'goal_different';
   static const String playerLeaguePoints = 'points';
+  static const String playerLeagueGoalsFor = 'goals_for';
+  static const String playerLeagueGoalsAgainst = 'goals_against';
 }
 
 class DatabaseManager {

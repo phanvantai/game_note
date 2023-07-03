@@ -6,7 +6,7 @@ import 'package:game_note/core/helpers/app_helper.dart';
 import 'package:game_note/main.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../../core/database/database_manager.dart';
+import '../../data/database/database_manager.dart';
 import '../../../../injection_container.dart';
 import '../../../common/presentation/switch_mode_widget.dart';
 import 'components/menu_item_view.dart';

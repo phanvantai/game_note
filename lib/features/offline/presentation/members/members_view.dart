@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/features/offline/domain/entities/player_model.dart';
 import 'package:game_note/features/offline/presentation/components/player_view.dart';
-import 'package:game_note/core/database/database_manager.dart';
+import 'package:game_note/features/offline/data/database/database_manager.dart';
 import 'package:game_note/injection_container.dart';
 
 import 'add_player_dialog.dart';
