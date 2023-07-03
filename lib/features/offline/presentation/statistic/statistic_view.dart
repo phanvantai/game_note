@@ -10,13 +10,15 @@ class StatisticView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text('Thống kê'),
-        backgroundColor: Colors.black,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Thống kê'),
+      //   backgroundColor: Colors.black,
+      // ),
       body: BlocProvider(
         create: (_) => StatisticBloc(),
-        child: const StatisticBody(),
+        child: const SafeArea(
+          child: StatisticBody(),
+        ),
       ),
     );
   }

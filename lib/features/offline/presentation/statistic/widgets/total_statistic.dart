@@ -13,6 +13,10 @@ class TotalStatistic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // calcualate
+    // poit permatch
+    statistics.sort(
+      (a, b) => b.pointPerMatch.compareTo(a.pointPerMatch),
+    );
     return BarChart(BarChartData(
       barTouchData: barTouchData,
       titlesData: titlesData,
@@ -20,7 +24,7 @@ class TotalStatistic extends StatelessWidget {
       barGroups: barGroups,
       gridData: const FlGridData(show: false),
       alignment: BarChartAlignment.spaceAround,
-      maxY: 3,
+      maxY: 2,
     ));
   }
 

@@ -6,6 +6,7 @@ import 'package:game_note/features/offline/domain/entities/player_stats_model.da
 class PersonalStatistic extends Equatable {
   final PlayerModel playerModel;
   final int countWinsLeague;
+  final int countRunnerUp;
   final int countJoin;
   final int countMatches;
   final int countPoints;
@@ -16,6 +17,7 @@ class PersonalStatistic extends Equatable {
 
   const PersonalStatistic({
     this.countWinsLeague = 0,
+    this.countRunnerUp = 0,
     this.countJoin = 0,
     this.countMatches = 0,
     this.countPoints = 0,
@@ -29,6 +31,7 @@ class PersonalStatistic extends Equatable {
   PersonalStatistic copyWith({
     PlayerModel? playerModel,
     int? countWinsLeague,
+    int? countRunnerUp,
     int? countJoin,
     int? countMatches,
     int? countPoints,
@@ -39,6 +42,7 @@ class PersonalStatistic extends Equatable {
   }) {
     return PersonalStatistic(
       playerModel: playerModel ?? this.playerModel,
+      countRunnerUp: countRunnerUp ?? this.countRunnerUp,
       countDraws: countDraws ?? this.countDraws,
       countGD: countGD ?? this.countGD,
       countJoin: countJoin ?? this.countJoin,
@@ -54,6 +58,7 @@ class PersonalStatistic extends Equatable {
   List<Object?> get props => [
         playerModel,
         countWinsLeague,
+        countRunnerUp,
         countJoin,
         countMatches,
         countPoints,
@@ -70,6 +75,8 @@ class PersonalStatistic extends Equatable {
         countJoin: countJoin + 1,
         countWinsLeague:
             countWinsLeague + (leagueModel.isChampion(playerModel) ? 1 : 0),
+        countRunnerUp:
+            countRunnerUp + (leagueModel.isRunnerUp(playerModel) ? 1 : 0),
         countDraws: countDraws + playerStats.draws,
         countGD: countGD + playerStats.goalDifferent,
         countLoses: countLoses + playerStats.losses,
@@ -103,15 +110,25 @@ class PersonalStatistic extends Equatable {
     return ((countLoses / countMatches) * 100).round();
   }
 
+  int get percentWinLeague {
+    if (countJoin < 1) {
+      return 0;
+    }
+    return ((countWinsLeague / countJoin) * 100).round();
+  }
+
+  int get percentRunnerUpLeague {
+    if (countJoin < 1) {
+      return 0;
+    }
+    return ((countRunnerUp / countJoin) * 100).round();
+  }
+
   double get pointPerMatch {
     if (countMatches < 1) {
       return 0;
     }
     return countPoints / countMatches;
-  }
-
-  int get totalWinsDrawLose {
-    return countWins + countDraws + countLoses;
   }
 }
 
@@ -124,5 +141,9 @@ extension LeagueModelX on LeagueModel {
 
   bool isChampion(PlayerModel playerModel) {
     return players.isNotEmpty && players[0].playerModel.id == playerModel.id;
+  }
+
+  bool isRunnerUp(PlayerModel playerModel) {
+    return players.length > 1 && players[1].playerModel.id == playerModel.id;
   }
 }

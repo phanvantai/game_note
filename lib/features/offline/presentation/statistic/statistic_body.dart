@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
+import 'package:game_note/core/constants/constants.dart';
 import 'package:game_note/features/offline/presentation/statistic/bloc/statistic_bloc.dart';
+import 'package:game_note/features/offline/presentation/statistic/widgets/multi_statistic.dart';
 import 'package:game_note/features/offline/presentation/statistic/widgets/total_statistic.dart';
 
 class StatisticBody extends StatefulWidget {
@@ -12,6 +14,23 @@ class StatisticBody extends StatefulWidget {
 }
 
 class _StatisticBodyState extends State<StatisticBody> {
+  final tabs = const [
+    Tab(
+      icon: FittedBox(
+        child: Text('Điểm/Trận'),
+      ),
+    ),
+    Tab(
+      icon: FittedBox(
+        child: Text('Vô địch/Á quân'),
+      ),
+    ),
+    // Tab(
+    //   icon: FittedBox(
+    //     child: Text('Thắng/Hoà/Thua'),
+    //   ),
+    // ),
+  ];
   @override
   void initState() {
     super.initState();
@@ -28,11 +47,24 @@ class _StatisticBodyState extends State<StatisticBody> {
         );
       }
       if (state.viewStatus.isSuccess) {
-        // poit permatch
-        state.listStatistic.sort(
-          (a, b) => b.pointPerMatch.compareTo(a.pointPerMatch),
+        return DefaultTabController(
+          length: tabs.length,
+          child: Column(
+            children: [
+              TabBar(tabs: tabs),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    TotalStatistic(statistics: state.listStatistic),
+                    MultiStatistic(statistics: state.listStatistic),
+                    //MultiStatistic(statistics: state.listStatistic),
+                  ],
+                ),
+              ),
+              const SizedBox(height: kDefaultPadding)
+            ],
+          ),
         );
-        return TotalStatistic(statistics: state.listStatistic);
       }
       return const SizedBox.shrink();
     });
