@@ -19,7 +19,6 @@ class App extends MaterialApp {
             colorScheme: ColorScheme.fromSwatch(
               backgroundColor: Colors.black,
               primarySwatch: primaryBlack,
-              primaryColorDark: Colors.black,
               brightness: Brightness.dark,
             ).copyWith(secondary: Colors.white),
           ),
