@@ -19,6 +19,9 @@ class TotalStatistic extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (statistics.isEmpty) {
+      return const SizedBox.shrink();
+    }
     // calcualate
     // poit permatch
     statistics.sort(

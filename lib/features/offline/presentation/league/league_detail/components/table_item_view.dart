@@ -17,7 +17,7 @@ class TableItemView extends StatelessWidget {
       child: Flex(
         direction: Axis.horizontal,
         children: [
-          Expanded(child: Center(child: Text(model.rank)), flex: 2),
+          Expanded(flex: 2, child: Center(child: Text(model.rank))),
           const SizedBox(width: 8),
           ClipRRect(
             child: Container(
@@ -31,51 +31,52 @@ class TableItemView extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Expanded(
+            flex: 9,
             child: Text(
               model.name,
               style: TextStyle(
                   fontWeight:
                       model.rank == '#' ? FontWeight.bold : FontWeight.normal),
             ),
-            flex: 9,
           ),
           Expanded(
+            flex: 2,
             child: Center(
               child: Text(
                 model.played,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            flex: 2,
           ),
           Expanded(
+            flex: 2,
             child: Center(
               child: Text(
                 model.wins,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            flex: 2,
           ),
           Expanded(
+            flex: 2,
             child: Center(
               child: Text(
                 model.draws,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            flex: 2,
           ),
           Expanded(
+            flex: 2,
             child: Center(
               child: Text(
                 model.losses.toString(),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            flex: 2,
           ),
           Expanded(
+            flex: 3,
             child: Center(
                 child: Text(
               model.goalsDifference == -10000
@@ -83,16 +84,15 @@ class TableItemView extends StatelessWidget {
                   : model.goalsDifference.toString(),
               style: const TextStyle(fontWeight: FontWeight.bold),
             )),
-            flex: 3,
           ),
           Expanded(
+            flex: 3,
             child: Center(
               child: Text(
                 model.points == -10000 ? "PTS" : model.points.toString(),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            flex: 3,
           ),
         ],
       ),

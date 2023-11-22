@@ -1,3 +1,5 @@
+// ignore_for_file: sort_child_properties_last
+
 import 'package:flutter/material.dart';
 import 'package:game_note/features/offline/presentation/components/player_view.dart';
 import 'package:game_note/features/offline/data/database/database_manager.dart';

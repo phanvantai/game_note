@@ -34,31 +34,31 @@ class MenuView extends StatelessWidget {
               title: 'Nhập dữ liệu',
               callback: () async {
                 try {
-                  FilePickerResult? result =
-                      await FilePicker.platform.pickFiles();
+                  FilePicker.platform.pickFiles().then((value) async {
+                    if (value != null) {
+                      if (!value.files.single.path!
+                          .endsWith(DatabaseManager.databaseFileName)) {
+                        showAlertDialog(context,
+                            'Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db');
+                        return;
+                      }
+                      // close current db
+                      await getIt<DatabaseManager>().close();
 
-                  if (result != null) {
-                    if (!result.files.single.path!
-                        .endsWith(DatabaseManager.databaseFileName)) {
-                      showAlertDialog(context,
-                          'Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db');
-                      return;
+                      // get content picked file
+                      File file = File(value.files.single.path!);
+                      // copy to database file
+                      await file.copy(dataFile);
+
+                      // open current db
+                      await getIt<DatabaseManager>().open().then((value) =>
+                          showAlertDialog(
+                              context, 'Dữ liệu đã được nhập thành công'));
+                    } else {
+                      // User canceled the picker
+                      // do nothing
                     }
-                    // close current db
-                    await getIt<DatabaseManager>().close();
-
-                    // get content picked file
-                    File file = File(result.files.single.path!);
-                    // copy to database file
-                    await file.copy(dataFile);
-
-                    // open current db
-                    await getIt<DatabaseManager>().open();
-                    showAlertDialog(context, 'Dữ liệu đã được nhập thành công');
-                  } else {
-                    // User canceled the picker
-                    // do nothing
-                  }
+                  });
                 } catch (e) {
                   showAlertDialog(context, e.toString());
                 }

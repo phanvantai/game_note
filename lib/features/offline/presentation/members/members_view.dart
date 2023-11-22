@@ -56,16 +56,17 @@ class _MembersViewState extends State<MembersView>
                         Dismissible(
                           direction: DismissDirection.endToStart,
                           key: Key(players[index].id.toString()),
-                          onDismissed: (direction) async {
-                            await getIt<DatabaseManager>()
-                                .deletePlayer(players[index]);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Đã xóa ${players[index].fullname}',
-                                ),
-                              ),
-                            );
+                          onDismissed: (direction) {
+                            getIt<DatabaseManager>()
+                                .deletePlayer(players[index])
+                                .then((value) =>
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Đã xóa ${players[index].fullname}',
+                                        ),
+                                      ),
+                                    ));
                           },
                           background: Container(color: Colors.red),
                           child: PlayerView(

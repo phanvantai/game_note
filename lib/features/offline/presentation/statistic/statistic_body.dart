@@ -52,7 +52,13 @@ class _StatisticBodyState extends State<StatisticBody> {
           length: tabs.length,
           child: Column(
             children: [
-              TabBar(tabs: tabs),
+              TabBar(
+                tabs: tabs,
+                dividerHeight: 0,
+                indicatorColor: Colors.orangeAccent,
+                unselectedLabelColor: Colors.white,
+                labelColor: Colors.orangeAccent,
+              ),
               Expanded(
                 child: TabBarView(
                   children: [

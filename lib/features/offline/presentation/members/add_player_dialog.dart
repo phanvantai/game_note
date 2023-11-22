@@ -46,18 +46,21 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 backgroundColor: MaterialStatePropertyAll(Colors.orange),
               ),
               onPressed: fullname.length > 2
-                  ? () async {
+                  ? () {
                       var player =
                           PlayerModel(fullname: controller.text, level: "Noob");
-                      await getIt<DatabaseManager>().insertPlayer(player);
-                      controller.text = "";
-                      setState(() {
-                        fullname = "";
+                      getIt<DatabaseManager>()
+                          .insertPlayer(player)
+                          .then((value) {
+                        controller.text = "";
+                        setState(() {
+                          fullname = "";
+                        });
+                        Navigator.of(context).pop();
+                        if (widget.callback != null) {
+                          widget.callback!();
+                        }
                       });
-                      Navigator.of(context).pop();
-                      if (widget.callback != null) {
-                        widget.callback!();
-                      }
                     }
                   : null,
               child: const Text('Thêm'),
