@@ -54,7 +54,7 @@ class PercentStatistic extends StatelessWidget {
                 ),
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
-                    tooltipBgColor: Colors.grey,
+                    // tooltipBgColor: Colors.grey,
                     getTooltipItem: (a, b, c, d) {
                       return BarTooltipItem(
                           '${(c.toY - c.fromY).toStringAsFixed(2)}%',

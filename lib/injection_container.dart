@@ -1,3 +1,4 @@
+import 'package:game_note/core/databases/db_migration.dart';
 import 'package:game_note/features/offline/data/database/database_manager.dart';
 import 'package:game_note/features/community/data/datasources/auth_datasource.dart';
 import 'package:game_note/features/community/data/repositories/auth_repository_impl.dart';
@@ -72,4 +73,8 @@ Future<void> init() async {
 
   getIt.registerFactory(() => SignInBloc(signInWithEmail: getIt()));
   getIt.registerFactory(() => SignUpBloc(signUpWithEmail: getIt()));
+
+
+  // db migration from sql to firestore
+  getIt.registerSingleton(DbMigration());
 }
