@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/features/common/presentation/switch_mode_widget.dart';
 
 import '../../../offline/presentation/menu/components/menu_item_view.dart';
 import '../bloc/community_bloc.dart';
@@ -15,7 +14,6 @@ class ProfileView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const SwitchModeWidget(),
             MenuItemView(
               title: 'Sign Out',
               icon: const Icon(Icons.start),

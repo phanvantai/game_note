@@ -1,18 +1,16 @@
 part of 'app_bloc.dart';
 
-enum AppStatus { splash, none, community, offline }
+enum AppStatus { unknown, authenticated }
 
 extension AppStatusX on AppStatus {
-  bool get isCommunity => this == AppStatus.community;
-  bool get isOffline => this == AppStatus.offline;
-  bool get isSplash => this == AppStatus.splash;
+  bool get isAuthenticated => this == AppStatus.authenticated;
 }
 
 class AppState extends Equatable {
   final AppStatus status;
 
   const AppState({
-    this.status = AppStatus.splash,
+    this.status = AppStatus.unknown,
   });
 
   AppState copyWith({

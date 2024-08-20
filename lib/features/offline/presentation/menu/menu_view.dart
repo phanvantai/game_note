@@ -8,7 +8,6 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/database/database_manager.dart';
 import '../../../../injection_container.dart';
-import '../../../common/presentation/switch_mode_widget.dart';
 import 'components/menu_item_view.dart';
 
 class MenuView extends StatelessWidget {
@@ -28,7 +27,6 @@ class MenuView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const SwitchModeWidget(),
             MenuItemView(
               icon: const Icon(Icons.download),
               title: 'Nhập dữ liệu',

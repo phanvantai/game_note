@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/features/community/presentation/auth/bloc/auth_bloc.dart';
-import 'package:game_note/features/community/presentation/auth/custom_back_button.dart';
-import 'package:game_note/features/community/presentation/bloc/community_bloc.dart';
+import 'package:game_note/injection_container.dart';
 
 import '../../../../../core/constants/constants.dart';
-import '../../../../../injection_container.dart';
-import 'bloc/sign_in_bloc.dart';
 import 'components/sign_in_button.dart';
 import 'components/sign_in_email.dart';
 import 'components/sign_in_password.dart';
+import 'bloc/sign_in_bloc.dart';
 
 class SignInView extends StatelessWidget {
   const SignInView({Key? key}) : super(key: key);
@@ -38,9 +35,6 @@ class SignInView extends StatelessWidget {
               ),
               backgroundColor: Colors.grey,
             ));
-            //
-            context.read<CommunityBloc>().add(LoginEvent(state.userModel!));
-            context.read<AuthBloc>().add(AuthInitialEvent());
           }
         },
         child: const Padding(
@@ -58,8 +52,6 @@ class SignInView extends StatelessWidget {
               // ),
               SizedBox(height: kDefaultPadding),
               SignInButton(),
-              SizedBox(height: 16),
-              CustomBackButton(),
             ],
           ),
         ),

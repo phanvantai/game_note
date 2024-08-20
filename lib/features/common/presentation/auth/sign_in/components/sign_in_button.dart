@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/constants/constants.dart';
 
-import '../../../widgets/custom_button.dart';
+import '../../../../../community/presentation/widgets/custom_button.dart';
 import '../bloc/sign_in_bloc.dart';
 
 class SignInButton extends StatelessWidget {

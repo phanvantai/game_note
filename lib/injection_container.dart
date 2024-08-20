@@ -4,8 +4,7 @@ import 'package:game_note/features/community/data/datasources/auth_datasource.da
 import 'package:game_note/features/community/data/repositories/auth_repository_impl.dart';
 import 'package:game_note/features/community/domain/repositories/auth_repository.dart';
 import 'package:game_note/features/community/domain/usecases/sign_in_with_email.dart';
-import 'package:game_note/features/community/presentation/auth/sign_in/bloc/sign_in_bloc.dart';
-import 'package:game_note/features/community/presentation/auth/sign_up/bloc/sign_up_bloc.dart';
+import 'package:game_note/features/common/presentation/auth/sign_in/bloc/sign_in_bloc.dart';
 import 'package:game_note/features/offline/data/datasources/league_local_datasource.dart';
 import 'package:game_note/features/offline/data/repositories/league_repository_impl.dart';
 import 'package:game_note/features/offline/domain/repositories/league_repository.dart';
@@ -72,8 +71,6 @@ Future<void> init() async {
   );
 
   getIt.registerFactory(() => SignInBloc(signInWithEmail: getIt()));
-  getIt.registerFactory(() => SignUpBloc(signUpWithEmail: getIt()));
-
 
   // db migration from sql to firestore
   getIt.registerSingleton(DbMigration());

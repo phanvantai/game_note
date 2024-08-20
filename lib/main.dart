@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/app.dart';
-import 'package:game_note/core/databases/db_migration.dart';
 import 'package:game_note/injection_container.dart' as di;
 
 import 'features/offline/data/database/database_manager.dart';
@@ -19,8 +18,6 @@ void main() async {
   await di.init();
   await di.getIt<DatabaseManager>().open();
 
-  // di.getIt<DbMigration>().migrateFromLocalToCloud();
-  
   runApp(
     MultiBlocProvider(
       providers: [

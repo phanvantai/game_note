@@ -32,6 +32,7 @@ dependencies:
   fl_chart: ^0.68.0
   collection: ^1.18.0
   cloud_firestore: ^4.14.0
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -45,4 +46,5 @@ flutter:
   
   assets:
     - assets/images/
+    - assets/icons/
 

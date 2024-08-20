@@ -3,6 +3,7 @@ import 'package:game_note/features/common/presentation/app_view.dart';
 
 class Routing {
   static const String app = '/';
+  static const String league = '/league';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return fadeThrough(settings, (context) {

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/features/common/presentation/splash_view.dart';
+import 'package:game_note/features/common/presentation/auth/auth_view.dart';
 import 'package:game_note/features/community/presentation/main_view.dart';
-import 'package:game_note/features/common/presentation/general_view.dart';
-import 'package:game_note/features/offline/presentation/offline_view.dart';
 
 import 'bloc/app_bloc.dart';
 
@@ -26,14 +24,10 @@ class AppView extends StatelessWidget {
 
   _appView(BuildContext context, AppState state) {
     switch (state.status) {
-      case AppStatus.community:
+      case AppStatus.authenticated:
         return const MainView();
-      case AppStatus.offline:
-        return const OfflineView();
-      case AppStatus.none:
-        return const GeneralView();
-      default:
-        return const SplashView();
+      case AppStatus.unknown:
+        return const AuthView();
     }
   }
 }
