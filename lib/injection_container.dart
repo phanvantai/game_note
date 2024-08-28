@@ -19,9 +19,11 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/helpers/shared_preferences_helper.dart';
+import 'features/common/presentation/auth/third_party/bloc/third_party_bloc.dart';
 import 'features/community/domain/usecases/sign_up_with_email.dart';
 import 'features/offline/data/models/league_manager.dart';
 import 'features/offline/presentation/league/league_detail/bloc/league_detail_bloc.dart';
+import 'firebase/auth/gn_auth.dart';
 
 final getIt = GetIt.instance;
 
@@ -71,6 +73,11 @@ Future<void> init() async {
   );
 
   getIt.registerFactory(() => SignInBloc(signInWithEmail: getIt()));
+
+  getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
+
+  // auth service
+  getIt.registerSingleton(GNAuth());
 
   // db migration from sql to firestore
   getIt.registerSingleton(DbMigration());

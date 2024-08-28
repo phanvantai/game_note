@@ -2,14 +2,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class GnAuth {
+class GNAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn googleSignIn = GoogleSignIn();
 
   // Callback for auth state changes
   void Function(User?)? onData;
 
-  GnAuth() {
+  GNAuth() {
     // Listen to auth state changes
     _auth.authStateChanges().listen(
       (User? user) {
@@ -18,6 +18,7 @@ class GnAuth {
         }
         if (onData != null) {
           onData!(user);
+          print(user?.uid);
         }
       },
       onDone: () {

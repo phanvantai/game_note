@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/injection_container.dart';
 
 import '../../../../../core/constants/constants.dart';
-import 'components/sign_in_button.dart';
-import 'components/sign_in_email.dart';
-import 'components/sign_in_password.dart';
+import '../../../../community/presentation/widgets/custom_button.dart';
+import '../../../../community/presentation/widgets/custom_text_form_field.dart';
 import 'bloc/sign_in_bloc.dart';
 
 class SignInView extends StatelessWidget {
@@ -37,13 +36,34 @@ class SignInView extends StatelessWidget {
             ));
           }
         },
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white54,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          margin: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
-              SignInEmail(),
+              BlocBuilder<SignInBloc, SignInState>(
+                builder: (context, state) => CustomTextFormField(
+                  placeholder: 'Email',
+                  onChanged: (value) =>
+                      context.read<SignInBloc>().add(SignInEmailChanged(value)),
+                  textInputType: TextInputType.emailAddress,
+                ),
+              ),
               SizedBox(height: kDefaultPadding),
-              SignInPassword(),
+              BlocBuilder<SignInBloc, SignInState>(
+                builder: (context, state) => CustomTextFormField(
+                  isSecurity: true,
+                  placeholder: 'Password',
+                  onChanged: (value) => context
+                      .read<SignInBloc>()
+                      .add(SignInPasswordChanged(value)),
+                  textInputType: TextInputType.text,
+                ),
+              ),
               SizedBox(height: kDefaultPadding),
               SizedBox(height: kDefaultPadding),
               // Text(
@@ -51,7 +71,16 @@ class SignInView extends StatelessWidget {
               //   style: TextStyle(decoration: TextDecoration.underline),
               // ),
               SizedBox(height: kDefaultPadding),
-              SignInButton(),
+              BlocBuilder<SignInBloc, SignInState>(
+                builder: (context, state) => CustomButton(
+                  paddingHorizontal: 16,
+                  onPressed: () =>
+                      context.read<SignInBloc>().add(SignInSubmitted()),
+                  child: state.status == SignInStatus.loading
+                      ? kDefaultLoading
+                      : const Text('SIGN IN'),
+                ),
+              ),
             ],
           ),
         ),
