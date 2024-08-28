@@ -53,7 +53,7 @@ class SignInView extends StatelessWidget {
                   textInputType: TextInputType.emailAddress,
                 ),
               ),
-              SizedBox(height: kDefaultPadding),
+              const SizedBox(height: kDefaultPadding),
               BlocBuilder<SignInBloc, SignInState>(
                 builder: (context, state) => CustomTextFormField(
                   isSecurity: true,
@@ -64,13 +64,13 @@ class SignInView extends StatelessWidget {
                   textInputType: TextInputType.text,
                 ),
               ),
-              SizedBox(height: kDefaultPadding),
-              SizedBox(height: kDefaultPadding),
+              const SizedBox(height: kDefaultPadding),
+              const SizedBox(height: kDefaultPadding),
               // Text(
               //   'Forgot password?',
               //   style: TextStyle(decoration: TextDecoration.underline),
               // ),
-              SizedBox(height: kDefaultPadding),
+              const SizedBox(height: kDefaultPadding),
               BlocBuilder<SignInBloc, SignInState>(
                 builder: (context, state) => CustomButton(
                   paddingHorizontal: 16,
