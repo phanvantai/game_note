@@ -43,7 +43,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             const SizedBox(height: 32),
             ElevatedButton(
               style: const ButtonStyle(
-                backgroundColor: MaterialStatePropertyAll(Colors.orange),
+                backgroundColor: WidgetStatePropertyAll(Colors.orange),
               ),
               onPressed: fullname.length > 2
                   ? () {
@@ -56,6 +56,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                         setState(() {
                           fullname = "";
                         });
+                        // ignore: use_build_context_synchronously
                         Navigator.of(context).pop();
                         if (widget.callback != null) {
                           widget.callback!();
