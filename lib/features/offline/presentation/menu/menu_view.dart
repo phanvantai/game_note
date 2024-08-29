@@ -36,6 +36,7 @@ class MenuView extends StatelessWidget {
                     if (value != null) {
                       if (!value.files.single.path!
                           .endsWith(DatabaseManager.databaseFileName)) {
+                        // ignore: use_build_context_synchronously
                         showAlertDialog(context,
                             'Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db');
                         return;
@@ -49,9 +50,12 @@ class MenuView extends StatelessWidget {
                       await file.copy(dataFile);
 
                       // open current db
-                      await getIt<DatabaseManager>().open().then((value) =>
-                          showAlertDialog(
-                              context, 'Dữ liệu đã được nhập thành công'));
+                      await getIt<DatabaseManager>()
+                          .open()
+                          .then((value) => showAlertDialog(
+                              // ignore: use_build_context_synchronously
+                              context,
+                              'Dữ liệu đã được nhập thành công'));
                     } else {
                       // User canceled the picker
                       // do nothing

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/firebase/auth/gn_auth.dart';
@@ -21,7 +22,9 @@ class ThirdPartyBloc extends Bloc<ThirdPartyEvent, ThirdPartyState> {
     emit(state.copyWith(status: ViewStatus.loading));
     try {
       final result = await _auth.signInWithGoogle();
-      print(result.user?.displayName);
+      if (kDebugMode) {
+        print(result.user?.displayName);
+      }
       emit(state.copyWith(status: ViewStatus.success));
     } catch (e) {
       if (e is FirebaseAuthException && e.code == 'ERROR_ABORTED_BY_USER') {

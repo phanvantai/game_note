@@ -56,6 +56,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                         setState(() {
                           fullname = "";
                         });
+                        // ignore: use_build_context_synchronously
                         Navigator.of(context).pop();
                         if (widget.callback != null) {
                           widget.callback!();

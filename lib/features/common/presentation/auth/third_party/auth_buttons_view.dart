@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/constants/assets_path.dart';
@@ -16,7 +17,9 @@ class AuthButtonsView extends StatelessWidget {
     return BlocConsumer<ThirdPartyBloc, ThirdPartyState>(
       bloc: thirdPartyBloc,
       listener: (context, state) {
-        print(state);
+        if (kDebugMode) {
+          print(state);
+        }
       },
       builder: (context, state) => Column(
         children: [

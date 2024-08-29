@@ -18,7 +18,9 @@ class GNAuth {
         }
         if (onData != null) {
           onData!(user);
-          print(user?.uid);
+          if (kDebugMode) {
+            print(user?.uid);
+          }
         }
       },
       onDone: () {

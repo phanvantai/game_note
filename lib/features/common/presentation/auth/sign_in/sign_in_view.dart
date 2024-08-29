@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/injection_container.dart';
 
 import '../../../../../core/constants/constants.dart';
 import '../../../../community/presentation/widgets/custom_button.dart';
@@ -34,7 +34,9 @@ class SignInView extends StatelessWidget {
         }
         if (state.status == SignInStatus.verify) {
           final response = await Navigator.of(context).pushNamed('/verify');
-          print(response);
+          if (kDebugMode) {
+            print(response);
+          }
           if (response == true) {
             // push to home
           } else {

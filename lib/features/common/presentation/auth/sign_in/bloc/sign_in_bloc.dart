@@ -25,13 +25,17 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
     emit(state.copyWith(status: SignInStatus.loading));
     //
     final phoneNumber = _formatPhoneNumber(state.phoneNumber);
-    print(phoneNumber);
+    if (kDebugMode) {
+      print(phoneNumber);
+    }
     // do sign in with firebase
     try {
       await getIt<GNAuth>().verifyPhoneNumber(phoneNumber);
       emit(state.copyWith(status: SignInStatus.verify));
     } catch (e) {
-      print(e);
+      if (kDebugMode) {
+        print(e);
+      }
       emit(state.copyWith(status: SignInStatus.error, error: e.toString()));
     }
   }

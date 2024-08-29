@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:game_note/firebase/auth/gn_auth.dart';
 
@@ -26,7 +27,7 @@ class VerifyView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 color: Colors.white70,
               ),
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               margin: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -60,14 +61,21 @@ class VerifyView extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () async {
                       // TODO: Verify code
-                      print(_codeController.text);
+                      if (kDebugMode) {
+                        print(_codeController.text);
+                      }
                       try {
                         final result = await getIt<GNAuth>()
                             .signInWithPhoneNumber(_codeController.text);
-                        print(result);
+                        if (kDebugMode) {
+                          print(result);
+                        }
+                        // ignore: use_build_context_synchronously
                         Navigator.of(context).pop(true);
                       } catch (e) {
-                        print(e);
+                        if (kDebugMode) {
+                          print(e);
+                        }
                       }
                     },
                     child: const Text('Xác thực'),
