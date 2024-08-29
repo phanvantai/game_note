@@ -10,7 +10,7 @@ class App extends MaterialApp {
           onGenerateRoute: Routing.generateRoute,
           initialRoute: Routing.app,
           debugShowCheckedModeBanner: false,
-          themeMode: ThemeMode.dark,
+          themeMode: ThemeMode.light,
           darkTheme: ThemeData(
             primarySwatch: primaryBlack,
             primaryColor: Colors.black,

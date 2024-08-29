@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'sign_in/sign_in_view.dart';
+import 'sign_in/sign_in_page.dart';
 import 'third_party/auth_buttons_view.dart';
 
 class AuthView extends StatelessWidget {
@@ -9,12 +9,12 @@ class AuthView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white70,
+      backgroundColor: Colors.white.withOpacity(0.9),
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SignInView(),
+            const SignInPage(),
             const SizedBox(height: 48, width: double.maxFinite),
             Row(
               children: [

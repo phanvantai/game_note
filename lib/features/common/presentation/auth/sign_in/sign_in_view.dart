@@ -4,7 +4,6 @@ import 'package:game_note/injection_container.dart';
 
 import '../../../../../core/constants/constants.dart';
 import '../../../../community/presentation/widgets/custom_button.dart';
-import '../../../../community/presentation/widgets/custom_text_form_field.dart';
 import 'bloc/sign_in_bloc.dart';
 
 class SignInView extends StatelessWidget {
@@ -12,77 +11,109 @@ class SignInView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<SignInBloc>(),
-      child: BlocListener<SignInBloc, SignInState>(
-        listenWhen: (previous, current) => previous.status != current.status,
-        listener: (context, state) {
-          if (state.status == SignInStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                state.error,
-                //textAlign: TextAlign.center,
-              ),
-              backgroundColor: Colors.grey,
-            ));
+    return BlocListener<SignInBloc, SignInState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) async {
+        if (state.status == SignInStatus.error) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+              state.error,
+              //textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.grey,
+          ));
+        }
+        if (state.status == SignInStatus.success) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+              "Sign in successfully",
+              //textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.grey,
+          ));
+        }
+        if (state.status == SignInStatus.verify) {
+          final response = await Navigator.of(context).pushNamed('/verify');
+          print(response);
+          if (response == true) {
+            // push to home
+          } else {
+            // do nothing
           }
-          if (state.status == SignInStatus.success) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text(
-                "Sign in successfully",
-                //textAlign: TextAlign.center,
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white70,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            const Text(
+              'Đăng nhập bằng SĐT',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.normal,
               ),
-              backgroundColor: Colors.grey,
-            ));
-          }
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.white54,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              BlocBuilder<SignInBloc, SignInState>(
-                builder: (context, state) => CustomTextFormField(
-                  placeholder: 'Email',
-                  onChanged: (value) =>
-                      context.read<SignInBloc>().add(SignInEmailChanged(value)),
-                  textInputType: TextInputType.emailAddress,
-                ),
+            ),
+            const SizedBox(height: kDefaultPadding),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black12),
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(height: kDefaultPadding),
-              BlocBuilder<SignInBloc, SignInState>(
-                builder: (context, state) => CustomTextFormField(
-                  isSecurity: true,
-                  placeholder: 'Password',
-                  onChanged: (value) => context
-                      .read<SignInBloc>()
-                      .add(SignInPasswordChanged(value)),
-                  textInputType: TextInputType.text,
-                ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 8),
+                  const Icon(Icons.mobile_friendly),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '+84',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 24,
+                    width: 1,
+                    color: Colors.black12,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        hintText: 'Số điện thoại',
+                        border: InputBorder.none,
+                      ),
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.done,
+                      onChanged: (value) {
+                        context
+                            .read<SignInBloc>()
+                            .add(SignInPhoneChanged(value));
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
               ),
-              const SizedBox(height: kDefaultPadding),
-              const SizedBox(height: kDefaultPadding),
-              // Text(
-              //   'Forgot password?',
-              //   style: TextStyle(decoration: TextDecoration.underline),
-              // ),
-              const SizedBox(height: kDefaultPadding),
-              BlocBuilder<SignInBloc, SignInState>(
-                builder: (context, state) => CustomButton(
-                  paddingHorizontal: 16,
-                  onPressed: () =>
-                      context.read<SignInBloc>().add(SignInSubmitted()),
-                  child: state.status == SignInStatus.loading
-                      ? kDefaultLoading
-                      : const Text('SIGN IN'),
-                ),
+            ),
+            const SizedBox(height: kDefaultPadding),
+            const SizedBox(height: kDefaultPadding),
+            BlocBuilder<SignInBloc, SignInState>(
+              builder: (context, state) => CustomButton(
+                paddingHorizontal: 16,
+                onPressed: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  context.read<SignInBloc>().add(SignInSubmitted());
+                },
+                child: state.status == SignInStatus.loading
+                    ? kDefaultLoading
+                    : const Text('TIẾP TỤC'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

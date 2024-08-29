@@ -72,7 +72,7 @@ Future<void> init() async {
     ),
   );
 
-  getIt.registerFactory(() => SignInBloc(signInWithEmail: getIt()));
+  getIt.registerFactory(() => SignInBloc());
 
   getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
 

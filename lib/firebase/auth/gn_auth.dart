@@ -39,10 +39,13 @@ class GNAuth {
         await _auth.signInWithCredential(credential);
       },
       verificationFailed: (FirebaseAuthException e) {
-        if (e.code == 'invalid-phone-number') {
-          if (kDebugMode) {
-            print('The provided phone number is not valid.');
-          }
+        // if (e.code == 'invalid-phone-number') {
+        //   if (kDebugMode) {
+        //     print('The provided phone number is not valid.');
+        //   }
+        // }
+        if (kDebugMode) {
+          print(e);
         }
         throw e;
       },

@@ -6,6 +6,6 @@ class VerifyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const VerifyView();
+    return VerifyView();
   }
 }
