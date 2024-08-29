@@ -49,7 +49,7 @@ class MultiStatistic extends StatelessWidget {
               maxY: 55,
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
-                  tooltipBgColor: Colors.grey,
+                  // tooltipBgColor: Colors.grey,
                   getTooltipItem: (a, b, c, d) => BarTooltipItem(
                       c.toY.toStringAsFixed(2), const TextStyle()),
                 ),

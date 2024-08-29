@@ -11,6 +11,7 @@ class SplashView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Future.delayed(const Duration(milliseconds: 600))
+        // ignore: use_build_context_synchronously
         .then((value) => context.read<AppBloc>().add(SwitchAppMode(appStatus)));
     return Scaffold(
       backgroundColor: Colors.black,

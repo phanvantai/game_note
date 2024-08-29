@@ -60,6 +60,7 @@ class _MembersViewState extends State<MembersView>
                             getIt<DatabaseManager>()
                                 .deletePlayer(players[index])
                                 .then((value) =>
+                                    // ignore: use_build_context_synchronously
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
