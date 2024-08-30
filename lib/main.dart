@@ -7,6 +7,7 @@ import 'package:game_note/injection_container.dart' as di;
 import 'features/offline/data/database/database_manager.dart';
 import 'features/common/presentation/bloc/app_bloc.dart';
 import 'firebase_options.dart';
+import 'injection_container.dart';
 
 var dataFile = '';
 void main() async {
@@ -21,7 +22,7 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => AppBloc()),
+        BlocProvider(create: (_) => getIt<AppBloc>()),
       ],
       child: App(),
     ),

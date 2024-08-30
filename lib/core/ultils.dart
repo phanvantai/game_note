@@ -1,5 +1,9 @@
 import 'dart:math';
 
+import 'package:package_info_plus/package_info_plus.dart';
+
+import 'common/app_info.dart';
+
 T randomObject<T>(List<T> list) {
   final random = Random();
   return list[random.nextInt(list.length)];
@@ -20,4 +24,15 @@ List<Map<T, T>> createMaps<T>(List<T> list) {
     maps.add({list[i]: list[list.length - 1 - i]});
   }
   return maps;
+}
+
+/// Get the app information
+Future<AppInfo> appInfo() async {
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  return AppInfo(
+    appName: packageInfo.appName,
+    packageName: packageInfo.packageName,
+    version: packageInfo.version,
+    buildNumber: packageInfo.buildNumber,
+  );
 }

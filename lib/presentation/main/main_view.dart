@@ -1,34 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/features/community/presentation/community/community_view.dart';
 import 'package:game_note/features/community/presentation/friends/friends_view.dart';
-import 'package:game_note/features/community/presentation/profile/profile_view.dart';
+import 'package:game_note/presentation/profile/profile_page.dart';
 import 'package:game_note/features/community/presentation/tournament/tournament_view.dart';
 
-class OnlineView extends StatefulWidget {
-  const OnlineView({Key? key}) : super(key: key);
+class MainView extends StatefulWidget {
+  const MainView({Key? key}) : super(key: key);
 
   @override
-  State<OnlineView> createState() => _OnlineViewState();
+  State<MainView> createState() => _MainViewState();
 }
 
-class _OnlineViewState extends State<OnlineView> with TickerProviderStateMixin {
+class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   Map<BottomNavigationBarItem, Widget> tabs = const {
     BottomNavigationBarItem(
-      icon: Icon(Icons.people),
-      label: 'Community',
+      icon: Icon(Icons.group),
+      label: 'Cộng đồng',
     ): CommunityView(),
     BottomNavigationBarItem(
-      icon: Icon(Icons.sports_soccer),
-      label: 'Tournaments',
+      icon: Icon(Icons.sports_score),
+      label: 'Giải đấu',
     ): TournamentView(),
     BottomNavigationBarItem(
-      icon: Icon(Icons.people),
-      label: 'Friends',
+      icon: Icon(Icons.chat_bubble),
+      label: 'Trò chuyện',
     ): FriendsView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.person),
-      label: 'Profile',
-    ): ProfileView(),
+      label: 'Cá nhân',
+    ): ProfilePage(),
   };
 
   late TabController _tabController;
@@ -47,13 +47,15 @@ class _OnlineViewState extends State<OnlineView> with TickerProviderStateMixin {
         children: tabs.values.toList(),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         items: tabs.keys.toList(),
         currentIndex: _tabController.index,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Theme.of(context).unselectedWidgetColor,
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+        showUnselectedLabels: true,
+        enableFeedback: true,
       ),
     );
   }

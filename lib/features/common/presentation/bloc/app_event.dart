@@ -6,10 +6,10 @@ abstract class AppEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class SwitchAppMode extends AppEvent {
+class AuthStatusChanged extends AppEvent {
   final AppStatus status;
 
-  const SwitchAppMode(this.status);
+  const AuthStatusChanged(this.status);
 
   @override
   List<Object?> get props => [status];

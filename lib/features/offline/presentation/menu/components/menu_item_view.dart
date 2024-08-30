@@ -18,7 +18,7 @@ class MenuItemView extends StatelessWidget {
     return GestureDetector(
       onTap: callback,
       child: Container(
-        color: Colors.black,
+        //color: Colors.black,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         margin: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(

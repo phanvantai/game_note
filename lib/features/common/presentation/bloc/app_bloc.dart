@@ -6,10 +6,10 @@ part 'app_state.dart';
 
 class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc() : super(const AppState()) {
-    on<SwitchAppMode>(_onSwitchAppMode);
+    on<AuthStatusChanged>(_onAuthStatusChanged);
   }
 
-  _onSwitchAppMode(SwitchAppMode event, Emitter<AppState> emit) {
+  _onAuthStatusChanged(AuthStatusChanged event, Emitter<AppState> emit) {
     emit(state.copyWith(status: event.status));
   }
 }

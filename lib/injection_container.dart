@@ -1,4 +1,5 @@
 import 'package:game_note/core/databases/db_migration.dart';
+import 'package:game_note/features/common/presentation/bloc/app_bloc.dart';
 import 'package:game_note/features/offline/data/database/database_manager.dart';
 import 'package:game_note/features/community/data/datasources/auth_datasource.dart';
 import 'package:game_note/features/community/data/repositories/auth_repository_impl.dart';
@@ -15,6 +16,7 @@ import 'package:game_note/features/offline/domain/usecases/get_league.dart';
 import 'package:game_note/features/offline/domain/usecases/get_leagues.dart';
 import 'package:game_note/features/offline/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/features/offline/domain/usecases/update_match.dart';
+import 'package:game_note/presentation/profile/bloc/profile_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -75,6 +77,10 @@ Future<void> init() async {
   getIt.registerFactory(() => SignInBloc());
 
   getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
+
+  getIt.registerFactory<ProfileBloc>(() => ProfileBloc());
+
+  getIt.registerSingleton(AppBloc());
 
   // auth service
   getIt.registerSingleton(GNAuth());
