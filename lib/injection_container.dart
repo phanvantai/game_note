@@ -1,4 +1,4 @@
-import 'package:game_note/core/databases/db_migration.dart';
+import 'package:game_note/firebase/firestore/gn_firestore.dart';
 import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 import 'package:game_note/offline/data/database/database_manager.dart';
 import 'package:game_note/presentation/auth/sign_in/bloc/sign_in_bloc.dart';
@@ -70,9 +70,7 @@ Future<void> init() async {
 
   getIt.registerSingleton(AppBloc());
 
-  // auth service
+  // firebase service
   getIt.registerSingleton(GNAuth());
-
-  // db migration from sql to firestore
-  getIt.registerSingleton(DbMigration());
+  getIt.registerSingleton(GNFirestore());
 }

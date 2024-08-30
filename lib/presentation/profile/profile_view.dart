@@ -5,6 +5,7 @@ import 'package:game_note/presentation/profile/bloc/profile_bloc.dart';
 
 import '../../core/common/app_info.dart';
 import '../../core/ultils.dart';
+import 'feedback/feedback_view.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -59,7 +60,8 @@ class ProfileView extends StatelessWidget {
                       leading: const Icon(Icons.feedback),
                       title: const Text('Nhận xét góp ý'),
                       onTap: () {
-                        // TODO: Implement notification settings functionality
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (builder) => const FeedbackView()));
                       },
                     ),
                     ListTile(

@@ -14,7 +14,7 @@ class GnUser {
 
     // Optional: Store additional user data in Firestore
     final firestore = FirebaseFirestore.instance;
-    firestore.collection(GnCollection.users).doc(user.uid).set({
+    firestore.collection(GNCollection.users).doc(user.uid).set({
       'displayName': displayName ?? user.displayName,
       'phoneNumber': user.phoneNumber,
       'email': user.email,

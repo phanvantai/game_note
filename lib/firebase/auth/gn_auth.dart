@@ -9,6 +9,10 @@ class GNAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn googleSignIn = GoogleSignIn();
 
+  FirebaseAuth get auth => _auth;
+
+  User? get currentUser => _auth.currentUser;
+
   GNAuth() {
     // Listen to auth state changes
     _auth.authStateChanges().listen(
