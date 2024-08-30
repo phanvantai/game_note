@@ -13,7 +13,7 @@ jobs:
     name: Create Android Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download Android keystore
         id: android_keystore
         uses: timheuer/base64-to-file@v1.0.3
@@ -29,11 +29,11 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: "12.x"
+          java-version: "17.x"
           cache: 'gradle'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.16.0"
+          # flutter-version: "3.16.0"
           channel: 'stable'
           cache: true
       # 12
