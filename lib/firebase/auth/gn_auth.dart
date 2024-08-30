@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:game_note/features/common/presentation/bloc/app_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../injection_container.dart';
+import '../../presentation/app/bloc/app_bloc.dart';
 
 class GNAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;

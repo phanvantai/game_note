@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/app.dart';
 import 'package:game_note/injection_container.dart' as di;
 
-import 'features/offline/data/database/database_manager.dart';
-import 'features/common/presentation/bloc/app_bloc.dart';
+import 'offline/data/database/database_manager.dart';
+import 'presentation/app/bloc/app_bloc.dart';
 import 'firebase_options.dart';
 import 'injection_container.dart';
 

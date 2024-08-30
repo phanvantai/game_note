@@ -1,36 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/chat/chat_page.dart';
-import 'package:game_note/presentation/community/community_view.dart';
-import 'package:game_note/presentation/profile/profile_page.dart';
-import 'package:game_note/presentation/tournament/tournament_page.dart';
 
-class MainView extends StatefulWidget {
-  const MainView({Key? key}) : super(key: key);
+import 'league/league_page.dart';
+import 'members/members_view.dart';
+import 'menu_view.dart';
+import 'statistic/statistic_view.dart';
+
+class OfflineView extends StatefulWidget {
+  const OfflineView({Key? key}) : super(key: key);
 
   @override
-  State<MainView> createState() => _MainViewState();
+  State<OfflineView> createState() => _OfflineViewState();
 }
 
-class _MainViewState extends State<MainView> with TickerProviderStateMixin {
+class _OfflineViewState extends State<OfflineView>
+    with TickerProviderStateMixin {
   Map<BottomNavigationBarItem, Widget> tabs = const {
     BottomNavigationBarItem(
-      icon: Icon(Icons.group),
-      label: 'Cộng đồng',
-    ): CommunityView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.sports_score),
+      icon: Icon(Icons.sports_soccer),
       label: 'Giải đấu',
-    ): TournamentPage(),
+    ): LeaguePage(),
     BottomNavigationBarItem(
-      icon: Icon(Icons.chat_bubble),
-      label: 'Trò chuyện',
-    ): ChatPage(),
+      icon: Icon(Icons.view_column),
+      label: 'Thống kê',
+    ): StatisticView(),
     BottomNavigationBarItem(
-      icon: Icon(Icons.person),
-      label: 'Cá nhân',
-    ): ProfilePage(),
+      icon: Icon(Icons.people),
+      label: 'Người chơi',
+    ): MembersView(),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.menu),
+      label: 'Khác',
+    ): MenuView(),
   };
-
   late TabController _tabController;
   @override
   void initState() {
@@ -47,15 +48,13 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
         children: tabs.values.toList(),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Colors.black,
         items: tabs.keys.toList(),
         currentIndex: _tabController.index,
         onTap: _onItemTapped,
         selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Theme.of(context).unselectedWidgetColor,
+        unselectedItemColor: Colors.grey,
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        showUnselectedLabels: true,
-        enableFeedback: true,
       ),
     );
   }

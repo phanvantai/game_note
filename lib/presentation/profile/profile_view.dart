@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/presentation/app/offline_button.dart';
 import 'package:game_note/presentation/profile/bloc/profile_bloc.dart';
 
 import '../../core/common/app_info.dart';
@@ -12,6 +13,12 @@ class ProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileBloc, ProfileState>(
       builder: (context, state) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          actions: const [
+            OfflineButton(),
+          ],
+        ),
         backgroundColor: Colors.white70,
         body: SafeArea(
           child: Column(

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/features/common/presentation/app_view.dart';
-import 'package:game_note/features/common/presentation/auth/verify/verify_page.dart';
+import 'package:game_note/offline/presentation/offline_view.dart';
+import 'package:game_note/presentation/app/app_view.dart';
+import 'package:game_note/presentation/auth/verify/verify_page.dart';
 
 class Routing {
   static const String app = '/';
+  static const String offline = '/offline';
+  static const String offlineLeague = '/offline/league';
   static const String league = '/league';
   static const String verify = '/verify';
 
@@ -12,6 +15,8 @@ class Routing {
       switch (settings.name) {
         case Routing.app:
           return const AppView();
+        case Routing.offline:
+          return const OfflineView();
         case Routing.verify:
           return const VerifyPage();
         default:
