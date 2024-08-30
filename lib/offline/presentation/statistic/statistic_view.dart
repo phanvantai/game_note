@@ -16,7 +16,7 @@ class StatisticView extends StatelessWidget {
           title: const Text('Thống kê'),
           backgroundColor: Colors.white70,
         ),
-        body: SafeArea(
+        body: const SafeArea(
           child: StatisticBody(),
         ),
       ),

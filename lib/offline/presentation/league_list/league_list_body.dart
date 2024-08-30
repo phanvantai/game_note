@@ -11,7 +11,7 @@ class LeagueListBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LeagueListBloc, LeagueListState>(
-      builder: (context, state) => ListView.builder(
+      builder: (context, state) => ListView.separated(
         itemCount: state.leagues.length,
         itemBuilder: (context, index) => InkWell(
           onDoubleTap: () {
@@ -41,10 +41,12 @@ class LeagueListBody extends StatelessWidget {
                     LeagueDetailPage(model: state.leagues[index])));
           },
           child: Container(
-            color: Colors.grey.withOpacity(0.3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(context).primaryColor.withOpacity(0.5),
+            ),
             padding: const EdgeInsets.all(kDefaultPadding),
             margin: const EdgeInsets.only(
-              bottom: kDefaultPadding,
               left: kDefaultPadding,
               right: kDefaultPadding,
             ),
@@ -59,6 +61,9 @@ class LeagueListBody extends StatelessWidget {
             ),
           ),
         ),
+        separatorBuilder: (BuildContext context, int index) {
+          return const SizedBox(height: 16);
+        },
       ),
     );
   }

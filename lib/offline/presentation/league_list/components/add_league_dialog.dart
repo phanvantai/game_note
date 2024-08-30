@@ -27,14 +27,14 @@ class _AddLeagueDialogState extends State<AddLeagueDialog> {
             const SizedBox(height: 16),
             TextField(
               decoration:
-                  const InputDecoration.collapsed(hintText: 'League name'),
+                  const InputDecoration.collapsed(hintText: 'Tên giải đấu'),
               controller: controller,
               onChanged: (string) {
                 setState(() {
                   fullname = string;
                 });
               },
-              cursorColor: Colors.white,
+              //cursorColor: Colors.white,
             ),
             const SizedBox(height: 32),
             ElevatedButton(
@@ -44,7 +44,7 @@ class _AddLeagueDialogState extends State<AddLeagueDialog> {
                   widget.callback!(controller.text);
                 }
               },
-              child: const Text("Add"),
+              child: const Text("Tạo"),
             ),
           ],
         ),

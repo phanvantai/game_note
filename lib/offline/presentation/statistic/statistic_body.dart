@@ -55,9 +55,6 @@ class _StatisticBodyState extends State<StatisticBody> {
               TabBar(
                 tabs: tabs,
                 dividerHeight: 0,
-                indicatorColor: Colors.orangeAccent,
-                unselectedLabelColor: Colors.white,
-                labelColor: Colors.orangeAccent,
               ),
               Expanded(
                 child: TabBarView(

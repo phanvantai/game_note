@@ -16,12 +16,12 @@ class MatchesView extends StatelessWidget {
       child: Column(
         children: [
           const TabBar(
-            indicatorSize: TabBarIndicatorSize.label,
+            indicatorSize: TabBarIndicatorSize.tab,
             tabs: [
               Tab(child: Text('Fixtures')),
               Tab(child: Text('Results')),
             ],
-            indicatorColor: Colors.orange,
+            //indicatorColor: Colors.orange,
             indicatorWeight: 4,
           ),
           const SizedBox(height: 8),

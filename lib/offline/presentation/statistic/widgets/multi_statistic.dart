@@ -127,7 +127,7 @@ class MultiStatistic extends StatelessWidget {
     final Widget text = Text(
       statistics[value.toInt()].playerModel.fullname,
       style: const TextStyle(
-        color: Colors.white,
+        // color: Colors.white,
         fontWeight: FontWeight.bold,
         fontSize: 14,
       ),

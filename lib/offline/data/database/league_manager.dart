@@ -16,7 +16,8 @@ extension LeagueManagerX on DatabaseManager {
 
   Future<List<LeagueModel>> getLeagues() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(leaguesTable);
+    final List<Map<String, dynamic>> maps =
+        (await db.query(leaguesTable)).reversed.toList();
 
     return List.generate(
       maps.length,

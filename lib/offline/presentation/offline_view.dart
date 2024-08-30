@@ -13,7 +13,7 @@ class OfflineView extends StatefulWidget {
 }
 
 class _OfflineViewState extends State<OfflineView>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   Map<BottomNavigationBarItem, Widget> tabs = const {
     BottomNavigationBarItem(
       icon: Icon(Icons.sports_soccer),
@@ -41,6 +41,7 @@ class _OfflineViewState extends State<OfflineView>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: TabBarView(
         physics: const NeverScrollableScrollPhysics(),
@@ -70,4 +71,7 @@ class _OfflineViewState extends State<OfflineView>
     _tabController.dispose();
     super.dispose();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

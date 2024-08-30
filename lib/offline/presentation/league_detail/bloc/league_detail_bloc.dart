@@ -7,8 +7,8 @@ import 'package:game_note/offline/domain/usecases/get_league.dart';
 import 'package:game_note/offline/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/offline/domain/usecases/update_match.dart';
 
-import '../../../../domain/entities/league_model.dart';
-import '../../../../domain/entities/match_model.dart';
+import '../../../domain/entities/league_model.dart';
+import '../../../domain/entities/match_model.dart';
 
 part 'league_detail_event.dart';
 part 'league_detail_state.dart';

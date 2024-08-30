@@ -80,7 +80,6 @@ class TotalStatistic extends StatelessWidget {
       );
   Widget getTitles(double value, TitleMeta meta) {
     const style = TextStyle(
-      color: Colors.white,
       fontWeight: FontWeight.bold,
       fontSize: 14,
     );

@@ -31,7 +31,10 @@ class LeagueDetailView extends StatelessWidget {
                 ),
             ],
           ),
-          body: SafeArea(child: _leagueDetail(context, state)),
+          body: SafeArea(
+            child: _leagueDetail(context, state),
+            bottom: false,
+          ),
           floatingActionButton: state.status.needFloatButton
               ? const LeagueDetailFloatingButton()
               : null,
@@ -64,14 +67,10 @@ class LeagueDetailView extends StatelessWidget {
       return const Text('error league ');
     }
     if (state.status.isLoaded || state.status.isUpdating) {
-      // for (var element in state.model?.rounds ?? <RoundModel>[]) {
-      //   element.matches.where((element) => element.status).forEach((element) {
-      //     print(element);
-      //   });
-      // }
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: const SafeArea(
+          bottom: false,
           child: Column(
             children: [
               TableView(),

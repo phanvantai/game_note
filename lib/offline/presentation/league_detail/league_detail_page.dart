@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../injection_container.dart';
-import '../../../domain/entities/league_model.dart';
+import '../../../injection_container.dart';
+import '../../domain/entities/league_model.dart';
 import 'bloc/league_detail_bloc.dart';
 import 'league_detail_view.dart';
 
