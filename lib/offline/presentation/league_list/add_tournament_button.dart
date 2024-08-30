@@ -10,6 +10,7 @@ class AddTournamentButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
+      heroTag: 'addLeague',
       onPressed: () {
         showDialog(
           context: context,

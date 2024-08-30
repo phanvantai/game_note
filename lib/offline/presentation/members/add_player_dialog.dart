@@ -38,7 +38,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                   fullname = string;
                 });
               },
-              cursorColor: Colors.white,
+              //cursorColor: Colors.white,
             ),
             const SizedBox(height: 32),
             ElevatedButton(

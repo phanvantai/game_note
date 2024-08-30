@@ -36,7 +36,7 @@ class _PlayerViewState extends State<PlayerView> {
           // border: Border.all(
           //   color: isSelected ? Colors.orange : Colors.grey,
           // ),
-          //borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
           child: Text(

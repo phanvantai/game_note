@@ -26,6 +26,7 @@ class _AddLeagueDialogState extends State<AddLeagueDialog> {
           children: [
             const SizedBox(height: 16),
             TextField(
+              autofocus: true,
               decoration:
                   const InputDecoration.collapsed(hintText: 'Tên giải đấu'),
               controller: controller,

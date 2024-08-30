@@ -48,42 +48,50 @@ class _MembersViewState extends State<MembersView>
                     textAlign: TextAlign.center,
                   ),
                 )
-              : ListView.builder(
+              : ListView.separated(
                   itemCount: players.length,
                   itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        Dismissible(
-                          direction: DismissDirection.endToStart,
-                          key: Key(players[index].id.toString()),
-                          onDismissed: (direction) {
-                            getIt<DatabaseManager>()
-                                .deletePlayer(players[index])
-                                .then((value) =>
-                                    // ignore: use_build_context_synchronously
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Đã xóa ${players[index].fullname}',
-                                        ),
-                                      ),
-                                    ));
-                          },
-                          background: Container(color: Colors.red),
-                          child: PlayerView(
-                            players[index],
-                            onClick: null,
-                            bold: true,
-                          ),
+                    return Dismissible(
+                      direction: DismissDirection.endToStart,
+                      key: Key(players[index].id.toString()),
+                      onDismissed: (direction) {
+                        getIt<DatabaseManager>()
+                            .deletePlayer(players[index])
+                            .then((value) {
+                          // ignore: use_build_context_synchronously
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Đã xóa ${players[index].fullname}',
+                              ),
+                            ),
+                          );
+                          loadPlayer();
+                        });
+                      },
+                      confirmDismiss: (direction) {
+                        return Future.value(false);
+                      },
+                      background: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const SizedBox(height: 8),
-                      ],
+                      ),
+                      child: PlayerView(
+                        players[index],
+                        onClick: null,
+                        bold: true,
+                      ),
                     );
                   },
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
                 ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'addPlayer',
         onPressed: _addNewPlayer,
         tooltip: 'Thêm người chơi',
         child: const Icon(Icons.add),
