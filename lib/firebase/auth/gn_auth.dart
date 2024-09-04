@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../injection_container.dart';
 import '../../presentation/app/bloc/app_bloc.dart';
+import '../firestore/gn_firestore.dart';
 
 class GNAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -23,6 +25,11 @@ class GNAuth {
         getIt<AppBloc>().add(user != null
             ? const AuthStatusChanged(AppStatus.authenticated)
             : const AuthStatusChanged(AppStatus.unknown));
+
+        // create user in Firestore if not exists
+        if (user != null) {
+          getIt<GNFirestore>().createUserIfNeeded(user);
+        }
       },
       onDone: () {
         if (kDebugMode) {

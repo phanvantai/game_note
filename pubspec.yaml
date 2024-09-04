@@ -35,6 +35,8 @@ dependencies:
   google_sign_in: ^6.2.1
   package_info_plus: ^8.0.2
 
+  cached_network_image: ^3.4.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

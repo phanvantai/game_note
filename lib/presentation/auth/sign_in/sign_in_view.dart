@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/constants.dart';
+import '../../../routing.dart';
 import '../auth_custom_button.dart';
 import 'bloc/sign_in_bloc.dart';
 
@@ -33,7 +34,8 @@ class SignInView extends StatelessWidget {
           ));
         }
         if (state.status == SignInStatus.verify) {
-          final response = await Navigator.of(context).pushNamed('/verify');
+          final response =
+              await Navigator.of(context).pushNamed(Routing.verify);
           if (kDebugMode) {
             print(response);
           }

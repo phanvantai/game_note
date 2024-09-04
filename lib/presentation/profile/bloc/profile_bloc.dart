@@ -1,13 +1,16 @@
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
+import 'package:game_note/domain/repositories/user_repository.dart';
+
+import '../../../firebase/firestore/user/user_model.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  ProfileBloc() : super(const ProfileState()) {
+  final UserRepository _userRepository;
+  ProfileBloc(this._userRepository) : super(const ProfileState()) {
     on<LoadProfileEvent>(_onLoadProfile);
     on<SignOutProfileEvent>(_onSignOut);
     on<DeleteProfileEvent>(_onDeleteProfile);
@@ -16,12 +19,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        emit(state.copyWith(viewStatus: ViewStatus.success, user: user));
-      } else {
-        emit(state.copyWith(viewStatus: ViewStatus.failure));
-      }
+      final user = await _userRepository.loadProfile();
+      emit(state.copyWith(viewStatus: ViewStatus.success, user: user));
     } catch (e) {
       emit(state.copyWith(viewStatus: ViewStatus.failure, error: e.toString()));
     }
@@ -30,7 +29,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   _onSignOut(SignOutProfileEvent event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await FirebaseAuth.instance.signOut();
+      await _userRepository.signOut();
       emit(state.copyWith(viewStatus: ViewStatus.success));
     } catch (e) {
       emit(state.copyWith(viewStatus: ViewStatus.failure, error: e.toString()));
@@ -40,13 +39,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   _onDeleteProfile(DeleteProfileEvent event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await user.delete();
-        emit(state.copyWith(viewStatus: ViewStatus.success));
-      } else {
-        emit(state.copyWith(viewStatus: ViewStatus.failure));
-      }
+      await _userRepository.deleteAccount();
     } catch (e) {
       emit(state.copyWith(viewStatus: ViewStatus.failure, error: e.toString()));
     }

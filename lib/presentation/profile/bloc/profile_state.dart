@@ -2,7 +2,7 @@ part of 'profile_bloc.dart';
 
 class ProfileState extends Equatable {
   final ViewStatus viewStatus;
-  final User? user;
+  final UserModel? user;
   final String error;
 
   const ProfileState({
@@ -13,7 +13,7 @@ class ProfileState extends Equatable {
 
   ProfileState copyWith({
     ViewStatus? viewStatus,
-    User? user,
+    UserModel? user,
     String? error,
   }) {
     return ProfileState(
@@ -22,6 +22,9 @@ class ProfileState extends Equatable {
       error: error ?? this.error,
     );
   }
+
+  String get displayUser =>
+      user?.displayName ?? user?.phoneNumber ?? user?.email ?? 'Chưa đặt tên';
 
   @override
   List<Object?> get props => [viewStatus, user, error];

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:game_note/firebase/auth/gn_auth.dart';
+import 'package:game_note/firebase/firestore/feedback/gn_firestore_feedback.dart';
 import 'package:game_note/injection_container.dart';
 
 import '../../../firebase/firestore/gn_firestore.dart';
@@ -33,6 +34,7 @@ class _FeedbackViewState extends State<FeedbackView> {
         child: Text('Feedback'),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_feedback',
         onPressed: () {
           // create feedback
           final user = getIt<GNAuth>().auth.currentUser;

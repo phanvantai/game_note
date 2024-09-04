@@ -2,14 +2,14 @@ enum FeedbackStatus {
   notReceived, // 0: chưa tiếp nhận
   processing, // 1: đang xử lý
   done, // 2: đã xử lý
-  denied, // 3: không xử lý
+  rejected, // 3: không xử lý
 }
 
 extension FeedbackStatusX on FeedbackStatus {
   bool get isNotReceived => this == FeedbackStatus.notReceived;
   bool get isProcessing => this == FeedbackStatus.processing;
   bool get isDone => this == FeedbackStatus.done;
-  bool get isDenied => this == FeedbackStatus.denied;
+  bool get isDenied => this == FeedbackStatus.rejected;
 
   String get name {
     switch (this) {
@@ -19,7 +19,7 @@ extension FeedbackStatusX on FeedbackStatus {
         return 'Đang xử lý';
       case FeedbackStatus.done:
         return 'Đã xử lý';
-      case FeedbackStatus.denied:
+      case FeedbackStatus.rejected:
         return 'Không xử lý';
     }
   }
@@ -33,7 +33,7 @@ extension FeedbackStatusX on FeedbackStatus {
       case 2:
         return FeedbackStatus.done;
       case 3:
-        return FeedbackStatus.denied;
+        return FeedbackStatus.rejected;
       default:
         return FeedbackStatus.notReceived;
     }

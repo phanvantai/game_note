@@ -18,8 +18,8 @@ class MatchesView extends StatelessWidget {
           const TabBar(
             indicatorSize: TabBarIndicatorSize.tab,
             tabs: [
-              Tab(child: Text('Fixtures')),
-              Tab(child: Text('Results')),
+              Tab(child: Text('Lịch thi đấu')),
+              Tab(child: Text('Kết quả')),
             ],
             //indicatorColor: Colors.orange,
             indicatorWeight: 4,

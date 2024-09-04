@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/presentation/app/offline_button.dart';
@@ -26,13 +27,13 @@ class ProfileView extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundImage: state.user?.photoURL != null
-                    ? NetworkImage(state.user!.photoURL!)
-                    : null,
+                child: state.user?.photoUrl?.isNotEmpty == true
+                    ? CachedNetworkImage(imageUrl: state.user!.photoUrl!)
+                    : const Icon(Icons.person, size: 50),
               ),
               const SizedBox(height: 16),
               Text(
-                state.user?.displayName ?? '',
+                state.displayUser,
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,

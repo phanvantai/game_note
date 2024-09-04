@@ -91,7 +91,7 @@ class _MembersViewState extends State<MembersView>
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        heroTag: 'addPlayer',
+        heroTag: 'add_player',
         onPressed: _addNewPlayer,
         tooltip: 'Thêm người chơi',
         child: const Icon(Icons.add),

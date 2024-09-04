@@ -7,6 +7,7 @@ class TableItemView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTitle = model.rank == '#';
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -17,16 +18,13 @@ class TableItemView extends StatelessWidget {
       child: Flex(
         direction: Axis.horizontal,
         children: [
-          Expanded(flex: 2, child: Center(child: Text(model.rank))),
-          const SizedBox(width: 8),
-          ClipRRect(
-            child: Container(
-              decoration: BoxDecoration(
-                color: model.rank == '#' ? Colors.white : model.color,
-                borderRadius: BorderRadius.circular(12),
+          Expanded(
+            flex: 2,
+            child: Center(
+              child: Text(
+                model.rank,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              width: 24,
-              height: 24,
             ),
           ),
           const SizedBox(width: 16),
@@ -35,8 +33,9 @@ class TableItemView extends StatelessWidget {
             child: Text(
               model.name,
               style: TextStyle(
-                  fontWeight:
-                      model.rank == '#' ? FontWeight.bold : FontWeight.normal),
+                fontWeight: isTitle ? FontWeight.bold : FontWeight.normal,
+                fontSize: isTitle ? 16 : 20,
+              ),
             ),
           ),
           Expanded(

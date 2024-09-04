@@ -44,7 +44,7 @@ class _StatisticBodyState extends State<StatisticBody> {
         builder: (context, state) {
       if (state.viewStatus.isLoading) {
         return const Center(
-          child: CircularProgressIndicator(color: Colors.white),
+          child: CircularProgressIndicator(),
         );
       }
       if (state.viewStatus.isSuccess) {

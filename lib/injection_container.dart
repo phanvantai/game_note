@@ -1,3 +1,4 @@
+import 'package:game_note/domain/repositories/user_repository.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
 import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 import 'package:game_note/offline/data/database/database_manager.dart';
@@ -17,6 +18,7 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/helpers/shared_preferences_helper.dart';
+import 'data/repositories/user_repository_impl.dart';
 import 'presentation/auth/third_party/bloc/third_party_bloc.dart';
 import 'offline/data/models/league_manager.dart';
 import 'offline/presentation/league_detail/bloc/league_detail_bloc.dart';
@@ -62,15 +64,18 @@ Future<void> init() async {
     ),
   );
 
-  getIt.registerFactory(() => SignInBloc());
-
-  getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
-
-  getIt.registerFactory<ProfileBloc>(() => ProfileBloc());
-
   getIt.registerSingleton(AppBloc());
 
   // firebase service
   getIt.registerSingleton(GNAuth());
   getIt.registerSingleton(GNFirestore());
+
+  /// online mode
+  // data
+  // repositories
+  getIt.registerFactory<UserRepository>(() => UserRepositoryImpl());
+  // blocs
+  getIt.registerFactory(() => SignInBloc());
+  getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
+  getIt.registerFactory<ProfileBloc>(() => ProfileBloc(getIt()));
 }
