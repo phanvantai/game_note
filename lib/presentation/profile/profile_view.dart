@@ -43,9 +43,9 @@ class ProfileView extends StatelessWidget {
                                 label: const Text('Thay đổi ảnh đại diện'),
                                 onPressed: () {
                                   // change avatar
-                                  // context
-                                  //     .read<ProfileBloc>()
-                                  //     .add(ChangeAvatarProfileEvent());
+                                  context
+                                      .read<ProfileBloc>()
+                                      .add(ChangeAvatarProfileEvent());
                                   Navigator.of(dialogContext).pop();
                                 },
                                 icon: const Icon(Icons.image),
@@ -63,9 +63,9 @@ class ProfileView extends StatelessWidget {
                                 label: const Text('Xoá ảnh đại diện'),
                                 onPressed: () {
                                   // delete avatar
-                                  // context
-                                  //     .read<ProfileBloc>()
-                                  //     .add(ChangeAvatarProfileEvent());
+                                  context
+                                      .read<ProfileBloc>()
+                                      .add(DeleteAvatarProfileEvent());
                                   Navigator.of(dialogContext).pop();
                                 },
                                 icon: const Icon(Icons.delete),
@@ -165,7 +165,11 @@ class ProfileView extends StatelessWidget {
           ),
         ),
       ),
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state.error.isNotEmpty) {
+          showSnackBar(context, state.error);
+        }
+      },
     );
   }
 

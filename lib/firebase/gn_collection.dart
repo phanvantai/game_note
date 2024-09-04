@@ -1,6 +1,6 @@
 class GNCollection {
   static const String users = 'users';
-
+  static const String avatars = 'avatars';
   static const String communities = 'communities';
   static const String feedbacks = 'feedbacks';
 }

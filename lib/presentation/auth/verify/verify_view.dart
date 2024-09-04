@@ -60,7 +60,6 @@ class VerifyView extends StatelessWidget {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () async {
-                      // TODO: Verify code
                       if (kDebugMode) {
                         print(_codeController.text);
                       }

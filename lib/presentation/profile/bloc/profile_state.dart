@@ -19,7 +19,7 @@ class ProfileState extends Equatable {
     return ProfileState(
       viewStatus: viewStatus ?? this.viewStatus,
       user: user ?? this.user,
-      error: error ?? this.error,
+      error: error ?? '',
     );
   }
 

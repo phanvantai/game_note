@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 enum FeedbackStatus {
   notReceived, // 0: chưa tiếp nhận
   processing, // 1: đang xử lý
@@ -21,6 +23,19 @@ extension FeedbackStatusX on FeedbackStatus {
         return 'Đã xử lý';
       case FeedbackStatus.rejected:
         return 'Không xử lý';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case FeedbackStatus.notReceived:
+        return Colors.grey;
+      case FeedbackStatus.processing:
+        return Colors.orange;
+      case FeedbackStatus.done:
+        return Colors.green;
+      case FeedbackStatus.rejected:
+        return Colors.red;
     }
   }
 

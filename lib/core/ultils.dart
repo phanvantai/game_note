@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'common/app_info.dart';
@@ -35,4 +36,14 @@ Future<AppInfo> appInfo() async {
     version: packageInfo.version,
     buildNumber: packageInfo.buildNumber,
   );
+}
+
+// Show a snackbar with a message
+void showSnackBar(BuildContext context, String message) {
+  final snackBar = SnackBar(
+    content: Text(message),
+    duration: const Duration(seconds: 2),
+    backgroundColor: Colors.black54,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

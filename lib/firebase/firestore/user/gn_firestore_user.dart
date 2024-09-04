@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:game_note/firebase/auth/gn_auth.dart';
@@ -60,6 +58,20 @@ extension GNFirestoreUser on GNFirestore {
     if (user == null) {
       throw Exception('User is not signed in');
     }
+    final currentUserModel = await getCurrentUser();
+    final oldPhotoUrl = currentUserModel.photoUrl;
+
+    if (oldPhotoUrl == null || oldPhotoUrl.isEmpty) {
+      return;
+    }
+
+    // delete avatar file from storage
+    final storage = getIt<GNStorage>();
+    await storage.deleteAvatarByUrl(oldPhotoUrl);
+
+    // update firebase user photoUrl to null
+    await FirebaseAuth.instance.currentUser?.updatePhotoURL(null);
+
     await firestore.collection(GNCollection.users).doc(user.uid).update({
       GNUserFields.photoUrl: null,
       GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
@@ -72,9 +84,10 @@ extension GNFirestoreUser on GNFirestore {
     if (user == null) {
       throw Exception('User is not signed in');
     }
-    final storageRef = storage.storage.ref().child('avatars/${user.uid}');
-    await storageRef.putFile(File(imageFile.path));
-    final photoUrl = await storageRef.getDownloadURL();
+    final photoUrl = await storage.uploadAvatarFile(imageFile);
+    // update firebase user photoUrl
+    FirebaseAuth.instance.currentUser?.updatePhotoURL(photoUrl);
+
     await firestore.collection(GNCollection.users).doc(user.uid).update({
       GNUserFields.photoUrl: photoUrl,
       GNCommonFields.updatedAt: FieldValue.serverTimestamp(),

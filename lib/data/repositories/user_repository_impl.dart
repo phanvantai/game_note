@@ -27,10 +27,14 @@ class UserRepositoryImpl implements UserRepository {
   Future<void> changeAvatar() async {
     final imagePicker = ImagePicker();
     final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      return getIt<GNFirestore>().changeAvatar(pickedFile);
+    if (pickedFile == null) {
+      return;
     }
-    return;
+    final fileSize = await pickedFile.length();
+    if (fileSize > 5 * 1024 * 1024) {
+      throw Exception('Kích thước file phải nhỏ hơn 5MB');
+    }
+    return getIt<GNFirestore>().changeAvatar(pickedFile);
   }
 
   @override
