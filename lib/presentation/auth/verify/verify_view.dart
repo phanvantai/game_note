@@ -80,13 +80,13 @@ class VerifyView extends StatelessWidget {
                     },
                     child: const Text('Xác thực'),
                   ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      // Resend code
-                    },
-                    child: const Text('Gửi lại mã xác thực'),
-                  ),
+                  // const SizedBox(height: 16),
+                  // TextButton(
+                  //   onPressed: () {
+                  //     // Resend code
+                  //   },
+                  //   child: const Text('Gửi lại mã xác thực'),
+                  // ),
                 ],
               ),
             )

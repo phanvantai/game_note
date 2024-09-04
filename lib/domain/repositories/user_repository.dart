@@ -4,4 +4,7 @@ abstract class UserRepository {
   Future<void> signOut();
   Future<void> deleteAccount();
   Future<UserModel> loadProfile();
+
+  Future<void> changeAvatar();
+  Future<void> deleteAvatar();
 }

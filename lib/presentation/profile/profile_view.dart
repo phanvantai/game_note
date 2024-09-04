@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/core/constants/constants.dart';
 import 'package:game_note/presentation/app/offline_button.dart';
 import 'package:game_note/presentation/profile/bloc/profile_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/common/app_info.dart';
 import '../../core/ultils.dart';
@@ -25,11 +30,64 @@ class ProfileView extends StatelessWidget {
         body: SafeArea(
           child: Column(
             children: [
-              CircleAvatar(
-                radius: 50,
-                child: state.user?.photoUrl?.isNotEmpty == true
-                    ? CachedNetworkImage(imageUrl: state.user!.photoUrl!)
-                    : const Icon(Icons.person, size: 50),
+              InkWell(
+                onTap: () {
+                  showCupertinoDialog(
+                      barrierDismissible: true,
+                      context: context,
+                      builder: (dialogContext) {
+                        return CupertinoAlertDialog(
+                          actions: [
+                            CupertinoDialogAction(
+                              child: TextButton.icon(
+                                label: const Text('Thay đổi ảnh đại diện'),
+                                onPressed: () {
+                                  // change avatar
+                                  // context
+                                  //     .read<ProfileBloc>()
+                                  //     .add(ChangeAvatarProfileEvent());
+                                  Navigator.of(dialogContext).pop();
+                                },
+                                icon: const Icon(Icons.image),
+                              ),
+                            ),
+                            CupertinoDialogAction(
+                              child: TextButton.icon(
+                                style: const ButtonStyle(
+                                  // iconColor: WidgetStatePropertyAll(Colors.red),
+                                  // textStyle: WidgetStatePropertyAll(
+                                  //     TextStyle(color: Colors.red)),
+                                  foregroundColor:
+                                      WidgetStatePropertyAll(Colors.red),
+                                ),
+                                label: const Text('Xoá ảnh đại diện'),
+                                onPressed: () {
+                                  // delete avatar
+                                  // context
+                                  //     .read<ProfileBloc>()
+                                  //     .add(ChangeAvatarProfileEvent());
+                                  Navigator.of(dialogContext).pop();
+                                },
+                                icon: const Icon(Icons.delete),
+                              ),
+                            ),
+                          ],
+                        );
+                      });
+                },
+                child: CachedNetworkImage(
+                  imageUrl: state.user?.photoUrl ?? '',
+                  width: 100,
+                  height: 100,
+                  imageBuilder: (context, imageProvider) => CircleAvatar(
+                    backgroundImage: imageProvider,
+                    radius: 50,
+                  ),
+                  errorWidget: (context, url, error) => const CircleAvatar(
+                    radius: 50,
+                    child: Icon(Icons.person, size: 50),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -44,17 +102,16 @@ class ProfileView extends StatelessWidget {
                 child: ListView(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.privacy_tip),
-                      title: const Text('Chính sách bảo mật'),
-                      onTap: () {
-                        // TODO: Implement change password functionality
-                      },
-                    ),
-                    ListTile(
                       leading: const Icon(Icons.reviews),
                       title: const Text('Đánh giá'),
                       onTap: () {
-                        // TODO: Implement notification settings functionality
+                        Uri url;
+                        if (Platform.isAndroid) {
+                          url = Uri.parse(playStoreUrl);
+                        } else {
+                          url = Uri.parse(playStoreUrl);
+                        }
+                        launchUrl(url);
                       },
                     ),
                     ListTile(

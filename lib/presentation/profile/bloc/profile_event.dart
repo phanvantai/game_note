@@ -8,6 +8,10 @@ abstract class ProfileEvent extends Equatable {
 
 class LoadProfileEvent extends ProfileEvent {}
 
+class ChangeAvatarProfileEvent extends ProfileEvent {}
+
+class DeleteAvatarProfileEvent extends ProfileEvent {}
+
 class SignOutProfileEvent extends ProfileEvent {}
 
 class DeleteProfileEvent extends ProfileEvent {}

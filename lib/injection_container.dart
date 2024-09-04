@@ -1,5 +1,6 @@
 import 'package:game_note/domain/repositories/user_repository.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
+import 'package:game_note/firebase/storage/gn_storage.dart';
 import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 import 'package:game_note/offline/data/database/database_manager.dart';
 import 'package:game_note/presentation/auth/sign_in/bloc/sign_in_bloc.dart';
@@ -69,6 +70,7 @@ Future<void> init() async {
   // firebase service
   getIt.registerSingleton(GNAuth());
   getIt.registerSingleton(GNFirestore());
+  getIt.registerSingleton(GNStorage());
 
   /// online mode
   // data

@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:game_note/firebase/auth/gn_auth.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
 import 'package:game_note/firebase/firestore/user/user_model.dart';
 import 'package:game_note/firebase/gn_collection.dart';
+import 'package:game_note/firebase/storage/gn_storage.dart';
 import 'package:game_note/injection_container.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'user_role.dart';
 
@@ -49,5 +53,31 @@ extension GNFirestoreUser on GNFirestore {
     }
     await firestore.collection(GNCollection.users).doc(user.uid).delete();
     await user.delete();
+  }
+
+  Future<void> deleteAvatar() async {
+    final user = getIt<GNAuth>().currentUser;
+    if (user == null) {
+      throw Exception('User is not signed in');
+    }
+    await firestore.collection(GNCollection.users).doc(user.uid).update({
+      GNUserFields.photoUrl: null,
+      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> changeAvatar(XFile imageFile) async {
+    final user = getIt<GNAuth>().currentUser;
+    final storage = getIt<GNStorage>();
+    if (user == null) {
+      throw Exception('User is not signed in');
+    }
+    final storageRef = storage.storage.ref().child('avatars/${user.uid}');
+    await storageRef.putFile(File(imageFile.path));
+    final photoUrl = await storageRef.getDownloadURL();
+    await firestore.collection(GNCollection.users).doc(user.uid).update({
+      GNUserFields.photoUrl: photoUrl,
+      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
+    });
   }
 }

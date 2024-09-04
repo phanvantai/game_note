@@ -32,10 +32,17 @@ dependencies:
   fl_chart: ^0.69.0
   collection: ^1.18.0
   cloud_firestore: ^4.14.0
+  firebase_storage: ^11.6.0
   google_sign_in: ^6.2.1
   package_info_plus: ^8.0.2
 
   cached_network_image: ^3.4.1
+
+  # URL Launcher
+  url_launcher: ^6.3.0
+
+  # Image picker
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

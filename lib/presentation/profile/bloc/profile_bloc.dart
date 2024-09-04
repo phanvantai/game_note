@@ -14,6 +14,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<LoadProfileEvent>(_onLoadProfile);
     on<SignOutProfileEvent>(_onSignOut);
     on<DeleteProfileEvent>(_onDeleteProfile);
+
+    on<ChangeAvatarProfileEvent>(_onChangeAvatar);
+    on<DeleteAvatarProfileEvent>(_onDeleteAvatar);
   }
 
   _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
@@ -40,6 +43,28 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _userRepository.deleteAccount();
+    } catch (e) {
+      emit(state.copyWith(viewStatus: ViewStatus.failure, error: e.toString()));
+    }
+  }
+
+  _onChangeAvatar(
+      ChangeAvatarProfileEvent event, Emitter<ProfileState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _userRepository.changeAvatar();
+      add(LoadProfileEvent());
+    } catch (e) {
+      emit(state.copyWith(viewStatus: ViewStatus.failure, error: e.toString()));
+    }
+  }
+
+  _onDeleteAvatar(
+      DeleteAvatarProfileEvent event, Emitter<ProfileState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _userRepository.deleteAvatar();
+      add(LoadProfileEvent());
     } catch (e) {
       emit(state.copyWith(viewStatus: ViewStatus.failure, error: e.toString()));
     }
