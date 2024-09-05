@@ -28,11 +28,8 @@ extension GNFirestoreFeedback on GNFirestore {
     QuerySnapshot querySnapshot =
         await firestore.collection(GNCollection.feedbacks).get();
 
-    List<FeedbackModel> feedbackList = [];
-    for (var doc in querySnapshot.docs) {
-      feedbackList.add(FeedbackModel.fromSnapshot(doc));
-    }
-
-    return feedbackList;
+    return querySnapshot.docs
+        .map((doc) => FeedbackModel.fromSnapshot(doc))
+        .toList();
   }
 }

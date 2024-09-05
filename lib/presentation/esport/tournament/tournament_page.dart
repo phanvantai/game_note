@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:game_note/presentation/tournament/tournament_view.dart';
+import 'package:game_note/presentation/esport/tournament/tournament_view.dart';
 
 class TournamentPage extends StatelessWidget {
   const TournamentPage({Key? key}) : super(key: key);

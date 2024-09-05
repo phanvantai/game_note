@@ -3,6 +3,8 @@ class GNCollection {
   static const String avatars = 'avatars';
   static const String communities = 'communities';
   static const String feedbacks = 'feedbacks';
+
+  static const String esports = 'esports';
 }
 
 class GNCommonFields {
@@ -30,4 +32,11 @@ class GNFeedbackFields {
   static const String detail = 'detail';
   static const String status = 'status';
   static const String userId = 'userId';
+}
+
+class GNEsportFields {
+  static const String name = 'name';
+  static const String description = 'description';
+  static const String image = 'image';
+  static const String url = 'url';
 }
