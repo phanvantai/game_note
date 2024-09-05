@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/chat/chat_page.dart';
 import 'package:game_note/presentation/community/community_view.dart';
 import 'package:game_note/presentation/profile/profile_page.dart';
 import 'package:game_note/presentation/tournament/tournament_page.dart';
@@ -21,10 +20,6 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       icon: Icon(Icons.sports_score),
       label: 'Giải đấu',
     ): TournamentPage(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.chat_bubble),
-      label: 'Trò chuyện',
-    ): ChatPage(),
     BottomNavigationBarItem(
       icon: Icon(Icons.person),
       label: 'Cá nhân',
