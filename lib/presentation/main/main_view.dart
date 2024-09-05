@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/community/community_view.dart';
 import 'package:game_note/presentation/profile/profile_page.dart';
-import 'package:game_note/presentation/tournament/tournament_page.dart';
+
+import '../community/community_view.dart';
+import '../esport/esport_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);
@@ -17,9 +18,9 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       label: 'Cộng đồng',
     ): CommunityView(),
     BottomNavigationBarItem(
-      icon: Icon(Icons.sports_score),
-      label: 'Giải đấu',
-    ): TournamentPage(),
+      icon: Icon(Icons.sports_esports),
+      label: 'Esport',
+    ): EsportView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.person),
       label: 'Cá nhân',

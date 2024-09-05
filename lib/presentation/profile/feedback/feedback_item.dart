@@ -18,24 +18,25 @@ class FeedbackItem extends StatelessWidget {
       onLongPress: () {},
       child: ListTile(
         leading: FutureBuilder<UserModel>(
-            future: getIt<GNFirestore>().getUserById(feedback.userId),
-            builder: (context, userSnapshot) {
-              if (userSnapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (userSnapshot.hasError) {
-                return const Icon(Icons.error);
-              } else if (userSnapshot.hasData) {
-                final user = userSnapshot.data!;
-                if (user.photoUrl == null) {
-                  return const Icon(Icons.error);
-                }
-                return CircleAvatar(
-                  backgroundImage: NetworkImage(user.photoUrl!),
-                );
-              } else {
+          future: getIt<GNFirestore>().getUserById(feedback.userId),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (userSnapshot.hasError) {
+              return const Icon(Icons.error);
+            } else if (userSnapshot.hasData) {
+              final user = userSnapshot.data!;
+              if (user.photoUrl == null) {
                 return const Icon(Icons.error);
               }
-            }),
+              return CircleAvatar(
+                backgroundImage: NetworkImage(user.photoUrl!),
+              );
+            } else {
+              return const Icon(Icons.error);
+            }
+          },
+        ),
         title: Text(feedback.title),
         subtitle: Text(feedback.detail),
         trailing: Row(
