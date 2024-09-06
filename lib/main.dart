@@ -22,7 +22,7 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => getIt<AppBloc>()),
+        BlocProvider(create: (_) => getIt<AppBloc>()..add(InitApp())),
       ],
       child: App(),
     ),
