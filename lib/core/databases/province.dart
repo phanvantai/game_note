@@ -108,8 +108,4 @@ Future<void> getProvinces() async {
   districts = districtsJson.map((e) => District.fromJson(e)).toList();
 
   provinces = provincesJson.map((e) => Province.fromJson(e)).toList();
-
-  print(provinces);
-  print(districts);
-  print(communes);
 }

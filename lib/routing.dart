@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:game_note/offline/presentation/offline_view.dart';
 import 'package:game_note/presentation/app/app_view.dart';
 import 'package:game_note/presentation/auth/verify/verify_page.dart';
+import 'package:game_note/presentation/community/teams/create_team/create_team_page.dart';
 
 class Routing {
   static const String app = '/';
@@ -9,6 +10,9 @@ class Routing {
   static const String offlineLeague = '/offline/league';
   static const String league = '/league';
   static const String verify = '/verify';
+
+  // community
+  static const String createTeam = '/create-team';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return fadeThrough(settings, (context) {
@@ -19,6 +23,8 @@ class Routing {
           return const OfflineView();
         case Routing.verify:
           return const VerifyPage();
+        case Routing.createTeam:
+          return const CreateTeamPage();
         default:
           return const AppView();
       }

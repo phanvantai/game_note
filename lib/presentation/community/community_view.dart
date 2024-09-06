@@ -37,12 +37,20 @@ class _CommunityViewState extends State<CommunityView>
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        bottom: TabBar(
+        title: TabBar(
           controller: _tabController,
           tabs: tabs.keys.toList(),
           isScrollable: true,
           indicatorSize: TabBarIndicatorSize.tab,
           tabAlignment: TabAlignment.start,
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(40),
+            color: Theme.of(context).primaryColor.withOpacity(0.7),
+          ),
+          indicatorWeight: 0,
+          labelColor: Colors.white,
+          dividerHeight: 0,
+          unselectedLabelColor: Colors.grey,
         ),
       ),
       body: TabBarView(
