@@ -5,6 +5,8 @@ class GroupsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return const Center(
+      child: Text('Chưa có nhóm nào'),
+    );
   }
 }
