@@ -1,17 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
 
 import '../../gn_collection.dart';
 
-class GNTeam {
-  String teamId;
-  String name;
-  String ownerId;
-  List<String> members;
-  List<String> managers;
-  DateTime createdAt;
-  DateTime updatedAt;
+class GNTeam extends Equatable {
+  final String teamId;
+  final String name;
+  final String ownerId;
+  final List<String> members;
+  final List<String> managers;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
-  GNTeam({
+  const GNTeam({
     required this.teamId,
     required this.name,
     required this.ownerId,
@@ -47,4 +48,8 @@ class GNTeam {
       updatedAt: (data[GNCommonFields.updatedAt] as Timestamp).toDate(),
     );
   }
+
+  @override
+  List<Object?> get props =>
+      [teamId, name, ownerId, members, managers, createdAt, updatedAt];
 }

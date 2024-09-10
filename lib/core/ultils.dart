@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'common/app_info.dart';
@@ -46,4 +47,17 @@ void showSnackBar(BuildContext context, String message) {
     backgroundColor: Colors.black54,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+// Show toast message
+void showToast(String message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    timeInSecForIosWeb: 1,
+    backgroundColor: Colors.black54,
+    textColor: Colors.white,
+    fontSize: 16.0,
+  );
 }

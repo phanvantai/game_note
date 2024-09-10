@@ -3,6 +3,7 @@ import 'package:game_note/presentation/profile/profile_page.dart';
 
 import '../community/community_view.dart';
 import '../esport/esport_view.dart';
+import '../notification/notification_view.dart';
 import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
@@ -22,6 +23,10 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       icon: Icon(Icons.group),
       label: 'Đội',
     ): TeamsView(),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.notifications),
+      label: 'Thông báo',
+    ): NotificationView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.sports_esports),
       label: 'Esport',

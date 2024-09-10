@@ -15,9 +15,9 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
     on<GetOtherTeams>(_onGetOtherTeams);
   }
 
-  void _onGetMyTeams(GetMyTeams event, Emitter<TeamsState> emit) {
+  void _onGetMyTeams(GetMyTeams event, Emitter<TeamsState> emit) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
-    _teamRepository.getMyTeams().then((myTeams) {
+    await _teamRepository.getMyTeams().then((myTeams) {
       emit(state.copyWith(viewStatus: ViewStatus.success, myTeams: myTeams));
     }).catchError((error) {
       emit(state.copyWith(
@@ -25,9 +25,9 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
     });
   }
 
-  void _onGetOtherTeams(GetOtherTeams event, Emitter<TeamsState> emit) {
+  void _onGetOtherTeams(GetOtherTeams event, Emitter<TeamsState> emit) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
-    _teamRepository.getOtherTeams().then((otherTeams) {
+    await _teamRepository.getOtherTeams().then((otherTeams) {
       emit(state.copyWith(
           viewStatus: ViewStatus.success, otherTeams: otherTeams));
     }).catchError((error) {
