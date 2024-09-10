@@ -6,6 +6,21 @@ import 'package:game_note/firebase/firestore/team/gn_team.dart';
 import '../../gn_collection.dart';
 
 extension GNFirestoreTeam on GNFirestore {
+  Future<List<GNTeam>> getTeams() async {
+    CollectionReference teamsRef = firestore.collection(GNCollection.teams);
+    QuerySnapshot querySnapshot = await teamsRef.get();
+
+    return querySnapshot.docs.map((doc) => GNTeam.fromSnapshot(doc)).toList();
+  }
+
+  Future<List<GNTeam>> getTeamsByUser(String userId) async {
+    CollectionReference teamsRef = firestore.collection(GNCollection.teams);
+    QuerySnapshot querySnapshot =
+        await teamsRef.where(GNTeamFields.members, arrayContains: userId).get();
+
+    return querySnapshot.docs.map((doc) => GNTeam.fromSnapshot(doc)).toList();
+  }
+
   Future<void> createTeam(String teamName) async {
     CollectionReference teamsRef = firestore.collection(GNCollection.teams);
     DocumentReference docRef = teamsRef.doc();

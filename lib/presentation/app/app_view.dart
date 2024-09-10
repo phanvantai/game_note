@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../auth/auth_view.dart';
-import '../main/main_view.dart';
+import '../main/main_page.dart';
 import 'bloc/app_bloc.dart';
 
 class AppView extends StatelessWidget {
@@ -25,7 +25,7 @@ class AppView extends StatelessWidget {
   _appView(BuildContext context, AppState state) {
     switch (state.status) {
       case AppStatus.authenticated:
-        return const MainView();
+        return const MainPage();
       case AppStatus.unknown:
         return const AuthView();
     }

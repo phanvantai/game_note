@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../routing.dart';
+import 'bloc/teams_bloc.dart';
 
 class TeamsView extends StatefulWidget {
   const TeamsView({Key? key}) : super(key: key);
@@ -11,6 +13,14 @@ class TeamsView extends StatefulWidget {
 
 class _TeamsViewState extends State<TeamsView>
     with AutomaticKeepAliveClientMixin {
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<TeamsBloc>().add(GetMyTeams());
+    context.read<TeamsBloc>().add(GetOtherTeams());
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
