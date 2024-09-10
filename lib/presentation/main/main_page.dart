@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/presentation/community/teams/bloc/teams_bloc.dart';
+import 'package:game_note/presentation/team/bloc/teams_bloc.dart';
 import 'package:game_note/presentation/main/main_view.dart';
 import 'package:provider/provider.dart';
 

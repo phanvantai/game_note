@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
 
-import '../../../../domain/repositories/team_repository.dart';
-import '../../../../firebase/firestore/team/gn_team.dart';
+import '../../../domain/repositories/team_repository.dart';
+import '../../../firebase/firestore/team/gn_team.dart';
 
 part 'teams_event.dart';
 part 'teams_state.dart';

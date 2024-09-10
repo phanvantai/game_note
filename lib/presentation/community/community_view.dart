@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:game_note/presentation/community/events/events_view.dart';
 import 'package:game_note/presentation/community/home/home_view.dart';
-import 'package:game_note/presentation/community/teams/teams_view.dart';
 
 class CommunityView extends StatefulWidget {
   const CommunityView({Key? key}) : super(key: key);
@@ -17,7 +16,6 @@ class _CommunityViewState extends State<CommunityView>
   final Map<Tab, Widget> tabs = {
     const Tab(text: 'Trang chủ'): const HomeView(),
     const Tab(text: 'Sự kiện/Giải đấu'): const EventsView(),
-    const Tab(text: 'Đội'): const TeamsView(),
   };
 
   @override

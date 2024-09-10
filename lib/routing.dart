@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:game_note/offline/presentation/offline_view.dart';
 import 'package:game_note/presentation/app/app_view.dart';
 import 'package:game_note/presentation/auth/verify/verify_page.dart';
-import 'package:game_note/presentation/community/teams/create_team/create_team_page.dart';
+import 'package:game_note/presentation/team/create_team/create_team_page.dart';
 
 class Routing {
   static const String app = '/';

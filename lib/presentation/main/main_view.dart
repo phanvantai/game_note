@@ -3,6 +3,7 @@ import 'package:game_note/presentation/profile/profile_page.dart';
 
 import '../community/community_view.dart';
 import '../esport/esport_view.dart';
+import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);
@@ -14,9 +15,13 @@ class MainView extends StatefulWidget {
 class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   Map<BottomNavigationBarItem, Widget> tabs = const {
     BottomNavigationBarItem(
-      icon: Icon(Icons.group),
+      icon: Icon(Icons.sports_soccer),
       label: 'Cộng đồng',
     ): CommunityView(),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.group),
+      label: 'Đội',
+    ): TeamsView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.sports_esports),
       label: 'Esport',
