@@ -15,22 +15,22 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   Map<BottomNavigationBarItem, Widget> tabs = const {
-    BottomNavigationBarItem(
-      icon: Icon(Icons.sports_soccer),
-      label: 'Cộng đồng',
-    ): CommunityView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.group),
-      label: 'Đội',
-    ): TeamsView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.notifications),
-      label: 'Thông báo',
-    ): NotificationView(),
+    // BottomNavigationBarItem(
+    //   icon: Icon(Icons.sports_soccer),
+    //   label: 'Cộng đồng',
+    // ): CommunityView(),
+    // BottomNavigationBarItem(
+    //   icon: Icon(Icons.group),
+    //   label: 'Đội',
+    // ): TeamsView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.sports_esports),
       label: 'Esport',
     ): EsportView(),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.notifications),
+      label: 'Thông báo',
+    ): NotificationView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.person),
       label: 'Cá nhân',

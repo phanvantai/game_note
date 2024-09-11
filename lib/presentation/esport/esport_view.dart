@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/presentation/esport/bloc/esport_bloc.dart';
 import 'package:game_note/presentation/esport/groups/groups_view.dart';
 import 'package:game_note/presentation/esport/tournament/tournament_page.dart';
-import 'package:game_note/presentation/esport/widgets/pes_title.dart';
 
 class EsportView extends StatefulWidget {
   const EsportView({Key? key}) : super(key: key);
@@ -39,7 +41,25 @@ class _EsportViewState extends State<EsportView>
         centerTitle: false,
         title: Row(
           children: [
-            const PesTitle(),
+            BlocBuilder<EsportBloc, EsportState>(
+                builder: (context, state) => state.esportModel != null
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: CachedNetworkImage(
+                              imageUrl: state.esportModel!.image ?? '',
+                              height: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(state.esportModel!.name ?? '',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                        ],
+                      )
+                    : const SizedBox.shrink()) /* const PesTitle()*/,
             Expanded(
               child: TabBar(
                 dividerHeight: 0,

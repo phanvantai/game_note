@@ -11,7 +11,7 @@ class GroupsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<GroupBloc>(),
+      create: (_) => getIt<GroupBloc>()..add(GetEsportGroups()),
       child: const GroupsBody(),
     );
   }

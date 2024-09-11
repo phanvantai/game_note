@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/presentation/esport/bloc/esport_bloc.dart';
 import 'package:provider/provider.dart';
 
 import '../../injection_container.dart';
@@ -16,6 +17,7 @@ class MainPage extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => getIt<TeamsBloc>()),
         BlocProvider(create: (_) => getIt<ProfileBloc>()),
+        BlocProvider(create: (_) => getIt<EsportBloc>()..add(InitEsport())),
       ],
       child: const MainView(),
     );

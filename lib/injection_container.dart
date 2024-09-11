@@ -16,6 +16,7 @@ import 'package:game_note/offline/domain/usecases/get_league.dart';
 import 'package:game_note/offline/domain/usecases/get_leagues.dart';
 import 'package:game_note/offline/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/offline/domain/usecases/update_match.dart';
+import 'package:game_note/presentation/esport/bloc/esport_bloc.dart';
 import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:game_note/presentation/profile/bloc/profile_bloc.dart';
 import 'package:game_note/presentation/team/bloc/teams_bloc.dart';
@@ -92,5 +93,6 @@ Future<void> init() async {
 
   getIt.registerFactory<TeamsBloc>(() => TeamsBloc(getIt()));
 
+  getIt.registerFactory<EsportBloc>(() => EsportBloc());
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
 }
