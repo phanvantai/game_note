@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/profile/profile_page.dart';
 
 import '../community/community_view.dart';
 import '../esport/esport_view.dart';
 import '../notification/notification_view.dart';
+import '../profile/profile_view.dart';
 import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
@@ -34,7 +34,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
     BottomNavigationBarItem(
       icon: Icon(Icons.person),
       label: 'Cá nhân',
-    ): ProfilePage(),
+    ): ProfileView(),
   };
 
   late TabController _tabController;
