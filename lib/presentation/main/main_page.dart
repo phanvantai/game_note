@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/presentation/team/bloc/teams_bloc.dart';
-import 'package:game_note/presentation/main/main_view.dart';
 import 'package:provider/provider.dart';
 
 import '../../injection_container.dart';
+import '../profile/bloc/profile_bloc.dart';
+import '../team/bloc/teams_bloc.dart';
+import 'main_view.dart';
 
 class MainPage extends StatelessWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -14,6 +15,7 @@ class MainPage extends StatelessWidget {
     return MultiProvider(
       providers: [
         BlocProvider(create: (_) => getIt<TeamsBloc>()),
+        BlocProvider(create: (_) => getIt<ProfileBloc>()),
       ],
       child: const MainView(),
     );
