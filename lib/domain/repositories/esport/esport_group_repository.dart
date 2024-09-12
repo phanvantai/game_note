@@ -1,3 +1,5 @@
+import 'package:game_note/firebase/firestore/user/gn_user.dart';
+
 import '../../../firebase/firestore/esport/group/gn_esport_group.dart';
 
 abstract class EsportGroupRepository {
@@ -14,4 +16,6 @@ abstract class EsportGroupRepository {
     required String groupId,
     required String memberId,
   });
+
+  Future<List<GNUser>> getMembersOfGroup(String groupId);
 }

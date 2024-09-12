@@ -38,6 +38,7 @@ class _EsportViewState extends State<EsportView>
     super.build(context);
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.indigo[100],
         centerTitle: false,
         title: Row(
           children: [

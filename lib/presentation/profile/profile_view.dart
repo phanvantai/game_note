@@ -35,12 +35,11 @@ class _ProfileViewState extends State<ProfileView>
     return BlocConsumer<ProfileBloc, ProfileState>(
       builder: (context, state) => Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          // backgroundColor: Colors.transparent,
           actions: const [
             OfflineButton(),
           ],
         ),
-        backgroundColor: Colors.white70,
         body: SafeArea(
           child: Column(
             children: [

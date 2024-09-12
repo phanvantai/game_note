@@ -17,7 +17,10 @@ class GroupItem extends StatelessWidget {
       ),
       child: ListTile(
         leading: Image.asset('assets/images/pes_club_logo.png'),
-        title: Text(group.groupName),
+        title: Text(
+          group.groupName,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Text(
           'Thành viên: ${group.members.length}  Khu vực: ${group.location}',
           style: const TextStyle(fontSize: 11),

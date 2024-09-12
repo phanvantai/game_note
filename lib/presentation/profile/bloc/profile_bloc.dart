@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/domain/repositories/user_repository.dart';
 
-import '../../../firebase/firestore/user/user_model.dart';
+import '../../../firebase/firestore/user/gn_user.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';

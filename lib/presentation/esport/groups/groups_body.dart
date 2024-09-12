@@ -53,6 +53,7 @@ class GroupsBody extends StatelessWidget {
                       ...state.userGroups.map(
                         (group) => GroupItem(group: group),
                       ),
+                    const SizedBox(height: 4),
                   ],
                 ),
                 ExpansionTile(

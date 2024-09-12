@@ -1,6 +1,6 @@
 import 'package:game_note/domain/repositories/user_repository.dart';
 import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
-import 'package:game_note/firebase/firestore/user/user_model.dart';
+import 'package:game_note/firebase/firestore/user/gn_user.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -14,7 +14,7 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<UserModel> loadProfile() async {
+  Future<GNUser> loadProfile() async {
     return getIt<GNFirestore>().getCurrentUser();
   }
 

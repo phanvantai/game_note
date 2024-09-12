@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../gn_firestore.dart';
+import '../../user/gn_user.dart';
 import 'gn_esport_group.dart';
 
 extension GNFirestoreEsportGroup on GNFirestore {
@@ -97,5 +98,22 @@ extension GNFirestoreEsportGroup on GNFirestore {
       GNEsportGroup.statusKey: 'active',
       GNEsportGroup.updatedAtKey: Timestamp.now(),
     });
+  }
+
+  // Fetch all members of a group
+  Future<List<GNUser>> getMembersOfGroup(String groupId) async {
+    final groupRef =
+        firestore.collection(GNEsportGroup.collectionName).doc(groupId);
+    final groupSnapshot = await groupRef.get();
+    if (!groupSnapshot.exists) {
+      throw Exception('Group not found');
+    }
+    final members = groupSnapshot.data()?[GNEsportGroup.membersKey] ?? [];
+    final memberIds = members.cast<String>();
+    final userSnapshots = await firestore
+        .collection(GNUser.collectionName)
+        .where(FieldPath.documentId, whereIn: memberIds)
+        .get();
+    return userSnapshots.docs.map((doc) => GNUser.fromSnapshot(doc)).toList();
   }
 }

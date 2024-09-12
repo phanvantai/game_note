@@ -4,7 +4,7 @@ import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
 import '../../../firebase/firestore/feedback/feedback_model.dart';
 import '../../../firebase/firestore/feedback/feedback_status.dart';
 import '../../../firebase/firestore/gn_firestore.dart';
-import '../../../firebase/firestore/user/user_model.dart';
+import '../../../firebase/firestore/user/gn_user.dart';
 import '../../../injection_container.dart';
 
 class FeedbackItem extends StatelessWidget {
@@ -17,7 +17,7 @@ class FeedbackItem extends StatelessWidget {
     return InkWell(
       onLongPress: () {},
       child: ListTile(
-        leading: FutureBuilder<UserModel>(
+        leading: FutureBuilder<GNUser>(
           future: getIt<GNFirestore>().getUserById(feedback.userId),
           builder: (context, userSnapshot) {
             if (userSnapshot.connectionState == ConnectionState.waiting) {

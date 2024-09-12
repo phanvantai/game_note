@@ -1,5 +1,4 @@
 class GNCollection {
-  static const String users = 'users';
   static const String avatars = 'avatars';
   static const String communities = 'communities';
   static const String feedbacks = 'feedbacks';
@@ -11,14 +10,6 @@ class GNCollection {
 class GNCommonFields {
   static const String createdAt = 'createdAt';
   static const String updatedAt = 'updatedAt';
-}
-
-class GNUserFields {
-  static const String role = 'role';
-  static const String displayName = 'displayName';
-  static const String phoneNumber = 'phoneNumber';
-  static const String email = 'email';
-  static const String photoUrl = 'photoUrl';
 }
 
 class GNCommunityFields {
