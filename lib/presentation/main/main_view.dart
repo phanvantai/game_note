@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/profile/profile_page.dart';
 
-import '../community/community_view.dart';
+//import '../community/community_view.dart';
 import '../esport/esport_view.dart';
 import '../notification/notification_view.dart';
-import '../team/teams_view.dart';
+import '../profile/profile_view.dart';
+//import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);
@@ -15,26 +15,26 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   Map<BottomNavigationBarItem, Widget> tabs = const {
-    BottomNavigationBarItem(
-      icon: Icon(Icons.sports_soccer),
-      label: 'Cộng đồng',
-    ): CommunityView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.group),
-      label: 'Đội',
-    ): TeamsView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.notifications),
-      label: 'Thông báo',
-    ): NotificationView(),
+    // BottomNavigationBarItem(
+    //   icon: Icon(Icons.sports_soccer),
+    //   label: 'Cộng đồng',
+    // ): CommunityView(),
+    // BottomNavigationBarItem(
+    //   icon: Icon(Icons.group),
+    //   label: 'Đội',
+    // ): TeamsView(),
     BottomNavigationBarItem(
       icon: Icon(Icons.sports_esports),
       label: 'Esport',
     ): EsportView(),
     BottomNavigationBarItem(
+      icon: Icon(Icons.notifications),
+      label: 'Thông báo',
+    ): NotificationView(),
+    BottomNavigationBarItem(
       icon: Icon(Icons.person),
       label: 'Cá nhân',
-    ): ProfilePage(),
+    ): ProfileView(),
   };
 
   late TabController _tabController;
@@ -52,16 +52,23 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
         controller: _tabController,
         children: tabs.values.toList(),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        items: tabs.keys.toList(),
-        currentIndex: _tabController.index,
-        onTap: _onItemTapped,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Theme.of(context).unselectedWidgetColor,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        showUnselectedLabels: true,
-        enableFeedback: true,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: double.maxFinite, height: 0),
+          BottomNavigationBar(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            items: tabs.keys.toList(),
+            currentIndex: _tabController.index,
+            onTap: _onItemTapped,
+            selectedItemColor: Theme.of(context).primaryColor,
+            unselectedItemColor: Theme.of(context).unselectedWidgetColor,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            showUnselectedLabels: true,
+            enableFeedback: true,
+            type: BottomNavigationBarType.fixed,
+          ),
+        ],
       ),
     );
   }

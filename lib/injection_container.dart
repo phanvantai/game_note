@@ -1,3 +1,4 @@
+import 'package:game_note/domain/repositories/esport/esport_group_repository.dart';
 import 'package:game_note/domain/repositories/team_repository.dart';
 import 'package:game_note/domain/repositories/user_repository.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
@@ -15,12 +16,16 @@ import 'package:game_note/offline/domain/usecases/get_league.dart';
 import 'package:game_note/offline/domain/usecases/get_leagues.dart';
 import 'package:game_note/offline/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/offline/domain/usecases/update_match.dart';
+import 'package:game_note/presentation/esport/bloc/esport_bloc.dart';
+import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:game_note/presentation/profile/bloc/profile_bloc.dart';
 import 'package:game_note/presentation/team/bloc/teams_bloc.dart';
+import 'package:game_note/presentation/users/bloc/user_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/helpers/shared_preferences_helper.dart';
+import 'data/repositories/esport/esport_group_repository_impl.dart';
 import 'data/repositories/team_repository_impl.dart';
 import 'data/repositories/user_repository_impl.dart';
 import 'presentation/auth/third_party/bloc/third_party_bloc.dart';
@@ -80,10 +85,17 @@ Future<void> init() async {
   // repositories
   getIt.registerFactory<UserRepository>(() => UserRepositoryImpl());
   getIt.registerFactory<TeamRepository>(() => TeamRepositoryImpl());
+  getIt.registerFactory<EsportGroupRepository>(
+      () => EsportGroupRepositoryImpl());
   // blocs
   getIt.registerFactory(() => SignInBloc());
   getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
   getIt.registerFactory<ProfileBloc>(() => ProfileBloc(getIt()));
 
   getIt.registerFactory<TeamsBloc>(() => TeamsBloc(getIt()));
+
+  getIt.registerFactory<EsportBloc>(() => EsportBloc());
+  getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
+
+  getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
 }

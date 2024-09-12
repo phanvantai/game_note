@@ -24,12 +24,19 @@ class EsportModel {
     final data = snapshot.data() as Map<String, dynamic>;
     return EsportModel(
       id: snapshot.id,
-      name: data[GNEsportFields.name],
-      description: data[GNEsportFields.description],
-      image: data[GNEsportFields.image],
-      url: data[GNEsportFields.url],
+      name: data[nameKey],
+      description: data[descriptionKey],
+      image: data[imageKey],
+      url: data[urlKey],
       createdAt: data[GNCommonFields.createdAt].toDate(),
       updatedAt: data[GNCommonFields.updatedAt].toDate(),
     );
   }
+
+  static const String collectionName = 'esports';
+
+  static const String nameKey = 'name';
+  static const String descriptionKey = 'description';
+  static const String imageKey = 'image';
+  static const String urlKey = 'url';
 }

@@ -13,20 +13,33 @@ import '../../core/common/app_info.dart';
 import '../../core/ultils.dart';
 import 'feedback/feedback_view.dart';
 
-class ProfileView extends StatelessWidget {
+class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
 
   @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<ProfileBloc>().add(LoadProfileEvent());
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return BlocConsumer<ProfileBloc, ProfileState>(
       builder: (context, state) => Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          // backgroundColor: Colors.transparent,
           actions: const [
             OfflineButton(),
           ],
         ),
-        backgroundColor: Colors.white70,
         body: SafeArea(
           child: Column(
             children: [
@@ -232,4 +245,7 @@ class ProfileView extends StatelessWidget {
       },
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

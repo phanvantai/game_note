@@ -2,7 +2,7 @@ part of 'profile_bloc.dart';
 
 class ProfileState extends Equatable {
   final ViewStatus viewStatus;
-  final UserModel? user;
+  final GNUser? user;
   final String error;
 
   const ProfileState({
@@ -13,7 +13,7 @@ class ProfileState extends Equatable {
 
   ProfileState copyWith({
     ViewStatus? viewStatus,
-    UserModel? user,
+    GNUser? user,
     String? error,
   }) {
     return ProfileState(
