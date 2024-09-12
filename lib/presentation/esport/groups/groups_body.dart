@@ -5,7 +5,8 @@ import 'package:game_note/core/databases/province.dart';
 import 'package:game_note/core/ultils.dart';
 import 'package:game_note/presentation/esport/bloc/esport_bloc.dart';
 import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
-import 'package:game_note/routing.dart';
+
+import 'widgets/group_item.dart';
 
 class GroupsBody extends StatelessWidget {
   const GroupsBody({Key? key}) : super(key: key);
@@ -22,6 +23,8 @@ class GroupsBody extends StatelessWidget {
           body: SafeArea(
             child: Column(
               children: [
+                if (state.viewStatus == ViewStatus.loading)
+                  const LinearProgressIndicator(),
                 ExpansionTile(
                   backgroundColor: Colors.orange[100],
                   collapsedBackgroundColor: Colors.orange[100],
@@ -30,9 +33,7 @@ class GroupsBody extends StatelessWidget {
                   initiallyExpanded: true,
                   maintainState: true,
                   children: [
-                    if (state.viewStatus.isLoading)
-                      const LinearProgressIndicator()
-                    else if (state.userGroups.isEmpty)
+                    if (state.userGroups.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 60, vertical: 8),
@@ -50,27 +51,7 @@ class GroupsBody extends StatelessWidget {
                       )
                     else
                       ...state.userGroups.map(
-                        (group) => Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white60,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: ListTile(
-                            leading:
-                                Image.asset('assets/images/pes_club_logo.png'),
-                            title: Text(group.groupName),
-                            subtitle: Text(
-                              'Thành viên: ${group.members.length}  Khu vực: ${group.location}',
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            onTap: () => Navigator.of(context).pushNamed(
-                              Routing.groupDetail,
-                              arguments: group,
-                            ),
-                          ),
-                        ),
+                        (group) => GroupItem(group: group),
                       ),
                   ],
                 ),
@@ -100,12 +81,9 @@ class GroupsBody extends StatelessWidget {
                               ],
                             ),
                           )
-                        : ListView.separated(
-                            itemBuilder: (context, index) => ListTile(
-                              title: Text(state.otherGroups[index].groupName),
-                            ),
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 4),
+                        : ListView.builder(
+                            itemBuilder: (context, index) =>
+                                GroupItem(group: state.otherGroups[index]),
                             itemCount: state.otherGroups.length,
                           ),
                   ),

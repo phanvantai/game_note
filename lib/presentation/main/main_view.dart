@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../community/community_view.dart';
+//import '../community/community_view.dart';
 import '../esport/esport_view.dart';
 import '../notification/notification_view.dart';
 import '../profile/profile_view.dart';
-import '../team/teams_view.dart';
+//import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);
@@ -62,6 +62,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
         showUnselectedLabels: true,
         enableFeedback: true,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
