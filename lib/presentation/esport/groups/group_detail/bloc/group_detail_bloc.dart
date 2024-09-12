@@ -35,9 +35,9 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       AddMember event, Emitter<GroupDetailState> emit) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      // await _groupRepository.addMember(event.groupId, event.userId);
-      //final members = [...state.members, UserModel(id: event.userId)];
-      //emit(state.copyWith(viewStatus: ViewStatus.success, members: members));
+      await _groupRepository.addMemberToGroup(
+          groupId: event.groupId, memberId: event.userId);
+      add(GetMembers(state.group.id));
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));

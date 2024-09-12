@@ -93,4 +93,46 @@ extension GNFirestoreUser on GNFirestore {
       GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
     });
   }
+
+  // search user by displayName or email or phoneNumber
+  Future<List<GNUser>> searchUser(String query) async {
+    final user = getIt<GNAuth>().currentUser;
+    if (user == null) {
+      throw Exception('User is not signed in');
+    }
+    // Perform three separate queries
+    final displayNameQuery = firestore
+        .collection(GNUser.collectionName)
+        .where(GNUser.displayNameKey, isGreaterThanOrEqualTo: query)
+        .where(GNUser.displayNameKey, isLessThan: '$query\uf8ff')
+        .get();
+
+    final emailQuery = firestore
+        .collection(GNUser.collectionName)
+        .where(GNUser.emailKey, isGreaterThanOrEqualTo: query)
+        .where(GNUser.emailKey, isLessThanOrEqualTo: '$query\uf8ff')
+        .get();
+
+    final phoneNumberQuery = firestore
+        .collection(GNUser.collectionName)
+        .where(GNUser.phoneNumberKey, isGreaterThanOrEqualTo: query)
+        .where(GNUser.phoneNumberKey, isLessThanOrEqualTo: '$query\uf8ff')
+        .get();
+
+    // Wait for all the queries to finish
+    final results =
+        await Future.wait([displayNameQuery, emailQuery, phoneNumberQuery]);
+
+    // Create a map to hold unique documents by their document ID
+    final Map<String, QueryDocumentSnapshot> uniqueDocs = {};
+
+    // Add documents from each query, using the document ID as the key
+    for (final result in results) {
+      for (final doc in result.docs) {
+        uniqueDocs[doc.id] =
+            doc; // This ensures that duplicates are overwritten
+      }
+    }
+    return uniqueDocs.values.map((doc) => GNUser.fromSnapshot(doc)).toList();
+  }
 }

@@ -41,4 +41,9 @@ class UserRepositoryImpl implements UserRepository {
   Future<void> deleteAvatar() async {
     return getIt<GNFirestore>().deleteAvatar();
   }
+
+  @override
+  Future<List<GNUser>> searchUser(String query) {
+    return getIt<GNFirestore>().searchUser(query);
+  }
 }

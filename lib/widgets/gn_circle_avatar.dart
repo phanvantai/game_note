@@ -12,7 +12,6 @@ class GNCircleAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(photoUrl);
     return SizedBox(
       width: size,
       height: size,

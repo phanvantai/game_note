@@ -52,17 +52,23 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
         controller: _tabController,
         children: tabs.values.toList(),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        items: tabs.keys.toList(),
-        currentIndex: _tabController.index,
-        onTap: _onItemTapped,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Theme.of(context).unselectedWidgetColor,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        showUnselectedLabels: true,
-        enableFeedback: true,
-        type: BottomNavigationBarType.fixed,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: double.maxFinite, height: 0),
+          BottomNavigationBar(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            items: tabs.keys.toList(),
+            currentIndex: _tabController.index,
+            onTap: _onItemTapped,
+            selectedItemColor: Theme.of(context).primaryColor,
+            unselectedItemColor: Theme.of(context).unselectedWidgetColor,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            showUnselectedLabels: true,
+            enableFeedback: true,
+            type: BottomNavigationBarType.fixed,
+          ),
+        ],
       ),
     );
   }

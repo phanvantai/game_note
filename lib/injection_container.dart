@@ -20,6 +20,7 @@ import 'package:game_note/presentation/esport/bloc/esport_bloc.dart';
 import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:game_note/presentation/profile/bloc/profile_bloc.dart';
 import 'package:game_note/presentation/team/bloc/teams_bloc.dart';
+import 'package:game_note/presentation/users/bloc/user_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -95,4 +96,6 @@ Future<void> init() async {
 
   getIt.registerFactory<EsportBloc>(() => EsportBloc());
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
+
+  getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
 }

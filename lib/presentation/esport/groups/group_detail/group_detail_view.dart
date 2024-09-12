@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/core/ultils.dart';
+import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
+import 'package:game_note/presentation/users/bloc/user_bloc.dart';
 
-import '../../../../widgets/gn_circle_avatar.dart';
+import '../../../users/user_item.dart';
 
 class GroupDetailView extends StatelessWidget {
   const GroupDetailView({Key? key}) : super(key: key);
@@ -31,6 +34,8 @@ class GroupDetailView extends StatelessWidget {
         ),
         body: ListView(
           children: [
+            if (state.viewStatus == ViewStatus.loading)
+              const LinearProgressIndicator(),
             ExpansionTile(
               leading: const Icon(
                 Icons.description,
@@ -88,16 +93,7 @@ class GroupDetailView extends StatelessWidget {
               collapsedShape: Border.all(color: Colors.transparent),
               children: state.members
                   .map(
-                    (user) => ListTile(
-                      title: Text(user.displayName ??
-                          user.email ??
-                          user.phoneNumber ??
-                          user.id),
-                      leading: GNCircleAvatar(
-                        photoUrl: user.photoUrl,
-                        size: 40,
-                      ),
-                    ),
+                    (user) => UserItem(user: user),
                   )
                   .toList(),
             ),
@@ -105,7 +101,65 @@ class GroupDetailView extends StatelessWidget {
         ),
         floatingActionButton: state.isOwner
             ? TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  // show dialog to search user add add to group
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      final userBloc = getIt<UserBloc>();
+                      return BlocBuilder<UserBloc, UserState>(
+                        bloc: userBloc..add(const SearchUser('')),
+                        builder: (userContext, userState) => AlertDialog(
+                          title: const Text('Thêm thành viên'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Tìm kiếm',
+                                ),
+                                onChanged: (value) {
+                                  userBloc.add(SearchUser(value));
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                height: 300,
+                                width: double.maxFinite,
+                                child: ListView.builder(
+                                  itemCount: userState.users.length,
+                                  itemBuilder: (ctx, index) {
+                                    final user = userState.users[index];
+                                    return UserItem(
+                                      user: user,
+                                      onTap: () {
+                                        // add user to group
+                                        BlocProvider.of<GroupDetailBloc>(
+                                                context)
+                                            .add(
+                                          AddMember(state.group.id, user.id),
+                                        );
+                                        Navigator.of(context).pop();
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Hủy'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
                 label: const Text('Thêm thành viên'),
                 icon: const Icon(Icons.add),
                 style: ButtonStyle(
