@@ -17,5 +17,12 @@ abstract class EsportGroupRepository {
     required String memberId,
   });
 
+  Future<GNEsportGroup?> getGroup(String groupId);
+
   Future<List<GNUser>> getMembersOfGroup(String groupId);
+
+  Future<void> removeMemberFromGroup({
+    required String groupId,
+    required String memberId,
+  });
 }

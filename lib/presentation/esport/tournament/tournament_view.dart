@@ -8,7 +8,7 @@ class TournamentView extends StatelessWidget {
     return Scaffold(
       body: const SafeArea(
         child: Center(
-          child: Text('data'),
+          child: Text('Chưa có giải đấu nào'),
         ),
       ),
       floatingActionButton: ElevatedButton.icon(

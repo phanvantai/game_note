@@ -37,4 +37,16 @@ class EsportGroupRepositoryImpl implements EsportGroupRepository {
   Future<List<GNUser>> getMembersOfGroup(String groupId) {
     return getIt<GNFirestore>().getMembersOfGroup(groupId);
   }
+
+  @override
+  Future<GNEsportGroup?> getGroup(String groupId) {
+    return getIt<GNFirestore>().getGroupById(groupId);
+  }
+
+  @override
+  Future<void> removeMemberFromGroup(
+      {required String groupId, required String memberId}) {
+    return getIt<GNFirestore>()
+        .removeMemberFromGroup(groupId: groupId, memberId: memberId);
+  }
 }

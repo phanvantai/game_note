@@ -7,6 +7,15 @@ abstract class GroupDetailEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class GetGroupDetail extends GroupDetailEvent {
+  final String groupId;
+
+  const GetGroupDetail(this.groupId);
+
+  @override
+  List<Object?> get props => [groupId];
+}
+
 class GetMembers extends GroupDetailEvent {
   final String groupId;
 

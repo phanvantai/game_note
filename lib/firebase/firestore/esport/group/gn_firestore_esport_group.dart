@@ -56,6 +56,20 @@ extension GNFirestoreEsportGroup on GNFirestore {
     });
   }
 
+  Future<void> removeMemberFromGroup(
+      {required String groupId, required String memberId}) async {
+    final groupRef =
+        firestore.collection(GNEsportGroup.collectionName).doc(groupId);
+    final groupSnapshot = await groupRef.get();
+    if (!groupSnapshot.exists) {
+      throw Exception('Group not found');
+    }
+    await groupRef.update({
+      GNEsportGroup.membersKey: FieldValue.arrayRemove([memberId]),
+      GNEsportGroup.updatedAtKey: Timestamp.now(),
+    });
+  }
+
   // Fetch a group by its ID
   Future<GNEsportGroup?> getGroupById(String groupId) async {
     final DocumentSnapshot docSnapshot = await firestore

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
+import 'package:game_note/core/ultils.dart';
 import 'package:game_note/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:game_note/firebase/firestore/user/gn_user.dart';
 
@@ -17,6 +18,20 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     on<GetMembers>(_onGetMembers);
     on<AddMember>(_onAddMember);
     on<RemoveMember>(_onRemoveMember);
+
+    on<GetGroupDetail>(_onGetGroupDetail);
+  }
+
+  Future<void> _onGetGroupDetail(
+      GetGroupDetail event, Emitter<GroupDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      final group = await _groupRepository.getGroup(event.groupId);
+      emit(state.copyWith(viewStatus: ViewStatus.success, group: group));
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
   }
 
   Future<void> _onGetMembers(
@@ -38,6 +53,8 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       await _groupRepository.addMemberToGroup(
           groupId: event.groupId, memberId: event.userId);
       add(GetMembers(state.group.id));
+      add(GetGroupDetail(state.group.id));
+      showToast('Thêm thành viên thành công');
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
@@ -48,11 +65,10 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       RemoveMember event, Emitter<GroupDetailState> emit) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      // await _groupRepository.removeMember(event.groupId, event.userId);
-      // final members = state.members
-      //     .where((element) => element.id != event.userId)
-      //     .toList();
-      // emit(state.copyWith(viewStatus: ViewStatus.success, members: members));
+      await _groupRepository.removeMemberFromGroup(
+          groupId: event.groupId, memberId: event.userId);
+      add(GetMembers(state.group.id));
+      add(GetGroupDetail(state.group.id));
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));

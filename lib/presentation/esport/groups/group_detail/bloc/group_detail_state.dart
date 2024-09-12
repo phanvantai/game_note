@@ -31,6 +31,15 @@ class GroupDetailState extends Equatable {
     return group.ownerId == FirebaseAuth.instance.currentUser?.uid;
   }
 
+  bool get currentUserIsMember {
+    return members
+        .any((element) => element.id == FirebaseAuth.instance.currentUser?.uid);
+  }
+
+  String? get currentUserId {
+    return FirebaseAuth.instance.currentUser?.uid;
+  }
+
   @override
   List<Object?> get props => [viewStatus, members, group, errorMessage];
 }

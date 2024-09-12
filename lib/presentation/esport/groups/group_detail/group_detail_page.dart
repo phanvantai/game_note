@@ -14,7 +14,9 @@ class GroupDetailPage extends StatelessWidget {
     final GNEsportGroup group =
         ModalRoute.of(context)!.settings.arguments as GNEsportGroup;
     return BlocProvider(
-      create: (_) => GroupDetailBloc(getIt(), group)..add(GetMembers(group.id)),
+      create: (_) => GroupDetailBloc(getIt(), group)
+        ..add(GetGroupDetail(group.id))
+        ..add(GetMembers(group.id)),
       child: const GroupDetailView(),
     );
   }

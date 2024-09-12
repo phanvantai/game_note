@@ -6,7 +6,15 @@ import '../../widgets/gn_circle_avatar.dart';
 class UserItem extends StatelessWidget {
   final GNUser user;
   final Function()? onTap;
-  const UserItem({Key? key, required this.user, this.onTap}) : super(key: key);
+  final Function()? onLongPress;
+  final Widget? trailing;
+  const UserItem({
+    Key? key,
+    required this.user,
+    this.onTap,
+    this.onLongPress,
+    this.trailing,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +26,8 @@ class UserItem extends StatelessWidget {
         size: 40,
       ),
       onTap: onTap,
+      onLongPress: onLongPress,
+      trailing: trailing,
     );
   }
 }

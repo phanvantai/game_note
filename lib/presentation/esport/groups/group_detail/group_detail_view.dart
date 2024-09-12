@@ -19,7 +19,10 @@ class GroupDetailView extends StatelessWidget {
           automaticallyImplyLeading: true,
           centerTitle: true,
           title: ListTile(
-            leading: Image.asset('assets/images/pes_club_logo.png'),
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 24),
+              child: Image.asset('assets/images/pes_club_logo.png'),
+            ),
             title: Text(
               state.group.groupName,
               style: const TextStyle(fontWeight: FontWeight.bold),
@@ -93,86 +96,155 @@ class GroupDetailView extends StatelessWidget {
               collapsedShape: Border.all(color: Colors.transparent),
               children: state.members
                   .map(
-                    (user) => UserItem(user: user),
+                    (user) => UserItem(
+                      user: user,
+                      trailing: state.isOwner && !user.isCurrentUser
+                          ? IconButton(
+                              onPressed: () {
+                                _removeMember(false, context, state, user.id);
+                              },
+                              icon: const Icon(Icons.remove_circle),
+                            )
+                          : null,
+                    ),
                   )
                   .toList(),
             ),
           ],
         ),
-        floatingActionButton: state.isOwner
-            ? TextButton.icon(
-                onPressed: () {
-                  // show dialog to search user add add to group
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext dialogContext) {
-                      final userBloc = getIt<UserBloc>();
-                      return BlocBuilder<UserBloc, UserState>(
-                        bloc: userBloc..add(const SearchUser('')),
-                        builder: (userContext, userState) => AlertDialog(
-                          title: const Text('Thêm thành viên'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Tìm kiếm',
-                                ),
-                                onChanged: (value) {
-                                  userBloc.add(SearchUser(value));
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                height: 300,
-                                width: double.maxFinite,
-                                child: ListView.builder(
-                                  itemCount: userState.users.length,
-                                  itemBuilder: (ctx, index) {
-                                    final user = userState.users[index];
-                                    return UserItem(
-                                      user: user,
-                                      onTap: () {
-                                        // add user to group
-                                        BlocProvider.of<GroupDetailBloc>(
-                                                context)
-                                            .add(
-                                          AddMember(state.group.id, user.id),
-                                        );
-                                        Navigator.of(context).pop();
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Hủy'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-                label: const Text('Thêm thành viên'),
-                icon: const Icon(Icons.add),
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.red[100]),
-                ),
-              )
-            : null,
+        floatingActionButton: _floatingButton(context, state),
       ),
       listener: (context, state) {
         if (state.errorMessage.isNotEmpty) {
           showToast(state.errorMessage);
         }
       },
+    );
+  }
+
+  Widget? _floatingButton(BuildContext context, GroupDetailState state) {
+    if (state.isOwner) {
+      return TextButton.icon(
+        onPressed: () {
+          // show dialog to search user add add to group
+          _addMember(context, state);
+        },
+        label: const Text('Thêm thành viên'),
+        icon: const Icon(Icons.add),
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(Colors.red[100]),
+        ),
+      );
+    }
+    if (state.currentUserIsMember) {
+      return TextButton.icon(
+        onPressed: () {
+          if (state.currentUserId != null) {
+            _removeMember(true, context, state, state.currentUserId!);
+          }
+        },
+        label: const Text('Rời nhóm'),
+        icon: const Icon(Icons.exit_to_app),
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(Colors.red[100]),
+        ),
+      );
+    }
+    return null;
+  }
+
+  _addMember(BuildContext context, GroupDetailState state) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        final userBloc = getIt<UserBloc>();
+        return BlocBuilder<UserBloc, UserState>(
+          bloc: userBloc..add(const SearchUser('')),
+          builder: (userContext, userState) => AlertDialog(
+            title: const Text('Thêm thành viên'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Tìm kiếm',
+                  ),
+                  onChanged: (value) {
+                    userBloc.add(SearchUser(value));
+                  },
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 250,
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    itemCount: userState.users.length,
+                    itemBuilder: (ctx, index) {
+                      final user = userState.users[index];
+                      // ignore current user and member of group
+                      if (user.isCurrentUser ||
+                          state.group.members.contains(user.id)) {
+                        return const SizedBox.shrink();
+                      }
+                      return UserItem(
+                        user: user,
+                        onTap: () {
+                          // add user to group
+                          BlocProvider.of<GroupDetailBloc>(context).add(
+                            AddMember(state.group.id, user.id),
+                          );
+                          Navigator.of(context).pop();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Hủy'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  _removeMember(bool currentUser, BuildContext context, GroupDetailState state,
+      String userId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Xác nhận'),
+        content: Text(currentUser
+            ? 'Bạn có chắc chắn muốn rời nhóm?'
+            : 'Bạn có chắc chắn muốn xóa thành viên này không?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              BlocProvider.of<GroupDetailBloc>(context).add(
+                RemoveMember(state.group.id, userId),
+              );
+              Navigator.of(context).pop();
+            },
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(Colors.red[100]),
+            ),
+            child: Text(currentUser ? 'Rời nhóm' : 'Xoá thành viên'),
+          ),
+        ],
+      ),
     );
   }
 }

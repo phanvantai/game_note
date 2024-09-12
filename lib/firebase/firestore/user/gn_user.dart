@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GNUser extends Equatable {
   final String id;
@@ -42,4 +43,8 @@ class GNUser extends Equatable {
   static const String phoneNumberKey = 'phoneNumber';
   static const String emailKey = 'email';
   static const String photoUrlKey = 'photoUrl';
+
+  bool get isAdmin => role == 'admin';
+  bool get isUser => role == 'user';
+  bool get isCurrentUser => id == FirebaseAuth.instance.currentUser?.uid;
 }

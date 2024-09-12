@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../../firebase/firestore/esport/group/gn_esport_group.dart';
-import '../../../../routing.dart';
 
 class GroupItem extends StatelessWidget {
   final GNEsportGroup group;
-  const GroupItem({Key? key, required this.group}) : super(key: key);
+  final Function()? onTap;
+  const GroupItem({
+    Key? key,
+    required this.group,
+    this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,10 +29,7 @@ class GroupItem extends StatelessWidget {
           'Thành viên: ${group.members.length}  Khu vực: ${group.location}',
           style: const TextStyle(fontSize: 11),
         ),
-        onTap: () => Navigator.of(context).pushNamed(
-          Routing.groupDetail,
-          arguments: group,
-        ),
+        onTap: onTap,
       ),
     );
   }
