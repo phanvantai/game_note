@@ -40,6 +40,7 @@ extension GNFirestoreEsportLeague on GNFirestore {
       endDate: endDate ?? DateTime.now(), // Default end date is now
       isFinished: false, // League is not finished by default
       description: description,
+      participants: [], // Empty list of participants
     );
 
     // Add the new league to Firestore

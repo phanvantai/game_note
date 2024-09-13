@@ -9,6 +9,7 @@ class GNEsportLeague extends Equatable {
   final DateTime? endDate; // end date of the league (nullable)
   final bool isFinished; // whether the league is finished
   final String description; // league description
+  final List<String> participants; // list of participants
 
   static const String collectionName = 'esports_leagues';
 
@@ -19,6 +20,7 @@ class GNEsportLeague extends Equatable {
   static const String fieldEndDate = 'endDate';
   static const String fieldIsFinished = 'isFinished';
   static const String fieldDescription = 'description';
+  static const String fieldParticipants = 'participants';
 
   const GNEsportLeague({
     required this.id,
@@ -28,6 +30,7 @@ class GNEsportLeague extends Equatable {
     this.endDate,
     required this.isFinished,
     required this.description,
+    required this.participants,
   });
 
   @override
@@ -39,6 +42,7 @@ class GNEsportLeague extends Equatable {
         endDate,
         isFinished,
         description,
+        participants,
       ];
 
   GNEsportLeague copyWith({
@@ -49,6 +53,7 @@ class GNEsportLeague extends Equatable {
     DateTime? endDate,
     bool? isFinished,
     String? description,
+    List<String>? participants,
   }) {
     return GNEsportLeague(
       id: id ?? this.id,
@@ -58,6 +63,7 @@ class GNEsportLeague extends Equatable {
       endDate: endDate ?? this.endDate,
       isFinished: isFinished ?? this.isFinished,
       description: description ?? this.description,
+      participants: participants ?? this.participants,
     );
   }
 
@@ -69,6 +75,7 @@ class GNEsportLeague extends Equatable {
       if (endDate != null) fieldEndDate: Timestamp.fromDate(endDate!),
       fieldIsFinished: isFinished,
       fieldDescription: description,
+      fieldParticipants: participants,
     };
   }
 
@@ -84,6 +91,7 @@ class GNEsportLeague extends Equatable {
           : null,
       isFinished: data[fieldIsFinished],
       description: data[fieldDescription],
+      participants: List<String>.from(data[fieldParticipants] ?? []),
     );
   }
 }
