@@ -4,13 +4,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/constants/constants.dart';
-import 'package:game_note/presentation/app/offline_button.dart';
-import 'package:game_note/presentation/profile/bloc/profile_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/common/app_info.dart';
+import '../../core/constants/constants.dart';
 import '../../core/ultils.dart';
+import '../app/offline_button.dart';
+import 'bloc/profile_bloc.dart';
 import 'feedback/feedback_view.dart';
 
 class ProfileView extends StatefulWidget {
@@ -35,10 +35,29 @@ class _ProfileViewState extends State<ProfileView>
     return BlocConsumer<ProfileBloc, ProfileState>(
       builder: (context, state) => Scaffold(
         appBar: AppBar(
-          // backgroundColor: Colors.transparent,
-          actions: const [
-            OfflineButton(),
-          ],
+          title: const OfflineButton(),
+          centerTitle: false,
+          automaticallyImplyLeading: false,
+          // actions: [
+          //   SizedBox(
+          //     height: 40,
+          //     child: LiteRollingSwitch(
+          //       textOff: '',
+          //       textOn: '',
+          //       iconOff: Icons.dark_mode,
+          //       iconOn: Icons.light_mode,
+          //       colorOff: Colors.black87,
+          //       colorOn: Colors.black87,
+          //       width: 64,
+          //       onTap: () {},
+          //       onDoubleTap: () {},
+          //       onSwipe: () {},
+          //       onChanged: (value) {
+          //         print(value);
+          //       },
+          //     ),
+          //   ),
+          // ],
         ),
         body: SafeArea(
           child: Column(

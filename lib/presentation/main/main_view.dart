@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
+import 'package:provider/provider.dart';
 
 //import '../community/community_view.dart';
 import '../esport/esport_view.dart';
@@ -42,6 +44,8 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   void initState() {
     _tabController = TabController(length: tabs.length, vsync: this);
     super.initState();
+
+    context.read<GroupBloc>().add(GetEsportGroups());
   }
 
   @override

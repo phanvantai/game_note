@@ -7,48 +7,36 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:256841801977:android:2dcf003c30d77f616b8228",
-        "android_client_info": {
-          "package_name": "com.example.game_note"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAmoQjpmoGK8SpW7a9YU3Q3-0mnvwC0I0U"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "256841801977-j6gpu5cq3etlp5pgsrclkd0m9iddrbl3.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.november.gameNote"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:256841801977:android:34ed79428e1c2ce16b8228",
         "android_client_info": {
           "package_name": "com.november.game_note"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "256841801977-4gk9c14654vco9ivfsj6r94hlem7sj72.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.november.game_note",
+            "certificate_hash": "aa81113679ac43bcc7e601438a56f580d0b1695c"
+          }
+        },
+        {
+          "client_id": "256841801977-hhp681nvgcqpmfu1jb50ib4r4k798hoc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.november.game_note",
+            "certificate_hash": "e23bc349da06d8ace9487748404cd7be6fc439ab"
+          }
+        },
+        {
+          "client_id": "256841801977-o0qgdp89ccatsi4e4qpjln0bn6ct9gb3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.november.game_note",
+            "certificate_hash": "89b5f9e94fce872c666a2e4b4bf27c1e4745da35"
+          }
+        },
         {
           "client_id": "256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com",
           "client_type": 3

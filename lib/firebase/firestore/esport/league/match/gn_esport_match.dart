@@ -13,7 +13,7 @@ class GNEsportMatch extends Equatable {
   final String roundId; // round id
   final String leagueId; // league id
 
-  static const String collectionName = 'matches';
+  static const String collectionName = 'esports_matches';
 
   static const String fieldId = 'id';
   static const String fieldHomeTeamId = 'homeTeamId';
@@ -90,7 +90,7 @@ class GNEsportMatch extends Equatable {
   factory GNEsportMatch.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return GNEsportMatch(
-      id: data[fieldId],
+      id: doc.id,
       homeTeamId: data[fieldHomeTeamId],
       awayTeamId: data[fieldAwayTeamId],
       homeScore: data[fieldHomeScore],

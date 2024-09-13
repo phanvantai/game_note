@@ -57,6 +57,9 @@ dependencies:
   # Flutter toast
   fluttertoast: ^8.2.8
 
+  # 
+  intl: ^0.18.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

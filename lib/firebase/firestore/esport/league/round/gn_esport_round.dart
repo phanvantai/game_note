@@ -9,7 +9,7 @@ class GNEsportRound extends Equatable {
   final DateTime date; // round date
   final bool isFinished; // whether the round is finished
 
-  static const String collectionName = 'rounds';
+  static const String collectionName = 'esports_rounds';
 
   static const String fieldId = 'id';
   static const String fieldLeagueId = 'leagueId';
@@ -57,9 +57,9 @@ class GNEsportRound extends Equatable {
 
   Map<String, dynamic> toMap() {
     return {
-      fieldId: id,
       fieldLeagueId: leagueId,
       fieldName: name,
+      fieldRoundNumber: roundNumber,
       fieldDate: Timestamp.fromDate(date),
       fieldIsFinished: isFinished,
     };
@@ -68,7 +68,7 @@ class GNEsportRound extends Equatable {
   factory GNEsportRound.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return GNEsportRound(
-      id: data[fieldId],
+      id: doc.id,
       leagueId: data[fieldLeagueId],
       name: data[fieldName],
       roundNumber: data[fieldRoundNumber],

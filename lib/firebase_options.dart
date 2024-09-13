@@ -63,7 +63,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '256841801977',
     projectId: 'gamenoteapp',
     storageBucket: 'gamenoteapp.appspot.com',
+    androidClientId: '256841801977-4gk9c14654vco9ivfsj6r94hlem7sj72.apps.googleusercontent.com',
     iosClientId: '256841801977-j6gpu5cq3etlp5pgsrclkd0m9iddrbl3.apps.googleusercontent.com',
     iosBundleId: 'com.november.gameNote',
   );
+
 }
