@@ -13,11 +13,11 @@ class TournamentDetailBloc
 
   TournamentDetailBloc(this.league)
       : super(TournamentDetailState(league: league)) {
-    on<GetParticipants>(_onGetParticipants);
+    on<GetParticipantStats>(_onGetParticipants);
   }
 
   void _onGetParticipants(
-      GetParticipants event, Emitter<TournamentDetailState> emit) {
+      GetParticipantStats event, Emitter<TournamentDetailState> emit) {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     // final participants = await _esportRepository.getParticipants(event.tournamentId);
     // emit(state.copyWith(viewStatus: ViewStatus.loaded, participants: participants));

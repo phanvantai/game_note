@@ -12,4 +12,9 @@ abstract class EsportLeagueRepository {
     DateTime? endDate,
     String description = '',
   });
+
+  Future<void> addParticipant({
+    required String leagueId,
+    required String userId,
+  });
 }

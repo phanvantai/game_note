@@ -7,10 +7,10 @@ abstract class TournamentDetailEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class GetParticipants extends TournamentDetailEvent {
+class GetParticipantStats extends TournamentDetailEvent {
   final String tournamentId;
 
-  const GetParticipants(this.tournamentId);
+  const GetParticipantStats(this.tournamentId);
 
   @override
   List<Object> get props => [tournamentId];

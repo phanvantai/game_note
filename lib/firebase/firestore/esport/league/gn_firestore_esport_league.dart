@@ -1,4 +1,5 @@
 import 'package:game_note/firebase/firestore/esport/group/gn_firestore_esport_group.dart';
+import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_league.dart';
@@ -81,5 +82,8 @@ extension GNFirestoreEsportLeague on GNFirestore {
       ..add(participantId);
     await leagueRef
         .update({GNEsportLeague.fieldParticipants: updatedParticipants});
+
+    // Add a new league stat for the participant
+    await addLeagueStat(userId: participantId, leagueId: leagueId);
   }
 }

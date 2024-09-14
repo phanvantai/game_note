@@ -32,4 +32,10 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   Future<List<GNEsportLeague>> getLeagues() {
     return getIt<GNFirestore>().getLeagues();
   }
+
+  @override
+  Future<void> addParticipant(
+      {required String leagueId, required String userId}) {
+    return getIt<GNFirestore>().addParticipantToLeague(leagueId, userId);
+  }
 }
