@@ -35,13 +35,13 @@ extension GNFirestoreUser on GNFirestore {
     }
     final userDoc =
         await firestore.collection(GNUser.collectionName).doc(user.uid).get();
-    return GNUser.fromSnapshot(userDoc);
+    return GNUser.fromFireStore(userDoc);
   }
 
   Future<GNUser> getUserById(String userId) async {
     final userDoc =
         await firestore.collection(GNUser.collectionName).doc(userId).get();
-    return GNUser.fromSnapshot(userDoc);
+    return GNUser.fromFireStore(userDoc);
   }
 
   Future<void> deleteCurrentUser() async {
@@ -133,6 +133,18 @@ extension GNFirestoreUser on GNFirestore {
             doc; // This ensures that duplicates are overwritten
       }
     }
-    return uniqueDocs.values.map((doc) => GNUser.fromSnapshot(doc)).toList();
+    return uniqueDocs.values.map((doc) => GNUser.fromFireStore(doc)).toList();
+  }
+
+  // update fcm token
+  Future<void> updateFcmToken(String fcmToken) async {
+    final user = getIt<GNAuth>().currentUser;
+    if (user == null) {
+      throw Exception('User is not signed in');
+    }
+    await firestore.collection(GNUser.collectionName).doc(user.uid).update({
+      GNUser.fcmTokenKey: fcmToken,
+      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
+    });
   }
 }

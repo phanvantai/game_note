@@ -1203,6 +1203,9 @@ PODS:
   - Firebase/Firestore (11.0.0):
     - Firebase/CoreOnly
     - FirebaseFirestore (~> 11.0.0)
+  - Firebase/Messaging (11.0.0):
+    - Firebase/CoreOnly
+    - FirebaseMessaging (~> 11.0.0)
   - Firebase/Storage (11.0.0):
     - Firebase/CoreOnly
     - FirebaseStorage (~> 11.0.0)
@@ -1212,6 +1215,10 @@ PODS:
     - Flutter
   - firebase_core (3.4.1):
     - Firebase/CoreOnly (= 11.0.0)
+    - Flutter
+  - firebase_messaging (15.1.1):
+    - Firebase/Messaging (= 11.0.0)
+    - firebase_core
     - Flutter
   - firebase_storage (12.3.0):
     - Firebase/Storage (= 11.0.0)
@@ -1256,6 +1263,20 @@ PODS:
     - gRPC-Core (~> 1.65.0)
     - leveldb-library (~> 1.22)
     - nanopb (~> 3.30910.0)
+  - FirebaseInstallations (11.2.0):
+    - FirebaseCore (~> 11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (11.0.0):
+    - FirebaseCore (~> 11.0)
+    - FirebaseInstallations (~> 11.0)
+    - GoogleDataTransport (~> 10.0)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Reachability (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - nanopb (~> 3.30910.0)
   - FirebaseSharedSwift (11.2.0)
   - FirebaseStorage (11.0.0):
     - FirebaseAppCheckInterop (~> 11.0)
@@ -1274,6 +1295,9 @@ PODS:
     - FlutterMacOS
     - GoogleSignIn (~> 7.1)
     - GTMSessionFetcher (>= 3.4.0)
+  - GoogleDataTransport (10.1.0):
+    - nanopb (~> 3.30910.0)
+    - PromisesObjC (~> 2.4)
   - GoogleSignIn (7.1.0):
     - AppAuth (< 2.0, >= 1.7.3)
     - GTMAppAuth (< 5.0, >= 4.1.1)
@@ -1297,6 +1321,9 @@ PODS:
     - GoogleUtilities/Privacy
   - GoogleUtilities/Privacy (8.0.2)
   - GoogleUtilities/Reachability (8.0.2):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/UserDefaults (8.0.2):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - "gRPC-C++ (1.65.5)":
@@ -1410,6 +1437,7 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - PromisesObjC (2.4.0)
   - RecaptchaInterop (100.0.0)
   - SDWebImage (5.19.7):
     - SDWebImage/Core (= 5.19.7)
@@ -1432,6 +1460,7 @@ DEPENDENCIES:
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
+  - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - Flutter (from `Flutter`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
@@ -1460,8 +1489,11 @@ SPEC REPOS:
     - FirebaseCoreInternal
     - FirebaseFirestore
     - FirebaseFirestoreInternal
+    - FirebaseInstallations
+    - FirebaseMessaging
     - FirebaseSharedSwift
     - FirebaseStorage
+    - GoogleDataTransport
     - GoogleSignIn
     - GoogleUtilities
     - "gRPC-C++"
@@ -1470,6 +1502,7 @@ SPEC REPOS:
     - GTMSessionFetcher
     - leveldb-library
     - nanopb
+    - PromisesObjC
     - RecaptchaInterop
     - SDWebImage
     - SwiftyGif
@@ -1484,6 +1517,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_auth/ios"
   firebase_core:
     :path: ".symlinks/plugins/firebase_core/ios"
+  firebase_messaging:
+    :path: ".symlinks/plugins/firebase_messaging/ios"
   firebase_storage:
     :path: ".symlinks/plugins/firebase_storage/ios"
   Flutter:
@@ -1518,6 +1553,7 @@ SPEC CHECKSUMS:
   Firebase: 9f574c08c2396885b5e7e100ed4293d956218af9
   firebase_auth: 78dab5e2826921865b33799c66ce7868542beed0
   firebase_core: ba84e940cf5cbbc601095f86556560937419195c
+  firebase_messaging: c40f84e7a98da956d5262fada373b5c458edcf13
   firebase_storage: f333c5a5bd7c4d01fb5a3fdf96493262e4cb779f
   FirebaseAppCheckInterop: ea21450529cf0ebd132788dd8916a0269abc684f
   FirebaseAuth: d5cf28be74d7e82257f6a3f717509eff70d3cf4a
@@ -1527,11 +1563,14 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: 0c569513412da9f3b31bd0b340013bbee8f295c5
   FirebaseFirestore: a1758850668dbb503537b7780a2a1fdc5e37c6ce
   FirebaseFirestoreInternal: 9fcc0ccb987ab73163f2249444e4bfd9eac63748
+  FirebaseInstallations: 771177d89d6c451dc6e50085ec82e2fc77ed0a4a
+  FirebaseMessaging: d2d1d9c62c46dd2db49a952f7deb5b16ad2c9742
   FirebaseSharedSwift: 7a0d78d155ede78407f0fdc89fbc914014c7c540
   FirebaseStorage: f9e2bf027d549db18b6195a37b31c85f56e40200
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   fluttertoast: e9a18c7be5413da53898f660530c56f35edfba9c
   google_sign_in_ios: 07375bfbf2620bc93a602c0e27160d6afc6ead38
+  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   "gRPC-C++": 2fa52b3141e7789a28a737f251e0c45b4cb20a87
@@ -1543,6 +1582,7 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   package_info_plus: 58f0028419748fad15bf008b270aaa8e54380b1c
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
   share_plus: 8875f4f2500512ea181eef553c3e27dba5135aad

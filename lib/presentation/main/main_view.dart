@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:game_note/firebase/messaging/gn_firebase_messaging.dart';
+import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -46,6 +48,8 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
     super.initState();
 
     context.read<GroupBloc>().add(GetEsportGroups());
+
+    getIt<GNFirebaseMessaging>().initialize();
   }
 
   @override

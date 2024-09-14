@@ -29,7 +29,7 @@ extension GNFirestoreFeedback on GNFirestore {
         await firestore.collection(GNCollection.feedbacks).get();
 
     return querySnapshot.docs
-        .map((doc) => FeedbackModel.fromSnapshot(doc))
+        .map((doc) => FeedbackModel.fromFirestore(doc))
         .toList();
   }
 }

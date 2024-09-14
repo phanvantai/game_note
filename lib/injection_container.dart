@@ -22,6 +22,7 @@ import 'domain/repositories/esport/esport_league_repository.dart';
 import 'domain/repositories/team_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'firebase/firestore/gn_firestore.dart';
+import 'firebase/messaging/gn_firebase_messaging.dart';
 import 'firebase/storage/gn_storage.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'presentation/auth/sign_in/bloc/sign_in_bloc.dart';
@@ -82,6 +83,7 @@ Future<void> init() async {
   getIt.registerSingleton(GNAuth());
   getIt.registerSingleton(GNFirestore());
   getIt.registerSingleton(GNStorage());
+  getIt.registerSingleton(GNFirebaseMessaging());
 
   /// online mode
   // data

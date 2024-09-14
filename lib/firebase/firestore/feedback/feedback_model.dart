@@ -21,7 +21,7 @@ class FeedbackModel {
     required this.updatedAt,
   });
 
-  factory FeedbackModel.fromSnapshot(DocumentSnapshot snapshot) {
+  factory FeedbackModel.fromFirestore(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>;
     return FeedbackModel(
       id: snapshot.id,

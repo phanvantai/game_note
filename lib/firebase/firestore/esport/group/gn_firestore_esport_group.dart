@@ -128,6 +128,6 @@ extension GNFirestoreEsportGroup on GNFirestore {
         .collection(GNUser.collectionName)
         .where(FieldPath.documentId, whereIn: memberIds)
         .get();
-    return userSnapshots.docs.map((doc) => GNUser.fromSnapshot(doc)).toList();
+    return userSnapshots.docs.map((doc) => GNUser.fromFireStore(doc)).toList();
   }
 }

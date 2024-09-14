@@ -9,31 +9,7 @@ class GNUser extends Equatable {
   final String? email;
   final String? photoUrl;
   final String role;
-
-  const GNUser({
-    required this.id,
-    required this.displayName,
-    required this.phoneNumber,
-    required this.email,
-    required this.photoUrl,
-    required this.role,
-  });
-
-  factory GNUser.fromSnapshot(DocumentSnapshot snapshot) {
-    final data = snapshot.data() as Map<String, dynamic>;
-    return GNUser(
-      id: snapshot.id,
-      displayName: data[displayNameKey],
-      phoneNumber: data[phoneNumberKey],
-      email: data[emailKey],
-      photoUrl: data[photoUrlKey],
-      role: data[roleKey],
-    );
-  }
-
-  @override
-  List<Object?> get props =>
-      [id, displayName, phoneNumber, email, photoUrl, role];
+  final String fcmToken;
 
   static const String collectionName = 'users';
 
@@ -43,6 +19,71 @@ class GNUser extends Equatable {
   static const String phoneNumberKey = 'phoneNumber';
   static const String emailKey = 'email';
   static const String photoUrlKey = 'photoUrl';
+  static const String fcmTokenKey = 'fcmToken';
+
+  const GNUser({
+    required this.id,
+    required this.displayName,
+    required this.phoneNumber,
+    required this.email,
+    required this.photoUrl,
+    required this.role,
+    required this.fcmToken,
+  });
+
+  GNUser copyWith({
+    String? displayName,
+    String? phoneNumber,
+    String? email,
+    String? photoUrl,
+    String? role,
+    String? fcmToken,
+  }) {
+    return GNUser(
+      id: id,
+      displayName: displayName ?? this.displayName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      email: email ?? this.email,
+      photoUrl: photoUrl ?? this.photoUrl,
+      role: role ?? this.role,
+      fcmToken: fcmToken ?? this.fcmToken,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      displayNameKey: displayName,
+      phoneNumberKey: phoneNumber,
+      emailKey: email,
+      photoUrlKey: photoUrl,
+      roleKey: role,
+      fcmTokenKey: fcmToken,
+    };
+  }
+
+  factory GNUser.fromFireStore(DocumentSnapshot snapshot) {
+    final data = snapshot.data() as Map<String, dynamic>;
+    return GNUser(
+      id: snapshot.id,
+      displayName: data[displayNameKey],
+      phoneNumber: data[phoneNumberKey],
+      email: data[emailKey],
+      photoUrl: data[photoUrlKey],
+      role: data[roleKey] ?? 'user',
+      fcmToken: data[fcmTokenKey] ?? '',
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        displayName,
+        phoneNumber,
+        email,
+        photoUrl,
+        role,
+        fcmToken,
+      ];
 
   bool get isAdmin => role == 'admin';
   bool get isUser => role == 'user';
