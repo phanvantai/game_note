@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/core/ultils.dart';
 import 'package:game_note/presentation/esport/tournament/bloc/tournament_bloc.dart';
+import 'package:game_note/presentation/esport/tournament/tournament_item.dart';
 
+import '../../../routing.dart';
 import '../groups/bloc/group_bloc.dart';
 import 'create_esport_league_dialog.dart';
 
@@ -19,15 +21,27 @@ class TournamentView extends StatelessWidget {
             children: [
               state.leagues.isEmpty
                   ? const Center(child: Text('Không có giải đấu nào'))
-                  : ListView.builder(
-                      itemCount: state.leagues.length,
-                      itemBuilder: (context, index) {
-                        final league = state.leagues[index];
-                        return ListTile(
-                          title: Text(league.name),
-                          subtitle: Text(league.description),
-                        );
-                      },
+                  : Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: ListView.separated(
+                        itemCount: state.leagues.length,
+                        itemBuilder: (context, index) {
+                          final league = state.leagues[index];
+                          return TournamentItem(
+                            league: league,
+                            onTap: () {
+                              final _ = Navigator.of(context).pushNamed(
+                                Routing.tournamentDetail,
+                                arguments: league,
+                              );
+                              BlocProvider.of<TournamentBloc>(context)
+                                  .add(GetTournaments());
+                            },
+                          );
+                        },
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 8),
+                      ),
                     ),
               if (state.viewStatus.isLoading) const LinearProgressIndicator(),
             ],

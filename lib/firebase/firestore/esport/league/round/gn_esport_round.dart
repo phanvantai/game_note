@@ -9,6 +9,8 @@ class GNEsportRound extends Equatable {
   final DateTime date; // round date
   final bool isFinished; // whether the round is finished
 
+  // esport_rounds is subcollection of esport_leagues
+  // esports_leagues/{leagueId}/esports_rounds/{roundId}
   static const String collectionName = 'esports_rounds';
 
   static const String fieldId = 'id';

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
+import '../group/gn_esport_group.dart';
+
 class GNEsportLeague extends Equatable {
   final String id; // league id
   final String groupId; // id of the group this league belongs to
@@ -10,7 +12,10 @@ class GNEsportLeague extends Equatable {
   final bool isFinished; // whether the league is finished
   final String description; // league description
   final List<String> participants; // list of participants
+  final GNEsportGroup? group; // group this league belongs to
 
+  // esport_leagues is a top-level collection
+  // esports_leagues/{leagueId}
   static const String collectionName = 'esports_leagues';
 
   static const String fieldId = 'id';
@@ -31,6 +36,7 @@ class GNEsportLeague extends Equatable {
     required this.isFinished,
     required this.description,
     required this.participants,
+    this.group,
   });
 
   @override
@@ -43,6 +49,7 @@ class GNEsportLeague extends Equatable {
         isFinished,
         description,
         participants,
+        group,
       ];
 
   GNEsportLeague copyWith({
@@ -54,6 +61,7 @@ class GNEsportLeague extends Equatable {
     bool? isFinished,
     String? description,
     List<String>? participants,
+    GNEsportGroup? group,
   }) {
     return GNEsportLeague(
       id: id ?? this.id,
@@ -64,6 +72,7 @@ class GNEsportLeague extends Equatable {
       isFinished: isFinished ?? this.isFinished,
       description: description ?? this.description,
       participants: participants ?? this.participants,
+      group: group ?? this.group,
     );
   }
 

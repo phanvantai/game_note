@@ -13,6 +13,8 @@ class GNEsportMatch extends Equatable {
   final String roundId; // round id
   final String leagueId; // league id
 
+  // esport_matches is subcollection of esport_rounds
+  // esports_leagues/{leagueId}/esports_rounds/{roundId}/esports_matches/{matchId}
   static const String collectionName = 'esports_matches';
 
   static const String fieldId = 'id';
