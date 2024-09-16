@@ -1,3 +1,5 @@
+import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+
 import '../../../firebase/firestore/esport/league/gn_esport_league.dart';
 
 abstract class EsportLeagueRepository {
@@ -12,6 +14,8 @@ abstract class EsportLeagueRepository {
     DateTime? endDate,
     String description = '',
   });
+
+  Future<List<GNEsportLeagueStat>> getLeagueStats(String leagueId);
 
   Future<void> addParticipant({
     required String leagueId,

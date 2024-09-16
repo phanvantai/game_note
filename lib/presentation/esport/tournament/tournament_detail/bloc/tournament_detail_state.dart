@@ -3,7 +3,7 @@ part of 'tournament_detail_bloc.dart';
 class TournamentDetailState extends Equatable {
   final ViewStatus viewStatus;
   final GNEsportLeague league;
-  final List<GNUser> participants;
+  final List<GNEsportLeagueStat> participants;
   final String errorMessage;
 
   const TournamentDetailState({
@@ -16,7 +16,7 @@ class TournamentDetailState extends Equatable {
   TournamentDetailState copyWith({
     ViewStatus? viewStatus,
     GNEsportLeague? league,
-    List<GNUser>? participants,
+    List<GNEsportLeagueStat>? participants,
     String? errorMessage,
   }) {
     return TournamentDetailState(
@@ -34,4 +34,9 @@ class TournamentDetailState extends Equatable {
         participants,
         errorMessage,
       ];
+
+  bool get currentUserIsMember {
+    return (league.group?.members ?? <String>[])
+        .any((element) => element == FirebaseAuth.instance.currentUser?.uid);
+  }
 }

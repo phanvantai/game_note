@@ -8,6 +8,7 @@ import 'package:game_note/firebase/storage/gn_storage.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../esport/group/gn_esport_group.dart';
 import 'user_role.dart';
 
 extension GNFirestoreUser on GNFirestore {
@@ -134,6 +135,62 @@ extension GNFirestoreUser on GNFirestore {
       }
     }
     return uniqueDocs.values.map((doc) => GNUser.fromFireStore(doc)).toList();
+  }
+
+  Future<List<GNUser>> searchUserByGroup(String groupId, String query) async {
+    final user = getIt<GNAuth>().currentUser;
+    if (user == null) {
+      throw Exception('User is not signed in');
+    }
+    final groupDoc = await firestore
+        .collection(GNEsportGroup.collectionName)
+        .doc(groupId)
+        .get();
+    if (!groupDoc.exists) {
+      throw Exception('Group not found');
+    }
+    final group = GNEsportGroup.fromFirestore(groupDoc);
+    if (!group.members.contains(user.uid)) {
+      throw Exception('User is not a member of the group');
+    }
+
+    // Perform three separate queries
+    final displayNameQuery = firestore
+        .collection(GNUser.collectionName)
+        .where(GNUser.displayNameKey, isGreaterThanOrEqualTo: query)
+        .where(GNUser.displayNameKey, isLessThan: '$query\uf8ff')
+        .get();
+
+    final emailQuery = firestore
+        .collection(GNUser.collectionName)
+        .where(GNUser.emailKey, isGreaterThanOrEqualTo: query)
+        .where(GNUser.emailKey, isLessThanOrEqualTo: '$query\uf8ff')
+        .get();
+
+    final phoneNumberQuery = firestore
+        .collection(GNUser.collectionName)
+        .where(GNUser.phoneNumberKey, isGreaterThanOrEqualTo: query)
+        .where(GNUser.phoneNumberKey, isLessThanOrEqualTo: '$query\uf8ff')
+        .get();
+
+    // Wait for all the queries to finish
+    final results =
+        await Future.wait([displayNameQuery, emailQuery, phoneNumberQuery]);
+
+    // Create a map to hold unique documents by their document ID
+    final Map<String, QueryDocumentSnapshot> uniqueDocs = {};
+
+    // Add documents from each query, using the document ID as the key
+    for (final result in results) {
+      for (final doc in result.docs) {
+        uniqueDocs[doc.id] =
+            doc; // This ensures that duplicates are overwritten
+      }
+    }
+    return uniqueDocs.values
+        .map((doc) => GNUser.fromFireStore(doc))
+        .where((user) => group.members.contains(user.id))
+        .toList();
   }
 
   // update fcm token

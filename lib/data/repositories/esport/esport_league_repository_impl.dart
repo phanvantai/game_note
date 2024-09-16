@@ -1,5 +1,7 @@
 import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:game_note/firebase/firestore/esport/league/gn_firestore_esport_league.dart';
+import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:game_note/injection_container.dart';
 
 import '../../../domain/repositories/esport/esport_league_repository.dart';
@@ -31,6 +33,11 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   @override
   Future<List<GNEsportLeague>> getLeagues() {
     return getIt<GNFirestore>().getLeagues();
+  }
+
+  @override
+  Future<List<GNEsportLeagueStat>> getLeagueStats(String leagueId) {
+    return getIt<GNFirestore>().getLeagueStats(leagueId);
   }
 
   @override

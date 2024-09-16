@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/core/ultils.dart';
 
 import 'bloc/tournament_detail_bloc.dart';
@@ -66,9 +67,16 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             //padding: EdgeInsets.symmetric(horizontal: 8),
           ),
         ),
-        body: TabBarView(
-          controller: _tabController,
-          children: tabs.values.toList(),
+        body: Stack(
+          children: [
+            TabBarView(
+              controller: _tabController,
+              children: tabs.values.toList(),
+            ),
+            if (state.viewStatus.isLoading)
+              const Positioned(
+                  top: 0, right: 0, left: 0, child: LinearProgressIndicator()),
+          ],
         ),
       ),
       listener: (context, state) {

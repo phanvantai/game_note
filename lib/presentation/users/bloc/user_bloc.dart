@@ -12,12 +12,25 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepository _userRepository;
   UserBloc(this._userRepository) : super(const UserState()) {
     on<SearchUser>(_onSearchUser);
+    on<SearchUserByEsportGroup>(_onSearchUserByGroup);
   }
 
   Future<void> _onSearchUser(SearchUser event, Emitter<UserState> emit) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       final users = await _userRepository.searchUser(event.query);
+      emit(state.copyWith(viewStatus: ViewStatus.success, users: users));
+    } catch (e) {
+      emit(state.copyWith(viewStatus: ViewStatus.failure));
+    }
+  }
+
+  Future<void> _onSearchUserByGroup(
+      SearchUserByEsportGroup event, Emitter<UserState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      final users =
+          await _userRepository.searchUserByGroup(event.groupId, event.query);
       emit(state.copyWith(viewStatus: ViewStatus.success, users: users));
     } catch (e) {
       emit(state.copyWith(viewStatus: ViewStatus.failure));
