@@ -1,5 +1,6 @@
 import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:game_note/firebase/firestore/esport/league/gn_firestore_esport_league.dart';
+import 'package:game_note/firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart';
 import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:game_note/injection_container.dart';
@@ -44,5 +45,12 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   Future<void> addParticipant(
       {required String leagueId, required String userId}) {
     return getIt<GNFirestore>().addParticipantToLeague(leagueId, userId);
+  }
+
+  @override
+  Future<void> generateRound(
+      {required String leagueId, required List<String> teamIds}) {
+    return getIt<GNFirestore>()
+        .generateRound(leagueId: leagueId, teamIds: teamIds);
   }
 }

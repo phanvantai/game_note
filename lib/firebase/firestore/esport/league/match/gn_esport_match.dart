@@ -10,12 +10,11 @@ class GNEsportMatch extends Equatable {
   final int awayScore; // away team score
   final DateTime date; // match date
   final bool isFinished; // match is finished
-  final String roundId; // round id
   final String leagueId; // league id
 
-  // esport_matches is subcollection of esport_rounds
-  // esports_leagues/{leagueId}/esports_rounds/{roundId}/esports_matches/{matchId}
-  static const String collectionName = 'esports_matches';
+  // esport_matches is subcollection of esports_leagues
+  // esports_leagues/{leagueId}/leagues_matches/{matchId}
+  static const String collectionName = 'leagues_matches';
 
   static const String fieldId = 'id';
   static const String fieldHomeTeamId = 'homeTeamId';
@@ -24,7 +23,6 @@ class GNEsportMatch extends Equatable {
   static const String fieldAwayScore = 'awayScore';
   static const String fieldDate = 'date';
   static const String fieldIsFinished = 'isFinished';
-  static const String fieldRoundId = 'roundId';
   static const String fieldLeagueId = 'leagueId';
 
   const GNEsportMatch({
@@ -35,7 +33,6 @@ class GNEsportMatch extends Equatable {
     required this.awayScore,
     required this.date,
     required this.isFinished,
-    required this.roundId,
     required this.leagueId,
   });
 
@@ -48,7 +45,6 @@ class GNEsportMatch extends Equatable {
         awayScore,
         date,
         isFinished,
-        roundId,
         leagueId,
       ];
 
@@ -60,7 +56,6 @@ class GNEsportMatch extends Equatable {
     int? awayScore,
     DateTime? date,
     bool? isFinished,
-    String? roundId,
     String? leagueId,
   }) {
     return GNEsportMatch(
@@ -71,7 +66,6 @@ class GNEsportMatch extends Equatable {
       awayScore: awayScore ?? this.awayScore,
       date: date ?? this.date,
       isFinished: isFinished ?? this.isFinished,
-      roundId: roundId ?? this.roundId,
       leagueId: leagueId ?? this.leagueId,
     );
   }
@@ -84,7 +78,6 @@ class GNEsportMatch extends Equatable {
       fieldAwayScore: awayScore,
       fieldDate: Timestamp.fromDate(date),
       fieldIsFinished: isFinished,
-      fieldRoundId: roundId,
       fieldLeagueId: leagueId,
     };
   }
@@ -99,7 +92,6 @@ class GNEsportMatch extends Equatable {
       awayScore: data[fieldAwayScore],
       date: (data[fieldDate] as Timestamp).toDate(),
       isFinished: data[fieldIsFinished],
-      roundId: data[fieldRoundId],
       leagueId: data[fieldLeagueId],
     );
   }

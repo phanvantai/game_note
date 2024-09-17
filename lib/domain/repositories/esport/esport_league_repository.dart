@@ -21,4 +21,9 @@ abstract class EsportLeagueRepository {
     required String leagueId,
     required String userId,
   });
+
+  Future<void> generateRound({
+    required String leagueId,
+    required List<String> teamIds,
+  });
 }

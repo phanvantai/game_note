@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../table_view.dart';
+
 class TableFixedColumnHeader extends StatelessWidget {
   const TableFixedColumnHeader({
     Key? key,
@@ -18,7 +20,7 @@ class TableFixedColumnHeader extends StatelessWidget {
         // ranking
         Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: EsportTableView.tableBackgroundColor,
             border: Border(
                 bottom: BorderSide(color: Colors.grey, width: 1),
                 top: BorderSide(color: Colors.grey, width: 1)),
@@ -36,7 +38,7 @@ class TableFixedColumnHeader extends StatelessWidget {
         ),
         Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: EsportTableView.tableBackgroundColor,
             border: Border(
                 bottom: BorderSide(color: Colors.grey, width: 1),
                 top: BorderSide(color: Colors.grey, width: 1)),

@@ -23,12 +23,14 @@ class EsportTableView extends StatelessWidget {
   static const TextStyle tableStatsTextStyle =
       TextStyle(fontWeight: FontWeight.bold);
 
+  static const Color tableBackgroundColor = Colors.transparent;
+
   static const BoxDecoration tableItemDecor = BoxDecoration(
-    color: Colors.white,
+    color: tableBackgroundColor,
     border: Border(bottom: BorderSide(color: Colors.grey, width: 1)),
   );
   static const BoxDecoration tableHeaderDecor = BoxDecoration(
-    color: Colors.white,
+    color: tableBackgroundColor,
     border: Border(
       bottom: BorderSide(color: Colors.grey, width: 1),
       top: BorderSide(color: Colors.grey, width: 1),
@@ -59,6 +61,7 @@ class EsportTableView extends StatelessWidget {
                     Flexible(
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
+                        physics: const ClampingScrollPhysics(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: _buildScrollableColumns(

@@ -4,12 +4,14 @@ class TournamentDetailState extends Equatable {
   final ViewStatus viewStatus;
   final GNEsportLeague league;
   final List<GNEsportLeagueStat> participants;
+  final List<GNEsportMatch> matches;
   final String errorMessage;
 
   const TournamentDetailState({
     this.viewStatus = ViewStatus.initial,
     required this.league,
     this.participants = const [],
+    this.matches = const [],
     this.errorMessage = '',
   });
 
@@ -17,12 +19,14 @@ class TournamentDetailState extends Equatable {
     ViewStatus? viewStatus,
     GNEsportLeague? league,
     List<GNEsportLeagueStat>? participants,
+    List<GNEsportMatch>? matches,
     String? errorMessage,
   }) {
     return TournamentDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
       league: league ?? this.league,
       participants: participants ?? this.participants,
+      matches: matches ?? this.matches,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -32,6 +36,7 @@ class TournamentDetailState extends Equatable {
         viewStatus,
         league,
         participants,
+        matches,
         errorMessage,
       ];
 

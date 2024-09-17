@@ -16,6 +16,15 @@ class GetParticipantStats extends TournamentDetailEvent {
   List<Object> get props => [tournamentId];
 }
 
+class GetMatches extends TournamentDetailEvent {
+  final String tournamentId;
+
+  const GetMatches(this.tournamentId);
+
+  @override
+  List<Object> get props => [tournamentId];
+}
+
 class AddParticipant extends TournamentDetailEvent {
   final String tournamentId;
   final String userId;
@@ -24,4 +33,11 @@ class AddParticipant extends TournamentDetailEvent {
 
   @override
   List<Object> get props => [tournamentId, userId];
+}
+
+class GenerateRound extends TournamentDetailEvent {
+  const GenerateRound();
+
+  @override
+  List<Object> get props => [];
 }
