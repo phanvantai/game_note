@@ -39,9 +39,12 @@ extension GNFirestoreUser on GNFirestore {
     return GNUser.fromFireStore(userDoc);
   }
 
-  Future<GNUser> getUserById(String userId) async {
+  Future<GNUser?> getUserById(String userId) async {
     final userDoc =
         await firestore.collection(GNUser.collectionName).doc(userId).get();
+    if (!userDoc.exists) {
+      return null;
+    }
     return GNUser.fromFireStore(userDoc);
   }
 

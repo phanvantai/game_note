@@ -1,5 +1,6 @@
 import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
+import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
 
 import 'gn_esport_match.dart';
 
@@ -47,5 +48,29 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
 
     // Commit the batch write to Firestore
     await batch.commit();
+  }
+
+  // get matches of a league
+  Future<List<GNEsportMatch>> getMatches(String leagueId) async {
+    final snapshot = await firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .collection(GNEsportMatch.collectionName)
+        .get();
+
+    List<GNEsportMatch> matches = [];
+
+    for (final doc in snapshot.docs) {
+      final match = GNEsportMatch.fromFirestore(doc);
+
+      // get home team and away team
+      final homeTeam = await getUserById(match.homeTeamId);
+      final awayTeam = await getUserById(match.awayTeamId);
+      matches.add(match.copyWith(
+        homeTeam: homeTeam,
+        awayTeam: awayTeam,
+      ));
+    }
+    return matches;
   }
 }

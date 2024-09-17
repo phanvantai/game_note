@@ -20,6 +20,8 @@ class TournamentDetailBloc
   TournamentDetailBloc(this.league, this._esportLeagueRepository)
       : super(TournamentDetailState(league: league)) {
     on<GetParticipantStats>(_onGetParticipants);
+    on<GetMatches>(_onGetMatches);
+
     on<AddParticipant>(_onAddParticipant);
 
     on<GenerateRound>(_onGenerateRound);
@@ -33,6 +35,19 @@ class TournamentDetailBloc
           await _esportLeagueRepository.getLeagueStats(event.tournamentId);
       emit(state.copyWith(
           viewStatus: ViewStatus.success, participants: participants));
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onGetMatches(
+      GetMatches event, Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      final matches =
+          await _esportLeagueRepository.getMatches(event.tournamentId);
+      emit(state.copyWith(viewStatus: ViewStatus.success, matches: matches));
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
@@ -60,7 +75,7 @@ class TournamentDetailBloc
       await _esportLeagueRepository.generateRound(
           leagueId: league.id,
           teamIds: state.participants.map((e) => e.userId).toList());
-      // add(GetMatches(league.id));
+      add(GetMatches(league.id));
       showToast('Tạo vòng đấu thành công');
     } catch (e) {
       emit(state.copyWith(

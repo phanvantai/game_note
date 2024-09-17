@@ -44,4 +44,12 @@ class TournamentDetailState extends Equatable {
     return (league.group?.members ?? <String>[])
         .any((element) => element == FirebaseAuth.instance.currentUser?.uid);
   }
+
+  List<GNEsportMatch> get fixtures {
+    return matches.where((element) => !element.isFinished).toList();
+  }
+
+  List<GNEsportMatch> get results {
+    return matches.where((element) => element.isFinished).toList();
+  }
 }

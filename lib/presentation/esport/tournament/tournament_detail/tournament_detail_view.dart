@@ -21,7 +21,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
 
   final Map<Tab, Widget> tabs = {
     //const Tab(text: 'Tổng quan'): const EsportOverviewView(),
-    const Tab(text: 'Lịch thi đấu'): const EsportMatchesView(),
+    const Tab(text: 'Trận đấu'): const EsportMatchesView(),
     const Tab(text: 'Bảng điểm'): const EsportTableView(),
   };
 

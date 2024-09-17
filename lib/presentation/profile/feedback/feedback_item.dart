@@ -17,7 +17,7 @@ class FeedbackItem extends StatelessWidget {
     return InkWell(
       onLongPress: () {},
       child: ListTile(
-        leading: FutureBuilder<GNUser>(
+        leading: FutureBuilder<GNUser?>(
           future: getIt<GNFirestore>().getUserById(feedback.userId),
           builder: (context, userSnapshot) {
             if (userSnapshot.connectionState == ConnectionState.waiting) {
@@ -25,12 +25,12 @@ class FeedbackItem extends StatelessWidget {
             } else if (userSnapshot.hasError) {
               return const Icon(Icons.error);
             } else if (userSnapshot.hasData) {
-              final user = userSnapshot.data!;
-              if (user.photoUrl == null) {
+              final user = userSnapshot.data;
+              if (user?.photoUrl == null) {
                 return const Icon(Icons.error);
               }
               return CircleAvatar(
-                backgroundImage: NetworkImage(user.photoUrl!),
+                backgroundImage: NetworkImage(user!.photoUrl!),
               );
             } else {
               return const Icon(Icons.error);

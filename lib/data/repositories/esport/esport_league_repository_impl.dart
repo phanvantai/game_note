@@ -1,5 +1,6 @@
 import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:game_note/firebase/firestore/esport/league/gn_firestore_esport_league.dart';
+import 'package:game_note/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:game_note/firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart';
 import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
@@ -52,5 +53,10 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       {required String leagueId, required List<String> teamIds}) {
     return getIt<GNFirestore>()
         .generateRound(leagueId: leagueId, teamIds: teamIds);
+  }
+
+  @override
+  Future<List<GNEsportMatch>> getMatches(String leagueId) {
+    return getIt<GNFirestore>().getMatches(leagueId);
   }
 }

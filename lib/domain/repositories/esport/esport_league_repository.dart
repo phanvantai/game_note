@@ -1,3 +1,4 @@
+import 'package:game_note/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 
 import '../../../firebase/firestore/esport/league/gn_esport_league.dart';
@@ -26,4 +27,6 @@ abstract class EsportLeagueRepository {
     required String leagueId,
     required List<String> teamIds,
   });
+
+  Future<List<GNEsportMatch>> getMatches(String leagueId);
 }

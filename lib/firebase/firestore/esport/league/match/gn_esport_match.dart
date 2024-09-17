@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../user/gn_user.dart';
+
 // match model is sub collection of round
 class GNEsportMatch extends Equatable {
   final String id; // match id
@@ -11,6 +13,9 @@ class GNEsportMatch extends Equatable {
   final DateTime date; // match date
   final bool isFinished; // match is finished
   final String leagueId; // league id
+
+  final GNUser? homeTeam;
+  final GNUser? awayTeam;
 
   // esport_matches is subcollection of esports_leagues
   // esports_leagues/{leagueId}/leagues_matches/{matchId}
@@ -34,6 +39,8 @@ class GNEsportMatch extends Equatable {
     required this.date,
     required this.isFinished,
     required this.leagueId,
+    this.homeTeam,
+    this.awayTeam,
   });
 
   @override
@@ -57,6 +64,8 @@ class GNEsportMatch extends Equatable {
     DateTime? date,
     bool? isFinished,
     String? leagueId,
+    GNUser? homeTeam,
+    GNUser? awayTeam,
   }) {
     return GNEsportMatch(
       id: id ?? this.id,
@@ -67,6 +76,8 @@ class GNEsportMatch extends Equatable {
       date: date ?? this.date,
       isFinished: isFinished ?? this.isFinished,
       leagueId: leagueId ?? this.leagueId,
+      homeTeam: homeTeam ?? this.homeTeam,
+      awayTeam: awayTeam ?? this.awayTeam,
     );
   }
 
