@@ -5,6 +5,7 @@ class TournamentDetailState extends Equatable {
   final GNEsportLeague league;
   final List<GNEsportLeagueStat> participants;
   final List<GNEsportMatch> matches;
+  final List<GNUser> users;
   final String errorMessage;
 
   const TournamentDetailState({
@@ -13,6 +14,7 @@ class TournamentDetailState extends Equatable {
     this.participants = const [],
     this.matches = const [],
     this.errorMessage = '',
+    this.users = const [],
   });
 
   TournamentDetailState copyWith({
@@ -21,6 +23,7 @@ class TournamentDetailState extends Equatable {
     List<GNEsportLeagueStat>? participants,
     List<GNEsportMatch>? matches,
     String? errorMessage,
+    List<GNUser>? users,
   }) {
     return TournamentDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
@@ -28,6 +31,7 @@ class TournamentDetailState extends Equatable {
       participants: participants ?? this.participants,
       matches: matches ?? this.matches,
       errorMessage: errorMessage ?? this.errorMessage,
+      users: users ?? this.users,
     );
   }
 
@@ -38,6 +42,7 @@ class TournamentDetailState extends Equatable {
         participants,
         matches,
         errorMessage,
+        users,
       ];
 
   bool get currentUserIsMember {

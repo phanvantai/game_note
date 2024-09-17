@@ -59,4 +59,14 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   Future<List<GNEsportMatch>> getMatches(String leagueId) {
     return getIt<GNFirestore>().getMatches(leagueId);
   }
+
+  @override
+  Future<void> updateMatch(GNEsportMatch match) {
+    return getIt<GNFirestore>().updateMatch(
+      matchId: match.id,
+      leagueId: match.leagueId,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+    );
+  }
 }

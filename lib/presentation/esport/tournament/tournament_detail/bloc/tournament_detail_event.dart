@@ -41,3 +41,12 @@ class GenerateRound extends TournamentDetailEvent {
   @override
   List<Object> get props => [];
 }
+
+class UpdateEsportMatch extends TournamentDetailEvent {
+  final GNEsportMatch match;
+
+  const UpdateEsportMatch(this.match);
+
+  @override
+  List<Object> get props => [match];
+}

@@ -41,30 +41,34 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     return BlocConsumer<TournamentDetailBloc, TournamentDetailState>(
       builder: (context, state) => Scaffold(
         appBar: AppBar(
-          title: ListTile(
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 32),
-              child: SvgPicture.asset(
+          centerTitle: false,
+          title: Row(
+            children: [
+              SvgPicture.asset(
                 'assets/svg/trophy-solid.svg',
                 width: 24,
                 height: 24,
               ),
-            ),
-            title: Text(state.league.name),
-          ),
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: tabs.keys.toList(),
-            dividerHeight: 0,
-            indicator: BoxDecoration(
-              color: Theme.of(context).secondaryHeaderColor,
-              borderRadius: BorderRadius.circular(40),
-            ),
-            indicatorSize: TabBarIndicatorSize.label,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            indicatorPadding: const EdgeInsets.symmetric(horizontal: -16),
-            //padding: EdgeInsets.symmetric(horizontal: 8),
+              const SizedBox(width: 8),
+              Text(state.league.name),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TabBar(
+                  controller: _tabController,
+                  tabs: tabs.keys.toList(),
+                  dividerHeight: 0,
+                  // indicator: BoxDecoration(
+                  //   color: Theme.of(context).secondaryHeaderColor,
+                  //   borderRadius: BorderRadius.circular(40),
+                  // ),
+                  indicatorSize: TabBarIndicatorSize.label,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  indicatorPadding: const EdgeInsets.symmetric(horizontal: -16),
+                  //padding: EdgeInsets.symmetric(horizontal: 8),
+                ),
+              )
+            ],
           ),
         ),
         body: Stack(

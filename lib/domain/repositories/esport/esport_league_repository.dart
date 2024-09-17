@@ -29,4 +29,6 @@ abstract class EsportLeagueRepository {
   });
 
   Future<List<GNEsportMatch>> getMatches(String leagueId);
+
+  Future<void> updateMatch(GNEsportMatch match);
 }

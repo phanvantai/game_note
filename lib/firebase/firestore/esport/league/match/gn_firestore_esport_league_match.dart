@@ -1,6 +1,6 @@
 import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
-import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
 
 import 'gn_esport_match.dart';
 
@@ -63,14 +63,57 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     for (final doc in snapshot.docs) {
       final match = GNEsportMatch.fromFirestore(doc);
 
+      // commented for optimization loading time
       // get home team and away team
-      final homeTeam = await getUserById(match.homeTeamId);
-      final awayTeam = await getUserById(match.awayTeamId);
-      matches.add(match.copyWith(
-        homeTeam: homeTeam,
-        awayTeam: awayTeam,
-      ));
+      // final homeTeam = await getUserById(match.homeTeamId);
+      // final awayTeam = await getUserById(match.awayTeamId);
+      // matches.add(match.copyWith(
+      //   homeTeam: homeTeam,
+      //   awayTeam: awayTeam,
+      // ));
+
+      matches.add(match);
     }
     return matches;
+  }
+
+  // update a match
+  Future<void> updateMatch({
+    required String matchId,
+    required String leagueId,
+    required int homeScore,
+    required int awayScore,
+  }) async {
+    // Get the match document reference
+    final matchRef = await firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .collection(GNEsportMatch.collectionName)
+        .doc(matchId)
+        .get();
+    if (!matchRef.exists) {
+      throw Exception('Match not found');
+    }
+
+    final match = GNEsportMatch.fromFirestore(matchRef);
+
+    // check if match is finished
+    if (match.isFinished) {
+      // with finished match, need to revert the stats first, then update match score and update the stats again
+
+      // reverse stats
+      await reverseStateWithMatch(match);
+    }
+
+    // update match score and set match as finished
+    final newMatch = match.copyWith(
+      homeScore: homeScore,
+      awayScore: awayScore,
+      isFinished: true,
+    );
+    await matchRef.reference.update(newMatch.toMap());
+
+    // update stats
+    await updateLeagueStatWithMatch(newMatch);
   }
 }

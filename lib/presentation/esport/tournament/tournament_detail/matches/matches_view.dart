@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/core/ultils.dart';
+import 'package:game_note/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item.dart';
+import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_team.dart';
 
 import '../../../../../widgets/gn_floating_button.dart';
 import '../bloc/tournament_detail_bloc.dart';
@@ -20,12 +23,12 @@ class EsportMatchesView extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-                  const TabBar(
+                  TabBar(
                     tabAlignment: TabAlignment.start,
                     // labelStyle: const TextStyle(color: Colors.white),
                     isScrollable: true,
                     indicatorSize: TabBarIndicatorSize.label,
-                    tabs: [
+                    tabs: const [
                       Tab(child: Text('Lịch thi đấu')),
                       Tab(child: Text('Kết quả')),
                       SizedBox.shrink(),
@@ -35,13 +38,13 @@ class EsportMatchesView extends StatelessWidget {
                       SizedBox.shrink(),
                     ],
                     //indicatorColor: Colors.orange,
-                    // indicatorWeight: 4,
-                    // indicatorPadding:
-                    //     const EdgeInsets.symmetric(horizontal: -16),
-                    // indicator: BoxDecoration(
-                    //   borderRadius: BorderRadius.circular(40),
-                    //   color: Colors.black,
-                    // ),
+                    //indicatorWeight: 4,
+                    indicatorPadding:
+                        const EdgeInsets.symmetric(horizontal: -16),
+                    indicator: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      color: Theme.of(context).secondaryHeaderColor,
+                    ),
                     dividerHeight: 0,
                   ),
                   const SizedBox(height: 8),
@@ -52,7 +55,15 @@ class EsportMatchesView extends StatelessWidget {
                         ListView.separated(
                           itemBuilder: (context, index) {
                             final match = state.fixtures[index];
-                            return EsportMatchItem(match: match);
+                            return EsportMatchItem(
+                              match: match,
+                              onTap: state.currentUserIsMember
+                                  ? () {
+                                      // show dialog to update match
+                                      _updateMatchDialog(context, match);
+                                    }
+                                  : null,
+                            );
                           },
                           separatorBuilder: (context, index) =>
                               const SizedBox(height: 8),
@@ -61,7 +72,15 @@ class EsportMatchesView extends StatelessWidget {
                         ListView.separated(
                           itemBuilder: (context, index) {
                             final match = state.results[index];
-                            return EsportMatchItem(match: match);
+                            return EsportMatchItem(
+                              match: match,
+                              onLongPress: state.currentUserIsMember
+                                  ? () {
+                                      // show dialog to update match
+                                      _updateMatchDialog(context, match);
+                                    }
+                                  : null,
+                            );
                           },
                           separatorBuilder: (context, index) =>
                               const SizedBox(height: 4),
@@ -96,5 +115,88 @@ class EsportMatchesView extends StatelessWidget {
         ],
       );
     });
+  }
+
+  _updateMatchDialog(BuildContext context, GNEsportMatch match) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final homeScoreController = TextEditingController();
+        final awayScoreController = TextEditingController();
+        return AlertDialog(
+          // title: const Text('Cập nhật kết quả'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (match.homeTeam != null)
+                Row(
+                  children: [
+                    Expanded(
+                      child: EsportMatchTeam(user: match.homeTeam!),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 32,
+                      child: TextField(
+                        controller: homeScoreController,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+              if (match.awayTeam != null)
+                Row(
+                  children: [
+                    Expanded(
+                      child: EsportMatchTeam(user: match.awayTeam!),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 32,
+                      child: TextField(
+                        controller: awayScoreController,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // update match
+                if (homeScoreController.text.isEmpty ||
+                    awayScoreController.text.isEmpty) {
+                  showToast('Nhập kết quả trận đấu');
+                  return;
+                }
+                // convert to int
+                final homeScore = int.parse(homeScoreController.text);
+                final awayScore = int.parse(awayScoreController.text);
+                context.read<TournamentDetailBloc>().add(
+                      UpdateEsportMatch(
+                        match.copyWith(
+                          homeScore: homeScore,
+                          awayScore: awayScore,
+                        ),
+                      ),
+                    );
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cập nhật'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
