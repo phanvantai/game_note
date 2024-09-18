@@ -1,9 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/presentation/esport/bloc/esport_bloc.dart';
-import 'package:game_note/presentation/esport/groups/groups_view.dart';
-import 'package:game_note/presentation/esport/tournament/tournament_page.dart';
+
+import 'bloc/esport_bloc.dart';
+import 'groups/groups_view.dart';
+import 'tournament/tournament_view.dart';
 
 class EsportView extends StatefulWidget {
   const EsportView({Key? key}) : super(key: key);
@@ -17,7 +18,7 @@ class _EsportViewState extends State<EsportView>
   late TabController _tabController;
 
   final Map<Tab, Widget> tabs = {
-    const Tab(text: 'Giải đấu'): const TournamentPage(),
+    const Tab(text: 'Giải đấu'): const TournamentView(),
     const Tab(text: 'Nhóm'): const GroupsView(),
   };
 

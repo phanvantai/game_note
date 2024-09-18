@@ -6,6 +6,6 @@ extension GNFirestoreEsport on GNFirestore {
   Future<List<EsportModel>> getEsports() async {
     QuerySnapshot snapshot =
         await firestore.collection(EsportModel.collectionName).get();
-    return snapshot.docs.map((doc) => EsportModel.fromSnapshot(doc)).toList();
+    return snapshot.docs.map((doc) => EsportModel.fromFirestore(doc)).toList();
   }
 }

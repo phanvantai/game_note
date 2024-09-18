@@ -16,36 +16,39 @@ class AuthView extends StatelessWidget {
         actions: const [OfflineButton()],
       ),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SignInPage(),
-            const SizedBox(height: 48, width: double.maxFinite),
-            Row(
-              children: [
-                const Spacer(),
-                Expanded(
-                  child: Container(
-                    height: 1,
-                    width: double.infinity,
-                    color: Colors.grey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 100, width: double.maxFinite),
+              const SignInPage(),
+              const SizedBox(height: 48, width: double.maxFinite),
+              Row(
+                children: [
+                  const Spacer(),
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      width: double.infinity,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                const Text('Hoặc', style: TextStyle(color: Colors.grey)),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Container(
-                    height: 1,
-                    width: double.infinity,
-                    color: Colors.grey,
+                  const SizedBox(width: 4),
+                  const Text('Hoặc', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      width: double.infinity,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-                const Spacer(),
-              ],
-            ),
-            const AuthButtonsView(),
-          ],
+                  const Spacer(),
+                ],
+              ),
+              const AuthButtonsView(),
+            ],
+          ),
         ),
       ),
     );

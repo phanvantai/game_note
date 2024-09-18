@@ -42,5 +42,4 @@ const int _blackPrimaryValue = 0xFF000000;
 
 const String playStoreUrl =
     'https://play.google.com/store/apps/details?id=com.november.game_note';
-const String appStoreUrl =
-    'https://apps.apple.com/us/app/game-note/id1581440006';
+const String appStoreUrl = 'https://apps.apple.com/app/game-note/id6443969710';

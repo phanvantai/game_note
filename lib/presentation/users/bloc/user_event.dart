@@ -15,3 +15,13 @@ class SearchUser extends UserEvent {
   @override
   List<Object?> get props => [query];
 }
+
+class SearchUserByEsportGroup extends UserEvent {
+  final String groupId;
+  final String query;
+
+  const SearchUserByEsportGroup(this.groupId, this.query);
+
+  @override
+  List<Object?> get props => [groupId, query];
+}

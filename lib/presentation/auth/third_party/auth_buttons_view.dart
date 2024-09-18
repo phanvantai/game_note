@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,6 +28,7 @@ class AuthButtonsView extends StatelessWidget {
             paddingHorizontal: 32,
             backgroundColor: Colors.blueGrey,
             onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
               thirdPartyBloc.add(const ThirdPartySignInGoogle());
             },
             child: Row(
@@ -49,29 +48,29 @@ class AuthButtonsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (Platform.isIOS)
-            AuthCustomButton(
-              paddingHorizontal: 32,
-              backgroundColor: Colors.redAccent,
-              onPressed: () {
-                thirdPartyBloc.add(const ThirdPartySignInApple());
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    AssetsPath.iconApple,
-                    width: 24,
-                    height: 24,
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Đăng nhập với Apple',
-                    style: kDefaultBoldWhite,
-                  ),
-                ],
-              ),
-            ),
+          // if (Platform.isIOS)
+          //   AuthCustomButton(
+          //     paddingHorizontal: 32,
+          //     backgroundColor: Colors.redAccent,
+          //     onPressed: () {
+          //       thirdPartyBloc.add(const ThirdPartySignInApple());
+          //     },
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       children: [
+          //         Image.asset(
+          //           AssetsPath.iconApple,
+          //           width: 24,
+          //           height: 24,
+          //         ),
+          //         const SizedBox(width: 8),
+          //         const Text(
+          //           'Đăng nhập với Apple',
+          //           style: kDefaultBoldWhite,
+          //         ),
+          //       ],
+          //     ),
+          //   ),
         ],
       ),
     );

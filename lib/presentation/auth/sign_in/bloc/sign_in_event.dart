@@ -15,3 +15,23 @@ class SignInPhoneChanged extends SignInEvent {
 }
 
 class SignInSubmitted extends SignInEvent {}
+
+class EmailChanged extends SignInEvent {
+  final String email;
+
+  EmailChanged(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class PasswordChanged extends SignInEvent {
+  final String password;
+
+  PasswordChanged(this.password);
+
+  @override
+  List<Object?> get props => [password];
+}
+
+class EmailSignInSubmitted extends SignInEvent {}

@@ -5,6 +5,7 @@ import 'package:game_note/presentation/auth/verify/verify_page.dart';
 import 'package:game_note/presentation/team/create_team/create_team_page.dart';
 
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
+import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
 
 class Routing {
   static const String app = '/';
@@ -18,6 +19,7 @@ class Routing {
 
   // esport
   static const String groupDetail = '/group-detail';
+  static const String tournamentDetail = '/tournament-detail';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return fadeThrough(settings, (context) {
@@ -33,6 +35,8 @@ class Routing {
         // esport
         case Routing.groupDetail:
           return const GroupDetailPage();
+        case Routing.tournamentDetail:
+          return const TournamentDetailPage();
         default:
           return const AppView();
       }

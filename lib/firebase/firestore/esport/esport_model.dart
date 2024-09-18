@@ -20,7 +20,7 @@ class EsportModel {
     this.updatedAt,
   });
 
-  factory EsportModel.fromSnapshot(DocumentSnapshot snapshot) {
+  factory EsportModel.fromFirestore(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>;
     return EsportModel(
       id: snapshot.id,

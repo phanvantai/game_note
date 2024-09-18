@@ -46,4 +46,9 @@ class UserRepositoryImpl implements UserRepository {
   Future<List<GNUser>> searchUser(String query) {
     return getIt<GNFirestore>().searchUser(query);
   }
+
+  @override
+  Future<List<GNUser>> searchUserByGroup(String groupId, String query) {
+    return getIt<GNFirestore>().searchUserByGroup(groupId, query);
+  }
 }

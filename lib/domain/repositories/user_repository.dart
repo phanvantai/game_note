@@ -9,4 +9,6 @@ abstract class UserRepository {
   Future<void> deleteAvatar();
 
   Future<List<GNUser>> searchUser(String query);
+
+  Future<List<GNUser>> searchUserByGroup(String groupId, String query);
 }
