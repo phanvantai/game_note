@@ -28,6 +28,7 @@ class AuthButtonsView extends StatelessWidget {
             paddingHorizontal: 32,
             backgroundColor: Colors.blueGrey,
             onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
               thirdPartyBloc.add(const ThirdPartySignInGoogle());
             },
             child: Row(

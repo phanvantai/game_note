@@ -24,7 +24,13 @@ extension GNFirestoreEsportLeague on GNFirestore {
         .collection(GNEsportLeague.collectionName)
         .doc(leagueId)
         .get();
-    return snapshot.exists ? GNEsportLeague.fromFirestore(snapshot) : null;
+    if (!snapshot.exists) {
+      return null;
+    }
+    final league = GNEsportLeague.fromFirestore(snapshot);
+    // Get the group that the league belongs to
+    final group = await getGroupById(league.groupId);
+    return league.copyWith(group: group);
   }
 
   Future<GNEsportLeague?> getLeagueByLeagueId(String leagueId) async {

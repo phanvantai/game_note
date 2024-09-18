@@ -11,6 +11,70 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
   SignInBloc() : super(const SignInState()) {
     on<SignInPhoneChanged>(_onPhoneChanged);
     on<SignInSubmitted>(_onSubmitted);
+
+    on<EmailChanged>(_onEmailChanged);
+    on<PasswordChanged>(_onPasswordChanged);
+    on<EmailSignInSubmitted>(_onEmailSignInSubmitted);
+  }
+
+  _onEmailChanged(EmailChanged event, Emitter<SignInState> emit) async {
+    // validate email
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(event.email)) {
+      emit(state.copyWith(
+          email: event.email, emailError: 'Vui lòng nhập email hợp lệ'));
+      return;
+    }
+    emit(state.copyWith(email: event.email));
+  }
+
+  _onPasswordChanged(PasswordChanged event, Emitter<SignInState> emit) async {
+    // validate password
+    if (event.password.length < 6) {
+      emit(state.copyWith(
+          password: event.password,
+          passwordError: 'Mật khẩu phải có ít nhất 6 ký tự'));
+      return;
+    }
+    emit(state.copyWith(password: event.password));
+  }
+
+  _onEmailSignInSubmitted(
+      EmailSignInSubmitted event, Emitter<SignInState> emit) async {
+    if (state.status == SignInStatus.loading) return;
+
+    // check valid input
+    debugPrint('onEmailSignInSubmitted');
+    if (state.email.isEmpty) {
+      emit(state.copyWith(emailError: 'Vui lòng nhập email'));
+      return;
+    }
+    if (state.password.isEmpty) {
+      emit(state.copyWith(passwordError: 'Vui lòng nhập mật khẩu'));
+      return;
+    }
+    if (state.emailError.isNotEmpty) {
+      return;
+    }
+    if (state.passwordError.isNotEmpty) {
+      return;
+    }
+    // do stuff
+    emit(state.copyWith(status: SignInStatus.loading));
+    //
+    final email = state.email;
+    final password = state.password;
+    // do sign in with firebase
+    try {
+      await getIt<GNAuth>()
+          .signInOrCreateUserWithEmailAndPassword(email, password);
+      emit(state.copyWith(status: SignInStatus.success));
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      emit(state.copyWith(status: SignInStatus.error, error: e.toString()));
+    }
   }
 
   _onPhoneChanged(SignInPhoneChanged event, Emitter<SignInState> emit) async {

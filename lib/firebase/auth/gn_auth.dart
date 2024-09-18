@@ -103,6 +103,42 @@ class GNAuth {
     return _auth.signInWithCredential(credential);
   }
 
+  // create user with email and password
+  Future<UserCredential> createUserWithEmailAndPassword(
+      String email, String password) async {
+    return _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  /// sign in with email and password
+  /// if user not exists, create new user
+  /// return UserCredential
+  Future<UserCredential> signInOrCreateUserWithEmailAndPassword(
+      String email, String password) async {
+    try {
+      return await signInWithEmailAndPassword(email, password);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        // create new user
+        return createUserWithEmailAndPassword(email, password);
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  // sign in with email and password
+  Future<UserCredential> signInWithEmailAndPassword(
+      String email, String password) async {
+    return _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  // sign out
   Future<void> signOut() async {
     return _auth.signOut();
   }

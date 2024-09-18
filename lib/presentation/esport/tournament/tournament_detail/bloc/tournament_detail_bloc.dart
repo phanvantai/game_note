@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/core/ultils.dart';
@@ -20,6 +21,8 @@ class TournamentDetailBloc
 
   TournamentDetailBloc(this.league, this._esportLeagueRepository)
       : super(TournamentDetailState(league: league)) {
+    on<GetLeagueUpdated>(_onGetLeague);
+
     on<GetParticipantStats>(_onGetParticipants);
     on<GetMatches>(_onGetMatches);
 
@@ -27,6 +30,18 @@ class TournamentDetailBloc
 
     on<GenerateRound>(_onGenerateRound);
     on<UpdateEsportMatch>(_onUpdateMatch);
+  }
+
+  void _onGetLeague(
+      GetLeagueUpdated event, Emitter<TournamentDetailState> emit) async {
+    try {
+      final league = await _esportLeagueRepository.getLeague(this.league.id);
+      emit(state.copyWith(league: league));
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
   }
 
   void _onGetParticipants(
@@ -94,6 +109,7 @@ class TournamentDetailBloc
       await _esportLeagueRepository.addParticipant(
           leagueId: league.id, userId: event.userId);
       add(GetParticipantStats(league.id));
+      add(GetLeagueUpdated());
       showToast('Thêm người chơi thành công');
     } catch (e) {
       emit(state.copyWith(

@@ -50,3 +50,5 @@ class UpdateEsportMatch extends TournamentDetailEvent {
   @override
   List<Object> get props => [match];
 }
+
+class GetLeagueUpdated extends TournamentDetailEvent {}
