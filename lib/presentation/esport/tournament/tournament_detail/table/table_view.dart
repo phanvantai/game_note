@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:game_note/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
 import 'package:game_note/widgets/gn_circle_avatar.dart';
 import 'package:game_note/widgets/gn_floating_button.dart';
@@ -18,7 +19,7 @@ class EsportTableView extends StatelessWidget {
   static const double tableRowHeight = 44.0;
   static const double tableIconColumnWidth = 44.0;
   static const double tableNameColumnWidth = 120.0;
-  static const double tableStatsColumnWidth = 40.0;
+  static const double tableStatsColumnWidth = 36.0;
 
   static const TextStyle tableStatsTextStyle =
       TextStyle(fontWeight: FontWeight.bold);
@@ -73,7 +74,9 @@ class EsportTableView extends StatelessWidget {
                 ),
               ),
             // if current user in group of league
-            if (state.currentUserIsMember)
+            if (state.currentUserIsMember &&
+                state.league.participants.length <
+                    (state.league.group?.members.length ?? 0))
               // add participant button
               Positioned(
                 right: 16.0,
@@ -177,10 +180,20 @@ class EsportTableView extends StatelessWidget {
               alignment: Alignment.center,
               width: tableIconColumnWidth - 4,
               height: tableRowHeight,
-              child: Text(
-                '$index',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
+              child: index == 1
+                  ? SvgPicture.asset(
+                      'assets/svg/award-solid.svg',
+                      width: 16,
+                      height: 16,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.red,
+                        BlendMode.srcIn,
+                      ),
+                    )
+                  : Text(
+                      '$index',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
             ),
             Container(
               alignment: Alignment.center,

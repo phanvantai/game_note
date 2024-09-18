@@ -45,6 +45,7 @@ class EsportMatchesView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(40),
                       color: Theme.of(context).secondaryHeaderColor,
                     ),
+                    indicatorWeight: 0,
                     dividerHeight: 0,
                   ),
                   const SizedBox(height: 8),
@@ -52,39 +53,45 @@ class EsportMatchesView extends StatelessWidget {
                     child: TabBarView(
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
-                        ListView.separated(
-                          itemBuilder: (context, index) {
-                            final match = state.fixtures[index];
-                            return EsportMatchItem(
-                              match: match,
-                              onTap: state.currentUserIsMember
-                                  ? () {
-                                      // show dialog to update match
-                                      _updateMatchDialog(context, match);
-                                    }
-                                  : null,
-                            );
-                          },
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 8),
-                          itemCount: state.fixtures.length,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: ListView.separated(
+                            itemBuilder: (context, index) {
+                              final match = state.fixtures[index];
+                              return EsportMatchItem(
+                                match: match,
+                                onTap: state.currentUserIsMember
+                                    ? () {
+                                        // show dialog to update match
+                                        _updateMatchDialog(context, match);
+                                      }
+                                    : null,
+                              );
+                            },
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 8),
+                            itemCount: state.fixtures.length,
+                          ),
                         ),
-                        ListView.separated(
-                          itemBuilder: (context, index) {
-                            final match = state.results[index];
-                            return EsportMatchItem(
-                              match: match,
-                              onLongPress: state.currentUserIsMember
-                                  ? () {
-                                      // show dialog to update match
-                                      _updateMatchDialog(context, match);
-                                    }
-                                  : null,
-                            );
-                          },
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 4),
-                          itemCount: state.results.length,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: ListView.separated(
+                            itemBuilder: (context, index) {
+                              final match = state.results[index];
+                              return EsportMatchItem(
+                                match: match,
+                                onLongPress: state.currentUserIsMember
+                                    ? () {
+                                        // show dialog to update match
+                                        _updateMatchDialog(context, match);
+                                      }
+                                    : null,
+                              );
+                            },
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 8),
+                            itemCount: state.results.length,
+                          ),
                         ),
                         const SizedBox.shrink(),
                         const SizedBox.shrink(),

@@ -27,22 +27,21 @@ class EsportMatchItem extends StatelessWidget {
           color: Colors.grey[200],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        margin: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Flexible(
+            Expanded(
               flex: 1,
-              child: Text(
-                match.isFinished
-                    ? 'FT'
-                    : DateFormat('d MMM').format(match.date),
-                style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.normal),
+              child: Center(
+                child: Text(
+                  match.isFinished
+                      ? 'FT'
+                      : DateFormat('d MMM').format(match.date),
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.normal),
+                ),
               ),
             ),
-            const SizedBox(width: 8),
-            Flexible(
+            Expanded(
               flex: 6,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,20 +54,24 @@ class EsportMatchItem extends StatelessWidget {
               ),
             ),
             Flexible(
-              child: Column(
-                children: [
-                  Text(
-                    match.homeScore.toString(),
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    match.awayScore.toString(),
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              flex: 1,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      match.homeScore.toString(),
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      match.awayScore.toString(),
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
             )
           ],

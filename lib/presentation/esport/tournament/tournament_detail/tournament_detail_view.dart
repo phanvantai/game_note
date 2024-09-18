@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/core/ultils.dart';
+import 'package:intl/intl.dart';
 
 import 'bloc/tournament_detail_bloc.dart';
 import 'matches/matches_view.dart';
@@ -19,15 +20,18 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   late TabController _tabController;
 
-  final Map<Tab, Widget> tabs = {
-    //const Tab(text: 'Tổng quan'): const EsportOverviewView(),
-    const Tab(text: 'Trận đấu'): const EsportMatchesView(),
-    const Tab(text: 'Bảng điểm'): const EsportTableView(),
-  };
+  Map<Tab, Widget> tabs = {};
 
   @override
   void initState() {
     super.initState();
+
+    // if user is admin, have advance permission, with other tabs
+    tabs = {
+      //const Tab(text: 'Tổng quan'): const EsportOverviewView(),
+      const Tab(text: 'Trận đấu'): const EsportMatchesView(),
+      const Tab(text: 'Bảng điểm'): const EsportTableView(),
+    };
     _tabController = TabController(
       length: tabs.length,
       vsync: this,
@@ -50,7 +54,13 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                 height: 24,
               ),
               const SizedBox(width: 8),
-              Text(state.league.name),
+              Text(
+                state.league.name.isEmpty
+                    ? DateFormat('dd/MM/yyyy').format(state.league.startDate)
+                    : state.league.name,
+                style:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: TabBar(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 
 import '../../../firebase/firestore/esport/league/gn_esport_league.dart';
 
@@ -27,8 +28,11 @@ class TournamentItem extends StatelessWidget {
           width: 32,
           height: 32,
         ),
-        title: Text(league.name),
-        subtitle: league.group != null ? Text(league.group!.groupName) : null,
+        title: Text(league.name.isEmpty
+            ? 'Giải đấu của ${league.group?.groupName ?? ''} - ${DateFormat('dd/MM/yyyy').format(league.startDate)}'
+            : league.name),
+        subtitle:
+            league.description.isEmpty ? Text(league.group!.groupName) : null,
       ),
     );
   }

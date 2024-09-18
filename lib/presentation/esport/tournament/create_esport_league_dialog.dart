@@ -135,10 +135,11 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            if (nameController.text.isEmpty) {
-              showToast('Tên giải đấu không được để trống');
-              return;
-            }
+            // name tournament is not required anymore
+            // if (nameController.text.isEmpty) {
+            //   showToast('Tên giải đấu không được để trống');
+            //   return;
+            // }
             if (selectedGroup == null) {
               showToast('Bạn cần chọn nhóm');
               return;

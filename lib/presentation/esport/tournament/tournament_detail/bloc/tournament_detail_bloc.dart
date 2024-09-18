@@ -40,6 +40,15 @@ class TournamentDetailBloc
         final user = participant.user;
         if (user != null) users.add(user);
       }
+      // sort participants by point, then goal difference, then goals scored, then match played
+      participants.sort((a, b) {
+        if (a.points != b.points) return b.points.compareTo(a.points);
+        if (a.goalDifference != b.goalDifference) {
+          return b.goalDifference.compareTo(a.goalDifference);
+        }
+        if (a.goals != b.goals) return b.goals.compareTo(a.goals);
+        return b.matchesPlayed.compareTo(a.matchesPlayed);
+      });
       emit(state.copyWith(
         viewStatus: ViewStatus.success,
         participants: participants,
