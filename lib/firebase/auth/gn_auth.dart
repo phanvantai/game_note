@@ -55,7 +55,7 @@ class GNAuth {
         //   }
         // }
         if (kDebugMode) {
-          print(e);
+          print('taipv $e ${e.message}');
         }
         throw e;
       },

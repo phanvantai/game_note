@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "256841801977-npdnhbdiuvl3h17vfhp4n9k9lgi20ji1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.november.game_note",
+            "certificate_hash": "25f174751db8f1349687992f36044d10ea7d60cf"
+          }
+        },
+        {
           "client_id": "256841801977-o0qgdp89ccatsi4e4qpjln0bn6ct9gb3.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
