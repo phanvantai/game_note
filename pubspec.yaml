@@ -60,7 +60,7 @@ dependencies:
   # Flutter toast
   fluttertoast: ^8.2.8
 
-  # 
+  # intl
   intl: ^0.18.1
 
 dev_dependencies:
