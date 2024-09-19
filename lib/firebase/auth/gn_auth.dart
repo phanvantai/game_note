@@ -103,6 +103,12 @@ class GNAuth {
     return _auth.signInWithCredential(credential);
   }
 
+  // sign in with apple
+  Future<UserCredential> signInWithApple() async {
+    final appleProvider = AppleAuthProvider();
+    return _auth.signInWithProvider(appleProvider);
+  }
+
   // create user with email and password
   Future<UserCredential> createUserWithEmailAndPassword(
       String email, String password) async {

@@ -19,6 +19,9 @@ class ThirdPartyBloc extends Bloc<ThirdPartyEvent, ThirdPartyState> {
 
   void _signInGoogle(
       ThirdPartySignInGoogle event, Emitter<ThirdPartyState> emit) async {
+    if (state.status == ViewStatus.loading) {
+      return;
+    }
     emit(state.copyWith(status: ViewStatus.loading));
     try {
       final result = await _auth.signInWithGoogle();
@@ -27,6 +30,9 @@ class ThirdPartyBloc extends Bloc<ThirdPartyEvent, ThirdPartyState> {
       }
       emit(state.copyWith(status: ViewStatus.success));
     } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
       if (e is FirebaseAuthException && e.code == 'ERROR_ABORTED_BY_USER') {
         emit(state.copyWith(status: ViewStatus.initial));
         return;
@@ -37,8 +43,27 @@ class ThirdPartyBloc extends Bloc<ThirdPartyEvent, ThirdPartyState> {
 
   void _signInApple(
       ThirdPartySignInApple event, Emitter<ThirdPartyState> emit) async {
+    if (state.status == ViewStatus.loading) {
+      return;
+    }
     emit(state.copyWith(status: ViewStatus.loading));
-    await Future.delayed(const Duration(seconds: 2));
-    emit(state.copyWith(status: ViewStatus.success));
+    try {
+      final result = await _auth.signInWithApple();
+      if (kDebugMode) {
+        print(result.user?.displayName);
+      }
+      emit(state.copyWith(status: ViewStatus.success));
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+
+      if (e is FirebaseAuthException &&
+          (e.code == 'ERROR_ABORTED_BY_USER' || e.code == 'canceled')) {
+        emit(state.copyWith(status: ViewStatus.initial));
+        return;
+      }
+      emit(state.copyWith(status: ViewStatus.failure, error: e.toString()));
+    }
   }
 }
