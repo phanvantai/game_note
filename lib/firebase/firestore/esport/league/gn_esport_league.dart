@@ -7,6 +7,17 @@ import '../group/gn_esport_group.dart';
 enum GNEsportLeagueStatus { upcoming, ongoing, finished }
 
 extension GNEsportLeagueStatusExtension on GNEsportLeagueStatus {
+  String get value {
+    switch (this) {
+      case GNEsportLeagueStatus.upcoming:
+        return 'upcoming';
+      case GNEsportLeagueStatus.ongoing:
+        return 'ongoing';
+      case GNEsportLeagueStatus.finished:
+        return 'finished';
+    }
+  }
+
   String get name {
     switch (this) {
       case GNEsportLeagueStatus.upcoming:
@@ -50,7 +61,7 @@ class GNEsportLeague extends Equatable {
   final String name; // league name
   final DateTime startDate; // start date of the league
   final DateTime? endDate; // end date of the league (nullable)
-  final bool isFinished; // whether the league is finished
+  final bool isActive; // whether the league is active or not
   final String description; // league description
   final List<String> participants; // list of participants
   final GNEsportGroup? group; // group this league belongs to
@@ -66,7 +77,7 @@ class GNEsportLeague extends Equatable {
   static const String fieldName = 'name';
   static const String fieldStartDate = 'startDate';
   static const String fieldEndDate = 'endDate';
-  static const String fieldIsFinished = 'isFinished';
+  static const String fieldIsActive = 'isActive';
   static const String fieldDescription = 'description';
   static const String fieldParticipants = 'participants';
   static const String fieldStatus = 'status';
@@ -78,7 +89,7 @@ class GNEsportLeague extends Equatable {
     required this.name,
     required this.startDate,
     this.endDate,
-    required this.isFinished,
+    required this.isActive,
     required this.description,
     required this.participants,
     this.group,
@@ -93,7 +104,7 @@ class GNEsportLeague extends Equatable {
         name,
         startDate,
         endDate,
-        isFinished,
+        isActive,
         description,
         participants,
         status,
@@ -107,7 +118,7 @@ class GNEsportLeague extends Equatable {
     String? name,
     DateTime? startDate,
     DateTime? endDate,
-    bool? isFinished,
+    bool? isActive,
     String? description,
     List<String>? participants,
     GNEsportGroup? group,
@@ -120,7 +131,7 @@ class GNEsportLeague extends Equatable {
       name: name ?? this.name,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
-      isFinished: isFinished ?? this.isFinished,
+      isActive: isActive ?? this.isActive,
       description: description ?? this.description,
       participants: participants ?? this.participants,
       group: group ?? this.group,
@@ -134,7 +145,7 @@ class GNEsportLeague extends Equatable {
       fieldName: name,
       fieldStartDate: Timestamp.fromDate(startDate),
       if (endDate != null) fieldEndDate: Timestamp.fromDate(endDate!),
-      fieldIsFinished: isFinished,
+      fieldIsActive: isActive,
       fieldDescription: description,
       fieldParticipants: participants,
       fieldStatus: status,
@@ -152,7 +163,7 @@ class GNEsportLeague extends Equatable {
       endDate: data[fieldEndDate] != null
           ? (data[fieldEndDate] as Timestamp).toDate()
           : null,
-      isFinished: data[fieldIsFinished],
+      isActive: data[fieldIsActive] ?? true,
       description: data[fieldDescription],
       participants: List<String>.from(data[fieldParticipants] ?? []),
       status: data[fieldStatus] ?? 'upcoming',

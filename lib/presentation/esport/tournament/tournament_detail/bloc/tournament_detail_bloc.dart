@@ -30,6 +30,43 @@ class TournamentDetailBloc
 
     on<GenerateRound>(_onGenerateRound);
     on<UpdateEsportMatch>(_onUpdateMatch);
+
+    on<ChangeLeagueStatus>(_onChangeLeagueStatus);
+    on<SubmitLeagueStatus>(_onSubmitLeagueStatus);
+
+    on<InactiveLeague>(_onInactiveLeague);
+  }
+
+  void _onInactiveLeague(
+      InactiveLeague event, Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.inactiveLeague(state.league);
+      emit(state.copyWith(viewStatus: ViewStatus.success));
+      showToast('Đã xoá giải đấu');
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onChangeLeagueStatus(
+      ChangeLeagueStatus event, Emitter<TournamentDetailState> emit) async {
+    final newLeague = state.league.copyWith(status: event.status.value);
+    emit(state.copyWith(league: newLeague));
+  }
+
+  void _onSubmitLeagueStatus(
+      SubmitLeagueStatus event, Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.updateLeague(state.league);
+      emit(state.copyWith(viewStatus: ViewStatus.success));
+      showToast('Cập nhật trạng thái giải đấu thành công');
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
   }
 
   void _onGetLeague(
