@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:game_note/firebase/firestore/esport/group/gn_firestore_esport_group.dart';
 import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
@@ -61,6 +62,7 @@ extension GNFirestoreEsportLeague on GNFirestore {
     // Create a new league with default and provided values
     final newLeague = GNEsportLeague(
       id: leaguesCollection.doc().id, // Generate a unique ID
+      ownerId: FirebaseAuth.instance.currentUser?.uid ?? '', // Current user ID
       groupId: groupId, // Group ID
       name: name,
       startDate: startDate ?? DateTime.now(), // Default start date is now

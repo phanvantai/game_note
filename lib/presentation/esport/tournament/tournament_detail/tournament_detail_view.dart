@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import 'bloc/tournament_detail_bloc.dart';
 import 'matches/matches_view.dart';
+import 'setting/esport_league_setting.dart';
 import 'table/table_view.dart';
 
 class TournamentDetailView extends StatefulWidget {
@@ -26,11 +27,14 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   void initState() {
     super.initState();
 
+    final leagueState = BlocProvider.of<TournamentDetailBloc>(context).state;
     // if user is admin, have advance permission, with other tabs
     tabs = {
       //const Tab(text: 'Tổng quan'): const EsportOverviewView(),
       const Tab(text: 'Trận đấu'): const EsportMatchesView(),
       const Tab(text: 'Bảng điểm'): const EsportTableView(),
+      if (leagueState.currentUserIsLeagueAdmin)
+        const Tab(text: 'Cài đặt'): const EsportLeagueSetting(),
     };
     _tabController = TabController(
       length: tabs.length,
@@ -74,7 +78,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   indicatorSize: TabBarIndicatorSize.label,
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
-                  indicatorPadding: const EdgeInsets.symmetric(horizontal: -16),
+                  //indicatorPadding: const EdgeInsets.symmetric(horizontal: -16),
                   //padding: EdgeInsets.symmetric(horizontal: 8),
                 ),
               )

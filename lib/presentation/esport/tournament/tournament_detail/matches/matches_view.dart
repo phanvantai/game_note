@@ -105,7 +105,7 @@ class EsportMatchesView extends StatelessWidget {
               )),
 
           // if current user in group of league
-          if (state.currentUserIsMember)
+          if (state.currentUserIsMember && state.participants.length > 1)
             // add participant button
             Positioned(
               right: 16.0,

@@ -25,4 +25,22 @@ class TournamentState extends Equatable {
 
   @override
   List<Object?> get props => [viewStatus, leagues, errorMessage];
+
+  List<GNEsportLeague> get userLeagues => leagues.where((league) {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          return league.participants.contains(user.uid);
+        } else {
+          return false;
+        }
+      }).toList();
+
+  List<GNEsportLeague> get otherLeagues => leagues.where((league) {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          return !league.participants.contains(user.uid);
+        } else {
+          return false;
+        }
+      }).toList();
 }
