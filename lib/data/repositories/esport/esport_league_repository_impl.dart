@@ -69,4 +69,14 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       awayScore: match.awayScore,
     );
   }
+
+  @override
+  Future<void> updateLeague(GNEsportLeague league) {
+    return getIt<GNFirestore>().updateLeague(league);
+  }
+
+  @override
+  Future<void> inactiveLeague(GNEsportLeague league) {
+    return getIt<GNFirestore>().inactiveLeague(league);
+  }
 }

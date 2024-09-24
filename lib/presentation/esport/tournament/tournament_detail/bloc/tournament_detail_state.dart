@@ -50,6 +50,14 @@ class TournamentDetailState extends Equatable {
         .any((element) => element == FirebaseAuth.instance.currentUser?.uid);
   }
 
+  bool get currentUserIsLeagueAdmin {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == league.group?.ownerId) {
+      return true;
+    }
+    return league.ownerId == FirebaseAuth.instance.currentUser?.uid;
+  }
+
   List<GNEsportMatch> get fixtures {
     return matches.where((element) => !element.isFinished).toList();
   }

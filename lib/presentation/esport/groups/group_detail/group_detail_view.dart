@@ -5,11 +5,21 @@ import 'package:game_note/core/ultils.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:game_note/presentation/users/bloc/user_bloc.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../../../../core/helpers/admob_helper.dart';
 import '../../../users/user_item.dart';
 
-class GroupDetailView extends StatelessWidget {
+class GroupDetailView extends StatefulWidget {
   const GroupDetailView({Key? key}) : super(key: key);
+
+  @override
+  State<GroupDetailView> createState() => _GroupDetailViewState();
+}
+
+class _GroupDetailViewState extends State<GroupDetailView> {
+  BannerAd? _bannerAd;
+  bool isAdsLoaded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +123,13 @@ class GroupDetailView extends StatelessWidget {
           ],
         ),
         floatingActionButton: _floatingButton(context, state),
+        bottomNavigationBar: _bannerAd != null
+            ? SizedBox(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              )
+            : null,
       ),
       listener: (context, state) {
         if (state.errorMessage.isNotEmpty) {
@@ -120,6 +137,61 @@ class GroupDetailView extends StatelessWidget {
         }
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadAd();
+  }
+
+  /// Loads a banner ad.
+  void _loadAd() async {
+    if (isAdsLoaded) {
+      return;
+    }
+    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
+    final AnchoredAdaptiveBannerAdSize? size =
+        await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+            MediaQuery.of(context).size.width.truncate());
+    _bannerAd = BannerAd(
+      adUnitId: AdmobHelper.bannerUnitIDDetailBottom,
+      request: const AdRequest(),
+      size: size ?? AdSize.banner,
+      listener: BannerAdListener(
+        // Called when an ad is successfully received.
+        onAdLoaded: (ad) {
+          debugPrint('$ad loaded.');
+          setState(() {
+            isAdsLoaded = true;
+          });
+        },
+        // Called when an ad request failed.
+        onAdFailedToLoad: (ad, err) {
+          debugPrint('BannerAd failed to load: $err');
+          // Dispose the ad here to free resources.
+          ad.dispose();
+        },
+        // Called when an ad opens an overlay that covers the screen.
+        onAdOpened: (Ad ad) {
+          debugPrint('on Ad Opened');
+        },
+        // Called when an ad removes an overlay that covers the screen.
+        onAdClosed: (Ad ad) {
+          debugPrint('on Ad Closed');
+        },
+        // Called when an impression occurs on the ad.
+        onAdImpression: (Ad ad) {
+          debugPrint('on Ad Impression');
+        },
+      ),
+    )..load();
   }
 
   Widget? _floatingButton(BuildContext context, GroupDetailState state) {

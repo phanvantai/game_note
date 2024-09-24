@@ -52,3 +52,16 @@ class UpdateEsportMatch extends TournamentDetailEvent {
 }
 
 class GetLeagueUpdated extends TournamentDetailEvent {}
+
+class ChangeLeagueStatus extends TournamentDetailEvent {
+  final GNEsportLeagueStatus status;
+
+  const ChangeLeagueStatus(this.status);
+
+  @override
+  List<Object> get props => [status];
+}
+
+class SubmitLeagueStatus extends TournamentDetailEvent {}
+
+class InactiveLeague extends TournamentDetailEvent {}

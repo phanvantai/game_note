@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:game_note/firebase/firestore/esport/group/gn_firestore_esport_group.dart';
 import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
@@ -6,8 +7,10 @@ import 'gn_esport_league.dart';
 
 extension GNFirestoreEsportLeague on GNFirestore {
   Future<List<GNEsportLeague>> getLeagues() async {
-    final snapshot =
-        await firestore.collection(GNEsportLeague.collectionName).get();
+    final snapshot = await firestore
+        .collection(GNEsportLeague.collectionName)
+        .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
+        .get();
 
     List<GNEsportLeague> leagues = [];
     for (final doc in snapshot.docs) {
@@ -61,11 +64,12 @@ extension GNFirestoreEsportLeague on GNFirestore {
     // Create a new league with default and provided values
     final newLeague = GNEsportLeague(
       id: leaguesCollection.doc().id, // Generate a unique ID
+      ownerId: FirebaseAuth.instance.currentUser?.uid ?? '', // Current user ID
       groupId: groupId, // Group ID
       name: name,
       startDate: startDate ?? DateTime.now(), // Default start date is now
       endDate: endDate ?? DateTime.now(), // Default end date is now
-      isFinished: false, // League is not finished by default
+      isActive: true, // League is active by default
       description: description,
       participants: const [], // Empty list of participants
     );
@@ -91,5 +95,17 @@ extension GNFirestoreEsportLeague on GNFirestore {
 
     // Add a new league stat for the participant
     await addLeagueStat(userId: participantId, leagueId: leagueId);
+  }
+
+  Future<void> updateLeague(GNEsportLeague league) async {
+    final leagueRef =
+        firestore.collection(GNEsportLeague.collectionName).doc(league.id);
+    await leagueRef.update(league.toMap());
+  }
+
+  Future<void> inactiveLeague(GNEsportLeague league) async {
+    final leagueRef =
+        firestore.collection(GNEsportLeague.collectionName).doc(league.id);
+    await leagueRef.update({GNEsportLeague.fieldIsActive: false});
   }
 }
