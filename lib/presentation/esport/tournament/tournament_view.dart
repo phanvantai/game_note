@@ -50,18 +50,22 @@ class TournamentView extends StatelessWidget {
                       ),
                     )
                   else
-                    ...state.userLeagues.map(
-                      (league) => TournamentItem(
-                        league: league,
-                        onTap: () async {
-                          final _ = await Navigator.of(context).pushNamed(
-                            Routing.tournamentDetail,
-                            arguments: league,
-                          );
-                          // ignore: use_build_context_synchronously
-                          BlocProvider.of<TournamentBloc>(context)
-                              .add(GetTournaments());
-                        },
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      child: ListView.builder(
+                        itemBuilder: (context, index) => TournamentItem(
+                          league: state.userLeagues[index],
+                          onTap: () async {
+                            final _ = await Navigator.of(context).pushNamed(
+                              Routing.tournamentDetail,
+                              arguments: state.userLeagues[index],
+                            );
+                            // ignore: use_build_context_synchronously
+                            BlocProvider.of<GroupBloc>(context)
+                                .add(GetEsportGroups());
+                          },
+                        ),
+                        itemCount: state.userLeagues.length,
                       ),
                     ),
                   const SizedBox(height: 4),

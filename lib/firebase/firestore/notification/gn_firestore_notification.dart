@@ -25,4 +25,18 @@ extension GNFirestoreNotification on GNFirestore {
         .map((doc) => GNNotification.fromFirestore(doc).copyWith(user: user))
         .toList();
   }
+
+  // Function to set a notification as read
+  Future<void> setNotificationAsRead(
+      String userId, String notificationId) async {
+    // Get the notification document
+    DocumentReference notificationDoc = firestore
+        .collection(GNUser.collectionName)
+        .doc(userId)
+        .collection(GNNotification.collectionName)
+        .doc(notificationId);
+
+    // Update the notification document
+    await notificationDoc.update({GNNotification.fieldIsRead: true});
+  }
 }

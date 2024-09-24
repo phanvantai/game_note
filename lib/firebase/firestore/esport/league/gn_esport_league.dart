@@ -142,6 +142,7 @@ class GNEsportLeague extends Equatable {
   Map<String, dynamic> toMap() {
     return {
       fieldGroupId: groupId,
+      fieldOwnerId: ownerId,
       fieldName: name,
       fieldStartDate: Timestamp.fromDate(startDate),
       if (endDate != null) fieldEndDate: Timestamp.fromDate(endDate!),

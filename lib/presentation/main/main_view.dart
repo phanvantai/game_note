@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/helpers/admob_helper.dart';
 import 'package:game_note/firebase/messaging/gn_firebase_messaging.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
+import 'package:game_note/presentation/notification/bloc/notification_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:provider/provider.dart';
 
 //import '../community/community_view.dart';
 import '../esport/esport_view.dart';
@@ -23,34 +24,57 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
 
-  Map<BottomNavigationBarItem, Widget> tabs = const {
-    // BottomNavigationBarItem(
-    //   icon: Icon(Icons.sports_soccer),
-    //   label: 'Cộng đồng',
-    // ): CommunityView(),
-    // BottomNavigationBarItem(
-    //   icon: Icon(Icons.group),
-    //   label: 'Đội',
-    // ): TeamsView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.sports_esports),
-      label: 'Esport',
-    ): EsportView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.notifications),
-      label: 'Thông báo',
-    ): NotificationView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.person),
-      label: 'Cá nhân',
-    ): ProfileView(),
-  };
+  Map<BottomNavigationBarItem, Widget> tabs = {};
 
   late TabController _tabController;
   @override
   void initState() {
-    _tabController = TabController(length: tabs.length, vsync: this);
     super.initState();
+
+    tabs = {
+      // BottomNavigationBarItem(
+      //   icon: Icon(Icons.sports_soccer),
+      //   label: 'Cộng đồng',
+      // ): CommunityView(),
+      // BottomNavigationBarItem(
+      //   icon: Icon(Icons.group),
+      //   label: 'Đội',
+      // ): TeamsView(),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.sports_esports),
+        label: 'Esport',
+      ): const EsportView(),
+      BottomNavigationBarItem(
+        icon: Stack(
+          children: [
+            const Icon(Icons.notifications),
+            BlocBuilder<NotificationBloc, NotificationState>(
+              builder: (context, state) => state.unreadNotificationsCount > 0
+                  ? Positioned(
+                      right: 4,
+                      top: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        width: 8,
+                        height: 8,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+        label: 'Thông báo',
+      ): const NotificationView(),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: 'Cá nhân',
+      ): const ProfileView(),
+    };
+
+    _tabController = TabController(length: tabs.length, vsync: this);
 
     context.read<GroupBloc>().add(GetEsportGroups());
 

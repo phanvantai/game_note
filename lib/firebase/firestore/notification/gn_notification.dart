@@ -1,6 +1,49 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:game_note/firebase/firestore/user/gn_user.dart';
+
+enum GNNotificationType {
+  unknown,
+  esportsGroup,
+  esportsLeague,
+}
+
+extension GNNotificationTypeExtension on GNNotificationType {
+  String get value {
+    switch (this) {
+      case GNNotificationType.esportsGroup:
+        return 'esport_group';
+      case GNNotificationType.esportsLeague:
+        return 'esport_league';
+      case GNNotificationType.unknown:
+        return 'unknown';
+    }
+  }
+
+  static GNNotificationType fromString(String value) {
+    switch (value) {
+      case 'esport_group':
+        return GNNotificationType.esportsGroup;
+      case 'esport_league':
+        return GNNotificationType.esportsLeague;
+      default:
+        return GNNotificationType.unknown;
+    }
+  }
+
+  Widget get icon {
+    switch (this) {
+      case GNNotificationType.esportsGroup:
+        return SvgPicture.asset('assets/svg/users-line-solid.svg');
+      case GNNotificationType.esportsLeague:
+        return SvgPicture.asset('assets/svg/trophy-solid.svg');
+      case GNNotificationType.unknown:
+        return const Icon(Icons.notifications);
+    }
+  }
+}
 
 class GNNotification extends Equatable {
   final String id; // Notification ID
@@ -100,5 +143,9 @@ class GNNotification extends Equatable {
       isRead: data[fieldIsRead],
       relatedId: data[fieldRelatedId],
     );
+  }
+
+  GNNotificationType get notificationType {
+    return GNNotificationTypeExtension.fromString(type);
   }
 }
