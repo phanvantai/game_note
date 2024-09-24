@@ -67,5 +67,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+
+	<!-- Game Note iOS admob app ID: ca-app-pub-8555407335287438~8401628069 -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-8555407335287438~8401628069</string>
 </dict>
 </plist>

@@ -141,7 +141,7 @@ class _ProfileViewState extends State<ProfileView>
                         if (Platform.isAndroid) {
                           url = Uri.parse(playStoreUrl);
                         } else {
-                          url = Uri.parse(playStoreUrl);
+                          url = Uri.parse(appStoreUrl);
                         }
                         launchUrl(url);
                       },

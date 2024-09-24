@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:game_note/core/helpers/admob_helper.dart';
 import 'package:game_note/firebase/messaging/gn_firebase_messaging.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 //import '../community/community_view.dart';
@@ -18,6 +20,9 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> with TickerProviderStateMixin {
+  BannerAd? _bannerAd;
+  bool isAdsLoaded = false;
+
   Map<BottomNavigationBarItem, Widget> tabs = const {
     // BottomNavigationBarItem(
     //   icon: Icon(Icons.sports_soccer),
@@ -63,7 +68,12 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(width: double.maxFinite, height: 0),
+          if (_bannerAd != null)
+            SizedBox(
+              width: _bannerAd!.size.width.toDouble(),
+              height: _bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            ),
           BottomNavigationBar(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             items: tabs.keys.toList(),
@@ -90,6 +100,56 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   @override
   void dispose() {
     _tabController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadAd();
+  }
+
+  /// Loads a banner ad.
+  void _loadAd() async {
+    if (isAdsLoaded) {
+      return;
+    }
+    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
+    final AnchoredAdaptiveBannerAdSize? size =
+        await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+            MediaQuery.of(context).size.width.truncate());
+    _bannerAd = BannerAd(
+      adUnitId: AdmobHelper.bannerUnitIDHomeBottom,
+      request: const AdRequest(),
+      size: size ?? AdSize.banner,
+      listener: BannerAdListener(
+        // Called when an ad is successfully received.
+        onAdLoaded: (ad) {
+          debugPrint('$ad loaded.');
+          setState(() {
+            isAdsLoaded = true;
+          });
+        },
+        // Called when an ad request failed.
+        onAdFailedToLoad: (ad, err) {
+          debugPrint('BannerAd failed to load: $err');
+          // Dispose the ad here to free resources.
+          ad.dispose();
+        },
+        // Called when an ad opens an overlay that covers the screen.
+        onAdOpened: (Ad ad) {
+          debugPrint('on Ad Opened');
+        },
+        // Called when an ad removes an overlay that covers the screen.
+        onAdClosed: (Ad ad) {
+          debugPrint('on Ad Closed');
+        },
+        // Called when an impression occurs on the ad.
+        onAdImpression: (Ad ad) {
+          debugPrint('on Ad Impression');
+        },
+      ),
+    )..load();
   }
 }

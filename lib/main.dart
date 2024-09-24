@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/app.dart';
 import 'package:game_note/injection_container.dart' as di;
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'offline/data/database/database_manager.dart';
 import 'presentation/app/bloc/app_bloc.dart';
@@ -12,7 +13,7 @@ import 'injection_container.dart';
 var dataFile = '';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  MobileAds.instance.initialize();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
