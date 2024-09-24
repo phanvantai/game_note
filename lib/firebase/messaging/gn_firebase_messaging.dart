@@ -84,6 +84,7 @@ class GNFirebaseMessaging {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (kDebugMode) {
         print('Message clicked: ${message.notification?.body}');
+        print('Message data: ${message.data}');
       }
     });
   }
