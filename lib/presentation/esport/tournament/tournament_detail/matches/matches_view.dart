@@ -19,34 +19,28 @@ class EsportMatchesView extends StatelessWidget {
         children: [
           // list matches
           DefaultTabController(
-              length: 7,
+              length: 2,
               child: Column(
                 children: [
-                  const SizedBox(height: 16),
-                  TabBar(
-                    tabAlignment: TabAlignment.start,
-                    // labelStyle: const TextStyle(color: Colors.white),
-                    isScrollable: true,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    tabs: const [
-                      Tab(child: Text('Lịch thi đấu')),
-                      Tab(child: Text('Kết quả')),
-                      SizedBox.shrink(),
-                      SizedBox.shrink(),
-                      SizedBox.shrink(),
-                      SizedBox.shrink(),
-                      SizedBox.shrink(),
-                    ],
-                    //indicatorColor: Colors.orange,
-                    //indicatorWeight: 4,
-                    indicatorPadding:
-                        const EdgeInsets.symmetric(horizontal: -16),
-                    indicator: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      color: Theme.of(context).secondaryHeaderColor,
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: TabBar(
+                      indicator: BoxDecoration(
+                        borderRadius: BorderRadius.circular(40),
+                        color: Theme.of(context).secondaryHeaderColor,
+                      ),
+                      indicatorPadding:
+                          const EdgeInsets.symmetric(horizontal: -16),
+                      indicatorWeight: 0,
+                      dividerColor: Colors.transparent,
+                      tabAlignment: TabAlignment.start,
+                      isScrollable: true,
+                      tabs: const [
+                        Tab(child: Text('Lịch thi đấu')),
+                        Tab(child: Text('Kết quả')),
+                      ],
                     ),
-                    indicatorWeight: 0,
-                    dividerHeight: 0,
                   ),
                   const SizedBox(height: 8),
                   Expanded(
@@ -93,11 +87,6 @@ class EsportMatchesView extends StatelessWidget {
                             itemCount: state.results.length,
                           ),
                         ),
-                        const SizedBox.shrink(),
-                        const SizedBox.shrink(),
-                        const SizedBox.shrink(),
-                        const SizedBox.shrink(),
-                        const SizedBox.shrink(),
                       ],
                     ),
                   ),
