@@ -207,4 +207,16 @@ extension GNFirestoreUser on GNFirestore {
       GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
     });
   }
+
+  // remove fcm token
+  Future<void> removeFcmToken() async {
+    final user = getIt<GNAuth>().currentUser;
+    if (user == null) {
+      throw Exception('User is not signed in');
+    }
+    await firestore.collection(GNUser.collectionName).doc(user.uid).update({
+      GNUser.fcmTokenKey: FieldValue.delete(),
+      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
 }

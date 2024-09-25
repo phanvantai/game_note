@@ -146,6 +146,8 @@ class GNAuth {
 
   // sign out
   Future<void> signOut() async {
+    // remove fcm token from Firestore
+    await getIt<GNFirestore>().removeFcmToken();
     return _auth.signOut();
   }
 }
