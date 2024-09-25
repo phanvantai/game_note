@@ -42,7 +42,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Allow user choose file to import datbase</string>
+	<string>Ứng dụng cần quyền truy cập thư viện ảnh để bạn có thể thay đổi ảnh đại diện.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
