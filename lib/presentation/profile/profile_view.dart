@@ -198,6 +198,14 @@ class _ProfileViewState extends State<ProfileView>
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.settings),
+                title: const Text('Tuỳ chọn khác'),
+                onTap: () {
+                  Navigator.of(context).pushNamed(Routing.setting,
+                      arguments: context.read<ProfileBloc>());
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.info),
                 title: const Text('Phiên bản'),
                 trailing: FutureBuilder<AppInfo>(
@@ -210,17 +218,6 @@ class _ProfileViewState extends State<ProfileView>
                     }
                   },
                 ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete),
-                iconColor: Colors.red,
-                title: const Text(
-                  'Xoá tài khoản',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: () {
-                  _deleteAccount(context);
-                },
               ),
               ListTile(
                 leading: const Icon(Icons.logout),
@@ -266,39 +263,10 @@ class _ProfileViewState extends State<ProfileView>
               },
               child: const Text(
                 'Đăng xuất',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deleteAccount(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext ctx) {
-        return AlertDialog(
-          title: const Text('Xác nhận'),
-          content: const Text(
-              'Bạn có chắc chắn muốn xoá tài khoản không?\n\nTất cả dữ liệu cá nhân của bạn sẽ bị xoá và không thể khôi phục. Một số dữ liệu liên quan đến nhóm và các người chơi khác sẽ vẫn được giữ lại.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Huỷ'),
-            ),
-            TextButton(
-              onPressed: () {
-                context.read<ProfileBloc>().add(DeleteProfileEvent());
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'Xoá tài khoản',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
               ),
             ),
           ],

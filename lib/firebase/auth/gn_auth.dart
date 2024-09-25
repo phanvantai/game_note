@@ -15,6 +15,10 @@ class GNAuth {
 
   User? get currentUser => _auth.currentUser;
 
+  bool get isSignInWithEmailAndPassword => _isSignInWithEmailAndPassword;
+
+  bool _isSignInWithEmailAndPassword = false;
+
   GNAuth() {
     // Listen to auth state changes
     _auth.authStateChanges().listen(
@@ -29,6 +33,8 @@ class GNAuth {
         // create user in Firestore if not exists
         if (user != null) {
           getIt<GNFirestore>().createUserIfNeeded(user);
+
+          checkLoginMethod();
         }
       },
       onDone: () {
@@ -149,5 +155,21 @@ class GNAuth {
     // remove fcm token from Firestore
     await getIt<GNFirestore>().removeFcmToken();
     return _auth.signOut();
+  }
+
+  void checkLoginMethod() {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      // Get the list of sign-in methods for the current user
+      List<UserInfo> providerData = user.providerData;
+      for (var provider in providerData) {
+        if (provider.providerId == 'password') {
+          _isSignInWithEmailAndPassword = true;
+        } else {
+          _isSignInWithEmailAndPassword = false;
+        }
+      }
+    }
   }
 }

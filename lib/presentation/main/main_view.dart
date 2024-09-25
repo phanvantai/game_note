@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/helpers/admob_helper.dart';
@@ -8,9 +9,11 @@ import 'package:game_note/presentation/notification/bloc/notification_bloc.dart'
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 //import '../community/community_view.dart';
+import '../community/community_view.dart';
 import '../esport/esport_view.dart';
 import '../notification/notification_view.dart';
 import '../profile/profile_view.dart';
+import '../team/teams_view.dart';
 //import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
@@ -32,14 +35,16 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
     super.initState();
 
     tabs = {
-      // BottomNavigationBarItem(
-      //   icon: Icon(Icons.sports_soccer),
-      //   label: 'Cộng đồng',
-      // ): CommunityView(),
-      // BottomNavigationBarItem(
-      //   icon: Icon(Icons.group),
-      //   label: 'Đội',
-      // ): TeamsView(),
+      if (kDebugMode)
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.sports_soccer),
+          label: 'Cộng đồng',
+        ): const CommunityView(),
+      if (kDebugMode)
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.group),
+          label: 'Đội',
+        ): const TeamsView(),
       const BottomNavigationBarItem(
         icon: Icon(Icons.sports_esports),
         label: 'Esport',

@@ -6,6 +6,7 @@ import 'package:game_note/presentation/team/create_team/create_team_page.dart';
 
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
+import 'presentation/profile/setting/setting_page.dart';
 import 'presentation/profile/update/update_profile_page.dart';
 
 class Routing {
@@ -24,6 +25,7 @@ class Routing {
 
   // profile
   static const String updateProfile = '/update-profile';
+  static const String setting = '/setting';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return fadeThrough(settings, (context) {
@@ -45,6 +47,8 @@ class Routing {
         // profile
         case Routing.updateProfile:
           return const UpdateProfilePage();
+        case Routing.setting:
+          return const SettingPage();
         default:
           return const AppView();
       }
