@@ -16,7 +16,7 @@ class GroupItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white60,
+        color: Theme.of(context).secondaryHeaderColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
