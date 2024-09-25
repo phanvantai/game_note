@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/common/app_info.dart';
+import '../../core/common/view_status.dart';
 import '../../core/constants/constants.dart';
 import '../../core/ultils.dart';
 import '../../routing.dart';
@@ -37,6 +38,8 @@ class _ProfileViewState extends State<ProfileView>
         body: SafeArea(
           child: ListView(
             children: [
+              if (state.viewStatus == ViewStatus.loading)
+                const LinearProgressIndicator(),
               const SizedBox(height: 16),
               Center(
                 child: InkWell(
@@ -101,12 +104,44 @@ class _ProfileViewState extends State<ProfileView>
               ),
               const SizedBox(height: 16),
               Center(
-                child: Text(
-                  state.displayUser,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    state.displayUser.isNotEmpty
+                        ? Text(
+                            state.displayUser,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red[200],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: const Text(
+                              'Vui lòng cập nhật thông tin',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                    IconButton(
+                      onPressed: () async {
+                        final _ = await Navigator.of(context).pushNamed(
+                            Routing.updateProfile,
+                            arguments: state.user);
+                        // reload profile
+                        // ignore: use_build_context_synchronously
+                        context.read<ProfileBloc>().add(LoadProfileEvent());
+                      },
+                      icon: const Icon(Icons.edit),
+                    )
+                  ],
                 ),
               ),
               const SizedBox(height: 16),

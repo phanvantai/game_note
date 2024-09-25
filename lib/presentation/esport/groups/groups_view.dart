@@ -61,6 +61,7 @@ class GroupsView extends StatelessWidget {
                             child: Center(
                               child: Column(
                                 children: [
+                                  const SizedBox(height: 100),
                                   emptyImage,
                                   const Text(
                                     'Không có nhóm nào.',

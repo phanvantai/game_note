@@ -219,4 +219,41 @@ extension GNFirestoreUser on GNFirestore {
       GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
     });
   }
+
+  // update user profile
+  Future<void> updateProfile({
+    String? displayName,
+    String? phoneNumber,
+    String? email,
+  }) async {
+    final user = getIt<GNAuth>().currentUser;
+    if (user == null) {
+      throw Exception('User is not signed in');
+    }
+    final userDoc =
+        await firestore.collection(GNUser.collectionName).doc(user.uid).get();
+    if (!userDoc.exists) {
+      throw Exception('User not found');
+    }
+    final data = <String, dynamic>{};
+    if (displayName != null && displayName.isNotEmpty) {
+      data[GNUser.displayNameKey] = displayName;
+    }
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      data[GNUser.phoneNumberKey] = phoneNumber;
+    }
+    if (email != null && email.isNotEmpty) {
+      data[GNUser.emailKey] = email;
+    }
+    data[GNCommonFields.updatedAt] = FieldValue.serverTimestamp();
+    await firestore
+        .collection(GNUser.collectionName)
+        .doc(user.uid)
+        .update(data);
+
+    // update firebase user profile
+    FirebaseAuth.instance.currentUser?.updateDisplayName(displayName);
+    //FirebaseAuth.instance.currentUser?.updateEmail(email);
+    //FirebaseAuth.instance.currentUser?.updatePhoneNumber(phoneNumber);
+  }
 }

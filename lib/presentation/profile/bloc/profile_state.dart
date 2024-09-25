@@ -24,7 +24,7 @@ class ProfileState extends Equatable {
   }
 
   String get displayUser =>
-      user?.displayName ?? user?.phoneNumber ?? user?.email ?? 'Chưa đặt tên';
+      user?.displayName ?? user?.phoneNumber ?? user?.email ?? '';
 
   @override
   List<Object?> get props => [viewStatus, user, error];

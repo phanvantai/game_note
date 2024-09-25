@@ -5,6 +5,12 @@ abstract class UserRepository {
   Future<void> deleteAccount();
   Future<GNUser> loadProfile();
 
+  Future<void> updateProfile({
+    String? displayName,
+    String? phoneNumber,
+    String? email,
+  });
+
   Future<void> changeAvatar();
   Future<void> deleteAvatar();
 
