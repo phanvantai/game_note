@@ -60,13 +60,13 @@ class EsportMatchItem extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      match.homeScore.toString(),
+                      match.isFinished ? match.homeScore.toString() : '-',
                       style: const TextStyle(
                           fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      match.awayScore.toString(),
+                      match.isFinished ? match.awayScore.toString() : '-',
                       style: const TextStyle(
                           fontSize: 13, fontWeight: FontWeight.bold),
                     ),

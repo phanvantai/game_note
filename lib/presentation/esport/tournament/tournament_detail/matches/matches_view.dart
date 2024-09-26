@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:game_note/core/ultils.dart';
 import 'package:game_note/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/create_custom_match_dialog.dart';
 import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item.dart';
 import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_team.dart';
 
@@ -52,14 +54,31 @@ class EsportMatchesView extends StatelessWidget {
                           child: ListView.separated(
                             itemBuilder: (context, index) {
                               final match = state.fixtures[index];
-                              return EsportMatchItem(
-                                match: match,
-                                onTap: state.currentUserIsMember
-                                    ? () {
-                                        // show dialog to update match
-                                        _updateMatchDialog(context, match);
-                                      }
-                                    : null,
+                              return Slidable(
+                                endActionPane: ActionPane(
+                                  motion: const StretchMotion(),
+                                  children: [
+                                    SlidableAction(
+                                      borderRadius: BorderRadius.circular(8),
+                                      backgroundColor: Colors.red,
+                                      icon: Icons.delete,
+                                      onPressed: (context) {
+                                        context
+                                            .read<TournamentDetailBloc>()
+                                            .add(DeleteEsportMatch(match));
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                child: EsportMatchItem(
+                                  match: match,
+                                  onTap: state.currentUserIsMember
+                                      ? () {
+                                          // show dialog to update match
+                                          _updateMatchDialog(context, match);
+                                        }
+                                      : null,
+                                ),
                               );
                             },
                             separatorBuilder: (context, index) =>
@@ -72,14 +91,31 @@ class EsportMatchesView extends StatelessWidget {
                           child: ListView.separated(
                             itemBuilder: (context, index) {
                               final match = state.results[index];
-                              return EsportMatchItem(
-                                match: match,
-                                onLongPress: state.currentUserIsMember
-                                    ? () {
-                                        // show dialog to update match
-                                        _updateMatchDialog(context, match);
-                                      }
-                                    : null,
+                              return Slidable(
+                                endActionPane: ActionPane(
+                                  motion: const StretchMotion(),
+                                  children: [
+                                    SlidableAction(
+                                      borderRadius: BorderRadius.circular(8),
+                                      backgroundColor: Colors.red,
+                                      icon: Icons.delete,
+                                      onPressed: (context) {
+                                        context
+                                            .read<TournamentDetailBloc>()
+                                            .add(DeleteEsportMatch(match));
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                child: EsportMatchItem(
+                                  match: match,
+                                  onLongPress: state.currentUserIsMember
+                                      ? () {
+                                          // show dialog to update match
+                                          _updateMatchDialog(context, match);
+                                        }
+                                      : null,
+                                ),
                               );
                             },
                             separatorBuilder: (context, index) =>
@@ -97,15 +133,41 @@ class EsportMatchesView extends StatelessWidget {
           if (state.currentUserIsMember && state.participants.length > 1)
             // add participant button
             Positioned(
+              left: 16.0,
               right: 16.0,
               bottom: 16.0,
-              child: GNFloatingButton(
-                label: 'Thêm vòng đấu',
-                onPressed: () {
-                  context
-                      .read<TournamentDetailBloc>()
-                      .add(const GenerateRound());
-                },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GNFloatingButton(
+                    label: 'Thêm trận đấu',
+                    onPressed: () {
+                      // show dialog to pick 2 teams
+                      showDialog(
+                        context: context,
+                        builder: (cxt) => CreateCustomMatchDialog(
+                            users: state.users,
+                            onMatchCreated: (home, away) {
+                              context
+                                  .read<TournamentDetailBloc>()
+                                  .add(CreateCustomMatch(
+                                    homeTeam: home,
+                                    awayTeam: away,
+                                  ));
+                              Navigator.of(context).pop();
+                            }),
+                      );
+                    },
+                  ),
+                  GNFloatingButton(
+                    label: 'Thêm vòng đấu',
+                    onPressed: () {
+                      context
+                          .read<TournamentDetailBloc>()
+                          .add(const GenerateRound());
+                    },
+                  )
+                ],
               ),
             ),
         ],
