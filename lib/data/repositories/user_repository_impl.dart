@@ -66,4 +66,9 @@ class UserRepositoryImpl implements UserRepository {
   Future<void> changePassword(String oldPassword, String newPassword) {
     return getIt<GNAuth>().changePassword(oldPassword, newPassword);
   }
+
+  @override
+  Future<GNUser?> getUser(String userId) {
+    return getIt<GNFirestore>().getUserById(userId);
+  }
 }

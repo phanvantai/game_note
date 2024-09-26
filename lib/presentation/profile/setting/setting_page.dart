@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:game_note/injection_container.dart';
 import 'package:game_note/routing.dart';

@@ -5,6 +5,8 @@ abstract class UserRepository {
   Future<void> deleteAccount();
   Future<GNUser> loadProfile();
 
+  Future<GNUser?> getUser(String userId);
+
   Future<void> updateProfile({
     String? displayName,
     String? phoneNumber,

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/presentation/app/bloc/app_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/common/app_info.dart';
@@ -23,6 +24,26 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView>
     with AutomaticKeepAliveClientMixin {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    final appBloc = context.read<AppBloc>();
+
+    setState(() {
+      if (!appBloc.state.enableFootballFeature) {
+        _counter++;
+      } else {
+        _counter--;
+      }
+    });
+    if (_counter == 10) {
+      context.read<AppBloc>().add(const UpdateFootballFeature(true));
+    }
+    if (_counter == -10) {
+      context.read<AppBloc>().add(const UpdateFootballFeature(false));
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -206,6 +227,7 @@ class _ProfileViewState extends State<ProfileView>
                 },
               ),
               ListTile(
+                onTap: _incrementCounter,
                 leading: const Icon(Icons.info),
                 title: const Text('Phiên bản'),
                 trailing: FutureBuilder<AppInfo>(

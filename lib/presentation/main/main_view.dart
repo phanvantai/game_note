@@ -9,6 +9,7 @@ import 'package:game_note/presentation/notification/bloc/notification_bloc.dart'
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 //import '../community/community_view.dart';
+import '../app/bloc/app_bloc.dart';
 import '../community/community_view.dart';
 import '../esport/esport_view.dart';
 import '../notification/notification_view.dart';
@@ -34,13 +35,14 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
+    final appState = context.read<AppBloc>().state;
     tabs = {
-      if (kDebugMode)
+      if (appState.enableFootballFeature)
         const BottomNavigationBarItem(
           icon: Icon(Icons.sports_soccer),
           label: 'Cộng đồng',
         ): const CommunityView(),
-      if (kDebugMode)
+      if (appState.enableFootballFeature)
         const BottomNavigationBarItem(
           icon: Icon(Icons.group),
           label: 'Đội',
@@ -113,7 +115,9 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
             showUnselectedLabels: true,
             enableFeedback: true,
-            type: BottomNavigationBarType.shifting,
+            type: tabs.length > 3
+                ? BottomNavigationBarType.shifting
+                : BottomNavigationBarType.fixed,
           ),
         ],
       ),

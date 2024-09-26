@@ -8,19 +8,24 @@ extension AppStatusX on AppStatus {
 
 class AppState extends Equatable {
   final AppStatus status;
+  final bool enableFootballFeature;
 
   const AppState({
     this.status = AppStatus.unknown,
+    this.enableFootballFeature = false,
   });
 
   AppState copyWith({
     AppStatus? status,
+    bool? enableFootballFeature,
   }) {
     return AppState(
       status: status ?? this.status,
+      enableFootballFeature:
+          enableFootballFeature ?? this.enableFootballFeature,
     );
   }
 
   @override
-  List<Object?> get props => [status];
+  List<Object?> get props => [status, enableFootballFeature];
 }
