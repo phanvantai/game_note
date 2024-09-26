@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:game_note/injection_container.dart';
+import 'package:game_note/routing.dart';
 
 import '../../../firebase/auth/gn_auth.dart';
 import '../bloc/profile_bloc.dart';
@@ -18,12 +19,12 @@ class SettingPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Tuỳ chọn khác')),
       body: ListView(
         children: [
-          if (auth.isSignInWithEmailAndPassword && kDebugMode)
+          if (auth.isSignInWithEmailAndPassword)
             ListTile(
               leading: const Icon(Icons.password),
               title: const Text('Đổi mật khẩu'),
               onTap: () {
-                Navigator.of(context).pushNamed('/update-profile');
+                Navigator.of(context).pushNamed(Routing.changePassword);
               },
             ),
           ListTile(

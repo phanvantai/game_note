@@ -9,6 +9,7 @@ import 'package:game_note/offline/domain/usecases/get_league.dart';
 import 'package:game_note/offline/domain/usecases/get_leagues.dart';
 import 'package:game_note/offline/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/offline/domain/usecases/update_match.dart';
+import 'package:game_note/presentation/profile/change_password/bloc/change_password_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -112,4 +113,6 @@ Future<void> init() async {
 
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
   getIt.registerFactory<NotificationBloc>(() => NotificationBloc(getIt()));
+
+  getIt.registerFactory<ChangePasswordBloc>(() => ChangePasswordBloc(getIt()));
 }

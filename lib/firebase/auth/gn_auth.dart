@@ -172,4 +172,25 @@ class GNAuth {
       }
     }
   }
+
+  // change password
+  Future<void> changePassword(String oldPassword, String newPassword) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        // reauthenticate
+        final AuthCredential credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: oldPassword,
+        );
+        await user.reauthenticateWithCredential(credential);
+        await user.updatePassword(newPassword);
+      } on FirebaseAuthException catch (_) {
+        rethrow;
+      } catch (_) {
+        rethrow;
+      }
+    }
+  }
 }

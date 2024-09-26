@@ -111,7 +111,7 @@ class _ProfileViewState extends State<ProfileView>
                         ? Text(
                             state.displayUser,
                             style: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           )

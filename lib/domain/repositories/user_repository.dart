@@ -11,6 +11,8 @@ abstract class UserRepository {
     String? email,
   });
 
+  Future<void> changePassword(String oldPassword, String newPassword);
+
   Future<void> changeAvatar();
   Future<void> deleteAvatar();
 

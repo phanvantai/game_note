@@ -61,4 +61,9 @@ class UserRepositoryImpl implements UserRepository {
       email: email,
     );
   }
+
+  @override
+  Future<void> changePassword(String oldPassword, String newPassword) {
+    return getIt<GNAuth>().changePassword(oldPassword, newPassword);
+  }
 }

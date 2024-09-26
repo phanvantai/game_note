@@ -113,7 +113,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
             showUnselectedLabels: true,
             enableFeedback: true,
-            type: BottomNavigationBarType.fixed,
+            type: BottomNavigationBarType.shifting,
           ),
         ],
       ),

@@ -30,15 +30,15 @@ class GroupsView extends StatelessWidget {
                     const LinearProgressIndicator(),
                   const SizedBox(height: 8),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: TabBar(
                       // dividerHeight: 0,
                       indicator: BoxDecoration(
                         borderRadius: BorderRadius.circular(40),
                         color: Colors.cyan[100],
                       ),
-                      indicatorPadding:
-                          const EdgeInsets.symmetric(horizontal: -16),
+                      indicatorPadding: const EdgeInsets.symmetric(
+                          horizontal: -12, vertical: 4),
                       indicatorWeight: 0,
                       dividerColor: Colors.transparent,
                       tabAlignment: TabAlignment.start,
@@ -49,7 +49,6 @@ class GroupsView extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
                   Expanded(
                     child: TabBarView(
                       physics: const NeverScrollableScrollPhysics(),

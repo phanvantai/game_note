@@ -75,6 +75,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
+                      FocusScope.of(context).unfocus();
                       // submit update profile
                       context
                           .read<UpdateProfileBloc>()
