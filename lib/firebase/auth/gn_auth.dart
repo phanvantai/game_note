@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
+import 'package:game_note/service/permission_util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../injection_container.dart';
@@ -15,10 +16,14 @@ class GNAuth {
 
   User? get currentUser => _auth.currentUser;
 
+  bool get isSignInWithEmailAndPassword => _isSignInWithEmailAndPassword;
+
+  bool _isSignInWithEmailAndPassword = false;
+
   GNAuth() {
     // Listen to auth state changes
     _auth.authStateChanges().listen(
-      (User? user) {
+      (User? user) async {
         if (kDebugMode) {
           print('Auth state changed: ${user?.uid}');
         }
@@ -28,7 +33,9 @@ class GNAuth {
 
         // create user in Firestore if not exists
         if (user != null) {
-          getIt<GNFirestore>().createUserIfNeeded(user);
+          final gnUser = await getIt<GNFirestore>().createUserIfNeeded(user);
+          getIt<PermissionUtil>().setCurrentUser(gnUser);
+          checkLoginMethod();
         }
       },
       onDone: () {
@@ -146,6 +153,45 @@ class GNAuth {
 
   // sign out
   Future<void> signOut() async {
+    // remove fcm token from Firestore
+    await getIt<GNFirestore>().removeFcmToken();
     return _auth.signOut();
+  }
+
+  void checkLoginMethod() {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      // Get the list of sign-in methods for the current user
+      List<UserInfo> providerData = user.providerData;
+      for (var provider in providerData) {
+        if (provider.providerId == 'password') {
+          _isSignInWithEmailAndPassword = true;
+        } else {
+          _isSignInWithEmailAndPassword = false;
+        }
+      }
+    }
+  }
+
+  // change password
+  Future<void> changePassword(String oldPassword, String newPassword) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        // reauthenticate
+        final AuthCredential credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: oldPassword,
+        );
+        await user.reauthenticateWithCredential(credential);
+        await user.updatePassword(newPassword);
+      } on FirebaseAuthException catch (_) {
+        rethrow;
+      } catch (_) {
+        rethrow;
+      }
+    }
   }
 }

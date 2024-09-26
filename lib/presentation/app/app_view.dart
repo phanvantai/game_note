@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../routing.dart';
 import '../auth/auth_view.dart';
 import '../main/main_page.dart';
 import 'bloc/app_bloc.dart';
@@ -10,7 +11,13 @@ class AppView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AppBloc, AppState>(
+    return BlocConsumer<AppBloc, AppState>(
+      listenWhen: (previous, current) =>
+          previous.enableFootballFeature != current.enableFootballFeature,
+      listener: (context, state) {
+        // Do something
+        Navigator.of(context).pushReplacementNamed(Routing.app);
+      },
       buildWhen: (previous, current) => previous.status != current.status,
       builder: (context, state) => AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),

@@ -16,3 +16,12 @@ class AuthStatusChanged extends AppEvent {
   @override
   List<Object?> get props => [status];
 }
+
+class UpdateFootballFeature extends AppEvent {
+  final bool enableFootballFeature;
+
+  const UpdateFootballFeature(this.enableFootballFeature);
+
+  @override
+  List<Object?> get props => [enableFootballFeature];
+}

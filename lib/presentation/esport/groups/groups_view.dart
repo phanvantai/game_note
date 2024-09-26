@@ -22,96 +22,104 @@ class GroupsView extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           body: SafeArea(
-            child: Column(
-              children: [
-                if (state.viewStatus == ViewStatus.loading)
-                  const LinearProgressIndicator(),
-                ExpansionTile(
-                  backgroundColor: Colors.orange[100],
-                  collapsedBackgroundColor: Colors.orange[100],
-                  shape: Border.all(color: Colors.transparent),
-                  title: const Text('Nhóm của bạn'),
-                  initiallyExpanded: true,
-                  maintainState: true,
-                  children: [
-                    if (state.userGroups.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 60, vertical: 8),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              emptyImage,
-                              const Text(
-                                'Không có nhóm nào.',
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      ...state.userGroups.map(
-                        (group) => GroupItem(
-                          group: group,
-                          onTap: () async {
-                            final _ = await Navigator.of(context).pushNamed(
-                              Routing.groupDetail,
-                              arguments: group,
-                            );
-                            // ignore: use_build_context_synchronously
-                            BlocProvider.of<GroupBloc>(context)
-                                .add(GetEsportGroups());
-                          },
-                        ),
+            child: DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  if (state.viewStatus == ViewStatus.loading)
+                    const LinearProgressIndicator(),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: TabBar(
+                      // dividerHeight: 0,
+                      indicator: BoxDecoration(
+                        borderRadius: BorderRadius.circular(40),
+                        color: Colors.cyan[100],
                       ),
-                    const SizedBox(height: 4),
-                  ],
-                ),
-                ExpansionTile(
-                  backgroundColor: Colors.lime[100],
-                  collapsedBackgroundColor: Colors.lime[100],
-                  shape: Border.all(color: Colors.transparent),
-                  title: const Text('Nhóm khác'),
-                  initiallyExpanded: true,
-                  showTrailingIcon: false,
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.lime[100],
+                      indicatorPadding: const EdgeInsets.symmetric(
+                          horizontal: -12, vertical: 4),
+                      indicatorWeight: 0,
+                      dividerColor: Colors.transparent,
+                      tabAlignment: TabAlignment.start,
+                      isScrollable: true,
+                      tabs: const [
+                        Tab(text: 'Nhóm của bạn'),
+                        Tab(text: 'Nhóm khác'),
+                      ],
                     ),
-                    child: state.otherGroups.isEmpty
-                        ? Center(
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 100),
-                                emptyImage,
-                                const Text(
-                                  'Không có nhóm nào',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        if (state.userGroups.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 60, vertical: 8),
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 100),
+                                  emptyImage,
+                                  const Text(
+                                    'Không có nhóm nào.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
                             ),
                           )
-                        : ListView.builder(
+                        else
+                          ListView.builder(
                             itemBuilder: (context, index) => GroupItem(
-                              group: state.otherGroups[index],
+                              group: state.userGroups[index],
                               onTap: () async {
                                 final _ = await Navigator.of(context).pushNamed(
                                   Routing.groupDetail,
-                                  arguments: state.otherGroups[index],
+                                  arguments: state.userGroups[index],
                                 );
                                 // ignore: use_build_context_synchronously
                                 BlocProvider.of<GroupBloc>(context)
                                     .add(GetEsportGroups());
                               },
                             ),
-                            itemCount: state.otherGroups.length,
+                            itemCount: state.userGroups.length,
                           ),
-                  ),
-                ),
-              ],
+                        state.otherGroups.isEmpty
+                            ? Center(
+                                child: Column(
+                                  children: [
+                                    const SizedBox(height: 100),
+                                    emptyImage,
+                                    const Text(
+                                      'Không có nhóm nào',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.builder(
+                                itemBuilder: (context, index) => GroupItem(
+                                  group: state.otherGroups[index],
+                                  onTap: () async {
+                                    final _ =
+                                        await Navigator.of(context).pushNamed(
+                                      Routing.groupDetail,
+                                      arguments: state.otherGroups[index],
+                                    );
+                                    // ignore: use_build_context_synchronously
+                                    BlocProvider.of<GroupBloc>(context)
+                                        .add(GetEsportGroups());
+                                  },
+                                ),
+                                itemCount: state.otherGroups.length,
+                              )
+                      ],
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
           floatingActionButton: ElevatedButton.icon(

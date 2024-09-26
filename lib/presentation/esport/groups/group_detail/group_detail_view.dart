@@ -108,14 +108,26 @@ class _GroupDetailViewState extends State<GroupDetailView> {
                   .map(
                     (user) => UserItem(
                       user: user,
-                      trailing: state.isOwner && !user.isCurrentUser
-                          ? IconButton(
-                              onPressed: () {
-                                _removeMember(false, context, state, user.id);
-                              },
-                              icon: const Icon(Icons.remove_circle),
-                            )
-                          : null,
+                      trailing: state.isOwner
+                          ? !user.isCurrentUser
+                              ? IconButton(
+                                  onPressed: () {
+                                    _removeMember(
+                                        false, context, state, user.id);
+                                  },
+                                  icon: const Icon(Icons.person_remove_sharp),
+                                )
+                              : IconButton(
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.admin_panel_settings,
+                                    color: Colors.red,
+                                  ),
+                                )
+                          : user.id == state.group.ownerId
+                              ? const Icon(Icons.admin_panel_settings,
+                                  color: Colors.red)
+                              : null,
                     ),
                   )
                   .toList(),

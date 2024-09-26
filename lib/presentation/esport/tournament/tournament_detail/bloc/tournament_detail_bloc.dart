@@ -35,6 +35,48 @@ class TournamentDetailBloc
     on<SubmitLeagueStatus>(_onSubmitLeagueStatus);
 
     on<InactiveLeague>(_onInactiveLeague);
+
+    on<DeleteEsportMatch>(_onDeleteMatch);
+    on<CreateCustomMatch>(_onCreateCustomMatch);
+  }
+
+  void _onCreateCustomMatch(
+      CreateCustomMatch event, Emitter<TournamentDetailState> emit) async {
+    if (state.viewStatus == ViewStatus.loading) {
+      return;
+    }
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      final match = GNEsportMatch(
+        id: '',
+        homeTeamId: event.homeTeam.id,
+        awayTeamId: event.awayTeam.id,
+        homeScore: 0,
+        awayScore: 0,
+        date: DateTime.now(),
+        isFinished: false,
+        leagueId: league.id,
+      );
+      await _esportLeagueRepository.createCustomMatch(match);
+      add(GetMatches(league.id));
+      showToast('Tạo trận đấu thành công');
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onDeleteMatch(
+      DeleteEsportMatch event, Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.deleteMatch(event.match);
+      add(GetParticipantStats(league.id));
+      showToast('Xoá trận đấu thành công');
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
   }
 
   void _onInactiveLeague(
@@ -156,6 +198,10 @@ class TournamentDetailBloc
 
   void _onGenerateRound(
       GenerateRound event, Emitter<TournamentDetailState> emit) async {
+    if (state.participants.length < 2 ||
+        state.viewStatus == ViewStatus.loading) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.generateRound(

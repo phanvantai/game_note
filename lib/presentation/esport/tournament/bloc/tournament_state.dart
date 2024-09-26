@@ -41,6 +41,9 @@ class TournamentState extends Equatable {
   List<GNEsportLeague> get otherLeagues => leagues.where((league) {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
+          if (league.ownerId == user.uid) {
+            return false;
+          }
           return !league.participants.contains(user.uid);
         } else {
           return false;

@@ -50,11 +50,14 @@ void showSnackBar(BuildContext context, String message) {
 }
 
 // Show toast message
-void showToast(String message) {
+void showToast(
+  String message, {
+  ToastGravity gravity = ToastGravity.BOTTOM,
+}) {
   Fluttertoast.showToast(
     msg: message,
     toastLength: Toast.LENGTH_SHORT,
-    gravity: ToastGravity.BOTTOM,
+    gravity: gravity,
     timeInSecForIosWeb: 1,
     backgroundColor: Colors.black54,
     textColor: Colors.white,

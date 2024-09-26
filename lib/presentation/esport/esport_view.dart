@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/presentation/esport/chat/esport_chat_view.dart';
 
 import 'bloc/esport_bloc.dart';
 import 'groups/groups_view.dart';
@@ -17,15 +18,19 @@ class _EsportViewState extends State<EsportView>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
 
-  final Map<Tab, Widget> tabs = {
-    const Tab(text: 'Giải đấu'): const TournamentView(),
-    const Tab(text: 'Nhóm'): const GroupsView(),
-  };
+  Map<Tab, Widget> tabs = {};
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: tabs.length, vsync: this);
+
+    tabs = {
+      const Tab(text: 'Cộng đồng'): const EsportChatView(),
+      const Tab(text: 'Giải đấu'): const TournamentView(),
+      const Tab(text: 'Nhóm'): const GroupsView(),
+    };
+    _tabController =
+        TabController(length: tabs.length, vsync: this, initialIndex: 1);
   }
 
   @override

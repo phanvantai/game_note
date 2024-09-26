@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:game_note/offline/presentation/offline_view.dart';
 import 'package:game_note/presentation/app/app_view.dart';
 import 'package:game_note/presentation/auth/verify/verify_page.dart';
+import 'package:game_note/presentation/profile/change_password/change_password_page.dart';
 import 'package:game_note/presentation/team/create_team/create_team_page.dart';
 
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
+import 'presentation/profile/setting/setting_page.dart';
+import 'presentation/profile/update/update_profile_page.dart';
 
 class Routing {
   static const String app = '/';
@@ -20,6 +23,11 @@ class Routing {
   // esport
   static const String groupDetail = '/group-detail';
   static const String tournamentDetail = '/tournament-detail';
+
+  // profile
+  static const String updateProfile = '/update-profile';
+  static const String setting = '/setting';
+  static const String changePassword = '/change-password';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return fadeThrough(settings, (context) {
@@ -37,6 +45,14 @@ class Routing {
           return const GroupDetailPage();
         case Routing.tournamentDetail:
           return const TournamentDetailPage();
+
+        // profile
+        case Routing.updateProfile:
+          return const UpdateProfilePage();
+        case Routing.setting:
+          return const SettingPage();
+        case Routing.changePassword:
+          return const ChangePasswordPage();
         default:
           return const AppView();
       }

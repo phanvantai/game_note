@@ -9,6 +9,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc() : super(const AppState()) {
     on<AuthStatusChanged>(_onAuthStatusChanged);
     on<InitApp>(_onInitApp);
+    on<UpdateFootballFeature>(_onUpdateFootballFeature);
+  }
+
+  _onUpdateFootballFeature(
+      UpdateFootballFeature event, Emitter<AppState> emit) {
+    emit(state.copyWith(enableFootballFeature: event.enableFootballFeature));
   }
 
   _onInitApp(InitApp event, Emitter<AppState> emit) {

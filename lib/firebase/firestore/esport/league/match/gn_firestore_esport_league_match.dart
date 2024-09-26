@@ -116,4 +116,45 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     // update stats
     await updateLeagueStatWithMatch(newMatch);
   }
+
+  // create a custom match
+  Future<void> createCustomMatch(GNEsportMatch match) async {
+    final matchId = firestore
+        .collection(
+            '${GNEsportLeague.collectionName}/${match.leagueId}/${GNEsportMatch.collectionName}')
+        .doc()
+        .id;
+
+    final matchWithId = match.copyWith(id: matchId);
+
+    await firestore
+        .collection(
+            '${GNEsportLeague.collectionName}/${match.leagueId}/${GNEsportMatch.collectionName}')
+        .doc(matchId)
+        .set(matchWithId.toMap());
+  }
+
+  Future<void> deleteMatch(GNEsportMatch match) async {
+    // Get the match document reference
+    final matchRef = await firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(match.leagueId)
+        .collection(GNEsportMatch.collectionName)
+        .doc(match.id)
+        .get();
+    if (!matchRef.exists) {
+      throw Exception('Match not found');
+    }
+
+    // check if match is finished
+    if (match.isFinished) {
+      // with finished match, need to revert the stats first, then update match score and update the stats again
+
+      // reverse stats
+      await reverseStateWithMatch(match);
+    }
+
+    // delete match
+    await matchRef.reference.delete();
+  }
 }

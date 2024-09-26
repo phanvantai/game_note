@@ -42,10 +42,33 @@ class GenerateRound extends TournamentDetailEvent {
   List<Object> get props => [];
 }
 
+class CreateCustomMatch extends TournamentDetailEvent {
+  final GNUser homeTeam;
+  final GNUser awayTeam;
+
+  const CreateCustomMatch({
+    required this.homeTeam,
+    required this.awayTeam,
+  });
+
+  @override
+  List<Object> get props => [homeTeam, awayTeam];
+}
+
 class UpdateEsportMatch extends TournamentDetailEvent {
   final GNEsportMatch match;
 
   const UpdateEsportMatch(this.match);
+
+  @override
+  List<Object> get props => [match];
+}
+
+// delete match
+class DeleteEsportMatch extends TournamentDetailEvent {
+  final GNEsportMatch match;
+
+  const DeleteEsportMatch(this.match);
 
   @override
   List<Object> get props => [match];

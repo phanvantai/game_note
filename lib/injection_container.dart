@@ -9,15 +9,19 @@ import 'package:game_note/offline/domain/usecases/get_league.dart';
 import 'package:game_note/offline/domain/usecases/get_leagues.dart';
 import 'package:game_note/offline/domain/usecases/set_players_for_league.dart';
 import 'package:game_note/offline/domain/usecases/update_match.dart';
+import 'package:game_note/presentation/profile/change_password/bloc/change_password_bloc.dart';
+import 'package:game_note/service/permission_util.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/helpers/shared_preferences_helper.dart';
+import 'data/repositories/esport/esport_chat_repository_impl.dart';
 import 'data/repositories/esport/esport_group_repository_impl.dart';
 import 'data/repositories/esport/esport_league_repository_impl.dart';
 import 'data/repositories/notification_repository_impl.dart';
 import 'data/repositories/team_repository_impl.dart';
 import 'data/repositories/user_repository_impl.dart';
+import 'domain/repositories/esport/esport_chat_repository.dart';
 import 'domain/repositories/esport/esport_group_repository.dart';
 import 'domain/repositories/esport/esport_league_repository.dart';
 import 'domain/repositories/notification_repository.dart';
@@ -33,6 +37,7 @@ import 'offline/data/models/league_manager.dart';
 import 'offline/presentation/league_detail/bloc/league_detail_bloc.dart';
 import 'firebase/auth/gn_auth.dart';
 import 'presentation/esport/bloc/esport_bloc.dart';
+import 'presentation/esport/chat/bloc/esport_chat_bloc.dart';
 import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'presentation/notification/bloc/notification_bloc.dart';
@@ -51,6 +56,8 @@ Future<void> init() async {
   getIt.registerSingleton(DatabaseManager());
 
   getIt.registerSingleton(LeagueManager(getIt()));
+
+  getIt.registerSingleton(PermissionUtil());
 
   // datasources
   getIt.registerSingleton<LeagueLocalDatasource>(
@@ -97,6 +104,8 @@ Future<void> init() async {
       () => EsportGroupRepositoryImpl());
   getIt.registerFactory<EsportLeagueRepository>(
       () => EsportLeagueRepositoryImpl());
+  getIt.registerFactory<EsportChatRepository>(() => EsportChatRepositoryImpl());
+
   getIt.registerFactory<NotificationRepository>(
       () => NotificationRepositoryImpl());
   // blocs
@@ -109,7 +118,10 @@ Future<void> init() async {
   getIt.registerFactory<EsportBloc>(() => EsportBloc());
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
   getIt.registerFactory<TournamentBloc>(() => TournamentBloc(getIt()));
+  getIt.registerFactory<EsportChatBloc>(() => EsportChatBloc(getIt(), getIt()));
 
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
   getIt.registerFactory<NotificationBloc>(() => NotificationBloc(getIt()));
+
+  getIt.registerFactory<ChangePasswordBloc>(() => ChangePasswordBloc(getIt()));
 }

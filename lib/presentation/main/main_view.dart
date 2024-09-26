@@ -7,11 +7,12 @@ import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:game_note/presentation/notification/bloc/notification_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-//import '../community/community_view.dart';
+import '../app/bloc/app_bloc.dart';
+import '../community/community_view.dart';
 import '../esport/esport_view.dart';
 import '../notification/notification_view.dart';
 import '../profile/profile_view.dart';
-//import '../team/teams_view.dart';
+import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);
@@ -31,15 +32,18 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
+    final appState = context.read<AppBloc>().state;
     tabs = {
-      // BottomNavigationBarItem(
-      //   icon: Icon(Icons.sports_soccer),
-      //   label: 'Cộng đồng',
-      // ): CommunityView(),
-      // BottomNavigationBarItem(
-      //   icon: Icon(Icons.group),
-      //   label: 'Đội',
-      // ): TeamsView(),
+      if (appState.enableFootballFeature)
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.sports_soccer),
+          label: 'Cộng đồng',
+        ): const CommunityView(),
+      if (appState.enableFootballFeature)
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.group),
+          label: 'Đội',
+        ): const TeamsView(),
       const BottomNavigationBarItem(
         icon: Icon(Icons.sports_esports),
         label: 'Esport',
@@ -108,7 +112,9 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
             showUnselectedLabels: true,
             enableFeedback: true,
-            type: BottomNavigationBarType.fixed,
+            type: tabs.length > 3
+                ? BottomNavigationBarType.shifting
+                : BottomNavigationBarType.fixed,
           ),
         ],
       ),
