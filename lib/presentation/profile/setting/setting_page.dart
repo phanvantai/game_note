@@ -20,7 +20,7 @@ class SettingPage extends StatelessWidget {
         children: [
           if (auth.isSignInWithEmailAndPassword)
             ListTile(
-              leading: const Icon(Icons.password),
+              leading: const Icon(Icons.lock),
               title: const Text('Đổi mật khẩu'),
               onTap: () {
                 Navigator.of(context).pushNamed(Routing.changePassword);

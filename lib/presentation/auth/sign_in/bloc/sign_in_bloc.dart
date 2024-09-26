@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/firebase/auth/gn_auth.dart';
@@ -72,6 +73,20 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
     } catch (e) {
       if (kDebugMode) {
         print(e);
+      }
+      if (e is FirebaseAuthException) {
+        String error = '';
+        if (e.code == 'wrong-password') {
+          error = 'Mật khẩu không đúng';
+        } else if (e.code == 'too-many-requests') {
+          error = 'Quá nhiều yêu cầu, vui lòng thử lại sau';
+        } else if (e.code == 'user-not-found') {
+          error = 'Email không tồn tại';
+        } else {
+          error = 'Đã có lỗi xảy ra';
+        }
+        emit(state.copyWith(status: SignInStatus.error, error: error));
+        return;
       }
       emit(state.copyWith(status: SignInStatus.error, error: e.toString()));
     }
