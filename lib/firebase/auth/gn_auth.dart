@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
+import 'package:game_note/service/permission_util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../injection_container.dart';
@@ -22,7 +23,7 @@ class GNAuth {
   GNAuth() {
     // Listen to auth state changes
     _auth.authStateChanges().listen(
-      (User? user) {
+      (User? user) async {
         if (kDebugMode) {
           print('Auth state changed: ${user?.uid}');
         }
@@ -32,8 +33,8 @@ class GNAuth {
 
         // create user in Firestore if not exists
         if (user != null) {
-          getIt<GNFirestore>().createUserIfNeeded(user);
-
+          final gnUser = await getIt<GNFirestore>().createUserIfNeeded(user);
+          getIt<PermissionUtil>().setCurrentUser(gnUser);
           checkLoginMethod();
         }
       },

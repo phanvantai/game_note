@@ -23,7 +23,7 @@ class NotificationItem extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: notification.isRead ? Colors.green[50] : Colors.green[100],
+          color: notification.isRead ? Colors.green[50] : Colors.green[200],
         ),
         child: ListTile(
           leading: SizedBox(
@@ -35,7 +35,7 @@ class NotificationItem extends StatelessWidget {
             notification.title,
             style: TextStyle(
               fontWeight:
-                  notification.isRead ? FontWeight.bold : FontWeight.w900,
+                  notification.isRead ? FontWeight.normal : FontWeight.bold,
               fontSize: 16,
             ),
           ),

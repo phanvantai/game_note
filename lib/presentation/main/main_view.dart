@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/helpers/admob_helper.dart';
@@ -8,14 +7,12 @@ import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:game_note/presentation/notification/bloc/notification_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-//import '../community/community_view.dart';
 import '../app/bloc/app_bloc.dart';
 import '../community/community_view.dart';
 import '../esport/esport_view.dart';
 import '../notification/notification_view.dart';
 import '../profile/profile_view.dart';
 import '../team/teams_view.dart';
-//import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);

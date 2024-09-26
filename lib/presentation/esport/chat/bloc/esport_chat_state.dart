@@ -21,4 +21,6 @@ class EsportChatState extends Equatable {
 
   @override
   List<Object?> get props => [messages, error];
+
+  bool get isAdmin => getIt<PermissionUtil>().isAdmin;
 }

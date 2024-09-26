@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/ultils.dart';
@@ -67,6 +68,36 @@ class _EsportChatViewState extends State<EsportChatView> {
               itemBuilder: (context, index) {
                 final message = state.messages[index];
                 return ListTile(
+                  onLongPress: state.isAdmin
+                      ? () {
+                          showCupertinoDialog(
+                              context: context,
+                              builder: (ctx) => CupertinoAlertDialog(
+                                    title: const Text('Xóa tin nhắn'),
+                                    content: const Text(
+                                        'Bạn có chắc chắn muốn xóa tin nhắn này không?'),
+                                    actions: [
+                                      CupertinoDialogAction(
+                                        child: const Text('Hủy'),
+                                        onPressed: () {
+                                          Navigator.of(ctx).pop();
+                                        },
+                                      ),
+                                      CupertinoDialogAction(
+                                        isDestructiveAction: true,
+                                        onPressed: () {
+                                          context.read<EsportChatBloc>().add(
+                                              DeleteEsportMessageEvent(
+                                                  message));
+                                          Navigator.of(ctx).pop();
+                                        },
+                                        child: const Text('Xóa'),
+                                      ),
+                                    ],
+                                  ));
+                        }
+                      : null,
+                  dense: true,
                   leading: GNCircleAvatar(
                     photoUrl: message.user?.photoUrl,
                     size: 32,

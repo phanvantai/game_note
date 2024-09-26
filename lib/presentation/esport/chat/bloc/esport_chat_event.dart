@@ -16,6 +16,15 @@ class SendEsportMessageEvent extends EsportChatEvent {
   List<Object?> get props => [message];
 }
 
+class DeleteEsportMessageEvent extends EsportChatEvent {
+  final GNEsportMessage message;
+
+  const DeleteEsportMessageEvent(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 class NewMessagesReceived extends EsportChatEvent {
   final List<GNEsportMessage> messages;
 

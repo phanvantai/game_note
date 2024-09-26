@@ -43,4 +43,12 @@ extension GNFirestoreEsportMessage on GNFirestore {
           .toList();
     });
   }
+
+  // delete a message
+  Future<void> deleteMessage(String messageId) async {
+    await firestore
+        .collection(GNEsportMessage.collectionName)
+        .doc(messageId)
+        .delete();
+  }
 }

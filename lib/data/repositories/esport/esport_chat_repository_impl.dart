@@ -15,4 +15,9 @@ class EsportChatRepositoryImpl implements EsportChatRepository {
     final currentUser = getIt<GNFirestore>().currentUser;
     return getIt<GNFirestore>().sendMessage(currentUser.uid, message);
   }
+
+  @override
+  Future<void> deleteMessage(GNEsportMessage message) {
+    return getIt<GNFirestore>().deleteMessage(message.id);
+  }
 }

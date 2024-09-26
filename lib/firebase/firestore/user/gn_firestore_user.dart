@@ -12,7 +12,7 @@ import '../esport/group/gn_esport_group.dart';
 import 'user_role.dart';
 
 extension GNFirestoreUser on GNFirestore {
-  Future<void> createUserIfNeeded(User user) async {
+  Future<GNUser> createUserIfNeeded(User user) async {
     final userRef = firestore.collection(GNUser.collectionName).doc(user.uid);
     final userDoc = await userRef.get();
 
@@ -27,6 +27,8 @@ extension GNFirestoreUser on GNFirestore {
         GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
+
+    return GNUser.fromFireStore(await userRef.get());
   }
 
   Future<GNUser> getCurrentUser() async {
