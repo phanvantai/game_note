@@ -53,21 +53,26 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
 
   // - update a league stats
   Future<void> updateLeagueStatWithMatch(GNEsportMatch match) async {
+    final home = match.homeScore;
+    final away = match.awayScore;
+    if (!match.isFinished || home == null || away == null) {
+      return;
+    }
     final homeTeamStats =
         await getStatsWithUserId(match.leagueId, match.homeTeamId);
     final awayTeamStats =
         await getStatsWithUserId(match.leagueId, match.awayTeamId);
 
     // calculate new stats
-    final homeWin = match.homeScore > match.awayScore;
-    final awayWin = match.awayScore > match.homeScore;
-    final draw = match.homeScore == match.awayScore;
+    final homeWin = home > away;
+    final awayWin = away > home;
+    final draw = home == away;
 
     // update home team stats
     final updatedHomeStats = homeTeamStats.copyWith(
       matchesPlayed: homeTeamStats.matchesPlayed + 1,
-      goals: homeTeamStats.goals + match.homeScore,
-      goalsConceded: homeTeamStats.goalsConceded + match.awayScore,
+      goals: homeTeamStats.goals + home,
+      goalsConceded: homeTeamStats.goalsConceded + away,
       wins: homeTeamStats.wins + (homeWin ? 1 : 0),
       draws: homeTeamStats.draws + (draw ? 1 : 0),
       losses: homeTeamStats.losses + (awayWin ? 1 : 0),
@@ -76,8 +81,8 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     // update away team stats
     final updatedAwayStats = awayTeamStats.copyWith(
       matchesPlayed: awayTeamStats.matchesPlayed + 1,
-      goals: awayTeamStats.goals + match.awayScore,
-      goalsConceded: awayTeamStats.goalsConceded + match.homeScore,
+      goals: awayTeamStats.goals + away,
+      goalsConceded: awayTeamStats.goalsConceded + home,
       wins: awayTeamStats.wins + (awayWin ? 1 : 0),
       draws: awayTeamStats.draws + (draw ? 1 : 0),
       losses: awayTeamStats.losses + (homeWin ? 1 : 0),
@@ -121,21 +126,26 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
 
   // revert stats for a match
   Future<void> reverseStateWithMatch(GNEsportMatch math) async {
+    final home = math.homeScore;
+    final away = math.awayScore;
+    if (home == null || away == null) {
+      return;
+    }
     final homeTeamStats =
         await getStatsWithUserId(math.leagueId, math.homeTeamId);
     final awayTeamStats =
         await getStatsWithUserId(math.leagueId, math.awayTeamId);
 
     // calculate new stats
-    final homeWin = math.homeScore > math.awayScore;
-    final awayWin = math.awayScore > math.homeScore;
-    final draw = math.homeScore == math.awayScore;
+    final homeWin = home > away;
+    final awayWin = away > home;
+    final draw = home == away;
 
     // update home team stats
     final updatedHomeStats = homeTeamStats.copyWith(
       matchesPlayed: homeTeamStats.matchesPlayed - 1,
-      goals: homeTeamStats.goals - math.homeScore,
-      goalsConceded: homeTeamStats.goalsConceded - math.awayScore,
+      goals: homeTeamStats.goals - home,
+      goalsConceded: homeTeamStats.goalsConceded - away,
       wins: homeTeamStats.wins - (homeWin ? 1 : 0),
       draws: homeTeamStats.draws - (draw ? 1 : 0),
       losses: homeTeamStats.losses - (awayWin ? 1 : 0),
@@ -144,8 +154,8 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     // update away team stats
     final updatedAwayStats = awayTeamStats.copyWith(
       matchesPlayed: awayTeamStats.matchesPlayed - 1,
-      goals: awayTeamStats.goals - math.awayScore,
-      goalsConceded: awayTeamStats.goalsConceded - math.homeScore,
+      goals: awayTeamStats.goals - away,
+      goalsConceded: awayTeamStats.goalsConceded - home,
       wins: awayTeamStats.wins - (awayWin ? 1 : 0),
       draws: awayTeamStats.draws - (draw ? 1 : 0),
       losses: awayTeamStats.losses - (homeWin ? 1 : 0),

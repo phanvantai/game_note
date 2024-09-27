@@ -79,8 +79,8 @@ class TournamentView extends StatelessWidget {
                                 arguments: state.userLeagues[index],
                               );
                               // ignore: use_build_context_synchronously
-                              BlocProvider.of<GroupBloc>(context)
-                                  .add(GetEsportGroups());
+                              BlocProvider.of<TournamentBloc>(context)
+                                  .add(GetTournaments());
                             },
                           ),
                           itemCount: state.userLeagues.length,
@@ -92,7 +92,7 @@ class TournamentView extends StatelessWidget {
                                   const SizedBox(height: 100),
                                   emptyImage,
                                   const Text(
-                                    'Không có nhóm nào',
+                                    'Không có giải đấu nào',
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
@@ -108,8 +108,8 @@ class TournamentView extends StatelessWidget {
                                     arguments: state.otherLeagues[index],
                                   );
                                   // ignore: use_build_context_synchronously
-                                  BlocProvider.of<GroupBloc>(context)
-                                      .add(GetEsportGroups());
+                                  BlocProvider.of<TournamentBloc>(context)
+                                      .add(GetTournaments());
                                 },
                               ),
                               itemCount: state.otherLeagues.length,

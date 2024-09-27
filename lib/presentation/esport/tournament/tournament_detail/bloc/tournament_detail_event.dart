@@ -88,3 +88,31 @@ class ChangeLeagueStatus extends TournamentDetailEvent {
 class SubmitLeagueStatus extends TournamentDetailEvent {}
 
 class InactiveLeague extends TournamentDetailEvent {}
+
+class UpdateStartingMedals extends TournamentDetailEvent {
+  final int medals;
+
+  const UpdateStartingMedals(this.medals);
+
+  @override
+  List<Object> get props => [medals];
+}
+
+class UpdateUnitMedals extends TournamentDetailEvent {
+  final int unitMedals;
+
+  const UpdateUnitMedals(this.unitMedals);
+
+  @override
+  List<Object> get props => [unitMedals];
+}
+
+class UpdateMatchMedals extends TournamentDetailEvent {
+  final String matchId;
+  final int medals;
+
+  const UpdateMatchMedals(this.matchId, this.medals);
+
+  @override
+  List<Object> get props => [matchId, medals];
+}

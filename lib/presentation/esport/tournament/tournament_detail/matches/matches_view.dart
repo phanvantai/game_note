@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:game_note/core/ultils.dart';
 import 'package:game_note/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/create_custom_match_dialog.dart';
@@ -58,16 +59,85 @@ class EsportMatchesView extends StatelessWidget {
                                 endActionPane: ActionPane(
                                   motion: const StretchMotion(),
                                   children: [
-                                    SlidableAction(
-                                      borderRadius: BorderRadius.circular(8),
-                                      backgroundColor: Colors.red,
-                                      icon: Icons.delete,
-                                      onPressed: (context) {
-                                        context
-                                            .read<TournamentDetailBloc>()
-                                            .add(DeleteEsportMatch(match));
-                                      },
-                                    ),
+                                    if (state.currentUserIsMember)
+                                      SlidableAction(
+                                        borderRadius: BorderRadius.circular(8),
+                                        backgroundColor: Colors.red,
+                                        icon: Icons.delete,
+                                        onPressed: (context) {
+                                          context
+                                              .read<TournamentDetailBloc>()
+                                              .add(DeleteEsportMatch(match));
+                                        },
+                                      ),
+                                    if (state.currentUserIsMember)
+                                      SlidableAction(
+                                        borderRadius: BorderRadius.circular(8),
+                                        backgroundColor: Colors.green,
+                                        icon: Icons.monetization_on,
+                                        onPressed: (ctx) {
+                                          showDialog(
+                                              context: context,
+                                              builder: (ctx) {
+                                                // create dialog to input medal of match
+                                                final medalController =
+                                                    TextEditingController()
+                                                      ..text = match.medals
+                                                          .toString();
+                                                return AlertDialog(
+                                                  title: const Text(
+                                                      'Nhập số lượng medal'),
+                                                  content: TextField(
+                                                    controller: medalController,
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: const Text('Hủy'),
+                                                    ),
+                                                    ElevatedButton(
+                                                      onPressed: () {
+                                                        FocusScope.of(context)
+                                                            .unfocus();
+                                                        // convert to int
+                                                        final medal =
+                                                            int.tryParse(
+                                                                medalController
+                                                                    .text);
+                                                        // update match
+                                                        if (medal == null) {
+                                                          showToast(
+                                                              'Nhập số lượng medal',
+                                                              gravity:
+                                                                  ToastGravity
+                                                                      .TOP);
+                                                          return;
+                                                        }
+
+                                                        context
+                                                            .read<
+                                                                TournamentDetailBloc>()
+                                                            .add(
+                                                              UpdateMatchMedals(
+                                                                  match.id,
+                                                                  medal),
+                                                            );
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: const Text(
+                                                          'Cập nhật'),
+                                                    ),
+                                                  ],
+                                                );
+                                              });
+                                        },
+                                      ),
                                   ],
                                 ),
                                 child: EsportMatchItem(
@@ -95,16 +165,85 @@ class EsportMatchesView extends StatelessWidget {
                                 endActionPane: ActionPane(
                                   motion: const StretchMotion(),
                                   children: [
-                                    SlidableAction(
-                                      borderRadius: BorderRadius.circular(8),
-                                      backgroundColor: Colors.red,
-                                      icon: Icons.delete,
-                                      onPressed: (context) {
-                                        context
-                                            .read<TournamentDetailBloc>()
-                                            .add(DeleteEsportMatch(match));
-                                      },
-                                    ),
+                                    if (state.currentUserIsMember)
+                                      SlidableAction(
+                                        borderRadius: BorderRadius.circular(8),
+                                        backgroundColor: Colors.red,
+                                        icon: Icons.delete,
+                                        onPressed: (context) {
+                                          context
+                                              .read<TournamentDetailBloc>()
+                                              .add(DeleteEsportMatch(match));
+                                        },
+                                      ),
+                                    if (state.currentUserIsMember)
+                                      SlidableAction(
+                                        borderRadius: BorderRadius.circular(8),
+                                        backgroundColor: Colors.green,
+                                        icon: Icons.monetization_on,
+                                        onPressed: (ctx) {
+                                          showDialog(
+                                              context: context,
+                                              builder: (ctx) {
+                                                // create dialog to input medal of match
+                                                final medalController =
+                                                    TextEditingController()
+                                                      ..text = match.medals
+                                                          .toString();
+                                                return AlertDialog(
+                                                  title: const Text(
+                                                      'Nhập số lượng medal'),
+                                                  content: TextField(
+                                                    controller: medalController,
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: const Text('Hủy'),
+                                                    ),
+                                                    ElevatedButton(
+                                                      onPressed: () {
+                                                        FocusScope.of(context)
+                                                            .unfocus();
+                                                        // convert to int
+                                                        final medal =
+                                                            int.tryParse(
+                                                                medalController
+                                                                    .text);
+                                                        // update match
+                                                        if (medal == null) {
+                                                          showToast(
+                                                              'Nhập số lượng medal',
+                                                              gravity:
+                                                                  ToastGravity
+                                                                      .TOP);
+                                                          return;
+                                                        }
+
+                                                        context
+                                                            .read<
+                                                                TournamentDetailBloc>()
+                                                            .add(
+                                                              UpdateMatchMedals(
+                                                                  match.id,
+                                                                  medal),
+                                                            );
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: const Text(
+                                                          'Cập nhật'),
+                                                    ),
+                                                  ],
+                                                );
+                                              });
+                                        },
+                                      ),
                                   ],
                                 ),
                                 child: EsportMatchItem(
@@ -231,10 +370,11 @@ class EsportMatchesView extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
+                FocusScope.of(context).unfocus();
                 // update match
                 if (homeScoreController.text.isEmpty ||
                     awayScoreController.text.isEmpty) {
-                  showToast('Nhập kết quả trận đấu');
+                  showToast('Nhập kết quả trận đấu', gravity: ToastGravity.TOP);
                   return;
                 }
                 // convert to int

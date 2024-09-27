@@ -38,6 +38,51 @@ class TournamentDetailBloc
 
     on<DeleteEsportMatch>(_onDeleteMatch);
     on<CreateCustomMatch>(_onCreateCustomMatch);
+
+    on<UpdateStartingMedals>(_onUpdateStartingMedals);
+    on<UpdateUnitMedals>(_onUpdateUnitMedals);
+
+    on<UpdateMatchMedals>(_onUpdateMatchMedals);
+  }
+
+  void _onUpdateMatchMedals(
+      UpdateMatchMedals event, Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.updateMatchMedals(
+          event.matchId, state.league.id, event.medals);
+      add(GetMatches(state.league.id));
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onUpdateStartingMedals(
+      UpdateStartingMedals event, Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.updateLeagueStartingMedals(
+          state.league.id, event.medals);
+      add(GetLeagueUpdated());
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onUpdateUnitMedals(
+      UpdateUnitMedals event, Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.updateLeagueUnitMedals(
+          state.league.id, event.unitMedals);
+      emit(state.copyWith(viewStatus: ViewStatus.success));
+      add(GetLeagueUpdated());
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
   }
 
   void _onCreateCustomMatch(
@@ -115,7 +160,7 @@ class TournamentDetailBloc
       GetLeagueUpdated event, Emitter<TournamentDetailState> emit) async {
     try {
       final league = await _esportLeagueRepository.getLeague(this.league.id);
-      emit(state.copyWith(league: league));
+      emit(state.copyWith(viewStatus: ViewStatus.success, league: league));
     } catch (e) {
       if (kDebugMode) {
         print(e);
