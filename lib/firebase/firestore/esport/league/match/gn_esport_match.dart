@@ -8,11 +8,12 @@ class GNEsportMatch extends Equatable {
   final String id; // match id
   final String homeTeamId; // home team id
   final String awayTeamId; // away team id
-  final int homeScore; // home team score
-  final int awayScore; // away team score
+  final int? homeScore; // home team score
+  final int? awayScore; // away team score
   final DateTime date; // match date
   final bool isFinished; // match is finished
   final String leagueId; // league id
+  final int? medals; // medals for the winner
 
   final GNUser? homeTeam;
   final GNUser? awayTeam;
@@ -29,23 +30,26 @@ class GNEsportMatch extends Equatable {
   static const String fieldDate = 'date';
   static const String fieldIsFinished = 'isFinished';
   static const String fieldLeagueId = 'leagueId';
+  static const String fieldMedals = 'medals';
 
   const GNEsportMatch({
     required this.id,
     required this.homeTeamId,
     required this.awayTeamId,
-    required this.homeScore,
-    required this.awayScore,
+    this.homeScore,
+    this.awayScore,
     required this.date,
     required this.isFinished,
     required this.leagueId,
     this.homeTeam,
     this.awayTeam,
+    this.medals,
   });
 
   @override
   List<Object?> get props => [
         id,
+        medals,
         homeTeamId,
         awayTeamId,
         homeScore,
@@ -66,6 +70,7 @@ class GNEsportMatch extends Equatable {
     String? leagueId,
     GNUser? homeTeam,
     GNUser? awayTeam,
+    int? medals,
   }) {
     return GNEsportMatch(
       id: id ?? this.id,
@@ -78,6 +83,7 @@ class GNEsportMatch extends Equatable {
       leagueId: leagueId ?? this.leagueId,
       homeTeam: homeTeam ?? this.homeTeam,
       awayTeam: awayTeam ?? this.awayTeam,
+      medals: medals ?? this.medals,
     );
   }
 
@@ -90,6 +96,7 @@ class GNEsportMatch extends Equatable {
       fieldDate: Timestamp.fromDate(date),
       fieldIsFinished: isFinished,
       fieldLeagueId: leagueId,
+      fieldMedals: medals,
     };
   }
 
@@ -99,11 +106,12 @@ class GNEsportMatch extends Equatable {
       id: doc.id,
       homeTeamId: data[fieldHomeTeamId],
       awayTeamId: data[fieldAwayTeamId],
-      homeScore: data[fieldHomeScore],
-      awayScore: data[fieldAwayScore],
+      homeScore: data[fieldHomeScore] ?? 0,
+      awayScore: data[fieldAwayScore] ?? 0,
       date: (data[fieldDate] as Timestamp).toDate(),
       isFinished: data[fieldIsFinished],
       leagueId: data[fieldLeagueId],
+      medals: data[fieldMedals] ?? 0,
     );
   }
 }

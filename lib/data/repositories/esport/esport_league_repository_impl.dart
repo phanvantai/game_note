@@ -67,6 +67,7 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       leagueId: match.leagueId,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
+      medals: match.medals,
     );
   }
 
@@ -88,5 +89,21 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   @override
   Future<void> createCustomMatch(GNEsportMatch match) {
     return getIt<GNFirestore>().createCustomMatch(match);
+  }
+
+  @override
+  Future<void> updateLeagueStartingMedals(String leagueId, int startingMedals) {
+    return getIt<GNFirestore>().updateStartingMedals(leagueId, startingMedals);
+  }
+
+  @override
+  Future<void> updateLeagueUnitMedals(String leagueId, int unitMedals) {
+    return getIt<GNFirestore>().updateUnitMedals(leagueId, unitMedals);
+  }
+
+  @override
+  Future<void> updateMatchMedals(String matchId, String leagueId, int medals) {
+    return getIt<GNFirestore>()
+        .updateMatchMedal(matchId: matchId, leagueId: leagueId, medals: medals);
   }
 }

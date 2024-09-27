@@ -66,6 +66,8 @@ class GNEsportLeague extends Equatable {
   final List<String> participants; // list of participants
   final GNEsportGroup? group; // group this league belongs to
   final String? status; // status of the league: upcoming, ongoing, finished
+  final int? startingMedals;
+  final int? valueMedal;
 
   // esport_leagues is a top-level collection
   // esports_leagues/{leagueId}
@@ -81,6 +83,8 @@ class GNEsportLeague extends Equatable {
   static const String fieldDescription = 'description';
   static const String fieldParticipants = 'participants';
   static const String fieldStatus = 'status';
+  static const String fieldStartingMedals = 'startingMedals';
+  static const String fieldValueMedal = 'valueMedal';
 
   const GNEsportLeague({
     required this.id,
@@ -94,11 +98,15 @@ class GNEsportLeague extends Equatable {
     required this.participants,
     this.group,
     this.status,
+    this.startingMedals,
+    this.valueMedal,
   });
 
   @override
   List<Object?> get props => [
         id,
+        startingMedals,
+        valueMedal,
         ownerId,
         groupId,
         name,
@@ -113,6 +121,8 @@ class GNEsportLeague extends Equatable {
 
   GNEsportLeague copyWith({
     String? id,
+    int? startingMedals,
+    int? valueMedal,
     String? ownerId,
     String? groupId,
     String? name,
@@ -126,6 +136,8 @@ class GNEsportLeague extends Equatable {
   }) {
     return GNEsportLeague(
       id: id ?? this.id,
+      startingMedals: startingMedals ?? this.startingMedals,
+      valueMedal: valueMedal ?? this.valueMedal,
       ownerId: ownerId ?? this.ownerId,
       groupId: groupId ?? this.groupId,
       name: name ?? this.name,
@@ -150,6 +162,8 @@ class GNEsportLeague extends Equatable {
       fieldDescription: description,
       fieldParticipants: participants,
       fieldStatus: status,
+      fieldStartingMedals: startingMedals,
+      fieldValueMedal: valueMedal,
     };
   }
 
@@ -168,6 +182,8 @@ class GNEsportLeague extends Equatable {
       description: data[fieldDescription],
       participants: List<String>.from(data[fieldParticipants] ?? []),
       status: data[fieldStatus] ?? 'upcoming',
+      startingMedals: data[fieldStartingMedals] ?? 0,
+      valueMedal: data[fieldValueMedal] ?? 0,
     );
   }
 }

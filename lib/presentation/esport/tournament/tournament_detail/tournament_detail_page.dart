@@ -15,7 +15,8 @@ class TournamentDetailPage extends StatelessWidget {
         ModalRoute.of(context)!.settings.arguments as GNEsportLeague;
     return BlocProvider(
       create: (_) => TournamentDetailBloc(league, getIt())
-        ..add(GetParticipantStats(league.id)),
+        ..add(GetParticipantStats(league.id))
+        ..add(GetLeagueUpdated()),
       child: const TournamentDetailView(),
     );
   }

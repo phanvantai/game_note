@@ -9,6 +9,7 @@ import '../../../../../firebase/firestore/esport/league/stats/gn_esport_league_s
 import '../../../../../injection_container.dart';
 import '../../../../users/bloc/user_bloc.dart';
 import '../../../../users/user_item.dart';
+import 'widgets/esport_league_result_item.dart';
 import 'widgets/table_fixed_column_header.dart';
 import 'widgets/table_scrollable_column_header.dart';
 import 'widgets/table_scrollable_column_item.dart';
@@ -52,24 +53,42 @@ class EsportTableView extends StatelessWidget {
             else
               SingleChildScrollView(
                 padding: const EdgeInsets.only(top: 16.0),
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Column(
+                  children: [
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _buildFixColumns(context, state.participants),
-                    ),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const ClampingScrollPhysics(),
-                        child: Column(
+                      children: <Widget>[
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _buildScrollableColumns(
-                              context, state.participants),
+                          children:
+                              _buildFixColumns(context, state.participants),
                         ),
-                      ),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const ClampingScrollPhysics(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: _buildScrollableColumns(
+                                  context, state.participants),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 64),
+                    if (state.league.startingMedals != null &&
+                        state.league.startingMedals! > 0)
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text('Tổng kết'),
+                      ),
+                    if (state.league.startingMedals != null &&
+                        state.league.startingMedals! > 0)
+                      ...state.participants.map((e) {
+                        return EsportLeagueResultItem(e: e, state: state);
+                      }),
                   ],
                 ),
               ),
