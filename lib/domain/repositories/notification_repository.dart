@@ -6,4 +6,8 @@ abstract class NotificationRepository {
   Future<void> setNotificationAsRead(String notificationId);
 
   Stream<List<GNNotification>> listenToNotifications();
+
+  Future<void> markAllNotificationsAsRead();
+
+  Future<void> deleteNotification(String notificationId);
 }

@@ -17,6 +17,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       : super(const NotificationState()) {
     on<NotificationEventFetch>(_onFetch);
     on<NotificationEventMarkAsRead>(_onMarkAsRead);
+    on<NotificationEventMarkAllAsRead>(_onMarkAllAsRead);
+    on<NotificationEventDelete>(_onDelete);
 
     _notificationSubscription =
         _notificationRepository.listenToNotifications().listen((notifications) {
@@ -44,6 +46,26 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       return notification;
     }).toList();
     emit(state.copyWith(notifications: notifications));
+  }
+
+  _onMarkAllAsRead(NotificationEventMarkAllAsRead event,
+      Emitter<NotificationState> emit) async {
+    await _notificationRepository.markAllNotificationsAsRead();
+    final notifications = state.notifications.map((notification) {
+      return notification.copyWith(isRead: true);
+    }).toList();
+    emit(state.copyWith(notifications: notifications));
+  }
+
+  _onDelete(
+      NotificationEventDelete event, Emitter<NotificationState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    await _notificationRepository.deleteNotification(event.notificationId);
+    final notifications = state.notifications
+        .where((notification) => notification.id != event.notificationId)
+        .toList();
+    emit(state.copyWith(
+        notifications: notifications, viewStatus: ViewStatus.success));
   }
 
   @override

@@ -43,7 +43,7 @@ class TournamentView extends StatelessWidget {
                     tabAlignment: TabAlignment.start,
                     isScrollable: true,
                     tabs: const [
-                      Tab(text: 'Giải đấu của bạn'),
+                      Tab(text: 'Giải đấu của tôi'),
                       Tab(text: 'Giải đấu khác'),
                     ],
                   ),

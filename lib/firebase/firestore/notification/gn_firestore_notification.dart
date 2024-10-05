@@ -54,4 +54,35 @@ extension GNFirestoreNotification on GNFirestore {
             .map((doc) => GNNotification.fromFirestore(doc))
             .toList());
   }
+
+  // mark all notifications as read
+  Future<void> markAllNotificationsAsRead(String userId) async {
+    // Query notifications where userId matches
+    QuerySnapshot querySnapshot = await firestore
+        .collection(GNUser.collectionName)
+        .doc(userId)
+        .collection(GNNotification.collectionName)
+        .get();
+
+    // Get all notification documents
+    List<DocumentSnapshot> notificationDocs = querySnapshot.docs;
+
+    // Update all notification documents
+    for (DocumentSnapshot doc in notificationDocs) {
+      await doc.reference.update({GNNotification.fieldIsRead: true});
+    }
+  }
+
+  // delete a notification
+  Future<void> deleteNotification(String userId, String notificationId) async {
+    // Get the notification document
+    DocumentReference notificationDoc = firestore
+        .collection(GNUser.collectionName)
+        .doc(userId)
+        .collection(GNNotification.collectionName)
+        .doc(notificationId);
+
+    // Delete the notification document
+    await notificationDoc.delete();
+  }
 }
