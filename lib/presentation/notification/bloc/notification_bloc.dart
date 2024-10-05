@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
@@ -15,7 +17,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       : super(const NotificationState()) {
     on<NotificationEventFetch>(_onFetch);
     on<NotificationEventMarkAsRead>(_onMarkAsRead);
+
+    _notificationSubscription =
+        _notificationRepository.listenToNotifications().listen((notifications) {
+      add(NotificationEventFetch());
+    });
   }
+
+  StreamSubscription<List<GNNotification>>? _notificationSubscription;
 
   _onFetch(
       NotificationEventFetch event, Emitter<NotificationState> emit) async {
@@ -35,5 +44,11 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       return notification;
     }).toList();
     emit(state.copyWith(notifications: notifications));
+  }
+
+  @override
+  Future<void> close() {
+    _notificationSubscription?.cancel();
+    return super.close();
   }
 }

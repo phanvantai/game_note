@@ -39,4 +39,19 @@ extension GNFirestoreNotification on GNFirestore {
     // Update the notification document
     await notificationDoc.update({GNNotification.fieldIsRead: true});
   }
+
+  // listen to notifications of a user with userId
+  Stream<List<GNNotification>> listenToUserNotifications(String userId) {
+    // Query notifications where userId matches
+    return firestore
+        .collection(GNUser.collectionName)
+        .doc(userId)
+        .collection(GNNotification.collectionName)
+        // Sort by time
+        .orderBy(GNNotification.fieldTimestamp, descending: true)
+        .snapshots()
+        .map((querySnapshot) => querySnapshot.docs
+            .map((doc) => GNNotification.fromFirestore(doc))
+            .toList());
+  }
 }

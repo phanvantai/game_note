@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/firebase/firestore/notification/gn_notification.dart';
+import 'package:game_note/routing.dart';
 import 'package:intl/intl.dart';
 
 import 'bloc/notification_bloc.dart';
@@ -15,11 +16,21 @@ class NotificationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: notification.isRead
-          ? null
-          : () => context
+      onTap: () {
+        if (!notification.isRead) {
+          context
               .read<NotificationBloc>()
-              .add(NotificationEventMarkAsRead(notification.id)),
+              .add(NotificationEventMarkAsRead(notification.id));
+        }
+        if (notification.notificationType == GNNotificationType.esportsLeague &&
+            notification.relatedId != null) {
+          // go to league detail page
+          Navigator.of(context).pushNamed(
+            Routing.tournamentDetail,
+            arguments: notification.relatedId,
+          );
+        }
+      },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),

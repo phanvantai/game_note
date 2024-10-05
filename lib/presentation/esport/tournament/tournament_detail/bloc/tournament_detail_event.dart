@@ -143,3 +143,12 @@ class UpdateMatches extends TournamentDetailEvent {
   @override
   List<Object> get props => [matches];
 }
+
+class LoadLeagueError extends TournamentDetailEvent {
+  final String message;
+
+  const LoadLeagueError(this.message);
+
+  @override
+  List<Object> get props => [message];
+}

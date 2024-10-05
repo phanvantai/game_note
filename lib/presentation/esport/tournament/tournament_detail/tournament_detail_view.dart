@@ -118,6 +118,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
           showToast('Giải đấu đã kết thúc');
           Navigator.of(context).pop();
         }
+        if (state.errorMessage == 'Không tìm thấy giải đấu') {
+          Navigator.of(context).pop();
+        }
       },
     );
   }

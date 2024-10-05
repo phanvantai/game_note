@@ -46,6 +46,10 @@ class TournamentDetailBloc
     on<UpdateMatches>(_onUpdateMatches);
 
     on<GetLeague>(_onGetLeague);
+    on<LoadLeagueError>((event, emit) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: event.message));
+    });
   }
 
   StreamSubscription<List<GNEsportMatch>>? _matchesSubscription;
@@ -73,10 +77,19 @@ class TournamentDetailBloc
         .listenForLeagueUpdated(event.leagueId)
         .listen((league) {
       add(UpdateLeague(league));
+    }, onError: (e) {
+      //add(LoadLeagueError(e.toString()));
     });
+
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       final league = await _esportLeagueRepository.getLeague(event.leagueId);
+      if (league == null) {
+        emit(state.copyWith(
+            viewStatus: ViewStatus.failure,
+            errorMessage: 'Không tìm thấy giải đấu'));
+        return;
+      }
       emit(state.copyWith(viewStatus: ViewStatus.success, league: league));
     } catch (e) {
       emit(state.copyWith(
