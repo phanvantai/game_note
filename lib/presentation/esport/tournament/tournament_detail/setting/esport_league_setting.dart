@@ -18,10 +18,11 @@ class EsportLeagueSetting extends StatelessWidget {
                 ListTile(
                   leading: const MedalWidget(size: 20, color: Colors.black87),
                   title: Text(
-                      'Số lượng medal tối thiểu (${bloc.state.league.startingMedals ?? '~'})'),
+                      'Số lượng medal tối thiểu (${bloc.state.league?.startingMedals ?? '~'})'),
                   onTap: () {
                     final textController = TextEditingController()
-                      ..text = bloc.state.league.startingMedals.toString();
+                      ..text =
+                          bloc.state.league?.startingMedals.toString() ?? '';
                     // show dialog to edit starting medals
                     showDialog(
                       context: context,
@@ -73,10 +74,10 @@ class EsportLeagueSetting extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.monetization_on),
                   title: Text(
-                      'Giá trị mỗi medal (${bloc.state.league.valueMedal ?? '~'})'),
+                      'Giá trị mỗi medal (${bloc.state.league?.valueMedal ?? '~'})'),
                   onTap: () {
                     final textController = TextEditingController()
-                      ..text = bloc.state.league.valueMedal.toString();
+                      ..text = bloc.state.league?.valueMedal.toString() ?? '';
                     // show dialog to edit unit medals
                     showDialog(
                       context: context,
@@ -146,7 +147,7 @@ class EsportLeagueSetting extends StatelessWidget {
                                 DropdownButton<GNEsportLeagueStatus>(
                                   value:
                                       GNEsportLeagueStatusExtension.fromString(
-                                          state.league.status),
+                                          state.league?.status),
                                   onChanged: (value) {
                                     if (value == null) {
                                       return;

@@ -63,14 +63,15 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                 height: 24,
               ),
               const SizedBox(width: 8),
+
               Text(
-                state.league.name.isEmpty
-                    ? DateFormat('dd/MM/yyyy').format(state.league.startDate)
-                    : state.league.name,
+                state.league?.name.isEmpty == true
+                    ? ("${state.league?.group?.groupName ?? " "} ${DateFormat('dd/MM/yyyy').format(state.league?.startDate ?? DateTime.now())}")
+                    : state.league?.name ?? '',
                 style:
                     const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(width: 8),
+              //const SizedBox(width: 8),
               Expanded(
                 child: TabBar(
                   controller: _tabController,
@@ -112,6 +113,10 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       listener: (context, state) {
         if (state.errorMessage.isNotEmpty) {
           showToast(state.errorMessage);
+        }
+        if (state.league != null && !state.league!.isActive) {
+          showToast('Giải đấu đã kết thúc');
+          Navigator.of(context).pop();
         }
       },
     );

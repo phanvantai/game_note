@@ -76,7 +76,7 @@ class TournamentView extends StatelessWidget {
                             onTap: () async {
                               final _ = await Navigator.of(context).pushNamed(
                                 Routing.tournamentDetail,
-                                arguments: state.userLeagues[index],
+                                arguments: state.userLeagues[index].id,
                               );
                               // ignore: use_build_context_synchronously
                               BlocProvider.of<TournamentBloc>(context)
@@ -105,7 +105,7 @@ class TournamentView extends StatelessWidget {
                                   final _ =
                                       await Navigator.of(context).pushNamed(
                                     Routing.tournamentDetail,
-                                    arguments: state.otherLeagues[index],
+                                    arguments: state.otherLeagues[index].id,
                                   );
                                   // ignore: use_build_context_synchronously
                                   BlocProvider.of<TournamentBloc>(context)

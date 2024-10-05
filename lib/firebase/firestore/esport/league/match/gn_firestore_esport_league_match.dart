@@ -5,6 +5,19 @@ import 'package:game_note/firebase/firestore/gn_firestore.dart';
 import 'gn_esport_match.dart';
 
 extension GnFirestoreEsportLeagueMatch on GNFirestore {
+  Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId) {
+    return firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .collection(GNEsportMatch.collectionName)
+        .snapshots() // This will return a stream of snapshots in real-time
+        .map((querySnapshot) {
+      return querySnapshot.docs
+          .map((doc) => GNEsportMatch.fromFirestore(doc))
+          .toList();
+    });
+  }
+
   Future<void> generateRound({
     required String leagueId,
     required List<String> teamIds,

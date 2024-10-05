@@ -2,7 +2,7 @@ part of 'tournament_detail_bloc.dart';
 
 class TournamentDetailState extends Equatable {
   final ViewStatus viewStatus;
-  final GNEsportLeague league;
+  final GNEsportLeague? league;
   final List<GNEsportLeagueStat> participants;
   final List<GNEsportMatch> matches;
   final List<GNUser> users;
@@ -10,7 +10,7 @@ class TournamentDetailState extends Equatable {
 
   const TournamentDetailState({
     this.viewStatus = ViewStatus.initial,
-    required this.league,
+    this.league,
     this.participants = const [],
     this.matches = const [],
     this.errorMessage = '',
@@ -48,16 +48,16 @@ class TournamentDetailState extends Equatable {
   bool get currentUserIsMember {
     return participants.any((element) =>
             element.userId == FirebaseAuth.instance.currentUser?.uid) ||
-        (league.group?.members ?? <String>[]).any(
+        (league?.group?.members ?? <String>[]).any(
             (element) => element == FirebaseAuth.instance.currentUser?.uid);
   }
 
   bool get currentUserIsLeagueAdmin {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
-    if (currentUid == league.group?.ownerId) {
+    if (currentUid == league?.group?.ownerId) {
       return true;
     }
-    return league.ownerId == FirebaseAuth.instance.currentUser?.uid;
+    return league?.ownerId == FirebaseAuth.instance.currentUser?.uid;
   }
 
   List<GNEsportMatch> get fixtures {
@@ -88,7 +88,7 @@ class TournamentDetailState extends Equatable {
   }
 
   int countValueOfParticipants(GNEsportLeagueStat participant) {
-    return countMedalOfParticipants(participant) * (league.valueMedal ?? 0);
+    return countMedalOfParticipants(participant) * (league?.valueMedal ?? 0);
   }
 
   int sumRange(int start, int end) {
