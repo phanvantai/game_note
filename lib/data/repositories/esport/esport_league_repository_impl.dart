@@ -106,4 +106,24 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
     return getIt<GNFirestore>()
         .updateMatchMedal(matchId: matchId, leagueId: leagueId, medals: medals);
   }
+
+  @override
+  Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId) {
+    return getIt<GNFirestore>().listenForMatchesUpdated(leagueId);
+  }
+
+  @override
+  Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId) {
+    return getIt<GNFirestore>().listenForLeagueUpdated(leagueId);
+  }
+
+  @override
+  Stream<List<GNEsportLeagueStat>> listenForLeagueStats(String leagueId) {
+    return getIt<GNFirestore>().listenForLeagueStats(leagueId);
+  }
+
+  @override
+  Stream<List<GNEsportLeague>> listenForLeagues() {
+    return getIt<GNFirestore>().listenForLeaguesUpdated();
+  }
 }

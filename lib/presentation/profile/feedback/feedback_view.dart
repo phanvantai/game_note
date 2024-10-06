@@ -92,14 +92,20 @@ class _FeedbackViewState extends State<FeedbackView> {
             ),
             ElevatedButton(
               onPressed: () {
+                if (title.isEmpty || detail.isEmpty) {
+                  showToast('Vui lòng điền đầy đủ thông tin.');
+                  return;
+                }
+                if (title.length < 5 || detail.length < 10) {
+                  showToast(
+                      'Tiêu đề phải có ít nhất 5 ký tự\nNội dung phải có ít nhất 10 ký tự.');
+                  return;
+                }
                 // create feedback logic here
                 getIt<GNFirestore>()
                     .createFeedback(title, detail, user.uid)
                     .then(
-                      (_) => showSnackBar(
-                          // ignore: use_build_context_synchronously
-                          context,
-                          'Góp ý đã được gửi thành công!'),
+                      (_) => showToast('Góp ý đã được gửi thành công!'),
                     );
                 Navigator.of(context).pop();
               },
@@ -125,6 +131,12 @@ class _FeedbackViewState extends State<FeedbackView> {
           );
         } else if (snapshot.hasData) {
           final feedbackList = snapshot.data!;
+          if (feedbackList.isEmpty) {
+            return const Center(
+              child: Text(
+                  'Chưa có góp ý/phản hồi nào\nBạn có thể thêm bằng cách nhấn vào nút + bên dưới.'),
+            );
+          }
           return ListView.separated(
             itemCount: feedbackList.length,
             itemBuilder: (context, index) {

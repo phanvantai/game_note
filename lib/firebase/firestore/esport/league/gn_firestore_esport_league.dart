@@ -123,4 +123,25 @@ extension GNFirestoreEsportLeague on GNFirestore {
         firestore.collection(GNEsportLeague.collectionName).doc(leagueId);
     await leagueRef.update({GNEsportLeague.fieldValueMedal: valueMedal});
   }
+
+  // listen for league updated
+  Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId) {
+    return firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .snapshots()
+        .map((snapshot) => GNEsportLeague.fromFirestore(snapshot));
+  }
+
+  // listen for leagues updated
+  Stream<List<GNEsportLeague>> listenForLeaguesUpdated() {
+    return firestore
+        .collection(GNEsportLeague.collectionName)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => GNEsportLeague.fromFirestore(doc))
+          .toList();
+    });
+  }
 }

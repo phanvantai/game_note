@@ -78,14 +78,14 @@ class EsportTableView extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 64),
-                    if (state.league.startingMedals != null &&
-                        state.league.startingMedals! > 0)
+                    if (state.league?.startingMedals != null &&
+                        state.league!.startingMedals! > 0)
                       const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text('Tổng kết'),
                       ),
-                    if (state.league.startingMedals != null &&
-                        state.league.startingMedals! > 0)
+                    if (state.league?.startingMedals != null &&
+                        state.league!.startingMedals! > 0)
                       ...state.participants.map((e) {
                         return EsportLeagueResultItem(e: e, state: state);
                       }),
@@ -93,9 +93,7 @@ class EsportTableView extends StatelessWidget {
                 ),
               ),
             // if current user in group of league
-            if (state.currentUserIsMember &&
-                state.league.participants.length <
-                    (state.league.group?.members.length ?? 0))
+            if (state.currentUserIsMember)
               // add participant button
               Positioned(
                 right: 16.0,
@@ -114,13 +112,16 @@ class EsportTableView extends StatelessWidget {
   }
 
   _addParticipant(BuildContext context, TournamentDetailState state) {
+    final league = state.league;
+    if (league == null) {
+      return;
+    }
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         final userBloc = getIt<UserBloc>();
         return BlocBuilder<UserBloc, UserState>(
-          bloc: userBloc
-            ..add(SearchUserByEsportGroup(state.league.groupId, '')),
+          bloc: userBloc..add(SearchUserByEsportGroup(league.groupId, '')),
           builder: (userContext, userState) => AlertDialog(
             title: const Text('Thêm thành viên'),
             content: Column(
@@ -131,8 +132,8 @@ class EsportTableView extends StatelessWidget {
                     labelText: 'Tìm kiếm',
                   ),
                   onChanged: (value) {
-                    userBloc.add(
-                        SearchUserByEsportGroup(state.league.groupId, value));
+                    userBloc
+                        .add(SearchUserByEsportGroup(league.groupId, value));
                   },
                 ),
                 const SizedBox(height: 16),
@@ -154,7 +155,7 @@ class EsportTableView extends StatelessWidget {
                         onTap: () {
                           // add participant to league
                           BlocProvider.of<TournamentDetailBloc>(context).add(
-                            AddParticipant(state.league.id, user.id),
+                            AddParticipant(league.id, user.id),
                           );
                           Navigator.of(context).pop();
                         },

@@ -17,3 +17,14 @@ class NotificationEventMarkAsRead extends NotificationEvent {
   @override
   List<Object?> get props => [notificationId];
 }
+
+class NotificationEventMarkAllAsRead extends NotificationEvent {}
+
+class NotificationEventDelete extends NotificationEvent {
+  final String notificationId;
+
+  const NotificationEventDelete(this.notificationId);
+
+  @override
+  List<Object?> get props => [notificationId];
+}

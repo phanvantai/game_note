@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:game_note/core/common/view_status.dart';
 
 import 'bloc/notification_bloc.dart';
 import 'notification_item.dart';
@@ -18,26 +19,47 @@ class _NotificationViewState extends State<NotificationView>
     super.build(context);
     return BlocBuilder<NotificationBloc, NotificationState>(
       builder: (context, state) => Scaffold(
-        appBar: AppBar(title: const Text('Thông báo')),
-        body: RefreshIndicator.adaptive(
-          child: state.notifications.isEmpty
-              ? const Center(
-                  child: Text('Bạn không có thông báo nào'),
-                )
-              : Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: ListView.separated(
-                    itemBuilder: (context, index) => NotificationItem(
-                      notification: state.notifications[index],
-                    ),
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 8),
-                    itemCount: state.notifications.length,
-                  ),
-                ),
-          onRefresh: () async {
-            context.read<NotificationBloc>().add(NotificationEventFetch());
-          },
+        appBar: AppBar(
+          title: const Text('Thông báo'),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  context
+                      .read<NotificationBloc>()
+                      .add(NotificationEventMarkAllAsRead());
+                },
+                icon: Icon(Icons.checklist))
+          ],
+        ),
+        body: Column(
+          children: [
+            if (state.viewStatus == ViewStatus.loading)
+              LinearProgressIndicator(),
+            Expanded(
+              child: RefreshIndicator.adaptive(
+                child: state.notifications.isEmpty
+                    ? const Center(
+                        child: Text('Bạn không có thông báo nào'),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: ListView.separated(
+                          itemBuilder: (context, index) => NotificationItem(
+                            notification: state.notifications[index],
+                          ),
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 8),
+                          itemCount: state.notifications.length,
+                        ),
+                      ),
+                onRefresh: () async {
+                  context
+                      .read<NotificationBloc>()
+                      .add(NotificationEventFetch());
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

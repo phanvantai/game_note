@@ -7,6 +7,15 @@ abstract class TournamentDetailEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class GetLeague extends TournamentDetailEvent {
+  final String leagueId;
+
+  const GetLeague(this.leagueId);
+
+  @override
+  List<Object> get props => [leagueId];
+}
+
 class GetParticipantStats extends TournamentDetailEvent {
   final String tournamentId;
 
@@ -74,8 +83,6 @@ class DeleteEsportMatch extends TournamentDetailEvent {
   List<Object> get props => [match];
 }
 
-class GetLeagueUpdated extends TournamentDetailEvent {}
-
 class ChangeLeagueStatus extends TournamentDetailEvent {
   final GNEsportLeagueStatus status;
 
@@ -115,4 +122,33 @@ class UpdateMatchMedals extends TournamentDetailEvent {
 
   @override
   List<Object> get props => [matchId, medals];
+}
+
+class LeagueDeleted extends TournamentDetailEvent {}
+
+class UpdateLeague extends TournamentDetailEvent {
+  final GNEsportLeague league;
+
+  const UpdateLeague(this.league);
+
+  @override
+  List<Object> get props => [league];
+}
+
+class UpdateMatches extends TournamentDetailEvent {
+  final List<GNEsportMatch> matches;
+
+  const UpdateMatches(this.matches);
+
+  @override
+  List<Object> get props => [matches];
+}
+
+class LoadLeagueError extends TournamentDetailEvent {
+  final String message;
+
+  const LoadLeagueError(this.message);
+
+  @override
+  List<Object> get props => [message];
 }

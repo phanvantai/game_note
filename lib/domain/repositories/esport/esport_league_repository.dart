@@ -38,4 +38,10 @@ abstract class EsportLeagueRepository {
   Future<void> updateLeagueUnitMedals(String leagueId, int unitMedals);
 
   Future<void> updateMatchMedals(String matchId, String leagueId, int medals);
+
+  Stream<List<GNEsportLeagueStat>> listenForLeagueStats(String leagueId);
+  Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId);
+  Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId);
+
+  Stream<List<GNEsportLeague>> listenForLeagues();
 }

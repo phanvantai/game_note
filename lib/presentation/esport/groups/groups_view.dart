@@ -44,7 +44,7 @@ class GroupsView extends StatelessWidget {
                       tabAlignment: TabAlignment.start,
                       isScrollable: true,
                       tabs: const [
-                        Tab(text: 'Nhóm của bạn'),
+                        Tab(text: 'Nhóm của tôi'),
                         Tab(text: 'Nhóm khác'),
                       ],
                     ),

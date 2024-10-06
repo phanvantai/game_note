@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/core/ultils.dart';
@@ -16,13 +17,10 @@ part 'tournament_detail_state.dart';
 
 class TournamentDetailBloc
     extends Bloc<TournamentDetailEvent, TournamentDetailState> {
-  final GNEsportLeague league;
   final EsportLeagueRepository _esportLeagueRepository;
 
-  TournamentDetailBloc(this.league, this._esportLeagueRepository)
-      : super(TournamentDetailState(league: league)) {
-    on<GetLeagueUpdated>(_onGetLeague);
-
+  TournamentDetailBloc(this._esportLeagueRepository)
+      : super(const TournamentDetailState()) {
     on<GetParticipantStats>(_onGetParticipants);
     on<GetMatches>(_onGetMatches);
 
@@ -43,15 +41,98 @@ class TournamentDetailBloc
     on<UpdateUnitMedals>(_onUpdateUnitMedals);
 
     on<UpdateMatchMedals>(_onUpdateMatchMedals);
+
+    on<UpdateLeague>(_onUpdateLeague);
+    on<UpdateMatches>(_onUpdateMatches);
+
+    on<GetLeague>(_onGetLeague);
+    on<LoadLeagueError>((event, emit) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: event.message));
+    });
+  }
+
+  StreamSubscription<List<GNEsportMatch>>? _matchesSubscription;
+  StreamSubscription<List<GNEsportLeagueStat>>? _participantsSubscription;
+  StreamSubscription<GNEsportLeague>? _leagueSubscription;
+
+  _onGetLeague(GetLeague event, Emitter<TournamentDetailState> emit) async {
+    _participantsSubscription?.cancel();
+    _participantsSubscription = _esportLeagueRepository
+        .listenForLeagueStats(event.leagueId)
+        .listen((participants) {
+      if (state.league?.id != null) {
+        add(GetParticipantStats(state.league!.id));
+      }
+    });
+
+    _matchesSubscription?.cancel();
+    _matchesSubscription = _esportLeagueRepository
+        .listenForMatchesUpdated(event.leagueId)
+        .listen((matches) async {
+      add(UpdateMatches(matches));
+    });
+    _leagueSubscription?.cancel();
+    _leagueSubscription = _esportLeagueRepository
+        .listenForLeagueUpdated(event.leagueId)
+        .listen((league) {
+      add(UpdateLeague(league));
+    }, onError: (e) {
+      //add(LoadLeagueError(e.toString()));
+    });
+
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      final league = await _esportLeagueRepository.getLeague(event.leagueId);
+      if (league == null) {
+        emit(state.copyWith(
+            viewStatus: ViewStatus.failure,
+            errorMessage: 'Không tìm thấy giải đấu'));
+        return;
+      }
+      emit(state.copyWith(viewStatus: ViewStatus.success, league: league));
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onUpdateLeague(
+      UpdateLeague event, Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(league: event.league));
+    if (event.league.isActive) {
+      add(GetParticipantStats(event.league.id));
+    }
+  }
+
+  void _onUpdateMatches(
+      UpdateMatches event, Emitter<TournamentDetailState> emit) async {
+    final users = state.users;
+    emit(state.copyWith(
+      matches: event.matches
+          .map((e) => e.copyWith(
+                homeTeam: users.isNotEmpty
+                    ? users.firstWhere((element) => element.id == e.homeTeamId)
+                    : null,
+                awayTeam: users.isNotEmpty
+                    ? users.firstWhere((element) => element.id == e.awayTeamId)
+                    : null,
+              ))
+          .toList(),
+    ));
   }
 
   void _onUpdateMatchMedals(
       UpdateMatchMedals event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.updateMatchMedals(
-          event.matchId, state.league.id, event.medals);
-      add(GetMatches(state.league.id));
+          event.matchId, leagueId, event.medals);
+      add(GetMatches(leagueId));
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
@@ -60,11 +141,14 @@ class TournamentDetailBloc
 
   void _onUpdateStartingMedals(
       UpdateStartingMedals event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.updateLeagueStartingMedals(
-          state.league.id, event.medals);
-      add(GetLeagueUpdated());
+          leagueId, event.medals);
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
@@ -73,12 +157,15 @@ class TournamentDetailBloc
 
   void _onUpdateUnitMedals(
       UpdateUnitMedals event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.updateLeagueUnitMedals(
-          state.league.id, event.unitMedals);
+          leagueId, event.unitMedals);
       emit(state.copyWith(viewStatus: ViewStatus.success));
-      add(GetLeagueUpdated());
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
@@ -88,6 +175,10 @@ class TournamentDetailBloc
   void _onCreateCustomMatch(
       CreateCustomMatch event, Emitter<TournamentDetailState> emit) async {
     if (state.viewStatus == ViewStatus.loading) {
+      return;
+    }
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
       return;
     }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
@@ -100,10 +191,10 @@ class TournamentDetailBloc
         awayScore: 0,
         date: DateTime.now(),
         isFinished: false,
-        leagueId: league.id,
+        leagueId: leagueId,
       );
       await _esportLeagueRepository.createCustomMatch(match);
-      add(GetMatches(league.id));
+      add(GetMatches(leagueId));
       showToast('Tạo trận đấu thành công');
     } catch (e) {
       emit(state.copyWith(
@@ -113,10 +204,14 @@ class TournamentDetailBloc
 
   void _onDeleteMatch(
       DeleteEsportMatch event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.deleteMatch(event.match);
-      add(GetParticipantStats(league.id));
+      add(GetParticipantStats(leagueId));
       showToast('Xoá trận đấu thành công');
     } catch (e) {
       emit(state.copyWith(
@@ -126,9 +221,13 @@ class TournamentDetailBloc
 
   void _onInactiveLeague(
       InactiveLeague event, Emitter<TournamentDetailState> emit) async {
+    final league = state.league;
+    if (league == null) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.inactiveLeague(state.league);
+      await _esportLeagueRepository.inactiveLeague(league);
       emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast('Đã xoá giải đấu');
     } catch (e) {
@@ -139,32 +238,24 @@ class TournamentDetailBloc
 
   void _onChangeLeagueStatus(
       ChangeLeagueStatus event, Emitter<TournamentDetailState> emit) async {
-    final newLeague = state.league.copyWith(status: event.status.value);
+    final newLeague = state.league?.copyWith(status: event.status.value);
     emit(state.copyWith(league: newLeague));
   }
 
   void _onSubmitLeagueStatus(
       SubmitLeagueStatus event, Emitter<TournamentDetailState> emit) async {
+    final league = state.league;
+    if (league == null) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.updateLeague(state.league);
+      await _esportLeagueRepository.updateLeague(league);
       emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast('Cập nhật trạng thái giải đấu thành công');
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
-    }
-  }
-
-  void _onGetLeague(
-      GetLeagueUpdated event, Emitter<TournamentDetailState> emit) async {
-    try {
-      final league = await _esportLeagueRepository.getLeague(this.league.id);
-      emit(state.copyWith(viewStatus: ViewStatus.success, league: league));
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
     }
   }
 
@@ -228,12 +319,15 @@ class TournamentDetailBloc
 
   void _onAddParticipant(
       AddParticipant event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.addParticipant(
-          leagueId: league.id, userId: event.userId);
-      add(GetParticipantStats(league.id));
-      add(GetLeagueUpdated());
+          leagueId: leagueId, userId: event.userId);
+      add(GetParticipantStats(leagueId));
       showToast('Thêm người chơi thành công');
     } catch (e) {
       emit(state.copyWith(
@@ -243,6 +337,10 @@ class TournamentDetailBloc
 
   void _onGenerateRound(
       GenerateRound event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
     if (state.participants.length < 2 ||
         state.viewStatus == ViewStatus.loading) {
       return;
@@ -250,9 +348,9 @@ class TournamentDetailBloc
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.generateRound(
-          leagueId: league.id,
+          leagueId: leagueId,
           teamIds: state.participants.map((e) => e.userId).toList());
-      add(GetMatches(league.id));
+      add(GetMatches(leagueId));
       showToast('Tạo vòng đấu thành công');
     } catch (e) {
       emit(state.copyWith(
@@ -262,14 +360,26 @@ class TournamentDetailBloc
 
   void _onUpdateMatch(
       UpdateEsportMatch event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.updateMatch(event.match);
-      add(GetParticipantStats(league.id));
+      add(GetParticipantStats(leagueId));
       showToast('Cập nhật trận đấu thành công');
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _matchesSubscription?.cancel();
+    _leagueSubscription?.cancel();
+    _participantsSubscription?.cancel();
+    return super.close();
   }
 }

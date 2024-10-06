@@ -40,7 +40,7 @@ class TournamentItem extends StatelessWidget {
               height: 32,
             ),
             title: Text(league.name.isEmpty
-                ? 'Giải đấu của ${league.group?.groupName ?? ''} - ${DateFormat('dd/MM/yyyy').format(league.startDate)}'
+                ? '${league.group?.groupName ?? ''} - ${DateFormat('dd/MM/yyyy').format(league.startDate)}'
                 : league.name),
             subtitle: league.description.isEmpty
                 ? Text(league.group!.groupName)

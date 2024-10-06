@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,7 +18,14 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
       : super(const TournamentState()) {
     on<GetTournaments>(_getTournaments);
     on<AddTournament>(_addTournament);
+
+    _leaguesSubscription =
+        _esportLeagueRepository.listenForLeagues().listen((leagues) {
+      add(GetTournaments());
+    });
   }
+
+  StreamSubscription<List<GNEsportLeague>>? _leaguesSubscription;
 
   void _getTournaments(
       GetTournaments event, Emitter<TournamentState> emit) async {
@@ -47,5 +56,11 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _leaguesSubscription?.cancel();
+    return super.close();
   }
 }

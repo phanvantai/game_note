@@ -64,10 +64,11 @@ class GNEsportLeague extends Equatable {
   final bool isActive; // whether the league is active or not
   final String description; // league description
   final List<String> participants; // list of participants
-  final GNEsportGroup? group; // group this league belongs to
   final String? status; // status of the league: upcoming, ongoing, finished
   final int? startingMedals;
   final int? valueMedal;
+
+  final GNEsportGroup? group; // group this league belongs to
 
   // esport_leagues is a top-level collection
   // esports_leagues/{leagueId}

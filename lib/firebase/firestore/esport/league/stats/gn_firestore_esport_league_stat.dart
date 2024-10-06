@@ -165,4 +165,18 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     await updateLeagueStat(updatedHomeStats);
     await updateLeagueStat(updatedAwayStats);
   }
+
+  // listen to updates of a league stat
+  Stream<List<GNEsportLeagueStat>> listenForLeagueStats(String leagueId) {
+    return firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .collection(GNEsportLeagueStat.collectionName)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => GNEsportLeagueStat.fromFirestore(doc))
+          .toList();
+    });
+  }
 }

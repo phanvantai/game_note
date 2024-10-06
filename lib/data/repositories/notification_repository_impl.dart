@@ -24,4 +24,31 @@ class NotificationRepositoryImpl implements NotificationRepository {
     }
     return getIt<GNFirestore>().setNotificationAsRead(userId, notificationId);
   }
+
+  @override
+  Stream<List<GNNotification>> listenToNotifications() {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      throw Exception('User not logged in');
+    }
+    return getIt<GNFirestore>().listenToUserNotifications(userId);
+  }
+
+  @override
+  Future<void> markAllNotificationsAsRead() {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      throw Exception('User not logged in');
+    }
+    return getIt<GNFirestore>().markAllNotificationsAsRead(userId);
+  }
+
+  @override
+  Future<void> deleteNotification(String notificationId) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      throw Exception('User not logged in');
+    }
+    return getIt<GNFirestore>().deleteNotification(userId, notificationId);
+  }
 }
