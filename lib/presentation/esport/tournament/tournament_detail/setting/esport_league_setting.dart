@@ -213,7 +213,6 @@ class EsportLeagueSetting extends StatelessWidget {
                               // delete league (inactive)
                               bloc.add(InactiveLeague());
                               Navigator.of(context).pop();
-                              Navigator.of(context).pop();
                             },
                             child: const Text('Xóa'),
                           ),

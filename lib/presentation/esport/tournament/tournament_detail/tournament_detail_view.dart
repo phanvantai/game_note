@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/ultils.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 
@@ -52,6 +51,23 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   Widget build(BuildContext context) {
     super.build(context);
     return BlocConsumer<TournamentDetailBloc, TournamentDetailState>(
+      listenWhen: (previous, current) =>
+          previous.currentUserIsLeagueAdmin != current.currentUserIsLeagueAdmin,
+      listener: (context, state) {
+        // if user is admin, have advance permission, with other tabs
+        tabs = {
+          //const Tab(text: 'Tổng quan'): const EsportOverviewView(),
+          const Tab(text: 'Trận đấu'): const EsportMatchesView(),
+          const Tab(text: 'Bảng điểm'): const EsportTableView(),
+          if (state.currentUserIsLeagueAdmin)
+            const Tab(text: 'Cài đặt'): const EsportLeagueSetting(),
+        };
+        _tabController = TabController(
+          length: tabs.length,
+          vsync: this,
+          initialIndex: 1,
+        );
+      },
       builder: (context, state) => Scaffold(
         appBar: AppBar(
           centerTitle: false,
@@ -110,18 +126,6 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
               )
             : null,
       ),
-      listener: (context, state) {
-        if (state.errorMessage.isNotEmpty) {
-          showToast(state.errorMessage);
-        }
-        if (state.league != null && !state.league!.isActive) {
-          showToast('Giải đấu đã kết thúc');
-          Navigator.of(context).pop();
-        }
-        if (state.errorMessage == 'Không tìm thấy giải đấu') {
-          Navigator.of(context).pop();
-        }
-      },
     );
   }
 

@@ -121,7 +121,7 @@ class _EsportChatViewState extends State<EsportChatView> {
                         ]),
                   ),
                   subtitle: Text(
-                    DateFormat('HH:mm').format(message.timestamp),
+                    getTime(message.timestamp),
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.grey,
@@ -187,5 +187,16 @@ class _EsportChatViewState extends State<EsportChatView> {
         }
       },
     );
+  }
+
+  String getTime(DateTime timestamp) {
+    // check if the message was sent today
+    final now = DateTime.now();
+    if (now.day == timestamp.day &&
+        now.month == timestamp.month &&
+        now.year == timestamp.year) {
+      return DateFormat('HH:mm').format(timestamp);
+    }
+    return DateFormat('HH:mm MMMM dd, yyyy').format(timestamp);
   }
 }
