@@ -99,7 +99,8 @@ class TournamentDetailBloc
 
   void _onUpdateLeague(
       UpdateLeague event, Emitter<TournamentDetailState> emit) async {
-    emit(state.copyWith(league: event.league));
+    final newLeague = event.league.copyWith(group: state.league?.group);
+    emit(state.copyWith(league: newLeague));
     if (event.league.isActive) {
       add(GetParticipantStats(event.league.id));
     }

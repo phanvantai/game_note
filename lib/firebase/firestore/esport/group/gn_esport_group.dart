@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
 
-class GNEsportGroup {
+class GNEsportGroup extends Equatable {
   final String id; // This is the group document ID
   final String esportId;
   final String groupName;
@@ -12,7 +13,7 @@ class GNEsportGroup {
   final String status; // active or inactive
   final String location;
 
-  GNEsportGroup({
+  const GNEsportGroup({
     required this.id,
     required this.esportId,
     required this.groupName,
@@ -48,6 +49,20 @@ class GNEsportGroup {
       location: location ?? this.location,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        id,
+        esportId,
+        groupName,
+        ownerId,
+        members,
+        description,
+        // createdAt,
+        // updatedAt,
+        status,
+        location,
+      ];
 
   // Factory method to convert Firestore document into GNEsportGroup object
   factory GNEsportGroup.fromFirestore(DocumentSnapshot doc) {

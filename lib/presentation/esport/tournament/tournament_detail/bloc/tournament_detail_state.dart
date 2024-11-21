@@ -46,8 +46,8 @@ class TournamentDetailState extends Equatable {
       ];
 
   bool get currentUserIsMember {
-    return participants.any((element) =>
-            element.userId == FirebaseAuth.instance.currentUser?.uid) ||
+    return /*participants.any((element) =>
+            element.userId == FirebaseAuth.instance.currentUser?.uid) ||*/
         (league?.group?.members ?? <String>[]).any(
             (element) => element == FirebaseAuth.instance.currentUser?.uid);
   }
