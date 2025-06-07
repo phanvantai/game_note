@@ -10,7 +10,11 @@ import '../firestore/gn_firestore.dart';
 
 class GNAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn googleSignIn = GoogleSignIn();
+  final GoogleSignIn googleSignIn = GoogleSignIn(
+    // Add explicit client ID configuration
+    serverClientId:
+        '256841801977-4gk9c14654vco9ivfsj6r94hlem7sj72.apps.googleusercontent.com',
+  );
 
   FirebaseAuth get auth => _auth;
 
@@ -21,6 +25,11 @@ class GNAuth {
   bool _isSignInWithEmailAndPassword = false;
 
   GNAuth() {
+    if (kDebugMode) {
+      print(
+          '🔧 GNAuth: Initializing with server client ID: 256841801977-4gk9c14654vco9ivfsj6r94hlem7sj72.apps.googleusercontent.com');
+    }
+
     // Listen to auth state changes
     _auth.authStateChanges().listen(
       (User? user) async {
@@ -91,23 +100,84 @@ class GNAuth {
   }
 
   Future<UserCredential> signInWithGoogle() async {
-    final GoogleSignInAccount? googleSignInAccount =
-        await googleSignIn.signIn();
-    if (googleSignInAccount == null) {
-      throw FirebaseAuthException(
-        code: 'ERROR_ABORTED_BY_USER',
-        message: 'Sign in aborted by user',
-      );
+    if (kDebugMode) {
+      print('🔗 GNAuth: Starting Google Sign-In...');
     }
-    final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
 
-    final AuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleSignInAuthentication.accessToken,
-      idToken: googleSignInAuthentication.idToken,
-    );
+    try {
+      // Check if Google Play Services is available (Android only)
+      if (kDebugMode) {
+        print('📱 GNAuth: Checking Google Play Services availability...');
+        final isAvailable = await googleSignIn.isSignedIn();
+        print('🔍 GNAuth: Google Sign-In already signed in: $isAvailable');
+      }
 
-    return _auth.signInWithCredential(credential);
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
+
+      if (googleSignInAccount == null) {
+        if (kDebugMode) {
+          print('🚫 GNAuth: Google Sign-In cancelled by user');
+        }
+        throw FirebaseAuthException(
+          code: 'ERROR_ABORTED_BY_USER',
+          message: 'Sign in aborted by user',
+        );
+      }
+
+      if (kDebugMode) {
+        print(
+            '✅ GNAuth: Google account selected: ${googleSignInAccount.email}');
+        print('🔑 GNAuth: Getting authentication tokens...');
+      }
+
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
+
+      if (kDebugMode) {
+        print('🎫 GNAuth: Tokens received');
+        print(
+            '   - Access Token: ${googleSignInAuthentication.accessToken != null ? "✅" : "❌"}');
+        print(
+            '   - ID Token: ${googleSignInAuthentication.idToken != null ? "✅" : "❌"}');
+
+        if (googleSignInAuthentication.accessToken == null ||
+            googleSignInAuthentication.idToken == null) {
+          print('⚠️ GNAuth: Missing required tokens!');
+        }
+      }
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleSignInAuthentication.idToken,
+      );
+
+      if (kDebugMode) {
+        print('🔐 GNAuth: Firebase credential created, signing in...');
+      }
+
+      final result = await _auth.signInWithCredential(credential);
+      if (kDebugMode) {
+        print('🎉 GNAuth: Firebase sign-in successful!');
+        print('👤 User UID: ${result.user?.uid}');
+      }
+      return result;
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        print('🔥 GNAuth: Firebase Auth Exception:');
+        print('   - Code: ${e.code}');
+        print('   - Message: ${e.message}');
+        print('   - Plugin: ${e.plugin}');
+      }
+      rethrow;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ GNAuth: General exception during Google Sign-In:');
+        print('   - Type: ${e.runtimeType}');
+        print('   - Message: $e');
+      }
+      rethrow;
+    }
   }
 
   // sign in with apple
