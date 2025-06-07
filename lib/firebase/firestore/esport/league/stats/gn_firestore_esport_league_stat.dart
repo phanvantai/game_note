@@ -42,10 +42,19 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
         .get();
 
     List<GNEsportLeagueStat> leagues = [];
+
+    // Extract all user IDs first
+    final userIds = snapshot.docs
+        .map((doc) => GNEsportLeagueStat.fromFirestore(doc).userId)
+        .toList();
+
+    // Batch load all users at once to avoid N+1 query problem
+    final usersMap = await getUsersById(userIds);
+
+    // Build the final list with user data
     for (final doc in snapshot.docs) {
       final stats = GNEsportLeagueStat.fromFirestore(doc);
-      // get user of the stat
-      final user = await getUserById(stats.userId);
+      final user = usersMap[stats.userId];
       leagues.add(stats.copyWith(user: user));
     }
     return leagues;

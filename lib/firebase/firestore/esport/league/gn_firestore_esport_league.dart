@@ -12,14 +12,25 @@ extension GNFirestoreEsportLeague on GNFirestore {
         .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
         .get();
 
-    List<GNEsportLeague> leagues = [];
-    for (final doc in snapshot.docs) {
-      final league = GNEsportLeague.fromFirestore(doc);
-      final group = await getGroupById(league.groupId);
-      leagues.add(league.copyWith(group: group));
+    // Extract leagues first
+    final leagues =
+        snapshot.docs.map((doc) => GNEsportLeague.fromFirestore(doc)).toList();
+
+    if (leagues.isEmpty) {
+      return leagues;
     }
-    leagues.sort((a, b) => b.startDate.compareTo(a.startDate));
-    return leagues;
+
+    // Batch load all groups to avoid N+1 query problem
+    final groupIds = leagues.map((league) => league.groupId).toList();
+    final groupsMap = await getGroupsById(groupIds);
+
+    // Combine leagues with their groups
+    final leaguesWithGroups = leagues
+        .map((league) => league.copyWith(group: groupsMap[league.groupId]))
+        .toList();
+
+    leaguesWithGroups.sort((a, b) => b.startDate.compareTo(a.startDate));
+    return leaguesWithGroups;
   }
 
   Future<GNEsportLeague?> getLeague(String leagueId) async {

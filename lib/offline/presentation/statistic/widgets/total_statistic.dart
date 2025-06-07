@@ -86,7 +86,7 @@ class TotalStatistic extends StatelessWidget {
     String text = statistics[value.toInt()].playerModel.fullname;
 
     return SideTitleWidget(
-      axisSide: meta.axisSide,
+      meta: meta,
       space: 4,
       child: Text(text, style: style),
     );

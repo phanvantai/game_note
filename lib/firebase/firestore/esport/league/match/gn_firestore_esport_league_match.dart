@@ -1,6 +1,7 @@
 import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:game_note/firebase/firestore/gn_firestore.dart';
+import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
 
 import 'gn_esport_match.dart';
 
@@ -73,19 +74,27 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
 
     List<GNEsportMatch> matches = [];
 
-    for (final doc in snapshot.docs) {
-      final match = GNEsportMatch.fromFirestore(doc);
+    // Extract all unique user IDs from matches
+    final userIds = <String>{};
+    final matchDocs =
+        snapshot.docs.map((doc) => GNEsportMatch.fromFirestore(doc)).toList();
 
-      // commented for optimization loading time
-      // get home team and away team
-      // final homeTeam = await getUserById(match.homeTeamId);
-      // final awayTeam = await getUserById(match.awayTeamId);
-      // matches.add(match.copyWith(
-      //   homeTeam: homeTeam,
-      //   awayTeam: awayTeam,
-      // ));
+    for (final match in matchDocs) {
+      userIds.add(match.homeTeamId);
+      userIds.add(match.awayTeamId);
+    }
 
-      matches.add(match);
+    // Batch load all users at once to avoid N+1 query problem
+    final usersMap = await getUsersById(userIds.toList());
+
+    // Build the final list with user data
+    for (final match in matchDocs) {
+      final homeTeam = usersMap[match.homeTeamId];
+      final awayTeam = usersMap[match.awayTeamId];
+      matches.add(match.copyWith(
+        homeTeam: homeTeam,
+        awayTeam: awayTeam,
+      ));
     }
     return matches;
   }

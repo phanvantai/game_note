@@ -16,6 +16,15 @@ class GetLeague extends TournamentDetailEvent {
   List<Object> get props => [leagueId];
 }
 
+class GetParticipantsAndMatches extends TournamentDetailEvent {
+  final String leagueId;
+
+  const GetParticipantsAndMatches(this.leagueId);
+
+  @override
+  List<Object> get props => [leagueId];
+}
+
 class GetParticipantStats extends TournamentDetailEvent {
   final String tournamentId;
 

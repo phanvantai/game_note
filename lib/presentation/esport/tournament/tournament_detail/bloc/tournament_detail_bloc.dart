@@ -23,6 +23,7 @@ class TournamentDetailBloc
       : super(const TournamentDetailState()) {
     on<GetParticipantStats>(_onGetParticipants);
     on<GetMatches>(_onGetMatches);
+    on<GetParticipantsAndMatches>(_onGetParticipantsAndMatches);
 
     on<AddParticipant>(_onAddParticipant);
 
@@ -62,7 +63,7 @@ class TournamentDetailBloc
         .listenForLeagueStats(event.leagueId)
         .listen((participants) {
       if (state.league?.id != null) {
-        add(GetParticipantStats(state.league!.id));
+        add(GetParticipantsAndMatches(state.league!.id));
       }
     });
 
@@ -102,7 +103,7 @@ class TournamentDetailBloc
     final newLeague = event.league.copyWith(group: state.league?.group);
     emit(state.copyWith(league: newLeague));
     if (event.league.isActive) {
-      add(GetParticipantStats(event.league.id));
+      add(GetParticipantsAndMatches(event.league.id));
     }
   }
 
@@ -312,6 +313,43 @@ class TournamentDetailBloc
               .toList(),
         ),
       );
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onGetParticipantsAndMatches(GetParticipantsAndMatches event,
+      Emitter<TournamentDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      // Load participants and matches in parallel for better performance
+      final data = await _esportLeagueRepository
+          .getParticipantsAndMatches(event.leagueId);
+
+      // Extract users from participants
+      List<GNUser> users = [];
+      for (var participant in data.participants) {
+        final user = participant.user;
+        if (user != null) users.add(user);
+      }
+
+      // Sort participants by point, then goal difference, then goals scored, then match played
+      data.participants.sort((a, b) {
+        if (a.points != b.points) return b.points.compareTo(a.points);
+        if (a.goalDifference != b.goalDifference) {
+          return b.goalDifference.compareTo(a.goalDifference);
+        }
+        if (a.goals != b.goals) return b.goals.compareTo(a.goals);
+        return b.matchesPlayed.compareTo(a.matchesPlayed);
+      });
+
+      emit(state.copyWith(
+        viewStatus: ViewStatus.success,
+        participants: data.participants,
+        users: users,
+        matches: data.matches, // Matches already have user data populated
+      ));
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));
