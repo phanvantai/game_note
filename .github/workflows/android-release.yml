@@ -81,7 +81,7 @@ jobs:
         
       - name: Start release build
         run: |
-          flutter build appbundle --release --verbose
+          flutter build appbundle --release
         env:
           GRADLE_OPTS: "-Xmx4096m -XX:MaxMetaspaceSize=1024m"
       # 8
