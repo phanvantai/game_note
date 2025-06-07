@@ -50,34 +50,12 @@ jobs:
           flutter-version: "3.29.2"
           channel: 'stable'
           cache: true
-      # Debug environment info
-      - name: Debug environment
-        run: |
-          echo "Java version:"
-          java -version
-          echo "Flutter version:"
-          flutter --version
-          echo "Gradle version:"
-          cd android && ./gradlew --version && cd ..
         
       - name: Get dependencies
         run: flutter pub get
         
       - name: Flutter clean
         run: flutter clean
-        
-      # Ensure project gradle.properties matches local environment
-      - name: Verify project gradle.properties
-        run: |
-          echo "Project gradle.properties:"
-          cat android/gradle.properties
-        
-      # Clear Gradle cache to avoid inconsistencies
-      - name: Clear Gradle cache
-        run: |
-          cd android
-          ./gradlew clean
-          cd ..
         
       - name: Start release build
         run: |
