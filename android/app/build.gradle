@@ -46,6 +46,11 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    // Add dex options to handle large APKs
+    dexOptions {
+        javaMaxHeapSize "4g"
+    }
+
     defaultConfig {
         applicationId "com.november.game_note"
         minSdkVersion 23
