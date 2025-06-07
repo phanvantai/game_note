@@ -15,11 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      # Set up environment variables for Gradle
+      # Set up environment variables for Gradle to match local environment
       - name: Set up Gradle properties and environment
         run: |
           mkdir -p ~/.gradle
           echo "org.gradle.jvmargs=-Xmx4096M -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError" > ~/.gradle/gradle.properties
+          echo "android.useAndroidX=true" >> ~/.gradle/gradle.properties
+          echo "android.enableJetifier=true" >> ~/.gradle/gradle.properties
           echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
           echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
           echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties
@@ -38,26 +40,48 @@ jobs:
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: "17.x"
+          java-version: "21.x"
           cache: 'gradle'
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.29.2"
           channel: 'stable'
           cache: true
-      # 12
+      # Debug environment info
+      - name: Debug environment
+        run: |
+          echo "Java version:"
+          java -version
+          echo "Flutter version:"
+          flutter --version
+          echo "Gradle version:"
+          cd android && ./gradlew --version && cd ..
+        
       - name: Get dependencies
         run: flutter pub get
         
       - name: Flutter clean
         run: flutter clean
         
+      # Ensure project gradle.properties matches local environment
+      - name: Verify project gradle.properties
+        run: |
+          echo "Project gradle.properties:"
+          cat android/gradle.properties
+        
+      # Clear Gradle cache to avoid inconsistencies
+      - name: Clear Gradle cache
+        run: |
+          cd android
+          ./gradlew clean
+          cd ..
+        
       - name: Start release build
         run: |
-          flutter build appbundle --release
+          flutter build appbundle --release --verbose
         env:
           GRADLE_OPTS: "-Xmx4096m -XX:MaxMetaspaceSize=1024m"
       # 8
