@@ -10,7 +10,7 @@ class AuthView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white.withOpacity(0.9),
+      backgroundColor: Colors.white.withValues(alpha: 0.9),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         actions: const [OfflineButton()],

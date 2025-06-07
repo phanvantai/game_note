@@ -50,6 +50,33 @@ extension GNFirestoreUser on GNFirestore {
     return GNUser.fromFireStore(userDoc);
   }
 
+  // Batch load multiple users to avoid N+1 query problem
+  Future<Map<String, GNUser>> getUsersById(List<String> userIds) async {
+    if (userIds.isEmpty) return {};
+
+    // Remove duplicates
+    final uniqueUserIds = userIds.toSet().toList();
+
+    // Firestore 'in' query supports up to 10 items, so we need to batch
+    const batchSize = 10;
+    Map<String, GNUser> users = {};
+
+    for (int i = 0; i < uniqueUserIds.length; i += batchSize) {
+      final batch = uniqueUserIds.skip(i).take(batchSize).toList();
+
+      final querySnapshot = await firestore
+          .collection(GNUser.collectionName)
+          .where(FieldPath.documentId, whereIn: batch)
+          .get();
+
+      for (final doc in querySnapshot.docs) {
+        users[doc.id] = GNUser.fromFireStore(doc);
+      }
+    }
+
+    return users;
+  }
+
   Future<void> deleteCurrentUser() async {
     final user = getIt<GNAuth>().currentUser;
     if (user == null) {

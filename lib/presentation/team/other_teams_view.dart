@@ -42,7 +42,7 @@ class OtherTeamsView extends StatelessWidget {
                         (BuildContext context, SearchController controller) {
                       return SearchBar(
                         backgroundColor: WidgetStatePropertyAll(
-                            Colors.green.withOpacity(0.5)),
+                            Colors.green.withValues(alpha: 0.5)),
                         constraints: BoxConstraints.tight(
                             Size(MediaQuery.of(context).size.width * 0.5, 40)),
                         elevation: const WidgetStatePropertyAll(0),

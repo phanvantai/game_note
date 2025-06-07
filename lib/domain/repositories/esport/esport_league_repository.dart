@@ -3,6 +3,17 @@ import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_leagu
 
 import '../../../firebase/firestore/esport/league/gn_esport_league.dart';
 
+// Data class for parallel loading results
+class LeagueDetailData {
+  final List<GNEsportLeagueStat> participants;
+  final List<GNEsportMatch> matches;
+
+  const LeagueDetailData({
+    required this.participants,
+    required this.matches,
+  });
+}
+
 abstract class EsportLeagueRepository {
   Future<List<GNEsportLeague>> getLeagues();
 
@@ -39,6 +50,10 @@ abstract class EsportLeagueRepository {
 
   Future<void> updateMatchMedals(String matchId, String leagueId, int medals);
 
+  // Parallel loading method to get both participants and matches efficiently
+  Future<LeagueDetailData> getParticipantsAndMatches(String leagueId);
+
+  // Streams
   Stream<List<GNEsportLeagueStat>> listenForLeagueStats(String leagueId);
   Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId);
   Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId);

@@ -108,6 +108,20 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
+  Future<LeagueDetailData> getParticipantsAndMatches(String leagueId) async {
+    // Load participants and matches in parallel to improve performance
+    final results = await Future.wait([
+      getIt<GNFirestore>().getLeagueStats(leagueId),
+      getIt<GNFirestore>().getMatches(leagueId),
+    ]);
+
+    return LeagueDetailData(
+      participants: results[0] as List<GNEsportLeagueStat>,
+      matches: results[1] as List<GNEsportMatch>,
+    );
+  }
+
+  @override
   Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId) {
     return getIt<GNFirestore>().listenForMatchesUpdated(leagueId);
   }
