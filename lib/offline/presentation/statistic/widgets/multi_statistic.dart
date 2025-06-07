@@ -115,7 +115,7 @@ class MultiStatistic extends StatelessWidget {
       return Container();
     }
     return SideTitleWidget(
-      axisSide: meta.axisSide,
+      meta: meta,
       space: 0,
       child: FittedBox(
         child: Text(text, style: style),
@@ -134,7 +134,7 @@ class MultiStatistic extends StatelessWidget {
     );
 
     return SideTitleWidget(
-      axisSide: meta.axisSide,
+      meta: meta,
       space: 16, //margin top
       child: text,
     );

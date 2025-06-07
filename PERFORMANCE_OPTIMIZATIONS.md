@@ -131,6 +131,26 @@ Total: 500 + max(450, 300) = 950ms
 3. **Error Handling**: Ensure batch operations handle partial failures gracefully
 4. **Cost Analysis**: Monitor Firestore usage to confirm reduced read operations
 
+## Tournament List Loading Optimization (June 2025)
+
+**Problem**: The TournamentView was loading slowly due to N+1 query problem in `getLeagues()` method. For each league fetched, an individual `getGroupById()` call was made sequentially.
+
+**Files Modified**:
+
+- `/lib/firebase/firestore/esport/league/gn_firestore_esport_league.dart`
+- `/lib/firebase/firestore/esport/group/gn_firestore_esport_group.dart`
+
+**Solution**:
+
+1. **Added Batch Group Loading**: Implemented `getGroupsById()` method in group service to load multiple groups in single/batched queries
+2. **Optimized League Loading**: Modified `getLeagues()` to use batch loading instead of sequential individual calls
+
+**Performance Results**:
+
+- **For 20 tournaments**: 21 Firestore queries → 3 queries (1 + ceil(20/10))
+- **Parallel vs Sequential**: All group data loaded in parallel instead of one-by-one
+- **Faster UI Response**: Tournament list loads significantly faster
+
 ## Future Optimizations
 
 1. **Caching**: Implement user data caching to avoid repeated queries

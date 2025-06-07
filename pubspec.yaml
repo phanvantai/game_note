@@ -1,7 +1,7 @@
 name: game_note
 description: Open source apps for football community, PES community.
-publish_to: 'none'
-version: 1.6.0+31
+publish_to: "none"
+version: 1.7.0+31
 
 environment:
   sdk: ">=2.16.1 <3.0.0"
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # free icons
   cupertino_icons: ^1.0.8
   font_awesome_flutter: ^10.7.0
@@ -25,19 +25,19 @@ dependencies:
 
   provider: ^6.0.3
   equatable: ^2.0.3
-  bloc: ^8.1.0
-  flutter_bloc: ^8.0.1
+  bloc: ^9.0.0
+  flutter_bloc: ^9.1.1
   # Functional programming thingies
   dartz: ^0.10.1
 
   flutter_fortune_wheel: ^1.2.0
 
-  file_picker: ^8.0.7
-  share_plus: ^10.0.0
+  file_picker: ^10.1.9
+  share_plus: ^11.0.0
 
   shared_preferences: ^2.0.15
 
-  fl_chart: ^0.69.0
+  fl_chart: ^1.0.0
   collection: ^1.18.0
   google_sign_in: ^6.2.1
   package_info_plus: ^8.0.2
@@ -64,24 +64,22 @@ dependencies:
   flutter_slidable: ^4.0.0
 
   # intl
-  intl: ^0.19.0
+  intl: ^0.20.2
 
   # Google Mobile Ads
-  google_mobile_ads: ^5.1.0
+  google_mobile_ads: ^6.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-    
-  flutter_lints: ^5.0.0
-  
-flutter:
 
+  flutter_lints: ^5.0.0
+
+flutter:
   uses-material-design: true
-  
+
   assets:
     - assets/images/
     - assets/icons/
     - assets/svg/
     - assets/province.json
-

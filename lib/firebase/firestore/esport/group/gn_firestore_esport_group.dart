@@ -83,6 +83,34 @@ extension GNFirestoreEsportGroup on GNFirestore {
     return null;
   }
 
+  // Batch load multiple groups to avoid N+1 query problem
+  Future<Map<String, GNEsportGroup>> getGroupsById(
+      List<String> groupIds) async {
+    if (groupIds.isEmpty) return {};
+
+    // Remove duplicates
+    final uniqueGroupIds = groupIds.toSet().toList();
+
+    // Firestore 'in' query supports up to 10 items, so we need to batch
+    const batchSize = 10;
+    Map<String, GNEsportGroup> groups = {};
+
+    for (int i = 0; i < uniqueGroupIds.length; i += batchSize) {
+      final batch = uniqueGroupIds.skip(i).take(batchSize).toList();
+
+      final querySnapshot = await firestore
+          .collection(GNEsportGroup.collectionName)
+          .where(FieldPath.documentId, whereIn: batch)
+          .get();
+
+      for (final doc in querySnapshot.docs) {
+        groups[doc.id] = GNEsportGroup.fromFirestore(doc);
+      }
+    }
+
+    return groups;
+  }
+
   // Update group information (optional utility)
   Future<void> updateGroup(GNEsportGroup group) async {
     await firestore

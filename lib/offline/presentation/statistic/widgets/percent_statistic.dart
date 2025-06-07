@@ -135,7 +135,7 @@ class PercentStatistic extends StatelessWidget {
     const style = TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
     String text = statistics[value.toInt()].playerModel.fullname;
     return SideTitleWidget(
-      axisSide: meta.axisSide,
+      meta: meta,
       child: Text(text, style: style),
     );
   }
