@@ -3,13 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:game_note/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
 import 'package:game_note/widgets/gn_circle_avatar.dart';
-import 'package:game_note/widgets/gn_floating_button.dart';
 
 import '../../../../../firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-import '../../../../../injection_container.dart';
-import '../../../../users/bloc/user_bloc.dart';
-import '../../../../users/user_item.dart';
-import 'widgets/esport_league_result_item.dart';
 import 'widgets/table_fixed_column_header.dart';
 import 'widgets/table_scrollable_column_header.dart';
 import 'widgets/table_scrollable_column_item.dart';
@@ -43,138 +38,52 @@ class EsportTableView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
       builder: (context, state) {
-        return Stack(
-          children: [
-            // table view
-            if (state.participants.isEmpty)
-              const Center(
-                child: Text('Chưa có người chơi nào'),
-              )
-            else
-              SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Column(
+        if (state.participants.isEmpty) {
+          return const Center(
+            child: Text('Chưa có người chơi nào'),
+          );
+        } else {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                  children: <Widget>[
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children:
-                              _buildFixColumns(context, state.participants),
-                        ),
-                        Flexible(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            physics: const ClampingScrollPhysics(),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: _buildScrollableColumns(
-                                  context, state.participants),
-                            ),
-                          ),
-                        ),
-                      ],
+                      children: _buildFixColumns(context, state.participants),
                     ),
-                    const SizedBox(height: 64),
-                    if (state.league?.startingMedals != null &&
-                        state.league!.startingMedals! > 0)
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text('Tổng kết'),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const ClampingScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _buildScrollableColumns(
+                              context, state.participants),
+                        ),
                       ),
-                    if (state.league?.startingMedals != null &&
-                        state.league!.startingMedals! > 0)
-                      ...state.participants.map((e) {
-                        return EsportLeagueResultItem(e: e, state: state);
-                      }),
+                    ),
                   ],
                 ),
-              ),
-            // if current user in group of league
-            if (state.currentUserIsMember)
-              // add participant button
-              Positioned(
-                right: 16.0,
-                bottom: 16.0,
-                child: GNFloatingButton(
-                  label: 'Thêm người chơi',
-                  onPressed: () {
-                    _addParticipant(context, state);
-                  },
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  _addParticipant(BuildContext context, TournamentDetailState state) {
-    final league = state.league;
-    if (league == null) {
-      return;
-    }
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        final userBloc = getIt<UserBloc>();
-        return BlocBuilder<UserBloc, UserState>(
-          bloc: userBloc..add(SearchUserByEsportGroup(league.groupId, '')),
-          builder: (userContext, userState) => AlertDialog(
-            title: const Text('Thêm thành viên'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Tìm kiếm',
-                  ),
-                  onChanged: (value) {
-                    userBloc
-                        .add(SearchUserByEsportGroup(league.groupId, value));
-                  },
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 250,
-                  width: double.maxFinite,
-                  child: ListView.builder(
-                    itemCount: userState.users.length,
-                    itemBuilder: (ctx, index) {
-                      final user = userState.users[index];
-                      // ignore existing participants stats
-                      if (state.participants
-                          .map((e) => e.userId)
-                          .contains(user.id)) {
-                        return const SizedBox.shrink();
-                      }
-                      return UserItem(
-                        user: user,
-                        onTap: () {
-                          // add participant to league
-                          BlocProvider.of<TournamentDetailBloc>(context).add(
-                            AddParticipant(league.id, user.id),
-                          );
-                          Navigator.of(context).pop();
-                        },
-                      );
-                    },
-                  ),
-                ),
+                // const SizedBox(height: 64),
+                // if (state.league?.startingMedals != null &&
+                //     state.league!.startingMedals! > 0)
+                //   const Padding(
+                //     padding: EdgeInsets.all(16.0),
+                //     child: Text('Tổng kết'),
+                //   ),
+                // if (state.league?.startingMedals != null &&
+                //     state.league!.startingMedals! > 0)
+                //   ...state.participants.map((e) {
+                //     return EsportLeagueResultItem(e: e, state: state);
+                //   }),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Hủy'),
-              ),
-            ],
-          ),
-        );
+          );
+        }
       },
     );
   }
