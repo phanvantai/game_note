@@ -46,11 +46,6 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
-    // Add dex options to handle large APKs
-    dexOptions {
-        javaMaxHeapSize "4g"
-    }
-
     defaultConfig {
         applicationId "com.november.game_note"
         minSdkVersion 23
@@ -61,17 +56,30 @@ android {
 
     signingConfigs {
        release {
-           keyAlias keystoreProperties['keyAlias']
-           keyPassword keystoreProperties['keyPassword']
-           storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-           storePassword keystoreProperties['storePassword']
+           if (keystoreProperties['keyAlias'] && keystoreProperties['storeFile']) {
+               keyAlias keystoreProperties['keyAlias']
+               keyPassword keystoreProperties['keyPassword']
+               storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+               storePassword keystoreProperties['storePassword']
+           }
        }
    }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (keystoreProperties['keyAlias'] && keystoreProperties['storeFile']) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    
+    // Configure packaging options to handle large APKs
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsc.so'
     }
 }
 
