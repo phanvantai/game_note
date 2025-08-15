@@ -26,6 +26,7 @@ class TournamentDetailBloc
     on<GetParticipantsAndMatches>(_onGetParticipantsAndMatches);
 
     on<AddParticipant>(_onAddParticipant);
+    on<AddMultipleParticipants>(_onAddMultipleParticipants);
 
     on<GenerateRound>(_onGenerateRound);
     on<UpdateEsportMatch>(_onUpdateMatch);
@@ -368,6 +369,27 @@ class TournamentDetailBloc
           leagueId: leagueId, userId: event.userId);
       add(GetParticipantStats(leagueId));
       showToast('Thêm người chơi thành công');
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onAddMultipleParticipants(
+      AddMultipleParticipants event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
+    if (event.userIds.isEmpty) {
+      return;
+    }
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.addMultipleParticipants(
+          leagueId: leagueId, userIds: event.userIds);
+      add(GetParticipantStats(leagueId));
+      showToast('Thêm ${event.userIds.length} người chơi thành công');
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));

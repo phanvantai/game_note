@@ -34,6 +34,11 @@ abstract class EsportLeagueRepository {
     required String userId,
   });
 
+  Future<void> addMultipleParticipants({
+    required String leagueId,
+    required List<String> userIds,
+  });
+
   Future<void> generateRound({
     required String leagueId,
     required List<String> teamIds,

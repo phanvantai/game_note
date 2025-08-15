@@ -49,6 +49,12 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
+  Future<void> addMultipleParticipants(
+      {required String leagueId, required List<String> userIds}) {
+    return getIt<GNFirestore>().addMultipleParticipantsToLeague(leagueId, userIds);
+  }
+
+  @override
   Future<void> generateRound(
       {required String leagueId, required List<String> teamIds}) {
     return getIt<GNFirestore>()

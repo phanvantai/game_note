@@ -121,7 +121,7 @@ Future<void> init() async {
   getIt.registerFactory<EsportChatBloc>(() => EsportChatBloc(getIt(), getIt()));
 
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
-  getIt.registerFactory<NotificationBloc>(() => NotificationBloc(getIt()));
+  getIt.registerSingleton<NotificationBloc>(NotificationBloc(getIt()));
 
   getIt.registerFactory<ChangePasswordBloc>(() => ChangePasswordBloc(getIt()));
 }

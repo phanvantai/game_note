@@ -9,7 +9,6 @@ import '../../injection_container.dart';
 import '../esport/chat/bloc/esport_chat_bloc.dart';
 import '../esport/groups/bloc/group_bloc.dart';
 import '../profile/bloc/profile_bloc.dart';
-import '../team/bloc/teams_bloc.dart';
 import 'main_view.dart';
 
 class MainPage extends StatelessWidget {
@@ -19,7 +18,6 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        BlocProvider(create: (_) => getIt<TeamsBloc>()),
         BlocProvider(create: (_) => getIt<ProfileBloc>()),
         BlocProvider(create: (_) => getIt<EsportBloc>()..add(InitEsport())),
         BlocProvider(

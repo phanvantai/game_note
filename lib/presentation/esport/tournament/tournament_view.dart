@@ -1,11 +1,14 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/core/ultils.dart';
 import 'package:game_note/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:game_note/presentation/esport/tournament/tournament_item.dart';
+import 'package:game_note/presentation/notification/bloc/notification_bloc.dart';
 
 import '../../../routing.dart';
+import '../bloc/esport_bloc.dart';
 import '../groups/bloc/group_bloc.dart';
 import 'create_esport_league_dialog.dart';
 
@@ -20,6 +23,56 @@ class TournamentView extends StatelessWidget {
     );
     return BlocConsumer<TournamentBloc, TournamentState>(
       builder: (context, state) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.indigo[100],
+          centerTitle: false,
+          title: BlocBuilder<EsportBloc, EsportState>(
+              builder: (context, state) => state.esportModel != null
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: CachedNetworkImage(
+                            imageUrl: state.esportModel!.image ?? '',
+                            height: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(state.esportModel!.name ?? '',
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                      ],
+                    )
+                  : const SizedBox.shrink()),
+          actions: [
+            BlocBuilder<NotificationBloc, NotificationState>(
+              builder: (context, state) => IconButton(
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.notifications),
+                    if (state.unreadNotificationsCount > 0)
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          width: 8,
+                          height: 8,
+                        ),
+                      ),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(context, Routing.notification);
+                },
+              ),
+            ),
+          ],
+        ),
         body: SafeArea(
           child: DefaultTabController(
             length: 2,

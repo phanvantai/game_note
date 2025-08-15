@@ -3,13 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:game_note/core/common/view_status.dart';
 import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:game_note/injection_container.dart';
-import 'package:game_note/presentation/users/bloc/user_bloc.dart';
-import 'package:game_note/presentation/users/user_item.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/helpers/admob_helper.dart';
+import 'add_player_popup.dart';
 import 'bloc/tournament_detail_bloc.dart';
 import 'matches/matches_view.dart';
 import 'table/table_view.dart';
@@ -252,66 +250,15 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     if (league == null) {
       return;
     }
+    final tournamentDetailBloc = BlocProvider.of<TournamentDetailBloc>(context);
+    
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) {
-        final userBloc = getIt<UserBloc>();
-        return BlocBuilder<UserBloc, UserState>(
-          bloc: userBloc..add(SearchUserByEsportGroup(league.groupId, '')),
-          builder: (userContext, userState) => AlertDialog(
-            title: const Text('Thêm thành viên'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Tìm kiếm',
-                  ),
-                  onChanged: (value) {
-                    userBloc
-                        .add(SearchUserByEsportGroup(league.groupId, value));
-                  },
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 250,
-                  width: double.maxFinite,
-                  child: ListView.builder(
-                    itemCount: userState.users.length,
-                    itemBuilder: (ctx, index) {
-                      final user = userState.users[index];
-                      // ignore existing participants stats
-                      if (state.participants
-                          .map((e) => e.userId)
-                          .contains(user.id)) {
-                        return const SizedBox.shrink();
-                      }
-                      return UserItem(
-                        user: user,
-                        onTap: () {
-                          // add participant to league
-                          BlocProvider.of<TournamentDetailBloc>(context).add(
-                            AddParticipant(league.id, user.id),
-                          );
-                          Navigator.of(context).pop();
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Hủy'),
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (context) => AddPlayerPopup(
+        league: league,
+        existingParticipants: state.participants,
+        tournamentDetailBloc: tournamentDetailBloc,
+      ),
     );
   }
 }

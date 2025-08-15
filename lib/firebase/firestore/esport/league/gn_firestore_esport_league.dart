@@ -108,6 +108,36 @@ extension GNFirestoreEsportLeague on GNFirestore {
     await addLeagueStat(userId: participantId, leagueId: leagueId);
   }
 
+  Future<void> addMultipleParticipantsToLeague(
+      String leagueId, List<String> participantIds) async {
+    final leagueRef =
+        firestore.collection(GNEsportLeague.collectionName).doc(leagueId);
+    final leagueSnapshot = await leagueRef.get();
+    if (!leagueSnapshot.exists) {
+      throw Exception('League not found');
+    }
+
+    final league = GNEsportLeague.fromFirestore(leagueSnapshot);
+    final updatedParticipants = List<String>.from(league.participants);
+    
+    // Add participants that are not already in the league
+    for (final participantId in participantIds) {
+      if (!updatedParticipants.contains(participantId)) {
+        updatedParticipants.add(participantId);
+      }
+    }
+    
+    await leagueRef
+        .update({GNEsportLeague.fieldParticipants: updatedParticipants});
+
+    // Add league stats for all new participants
+    for (final participantId in participantIds) {
+      if (!league.participants.contains(participantId)) {
+        await addLeagueStat(userId: participantId, leagueId: leagueId);
+      }
+    }
+  }
+
   Future<void> updateLeague(GNEsportLeague league) async {
     final leagueRef =
         firestore.collection(GNEsportLeague.collectionName).doc(league.id);
