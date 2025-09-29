@@ -48,8 +48,8 @@ android {
 
     defaultConfig {
         applicationId "com.november.game_note"
-        minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 35
+        minSdkVersion 23
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
