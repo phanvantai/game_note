@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/firebase/firestore/esport/league/match/gn_esport_match.dart';
-import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/create_custom_match_dialog.dart';
-import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item.dart';
-import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_team.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/create_custom_match_dialog.dart';
+import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item.dart';
+import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_team.dart';
 
 import '../bloc/tournament_detail_bloc.dart';
 

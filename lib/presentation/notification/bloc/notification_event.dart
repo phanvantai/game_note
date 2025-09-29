@@ -28,3 +28,5 @@ class NotificationEventDelete extends NotificationEvent {
   @override
   List<Object?> get props => [notificationId];
 }
+
+class NotificationEventClear extends NotificationEvent {}

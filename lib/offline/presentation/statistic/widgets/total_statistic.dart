@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
-import 'package:game_note/offline/presentation/statistic/models/personal_statistic.dart';
+import 'package:pes_arena/offline/presentation/statistic/models/personal_statistic.dart';
 
 import 'legends_list_widget.dart';
 

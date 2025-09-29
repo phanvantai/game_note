@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:game_note/offline/data/database/database_manager.dart';
-import 'package:game_note/offline/domain/entities/player_model.dart';
-import 'package:game_note/offline/domain/entities/result_model.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
+import 'package:pes_arena/offline/domain/entities/player_model.dart';
+import 'package:pes_arena/offline/domain/entities/result_model.dart';
 
 class MatchModel extends Equatable {
   final int? id;

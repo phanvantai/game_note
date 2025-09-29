@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:game_note/firebase/firestore/esport/gn_firestore_esport.dart';
+import 'package:pes_arena/firebase/firestore/esport/gn_firestore_esport.dart';
 
 import '../../../firebase/firestore/esport/esport_model.dart';
 import '../../../firebase/firestore/gn_firestore.dart';

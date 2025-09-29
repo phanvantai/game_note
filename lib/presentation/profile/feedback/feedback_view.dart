@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/firebase/auth/gn_auth.dart';
-import 'package:game_note/firebase/firestore/feedback/gn_firestore_feedback.dart';
-import 'package:game_note/injection_container.dart';
-import 'package:game_note/presentation/profile/feedback/feedback_item.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/firebase/firestore/feedback/gn_firestore_feedback.dart';
+import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/profile/feedback/feedback_item.dart';
 
 import '../../../firebase/firestore/feedback/feedback_model.dart';
 import '../../../firebase/firestore/gn_firestore.dart';

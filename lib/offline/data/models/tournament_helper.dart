@@ -1,7 +1,7 @@
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/offline/domain/entities/match_model.dart';
-import 'package:game_note/offline/domain/entities/player_model.dart';
-import 'package:game_note/offline/domain/entities/player_stats_model.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/offline/domain/entities/match_model.dart';
+import 'package:pes_arena/offline/domain/entities/player_model.dart';
+import 'package:pes_arena/offline/domain/entities/player_stats_model.dart';
 
 class TournamentHelper {
   static List<List<Map<T, T>>> createRounds<T>(List<T> players, T virtual) {

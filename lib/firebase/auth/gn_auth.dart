@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
-import 'package:game_note/service/permission_util.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
+import 'package:pes_arena/service/permission_util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../injection_container.dart';
@@ -13,7 +13,7 @@ class GNAuth {
   final GoogleSignIn googleSignIn = GoogleSignIn(
     // Add explicit client ID configuration
     serverClientId:
-        '256841801977-4gk9c14654vco9ivfsj6r94hlem7sj72.apps.googleusercontent.com',
+        '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com',
   );
 
   FirebaseAuth get auth => _auth;
@@ -27,7 +27,7 @@ class GNAuth {
   GNAuth() {
     if (kDebugMode) {
       print(
-          '🔧 GNAuth: Initializing with server client ID: 256841801977-4gk9c14654vco9ivfsj6r94hlem7sj72.apps.googleusercontent.com');
+          '🔧 GNAuth: Initializing with server client ID: 256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com');
     }
 
     // Listen to auth state changes

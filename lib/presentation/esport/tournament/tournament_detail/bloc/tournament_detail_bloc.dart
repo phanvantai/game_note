@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
 import '../../../../../domain/repositories/esport/esport_league_repository.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_esport_match.dart';

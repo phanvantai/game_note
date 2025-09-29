@@ -1,16 +1,16 @@
-import 'package:game_note/offline/data/database/database_manager.dart';
-import 'package:game_note/offline/data/datasources/league_local_datasource.dart';
-import 'package:game_note/offline/data/repositories/league_repository_impl.dart';
-import 'package:game_note/offline/domain/repositories/league_repository.dart';
-import 'package:game_note/offline/domain/usecases/create_league.dart';
-import 'package:game_note/offline/domain/usecases/create_rounds.dart';
-import 'package:game_note/offline/domain/usecases/delete_league.dart';
-import 'package:game_note/offline/domain/usecases/get_league.dart';
-import 'package:game_note/offline/domain/usecases/get_leagues.dart';
-import 'package:game_note/offline/domain/usecases/set_players_for_league.dart';
-import 'package:game_note/offline/domain/usecases/update_match.dart';
-import 'package:game_note/presentation/profile/change_password/bloc/change_password_bloc.dart';
-import 'package:game_note/service/permission_util.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
+import 'package:pes_arena/offline/data/datasources/league_local_datasource.dart';
+import 'package:pes_arena/offline/data/repositories/league_repository_impl.dart';
+import 'package:pes_arena/offline/domain/repositories/league_repository.dart';
+import 'package:pes_arena/offline/domain/usecases/create_league.dart';
+import 'package:pes_arena/offline/domain/usecases/create_rounds.dart';
+import 'package:pes_arena/offline/domain/usecases/delete_league.dart';
+import 'package:pes_arena/offline/domain/usecases/get_league.dart';
+import 'package:pes_arena/offline/domain/usecases/get_leagues.dart';
+import 'package:pes_arena/offline/domain/usecases/set_players_for_league.dart';
+import 'package:pes_arena/offline/domain/usecases/update_match.dart';
+import 'package:pes_arena/presentation/profile/change_password/bloc/change_password_bloc.dart';
+import 'package:pes_arena/service/permission_util.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,7 +37,6 @@ import 'offline/data/models/league_manager.dart';
 import 'offline/presentation/league_detail/bloc/league_detail_bloc.dart';
 import 'firebase/auth/gn_auth.dart';
 import 'presentation/esport/bloc/esport_bloc.dart';
-import 'presentation/esport/chat/bloc/esport_chat_bloc.dart';
 import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'presentation/notification/bloc/notification_bloc.dart';
@@ -118,7 +117,6 @@ Future<void> init() async {
   getIt.registerFactory<EsportBloc>(() => EsportBloc());
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
   getIt.registerFactory<TournamentBloc>(() => TournamentBloc(getIt()));
-  getIt.registerFactory<EsportChatBloc>(() => EsportChatBloc(getIt(), getIt()));
 
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
   getIt.registerSingleton<NotificationBloc>(NotificationBloc(getIt()));

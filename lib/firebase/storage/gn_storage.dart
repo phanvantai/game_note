@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
-import 'package:game_note/firebase/gn_collection.dart';
+import 'package:pes_arena/firebase/gn_collection.dart';
 import 'package:image_picker/image_picker.dart';
 
 class GNStorage {

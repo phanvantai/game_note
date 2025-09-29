@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
+import 'package:pes_arena/core/common/view_status.dart';
 
 import '../../../domain/repositories/notification_repository.dart';
 import '../../../firebase/firestore/notification/gn_notification.dart';
@@ -19,14 +20,37 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<NotificationEventMarkAsRead>(_onMarkAsRead);
     on<NotificationEventMarkAllAsRead>(_onMarkAllAsRead);
     on<NotificationEventDelete>(_onDelete);
+    on<NotificationEventClear>(_onClear);
 
+    _initializeAuthListener();
+  }
+
+  StreamSubscription<List<GNNotification>>? _notificationSubscription;
+  StreamSubscription<User?>? _authSubscription;
+
+  void _initializeAuthListener() {
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user != null) {
+        _startNotificationListener();
+      } else {
+        _stopNotificationListener();
+        add(NotificationEventClear());
+      }
+    });
+  }
+
+  void _startNotificationListener() {
+    _stopNotificationListener();
     _notificationSubscription =
         _notificationRepository.listenToNotifications().listen((notifications) {
       add(NotificationEventFetch());
     });
   }
 
-  StreamSubscription<List<GNNotification>>? _notificationSubscription;
+  void _stopNotificationListener() {
+    _notificationSubscription?.cancel();
+    _notificationSubscription = null;
+  }
 
   _onFetch(
       NotificationEventFetch event, Emitter<NotificationState> emit) async {
@@ -68,9 +92,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         notifications: notifications, viewStatus: ViewStatus.success));
   }
 
+  _onClear(NotificationEventClear event, Emitter<NotificationState> emit) {
+    emit(const NotificationState());
+  }
+
   @override
   Future<void> close() {
     _notificationSubscription?.cancel();
+    _authSubscription?.cancel();
     return super.close();
   }
 }

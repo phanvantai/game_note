@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:game_note/firebase/firestore/esport/group/gn_firestore_esport_group.dart';
-import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
-import 'package:game_note/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/esport/group/gn_firestore_esport_group.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_league.dart';
 

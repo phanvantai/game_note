@@ -1,7 +1,7 @@
-import 'package:game_note/offline/data/database/database_manager.dart';
-import 'package:game_note/offline/data/database/result_manager.dart';
-import 'package:game_note/offline/domain/entities/match_model.dart';
-import 'package:game_note/offline/domain/entities/result_model.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
+import 'package:pes_arena/offline/data/database/result_manager.dart';
+import 'package:pes_arena/offline/domain/entities/match_model.dart';
+import 'package:pes_arena/offline/domain/entities/result_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 extension MatchManager on DatabaseManager {

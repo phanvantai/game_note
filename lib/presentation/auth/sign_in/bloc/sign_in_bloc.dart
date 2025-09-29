@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/firebase/auth/gn_auth.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/injection_container.dart';
 
 part 'sign_in_event.dart';
 part 'sign_in_state.dart';

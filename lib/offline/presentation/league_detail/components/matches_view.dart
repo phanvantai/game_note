@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/offline/domain/entities/match_model.dart';
-import 'package:game_note/offline/presentation/components/update_match_dialog.dart';
+import 'package:pes_arena/offline/domain/entities/match_model.dart';
+import 'package:pes_arena/offline/presentation/components/update_match_dialog.dart';
 
 import '../bloc/league_detail_bloc.dart';
 import 'list_rounds_view.dart';

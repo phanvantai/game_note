@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/presentation/app/offline_button.dart';
+import 'package:pes_arena/presentation/app/offline_button.dart';
 
 import 'sign_in/sign_in_page.dart';
 import 'third_party/auth_buttons_view.dart';

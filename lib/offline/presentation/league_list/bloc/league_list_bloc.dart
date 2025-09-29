@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:game_note/offline/domain/repositories/league_repository.dart';
-import 'package:game_note/offline/domain/usecases/delete_league.dart';
-import 'package:game_note/offline/domain/usecases/get_leagues.dart';
+import 'package:pes_arena/offline/domain/repositories/league_repository.dart';
+import 'package:pes_arena/offline/domain/usecases/delete_league.dart';
+import 'package:pes_arena/offline/domain/usecases/get_leagues.dart';
 
 import '../../../domain/entities/league_model.dart';
 import '../../../domain/usecases/create_league.dart';

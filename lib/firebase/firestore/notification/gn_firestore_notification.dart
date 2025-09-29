@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 
 import '../gn_firestore.dart';
 import '../user/gn_user.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/domain/entities/match_model.dart';
+import 'package:pes_arena/offline/domain/entities/match_model.dart';
 
 class UpdateMatchDialog extends StatefulWidget {
   final MatchModel model;

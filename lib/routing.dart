@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/presentation/offline_view.dart';
-import 'package:game_note/presentation/app/app_view.dart';
-import 'package:game_note/presentation/auth/verify/verify_page.dart';
-import 'package:game_note/presentation/profile/change_password/change_password_page.dart';
-import 'package:game_note/presentation/team/create_team/create_team_page.dart';
+import 'package:pes_arena/offline/presentation/offline_view.dart';
+import 'package:pes_arena/presentation/app/app_view.dart';
+import 'package:pes_arena/presentation/auth/verify/verify_page.dart';
+import 'package:pes_arena/presentation/profile/change_password/change_password_page.dart';
+import 'package:pes_arena/presentation/team/create_team/create_team_page.dart';
 
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';

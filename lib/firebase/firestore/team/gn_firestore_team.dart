@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:game_note/firebase/firestore/gn_firestore.dart';
-import 'package:game_note/firebase/firestore/team/gn_team.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/team/gn_team.dart';
 
 import '../../gn_collection.dart';
 

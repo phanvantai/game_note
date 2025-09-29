@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/ultils.dart';
+import 'package:pes_arena/core/ultils.dart';
 
 import '../../../core/constants/constants.dart';
 import '../auth_custom_button.dart';

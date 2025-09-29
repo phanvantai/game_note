@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/presentation/esport/bloc/esport_bloc.dart';
-import 'package:game_note/presentation/esport/tournament/bloc/tournament_bloc.dart';
-import 'package:game_note/presentation/notification/bloc/notification_bloc.dart';
+import 'package:pes_arena/presentation/esport/bloc/esport_bloc.dart';
+import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
+import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:provider/provider.dart';
 
 import '../../injection_container.dart';
-import '../esport/chat/bloc/esport_chat_bloc.dart';
 import '../esport/groups/bloc/group_bloc.dart';
 import '../profile/bloc/profile_bloc.dart';
 import 'main_view.dart';
@@ -26,7 +25,6 @@ class MainPage extends StatelessWidget {
         BlocProvider(
           create: (_) => getIt<TournamentBloc>()..add(GetTournaments()),
         ),
-        BlocProvider(create: (_) => getIt<EsportChatBloc>()),
         BlocProvider(
           create: (_) =>
               getIt<NotificationBloc>()..add(NotificationEventFetch()),

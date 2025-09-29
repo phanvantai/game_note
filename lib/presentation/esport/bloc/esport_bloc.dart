@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/firebase/firestore/esport/esport_model.dart';
-import 'package:game_note/firebase/firestore/esport/gn_firestore_esport.dart';
-import 'package:game_note/firebase/firestore/gn_firestore.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/firebase/firestore/esport/esport_model.dart';
+import 'package:pes_arena/firebase/firestore/esport/gn_firestore_esport.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/injection_container.dart';
 
 part 'esport_event.dart';
 part 'esport_state.dart';

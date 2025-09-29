@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/injection_container.dart';
 
 import '../../../../firebase/firestore/esport/group/gn_esport_group.dart';
 import 'bloc/group_detail_bloc.dart';

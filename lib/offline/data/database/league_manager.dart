@@ -1,7 +1,7 @@
-import 'package:game_note/offline/data/database/database_manager.dart';
-import 'package:game_note/offline/data/database/player_stats_manager.dart';
-import 'package:game_note/offline/data/database/round_manager.dart';
-import 'package:game_note/offline/domain/entities/league_model.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
+import 'package:pes_arena/offline/data/database/player_stats_manager.dart';
+import 'package:pes_arena/offline/data/database/round_manager.dart';
+import 'package:pes_arena/offline/domain/entities/league_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 extension LeagueManagerX on DatabaseManager {

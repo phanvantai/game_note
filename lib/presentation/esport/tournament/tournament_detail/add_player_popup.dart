@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-import 'package:game_note/injection_container.dart';
-import 'package:game_note/presentation/users/bloc/user_bloc.dart';
-import 'package:game_note/presentation/users/user_item.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/users/bloc/user_bloc.dart';
+import 'package:pes_arena/presentation/users/user_item.dart';
 import 'bloc/tournament_detail_bloc.dart';
 
 class AddPlayerPopup extends StatefulWidget {
@@ -44,42 +44,36 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
           children: [
             SizedBox(height: 12),
             if (selectedUserIds.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Đã chọn ${selectedUserIds.length} người:',
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4, width: double.maxFinite),
-                    Wrap(
-                      spacing: 4,
-                      children: selectedUserIds.map((userId) {
-                        final user = userState.users
-                            .where((u) => u.id == userId)
-                            .firstOrNull;
-                        if (user == null) return const SizedBox.shrink();
-                        return Chip(
-                          label: Text(user.displayName ??
-                              user.email ??
-                              user.phoneNumber ??
-                              'Unknown'),
-                          deleteIcon: const Icon(Icons.close, size: 16),
-                          onDeleted: () {
-                            setState(() {
-                              selectedUserIds.remove(userId);
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
+              Column(
+                spacing: 0,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Đã chọn ${selectedUserIds.length} người:',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 0, width: double.maxFinite),
+                  Wrap(
+                    spacing: 4,
+                    children: selectedUserIds.map((userId) {
+                      final user = userState.users
+                          .where((u) => u.id == userId)
+                          .firstOrNull;
+                      if (user == null) return const SizedBox.shrink();
+                      return Chip(
+                        padding: EdgeInsets.zero,
+                        label: Text(user.displayName ??
+                            user.email ??
+                            user.phoneNumber ??
+                            'Unknown'),
+                        deleteIcon: const Icon(Icons.close, size: 16),
+                        onDeleted: () {
+                          setState(() {
+                            selectedUserIds.remove(userId);
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             SizedBox(
               height: 250,

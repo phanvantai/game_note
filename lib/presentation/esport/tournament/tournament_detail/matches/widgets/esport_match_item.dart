@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:intl/intl.dart';
 
 import 'esport_match_team.dart';

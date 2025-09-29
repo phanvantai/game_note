@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 

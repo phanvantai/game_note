@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/offline/data/database/database_manager.dart';
-import 'package:game_note/offline/data/database/league_manager.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
+import 'package:pes_arena/offline/data/database/league_manager.dart';
+import 'package:pes_arena/injection_container.dart';
 
 import '../../../../core/common/view_status.dart';
 import '../models/personal_statistic.dart';

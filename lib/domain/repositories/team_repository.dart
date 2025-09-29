@@ -1,4 +1,4 @@
-import 'package:game_note/firebase/firestore/team/gn_team.dart';
+import 'package:pes_arena/firebase/firestore/team/gn_team.dart';
 
 abstract class TeamRepository {
   Future<void> createTeam();

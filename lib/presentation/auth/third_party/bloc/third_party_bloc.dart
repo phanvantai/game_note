@@ -2,9 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/firebase/auth/gn_auth.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/injection_container.dart';
 
 part 'third_party_event.dart';
 part 'third_party_state.dart';

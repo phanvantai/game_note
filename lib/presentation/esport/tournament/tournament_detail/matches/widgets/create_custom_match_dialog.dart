@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
-import 'package:game_note/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_team.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_team.dart';
 
 class CreateCustomMatchDialog extends StatefulWidget {
   final List<GNUser> users;

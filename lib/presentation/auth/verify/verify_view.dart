@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:game_note/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/firebase/auth/gn_auth.dart';
 
 import '../../../injection_container.dart';
 

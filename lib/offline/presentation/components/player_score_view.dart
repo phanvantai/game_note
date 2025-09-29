@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/domain/entities/result_model.dart';
+import 'package:pes_arena/offline/domain/entities/result_model.dart';
 
 class PlayerScoreView extends StatelessWidget {
   final ResultModel model;

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/constants/assets_path.dart';
-import 'package:game_note/presentation/auth/third_party/bloc/third_party_bloc.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/constants/assets_path.dart';
+import 'package:pes_arena/presentation/auth/third_party/bloc/third_party_bloc.dart';
+import 'package:pes_arena/injection_container.dart';
 
 import '../../../core/constants/constants.dart';
 import '../auth_custom_button.dart';

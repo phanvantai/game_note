@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/helpers/admob_helper.dart';
-import 'package:game_note/firebase/messaging/gn_firebase_messaging.dart';
-import 'package:game_note/injection_container.dart';
-import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
+import 'package:pes_arena/core/helpers/admob_helper.dart';
+import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
+import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../esport/groups/groups_view.dart';

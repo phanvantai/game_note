@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "game_note",
+            "name": "pes_arena",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "game_note (profile mode)",
+            "name": "pes_arena (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "game_note (release mode)",
+            "name": "pes_arena (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:game_note/offline/domain/entities/league_model.dart';
-import 'package:game_note/offline/domain/entities/player_model.dart';
-import 'package:game_note/offline/domain/entities/player_stats_model.dart';
+import 'package:pes_arena/offline/domain/entities/league_model.dart';
+import 'package:pes_arena/offline/domain/entities/player_model.dart';
+import 'package:pes_arena/offline/domain/entities/player_stats_model.dart';
 
 class PersonalStatistic extends Equatable {
   final PlayerModel playerModel;

@@ -1,10 +1,10 @@
-import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:game_note/firebase/firestore/esport/league/gn_firestore_esport_league.dart';
-import 'package:game_note/firebase/firestore/esport/league/match/gn_esport_match.dart';
-import 'package:game_note/firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart';
-import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/gn_firestore_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
+import 'package:pes_arena/injection_container.dart';
 
 import '../../../domain/repositories/esport/esport_league_repository.dart';
 import '../../../firebase/firestore/gn_firestore.dart';

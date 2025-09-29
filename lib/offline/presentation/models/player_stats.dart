@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/domain/entities/player_stats_model.dart';
+import 'package:pes_arena/offline/domain/entities/player_stats_model.dart';
 
 class PlayerStats extends Equatable {
   final String rank;

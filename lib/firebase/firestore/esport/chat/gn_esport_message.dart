@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
 class GNEsportMessage {
   final String id; // message id

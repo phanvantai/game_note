@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/core/ultils.dart';
+import 'package:pes_arena/core/ultils.dart';
 
 import '../../../firebase/firestore/esport/group/gn_esport_group.dart';
 

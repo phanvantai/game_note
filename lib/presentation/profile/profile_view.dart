@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/presentation/app/bloc/app_bloc.dart';
+import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/common/app_info.dart';

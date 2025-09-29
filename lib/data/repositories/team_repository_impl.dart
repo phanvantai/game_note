@@ -1,8 +1,8 @@
-import 'package:game_note/domain/repositories/team_repository.dart';
-import 'package:game_note/firebase/firestore/gn_firestore.dart';
-import 'package:game_note/firebase/firestore/team/gn_firestore_team.dart';
-import 'package:game_note/firebase/firestore/team/gn_team.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/domain/repositories/team_repository.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/team/gn_firestore_team.dart';
+import 'package:pes_arena/firebase/firestore/team/gn_team.dart';
+import 'package:pes_arena/injection_container.dart';
 
 class TeamRepositoryImpl implements TeamRepository {
   @override
