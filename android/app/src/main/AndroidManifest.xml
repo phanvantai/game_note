@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
    <application
-        android:label="Game Note"
+        android:label="PES Arena"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -26,7 +26,7 @@
         </activity>
 
         <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
-        <!-- Game Note android app ID: ca-app-pub-8555407335287438~3310650157 -->
+        <!-- PES Arena android app ID: ca-app-pub-8555407335287438~3310650157 -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-8555407335287438~3310650157"/>

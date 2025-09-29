@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/domain/entities/match_model.dart';
-import 'package:game_note/offline/presentation/components/player_score_view.dart';
+import 'package:pes_arena/offline/domain/entities/match_model.dart';
+import 'package:pes_arena/offline/presentation/components/player_score_view.dart';
 
 class MatchView extends StatelessWidget {
   final MatchModel model;

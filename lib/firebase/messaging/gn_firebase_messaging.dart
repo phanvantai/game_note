@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
+import 'package:pes_arena/injection_container.dart';
 
 import '../firestore/gn_firestore.dart';
 
@@ -41,7 +43,7 @@ class GNFirebaseMessaging {
       if (kDebugMode) {
         print('User granted permission');
       }
-      _getToken();
+      _getTokenSafely();
     } else {
       if (kDebugMode) {
         print('User declined or has not accepted permission');
@@ -59,15 +61,44 @@ class GNFirebaseMessaging {
     });
   }
 
-  // Get the FCM token
-  void _getToken() async {
-    String? token = await _firebaseMessaging.getToken();
-    if (kDebugMode) {
-      print("FCM Token: $token");
-    }
-    if (token != null) {
-      // Save the token to the user's document in Firestore
-      getIt<GNFirestore>().updateFcmToken(token);
+  // Get the FCM token safely, handling iOS APNS token requirement
+  void _getTokenSafely() async {
+    try {
+      if (Platform.isIOS) {
+        // On iOS, ensure APNS token is available before getting FCM token
+        String? apnsToken = await _firebaseMessaging.getAPNSToken();
+        if (apnsToken == null) {
+          if (kDebugMode) {
+            print('APNS token not available yet, waiting...');
+          }
+          // Wait a bit and try again
+          await Future.delayed(const Duration(seconds: 2));
+          apnsToken = await _firebaseMessaging.getAPNSToken();
+          if (apnsToken == null) {
+            if (kDebugMode) {
+              print(
+                  'APNS token still not available, skipping FCM token retrieval');
+            }
+            return;
+          }
+        }
+        if (kDebugMode) {
+          print("APNS Token available: ${apnsToken.isNotEmpty}");
+        }
+      }
+
+      String? token = await _firebaseMessaging.getToken();
+      if (kDebugMode) {
+        print("FCM Token: $token");
+      }
+      if (token != null) {
+        // Save the token to the user's document in Firestore
+        getIt<GNFirestore>().updateFcmToken(token);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting FCM token: $e');
+      }
     }
   }
 

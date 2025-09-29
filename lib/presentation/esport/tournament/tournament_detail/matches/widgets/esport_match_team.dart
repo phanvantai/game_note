@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
 import '../../../../../../widgets/gn_circle_avatar.dart';
 

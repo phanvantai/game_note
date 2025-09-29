@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/ultils.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/ultils.dart';
 
 import '../../../../domain/repositories/esport/esport_group_repository.dart';
 import '../../../../firebase/firestore/esport/group/gn_esport_group.dart';

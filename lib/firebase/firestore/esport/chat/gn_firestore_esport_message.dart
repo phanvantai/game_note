@@ -1,4 +1,4 @@
-import 'package:game_note/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_message.dart';
 

@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:game_note/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
 import '../../../../../domain/repositories/esport/esport_league_repository.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_esport_match.dart';
@@ -26,6 +26,7 @@ class TournamentDetailBloc
     on<GetParticipantsAndMatches>(_onGetParticipantsAndMatches);
 
     on<AddParticipant>(_onAddParticipant);
+    on<AddMultipleParticipants>(_onAddMultipleParticipants);
 
     on<GenerateRound>(_onGenerateRound);
     on<UpdateEsportMatch>(_onUpdateMatch);
@@ -368,6 +369,27 @@ class TournamentDetailBloc
           leagueId: leagueId, userId: event.userId);
       add(GetParticipantStats(leagueId));
       showToast('Thêm người chơi thành công');
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  void _onAddMultipleParticipants(
+      AddMultipleParticipants event, Emitter<TournamentDetailState> emit) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) {
+      return;
+    }
+    if (event.userIds.isEmpty) {
+      return;
+    }
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.addMultipleParticipants(
+          leagueId: leagueId, userIds: event.userIds);
+      add(GetParticipantStats(leagueId));
+      showToast('Thêm ${event.userIds.length} người chơi thành công');
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:game_note/offline/data/database/database_manager.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
 
 import 'club_model.dart';
 import 'player_model.dart';

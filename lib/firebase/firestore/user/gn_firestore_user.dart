@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:game_note/firebase/auth/gn_auth.dart';
-import 'package:game_note/firebase/firestore/gn_firestore.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
-import 'package:game_note/firebase/gn_collection.dart';
-import 'package:game_note/firebase/storage/gn_storage.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/firebase/gn_collection.dart';
+import 'package:pes_arena/firebase/storage/gn_storage.dart';
+import 'package:pes_arena/injection_container.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../esport/group/gn_esport_group.dart';

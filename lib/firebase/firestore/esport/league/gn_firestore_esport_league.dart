@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:game_note/firebase/firestore/esport/group/gn_firestore_esport_group.dart';
-import 'package:game_note/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
-import 'package:game_note/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/esport/group/gn_firestore_esport_group.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_league.dart';
 
@@ -106,6 +106,36 @@ extension GNFirestoreEsportLeague on GNFirestore {
 
     // Add a new league stat for the participant
     await addLeagueStat(userId: participantId, leagueId: leagueId);
+  }
+
+  Future<void> addMultipleParticipantsToLeague(
+      String leagueId, List<String> participantIds) async {
+    final leagueRef =
+        firestore.collection(GNEsportLeague.collectionName).doc(leagueId);
+    final leagueSnapshot = await leagueRef.get();
+    if (!leagueSnapshot.exists) {
+      throw Exception('League not found');
+    }
+
+    final league = GNEsportLeague.fromFirestore(leagueSnapshot);
+    final updatedParticipants = List<String>.from(league.participants);
+    
+    // Add participants that are not already in the league
+    for (final participantId in participantIds) {
+      if (!updatedParticipants.contains(participantId)) {
+        updatedParticipants.add(participantId);
+      }
+    }
+    
+    await leagueRef
+        .update({GNEsportLeague.fieldParticipants: updatedParticipants});
+
+    // Add league stats for all new participants
+    for (final participantId in participantIds) {
+      if (!league.participants.contains(participantId)) {
+        await addLeagueStat(userId: participantId, leagueId: leagueId);
+      }
+    }
   }
 
   Future<void> updateLeague(GNEsportLeague league) async {

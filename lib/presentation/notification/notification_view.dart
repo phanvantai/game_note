@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
+import 'package:pes_arena/core/common/view_status.dart';
 
 import 'bloc/notification_bloc.dart';
 import 'notification_item.dart';

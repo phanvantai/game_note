@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/domain/entities/match_model.dart';
-import 'package:game_note/offline/domain/entities/round_model.dart';
-import 'package:game_note/offline/presentation/components/match_view.dart';
+import 'package:pes_arena/offline/domain/entities/match_model.dart';
+import 'package:pes_arena/offline/domain/entities/round_model.dart';
+import 'package:pes_arena/offline/presentation/components/match_view.dart';
 
 class ListRoundsView extends StatelessWidget {
   final List<RoundModel> list;

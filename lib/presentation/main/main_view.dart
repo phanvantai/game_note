@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/helpers/admob_helper.dart';
-import 'package:game_note/firebase/messaging/gn_firebase_messaging.dart';
-import 'package:game_note/injection_container.dart';
-import 'package:game_note/presentation/esport/groups/bloc/group_bloc.dart';
-import 'package:game_note/presentation/notification/bloc/notification_bloc.dart';
+import 'package:pes_arena/core/helpers/admob_helper.dart';
+import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
+import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../app/bloc/app_bloc.dart';
-import '../community/community_view.dart';
-import '../esport/esport_view.dart';
-import '../notification/notification_view.dart';
+import '../esport/groups/groups_view.dart';
+import '../esport/tournament/tournament_view.dart';
 import '../profile/profile_view.dart';
-import '../team/teams_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({Key? key}) : super(key: key);
@@ -32,46 +28,15 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    final appState = context.read<AppBloc>().state;
     tabs = {
-      if (appState.enableFootballFeature)
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.sports_soccer),
-          label: 'Cộng đồng',
-        ): const CommunityView(),
-      if (appState.enableFootballFeature)
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.group),
-          label: 'Đội',
-        ): const TeamsView(),
       const BottomNavigationBarItem(
-        icon: Icon(Icons.sports_esports),
-        label: 'Esport',
-      ): const EsportView(),
-      BottomNavigationBarItem(
-        icon: Stack(
-          children: [
-            const Icon(Icons.notifications),
-            BlocBuilder<NotificationBloc, NotificationState>(
-              builder: (context, state) => state.unreadNotificationsCount > 0
-                  ? Positioned(
-                      right: 4,
-                      top: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        width: 8,
-                        height: 8,
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
-        ),
-        label: 'Thông báo',
-      ): const NotificationView(),
+        icon: Icon(Icons.emoji_events),
+        label: 'Giải đấu',
+      ): const TournamentView(),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.group),
+        label: 'Nhóm',
+      ): const GroupsView(),
       const BottomNavigationBarItem(
         icon: Icon(Icons.person),
         label: 'Cá nhân',

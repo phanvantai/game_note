@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Game Note</string>
+	<string>PES Arena</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>game_note</string>
+	<string>pes_arena</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -68,7 +68,7 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 
-	<!-- Game Note iOS admob app ID: ca-app-pub-8555407335287438~8401628069 -->
+	<!-- PES Arena iOS admob app ID: ca-app-pub-8555407335287438~8401628069 -->
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-8555407335287438~8401628069</string>
 </dict>

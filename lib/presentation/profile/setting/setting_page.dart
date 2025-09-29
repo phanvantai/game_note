@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/injection_container.dart';
-import 'package:game_note/routing.dart';
+import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/routing.dart';
 
 import '../../../firebase/auth/gn_auth.dart';
 import '../bloc/profile_bloc.dart';

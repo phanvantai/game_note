@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:game_note/firebase/firestore/gn_firestore.dart';
-import 'package:game_note/firebase/gn_collection.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/gn_collection.dart';
 
 extension GNFirestoreInvitation on GNFirestore {
   Future<void> inviteUserToTeam(

@@ -1,11 +1,14 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/presentation/esport/tournament/bloc/tournament_bloc.dart';
-import 'package:game_note/presentation/esport/tournament/tournament_item.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
+import 'package:pes_arena/presentation/esport/tournament/tournament_item.dart';
+import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
 import '../../../routing.dart';
+import '../bloc/esport_bloc.dart';
 import '../groups/bloc/group_bloc.dart';
 import 'create_esport_league_dialog.dart';
 
@@ -19,26 +22,29 @@ class TournamentView extends StatelessWidget {
       height: 44,
     );
     return BlocConsumer<TournamentBloc, TournamentState>(
-      builder: (context, state) => Scaffold(
-        body: SafeArea(
-          child: DefaultTabController(
-            length: 2,
-            child: Column(
+      builder: (context, state) => DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.indigo[100],
+            centerTitle: false,
+            title: Row(
+              spacing: 4,
               children: [
-                if (state.viewStatus == ViewStatus.loading)
-                  const LinearProgressIndicator(),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                BlocBuilder<EsportBloc, EsportState>(
+                  builder: (context, state) => state.esportModel != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: CachedNetworkImage(
+                            imageUrl: state.esportModel!.image ?? '',
+                            height: 32,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                Expanded(
                   child: TabBar(
-                    // dividerHeight: 0,
-                    indicator: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      color: Colors.green[100],
-                    ),
-                    indicatorPadding: const EdgeInsets.symmetric(
-                        horizontal: -12, vertical: 4),
-                    indicatorWeight: 0,
+                    padding: EdgeInsets.zero,
                     dividerColor: Colors.transparent,
                     tabAlignment: TabAlignment.start,
                     isScrollable: true,
@@ -48,114 +54,147 @@ class TournamentView extends StatelessWidget {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: TabBarView(
-                    physics: const NeverScrollableScrollPhysics(),
+              ],
+            ),
+            actions: [
+              BlocBuilder<NotificationBloc, NotificationState>(
+                builder: (context, state) => IconButton(
+                  icon: Stack(
                     children: [
-                      if (state.userLeagues.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 60, vertical: 8),
-                          child: Center(
+                      const Icon(Icons.notifications),
+                      if (state.unreadNotificationsCount > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            width: 8,
+                            height: 8,
+                          ),
+                        ),
+                    ],
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, Routing.notification);
+                  },
+                ),
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              if (state.viewStatus == ViewStatus.loading)
+                const LinearProgressIndicator(),
+              Expanded(
+                child: TabBarView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    if (state.userLeagues.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 60, vertical: 8),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 100),
+                              emptyImage,
+                              const Text(
+                                'Không có giải đấu nào.',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.builder(
+                        itemBuilder: (context, index) => TournamentItem(
+                          league: state.userLeagues[index],
+                          onTap: () async {
+                            final _ = await Navigator.of(context).pushNamed(
+                              Routing.tournamentDetail,
+                              arguments: state.userLeagues[index].id,
+                            );
+                            // ignore: use_build_context_synchronously
+                            BlocProvider.of<TournamentBloc>(context)
+                                .add(GetTournaments());
+                          },
+                        ),
+                        itemCount: state.userLeagues.length,
+                      ),
+                    state.otherLeagues.isEmpty
+                        ? Center(
                             child: Column(
                               children: [
                                 const SizedBox(height: 100),
                                 emptyImage,
                                 const Text(
-                                  'Không có giải đấu nào.',
+                                  'Không có giải đấu nào',
                                   textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
-                          ),
-                        )
-                      else
-                        ListView.builder(
-                          itemBuilder: (context, index) => TournamentItem(
-                            league: state.userLeagues[index],
-                            onTap: () async {
-                              final _ = await Navigator.of(context).pushNamed(
-                                Routing.tournamentDetail,
-                                arguments: state.userLeagues[index].id,
-                              );
-                              // ignore: use_build_context_synchronously
-                              BlocProvider.of<TournamentBloc>(context)
-                                  .add(GetTournaments());
-                            },
-                          ),
-                          itemCount: state.userLeagues.length,
-                        ),
-                      state.otherLeagues.isEmpty
-                          ? Center(
-                              child: Column(
-                                children: [
-                                  const SizedBox(height: 100),
-                                  emptyImage,
-                                  const Text(
-                                    'Không có giải đấu nào',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.builder(
-                              itemBuilder: (context, index) => TournamentItem(
-                                league: state.otherLeagues[index],
-                                onTap: () async {
-                                  final _ =
-                                      await Navigator.of(context).pushNamed(
-                                    Routing.tournamentDetail,
-                                    arguments: state.otherLeagues[index].id,
-                                  );
-                                  // ignore: use_build_context_synchronously
-                                  BlocProvider.of<TournamentBloc>(context)
-                                      .add(GetTournaments());
-                                },
-                              ),
-                              itemCount: state.otherLeagues.length,
-                            )
-                    ],
-                  ),
-                )
-              ],
-            ),
+                          )
+                        : ListView.builder(
+                            itemBuilder: (context, index) => TournamentItem(
+                              league: state.otherLeagues[index],
+                              onTap: () async {
+                                final _ = await Navigator.of(context).pushNamed(
+                                  Routing.tournamentDetail,
+                                  arguments: state.otherLeagues[index].id,
+                                );
+                                // ignore: use_build_context_synchronously
+                                BlocProvider.of<TournamentBloc>(context)
+                                    .add(GetTournaments());
+                              },
+                            ),
+                            itemCount: state.otherLeagues.length,
+                          )
+                  ],
+                ),
+              )
+            ],
           ),
-        ),
-        floatingActionButton: ElevatedButton.icon(
-          onPressed: () {
-            // show dialog to create tournament
-            final groups = context.read<GroupBloc>().state.userGroups;
-            if (groups.isEmpty) {
-              showToast('Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước');
-              return;
-            }
-            showDialog(
-              context: context,
-              builder: (ctx) {
-                return CreateEsportLeagueDialog(
-                  groups: groups,
-                  onAddLeague:
-                      (name, groupId, startDate, endDate, description) {
-                    context.read<TournamentBloc>().add(
-                          AddTournament(
-                            name: name,
-                            groupId: groupId,
-                            startDate: startDate,
-                            endDate: endDate,
-                            description: description,
-                          ),
-                        );
-                    Navigator.of(ctx).pop();
-                  },
-                );
-              },
-            );
-          },
-          label: const Text('Tạo giải đấu'),
-          icon: const Icon(Icons.add),
-          style: ButtonStyle(
-            elevation: WidgetStateProperty.all(0),
-            backgroundColor: WidgetStateProperty.all(Colors.red[100]),
+          floatingActionButton: ElevatedButton.icon(
+            onPressed: () {
+              // show dialog to create tournament
+              final groups = context.read<GroupBloc>().state.userGroups;
+              if (groups.isEmpty) {
+                showToast(
+                    'Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước');
+                return;
+              }
+              showDialog(
+                context: context,
+                builder: (ctx) {
+                  return CreateEsportLeagueDialog(
+                    groups: groups,
+                    onAddLeague:
+                        (name, groupId, startDate, endDate, description) {
+                      context.read<TournamentBloc>().add(
+                            AddTournament(
+                              name: name,
+                              groupId: groupId,
+                              startDate: startDate,
+                              endDate: endDate,
+                              description: description,
+                            ),
+                          );
+                      Navigator.of(ctx).pop();
+                    },
+                  );
+                },
+              );
+            },
+            label: const Text('Tạo giải đấu'),
+            icon: const Icon(Icons.add),
+            style: ButtonStyle(
+              elevation: WidgetStateProperty.all(0),
+              backgroundColor: WidgetStateProperty.all(Colors.red[100]),
+            ),
           ),
         ),
       ),

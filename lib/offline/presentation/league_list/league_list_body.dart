@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/constants/constants.dart';
+import 'package:pes_arena/core/constants/constants.dart';
 
 import '../league_detail/league_detail_page.dart';
 import 'bloc/league_list_bloc.dart';

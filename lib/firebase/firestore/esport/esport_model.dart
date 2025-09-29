@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:game_note/firebase/gn_collection.dart';
+import 'package:pes_arena/firebase/gn_collection.dart';
 
 class EsportModel {
   final String id;

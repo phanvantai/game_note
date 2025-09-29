@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/presentation/models/player_stats.dart';
+import 'package:pes_arena/offline/presentation/models/player_stats.dart';
 
 class TableItemView extends StatelessWidget {
   final PlayerStats model;

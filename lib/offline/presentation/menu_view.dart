@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:game_note/core/helpers/app_helper.dart';
-import 'package:game_note/main.dart';
-import 'package:game_note/presentation/app/online_button.dart';
+import 'package:pes_arena/core/helpers/app_helper.dart';
+import 'package:pes_arena/main.dart';
+import 'package:pes_arena/presentation/app/online_button.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../data/database/database_manager.dart';

@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/domain/repositories/esport/esport_league_repository.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 
 import '../../../../firebase/firestore/esport/league/gn_esport_league.dart';
 

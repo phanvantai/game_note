@@ -53,6 +53,16 @@ class AddParticipant extends TournamentDetailEvent {
   List<Object> get props => [tournamentId, userId];
 }
 
+class AddMultipleParticipants extends TournamentDetailEvent {
+  final String tournamentId;
+  final List<String> userIds;
+
+  const AddMultipleParticipants(this.tournamentId, this.userIds);
+
+  @override
+  List<Object> get props => [tournamentId, userIds];
+}
+
 class GenerateRound extends TournamentDetailEvent {
   const GenerateRound();
 

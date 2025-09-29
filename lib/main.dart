@@ -2,8 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/app.dart';
-import 'package:game_note/injection_container.dart' as di;
+import 'package:pes_arena/app.dart';
+import 'package:pes_arena/injection_container.dart' as di;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'firebase/messaging/gn_firebase_messaging.dart';

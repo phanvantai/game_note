@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/injection_container.dart';
 
 import 'bloc/tournament_detail_bloc.dart';
 import 'tournament_detail_view.dart';

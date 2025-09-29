@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 
 import '../../../firebase/firestore/feedback/feedback_model.dart';
 import '../../../firebase/firestore/feedback/feedback_status.dart';

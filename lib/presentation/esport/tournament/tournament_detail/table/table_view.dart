@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:game_note/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
-import 'package:game_note/widgets/gn_circle_avatar.dart';
+import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
+import 'package:pes_arena/widgets/gn_circle_avatar.dart';
 
 import '../../../../../firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'widgets/table_fixed_column_header.dart';

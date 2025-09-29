@@ -1,10 +1,12 @@
-# game_note
+# PES Arena
 
-Simple App for creating tournament game and record result with ranking.
+Social platform for PES players - create groups, tournaments, and compete with your crew.
 
-## Google Play
+## App Stores
 
-[Game Note](https://play.google.com/store/apps/details?id=com.november.game_note)
+[Google Play](https://play.google.com/store/apps/details?id=com.november.game_note)
+
+[App Store](https://apps.apple.com/us/app/game-note/id6443969710)
 
 [Privacy Url](https://www.freeprivacypolicy.com/live/4d018245-760a-463d-90f0-f88e6fb4c3e1)
 

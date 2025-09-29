@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:game_note/core/databases/province.dart';
+import 'package:pes_arena/core/databases/province.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';

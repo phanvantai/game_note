@@ -1,7 +1,7 @@
-import 'package:game_note/domain/repositories/user_repository.dart';
-import 'package:game_note/firebase/firestore/user/gn_firestore_user.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/injection_container.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../firebase/auth/gn_auth.dart';

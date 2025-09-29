@@ -1,5 +1,5 @@
-import 'package:game_note/offline/domain/entities/player_model.dart';
-import 'package:game_note/main.dart';
+import 'package:pes_arena/offline/domain/entities/player_model.dart';
+import 'package:pes_arena/main.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 

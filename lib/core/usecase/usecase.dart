@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
-import 'package:game_note/core/common/failure.dart';
+import 'package:pes_arena/core/common/failure.dart';
 
 abstract class UseCase<Type, Params> {
   Future<Either<Failure, Type>> call(Params params);

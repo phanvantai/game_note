@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_note/core/constants/constants.dart';
+import 'package:pes_arena/core/constants/constants.dart';
 
 import '../../domain/entities/player_model.dart';
 

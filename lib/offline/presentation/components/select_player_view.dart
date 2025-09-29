@@ -1,9 +1,9 @@
 // ignore_for_file: sort_child_properties_last
 
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/presentation/components/player_view.dart';
-import 'package:game_note/offline/data/database/database_manager.dart';
-import 'package:game_note/injection_container.dart';
+import 'package:pes_arena/offline/presentation/components/player_view.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
+import 'package:pes_arena/injection_container.dart';
 
 import '../../domain/entities/player_model.dart';
 

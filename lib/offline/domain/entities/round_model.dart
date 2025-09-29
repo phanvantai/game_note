@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:game_note/offline/data/database/database_manager.dart';
-import 'package:game_note/offline/domain/entities/match_model.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
+import 'package:pes_arena/offline/domain/entities/match_model.dart';
 
 class RoundModel extends Equatable {
   final int? id;

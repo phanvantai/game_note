@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:game_note/offline/data/database/database_manager.dart';
-import 'package:game_note/core/ultils.dart';
+import 'package:pes_arena/offline/data/database/database_manager.dart';
+import 'package:pes_arena/core/ultils.dart';
 
 class PlayerModel extends Equatable {
   final String fullname;

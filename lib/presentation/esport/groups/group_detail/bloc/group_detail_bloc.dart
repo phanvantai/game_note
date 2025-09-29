@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/ultils.dart';
-import 'package:game_note/firebase/firestore/esport/group/gn_esport_group.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
 import '../../../../../domain/repositories/esport/esport_group_repository.dart';
 

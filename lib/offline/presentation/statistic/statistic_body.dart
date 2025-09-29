@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/core/common/view_status.dart';
-import 'package:game_note/core/constants/constants.dart';
-import 'package:game_note/offline/presentation/statistic/bloc/statistic_bloc.dart';
-import 'package:game_note/offline/presentation/statistic/widgets/multi_statistic.dart';
-import 'package:game_note/offline/presentation/statistic/widgets/percent_statistic.dart';
-import 'package:game_note/offline/presentation/statistic/widgets/total_statistic.dart';
+import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/constants/constants.dart';
+import 'package:pes_arena/offline/presentation/statistic/bloc/statistic_bloc.dart';
+import 'package:pes_arena/offline/presentation/statistic/widgets/multi_statistic.dart';
+import 'package:pes_arena/offline/presentation/statistic/widgets/percent_statistic.dart';
+import 'package:pes_arena/offline/presentation/statistic/widgets/total_statistic.dart';
 
 class StatisticBody extends StatefulWidget {
   const StatisticBody({Key? key}) : super(key: key);

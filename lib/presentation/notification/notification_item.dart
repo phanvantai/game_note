@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:game_note/firebase/firestore/notification/gn_notification.dart';
-import 'package:game_note/routing.dart';
+import 'package:pes_arena/firebase/firestore/notification/gn_notification.dart';
+import 'package:pes_arena/routing.dart';
 import 'package:intl/intl.dart';
 
 import 'bloc/notification_bloc.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:game_note/offline/presentation/models/player_stats.dart';
+import 'package:pes_arena/offline/presentation/models/player_stats.dart';
 
 import '../bloc/league_detail_bloc.dart';
 import 'table_item_view.dart';

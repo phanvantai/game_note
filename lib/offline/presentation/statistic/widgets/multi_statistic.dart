@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
-import 'package:game_note/core/constants/constants.dart';
+import 'package:pes_arena/core/constants/constants.dart';
 
 import '../models/personal_statistic.dart';
 import 'legends_list_widget.dart';

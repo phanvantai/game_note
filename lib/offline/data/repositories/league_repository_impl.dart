@@ -1,9 +1,9 @@
-import 'package:game_note/core/common/exception.dart';
-import 'package:game_note/offline/data/datasources/league_local_datasource.dart';
-import 'package:game_note/offline/domain/entities/league_model.dart';
-import 'package:game_note/core/common/failure.dart';
+import 'package:pes_arena/core/common/exception.dart';
+import 'package:pes_arena/offline/data/datasources/league_local_datasource.dart';
+import 'package:pes_arena/offline/domain/entities/league_model.dart';
+import 'package:pes_arena/core/common/failure.dart';
 import 'package:dartz/dartz.dart';
-import 'package:game_note/offline/domain/repositories/league_repository.dart';
+import 'package:pes_arena/offline/domain/repositories/league_repository.dart';
 
 class LeagueRepositoryImpl implements LeagueRepository {
   final LeagueLocalDatasource localDatasource;

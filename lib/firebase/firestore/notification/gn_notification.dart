@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:game_note/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
 enum GNNotificationType {
   unknown,

@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:game_note/domain/repositories/notification_repository.dart';
-import 'package:game_note/firebase/firestore/notification/gn_firestore_notification.dart';
-import 'package:game_note/firebase/firestore/notification/gn_notification.dart';
+import 'package:pes_arena/domain/repositories/notification_repository.dart';
+import 'package:pes_arena/firebase/firestore/notification/gn_firestore_notification.dart';
+import 'package:pes_arena/firebase/firestore/notification/gn_notification.dart';
 
 import '../../firebase/firestore/gn_firestore.dart';
 import '../../injection_container.dart';
@@ -29,7 +29,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Stream<List<GNNotification>> listenToNotifications() {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
-      throw Exception('User not logged in');
+      return Stream.value([]);
     }
     return getIt<GNFirestore>().listenToUserNotifications(userId);
   }
