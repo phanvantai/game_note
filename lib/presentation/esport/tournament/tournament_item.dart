@@ -19,13 +19,13 @@ class TournamentItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: Theme.of(context).secondaryHeaderColor,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ClipRRect(
         child: Banner(
-          textStyle: const TextStyle(
-            color: Colors.white,
+          textStyle: TextStyle(
+            color: Theme.of(context).colorScheme.surface,
             fontSize: 8,
             fontWeight: FontWeight.bold,
           ),

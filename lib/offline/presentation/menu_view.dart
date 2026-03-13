@@ -16,11 +16,9 @@ class MenuView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white70,
       appBar: AppBar(
         centerTitle: true,
         actions: const [OnlineButton()],
-        backgroundColor: Colors.white70,
       ),
       body: SafeArea(
         child: Column(

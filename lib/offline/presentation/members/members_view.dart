@@ -33,10 +33,8 @@ class _MembersViewState extends State<MembersView>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: Colors.white70,
       appBar: AppBar(
         title: const Text('Người chơi'),
-        backgroundColor: Colors.white70,
       ),
       body: SafeArea(
         child: Container(
@@ -74,7 +72,7 @@ class _MembersViewState extends State<MembersView>
                       },
                       background: Container(
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: Theme.of(context).colorScheme.error,
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),

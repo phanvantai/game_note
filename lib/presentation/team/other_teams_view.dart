@@ -14,7 +14,7 @@ class OtherTeamsView extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border.all(color: Colors.transparent),
             borderRadius: BorderRadius.circular(12),
-            color: Colors.green[50],
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
           ),
           margin: const EdgeInsets.symmetric(horizontal: 16),
           padding: const EdgeInsets.all(8),
@@ -35,14 +35,14 @@ class OtherTeamsView extends StatelessWidget {
                     viewSide: const BorderSide(color: Colors.transparent),
                     viewElevation: 0,
                     isFullScreen: false,
-                    viewBackgroundColor: Colors.green[100],
+                    viewBackgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
                     viewConstraints: BoxConstraints.tight(
                         Size(MediaQuery.of(context).size.width, 400)),
                     builder:
                         (BuildContext context, SearchController controller) {
                       return SearchBar(
                         backgroundColor: WidgetStatePropertyAll(
-                            Colors.green.withValues(alpha: 0.5)),
+                            Theme.of(context).colorScheme.surfaceContainerLow),
                         constraints: BoxConstraints.tight(
                             Size(MediaQuery.of(context).size.width * 0.5, 40)),
                         elevation: const WidgetStatePropertyAll(0),

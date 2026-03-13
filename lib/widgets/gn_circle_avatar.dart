@@ -19,9 +19,9 @@ class GNCircleAvatar extends StatelessWidget {
         backgroundImage:
             photoUrl != null ? CachedNetworkImageProvider(photoUrl!) : null,
         child: photoUrl == null
-            ? const Icon(
+            ? Icon(
                 Icons.person,
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.onSurface,
               )
             : null,
       ),

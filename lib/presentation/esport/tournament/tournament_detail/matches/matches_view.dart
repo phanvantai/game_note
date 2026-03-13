@@ -35,7 +35,7 @@ class EsportMatchesView extends StatelessWidget {
                     indicatorPadding:
                         const EdgeInsets.symmetric(horizontal: -16),
                     indicatorWeight: 0,
-                    dividerColor: Colors.transparent,
+                    dividerColor: Theme.of(context).colorScheme.surface,
                     tabAlignment: TabAlignment.start,
                     isScrollable: true,
                     tabs: const [
@@ -104,7 +104,7 @@ class EsportMatchesView extends StatelessWidget {
                               if (state.currentUserIsMember)
                                 SlidableAction(
                                   borderRadius: BorderRadius.circular(8),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: Theme.of(context).colorScheme.error,
                                   icon: Icons.delete,
                                   onPressed: (context) {
                                     context
@@ -115,7 +115,7 @@ class EsportMatchesView extends StatelessWidget {
                               if (state.currentUserIsMember)
                                 SlidableAction(
                                   borderRadius: BorderRadius.circular(8),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: Theme.of(context).colorScheme.secondary,
                                   icon: Icons.monetization_on,
                                   onPressed: (ctx) {
                                     showDialog(
@@ -203,7 +203,7 @@ class EsportMatchesView extends StatelessWidget {
                               if (state.currentUserIsMember)
                                 SlidableAction(
                                   borderRadius: BorderRadius.circular(8),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: Theme.of(context).colorScheme.error,
                                   icon: Icons.delete,
                                   onPressed: (context) {
                                     context
@@ -214,7 +214,7 @@ class EsportMatchesView extends StatelessWidget {
                               if (state.currentUserIsMember)
                                 SlidableAction(
                                   borderRadius: BorderRadius.circular(8),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: Theme.of(context).colorScheme.secondary,
                                   icon: Icons.monetization_on,
                                   onPressed: (ctx) {
                                     showDialog(

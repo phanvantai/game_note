@@ -10,7 +10,7 @@ class AuthView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white.withValues(alpha: 0.9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         actions: const [OfflineButton()],
@@ -30,17 +30,17 @@ class AuthView extends StatelessWidget {
                     child: Container(
                       height: 1,
                       width: double.infinity,
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.outline,
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text('Hoặc', style: TextStyle(color: Colors.grey)),
+                  Text('Hoặc', style: TextStyle(color: Theme.of(context).colorScheme.outline)),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Container(
                       height: 1,
                       width: double.infinity,
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.outline,
                     ),
                   ),
                   const Spacer(),

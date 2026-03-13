@@ -43,7 +43,7 @@ class _SignInViewState extends State<SignInView> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: Colors.white70,
+          color: Theme.of(context).colorScheme.surface,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -169,7 +169,7 @@ class _SignInViewState extends State<SignInView> {
                   context.read<SignInBloc>().add(EmailSignInSubmitted());
                 },
                 child: state.status == SignInStatus.loading
-                    ? kDefaultLoading
+                    ? kDefaultLoading(context)
                     : const Text('TIẾP TỤC'),
               ),
             ),

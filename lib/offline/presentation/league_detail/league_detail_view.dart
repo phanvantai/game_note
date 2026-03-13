@@ -15,10 +15,8 @@ class LeagueDetailView extends StatelessWidget {
     return BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: Colors.white,
           appBar: AppBar(
             title: Text(state.model?.name ?? ''),
-            backgroundColor: Colors.white70,
             actions: [
               if (state.status.isAddingPlayer &&
                   state.enableConfirmSelectPlayers)
@@ -83,7 +81,7 @@ class LeagueDetailView extends StatelessWidget {
     }
     if (state.status.isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+        child: CircularProgressIndicator(),
       );
     }
     return const SizedBox.shrink();

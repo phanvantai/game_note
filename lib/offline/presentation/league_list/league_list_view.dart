@@ -12,10 +12,8 @@ class LeagueListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white70,
       appBar: AppBar(
         title: const Text('Giải đấu'),
-        backgroundColor: Colors.white70,
       ),
       body: SafeArea(
         child: BlocConsumer<LeagueListBloc, LeagueListState>(
@@ -33,7 +31,7 @@ class LeagueListView extends StatelessWidget {
                 return const Center(child: Text('error'));
               case LeagueListStatus.loading:
                 return const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
+                  child: CircularProgressIndicator(),
                 );
               case LeagueListStatus.loaded:
                 if (state.leagues.isEmpty) {

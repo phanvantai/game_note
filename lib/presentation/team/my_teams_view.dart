@@ -15,7 +15,7 @@ class MyTeamsView extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: Colors.transparent),
           borderRadius: BorderRadius.circular(12),
-          color: Colors.pink[50],
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16),
         child: ExpansionTile(
@@ -30,7 +30,7 @@ class MyTeamsView extends StatelessWidget {
             },
             style: ElevatedButton.styleFrom(
               elevation: 0,
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.surface,
             ),
             child: const Text('Tạo đội'),
           ),

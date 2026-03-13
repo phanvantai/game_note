@@ -93,7 +93,7 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                   return Container(
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? Colors.blue.withValues(alpha: 0.2)
+                          ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2)
                           : null,
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -109,7 +109,7 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                         });
                       },
                       trailing: isSelected
-                          ? const Icon(Icons.check_circle, color: Colors.blue)
+                          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.secondary)
                           : const Icon(Icons.add_circle_outline),
                     ),
                   );

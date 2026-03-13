@@ -24,7 +24,7 @@ class ListRoundsView extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.3),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(

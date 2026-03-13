@@ -19,11 +19,11 @@ class TableFixedColumnHeader extends StatelessWidget {
       children: [
         // ranking
         Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: EsportTableView.tableBackgroundColor,
             border: Border(
-                bottom: BorderSide(color: Colors.grey, width: 1),
-                top: BorderSide(color: Colors.grey, width: 1)),
+                bottom: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
+                top: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1)),
           ),
           alignment: Alignment.center,
           width: tableIconColumnWidth - 4,
@@ -37,11 +37,11 @@ class TableFixedColumnHeader extends StatelessWidget {
           ),
         ),
         Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: EsportTableView.tableBackgroundColor,
             border: Border(
-                bottom: BorderSide(color: Colors.grey, width: 1),
-                top: BorderSide(color: Colors.grey, width: 1)),
+                bottom: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
+                top: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1)),
           ),
           alignment: Alignment.center,
           width: tableIconColumnWidth + 4,

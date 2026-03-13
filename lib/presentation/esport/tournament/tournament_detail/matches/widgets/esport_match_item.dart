@@ -25,7 +25,7 @@ class EsportMatchItem extends StatelessWidget {
         decoration: BoxDecoration(
           // border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(8),
-          color: Colors.grey[200],
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
         // padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Stack(

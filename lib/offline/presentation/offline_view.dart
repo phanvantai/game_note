@@ -49,13 +49,9 @@ class _OfflineViewState extends State<OfflineView>
         children: tabs.values.toList(),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
         items: tabs.keys.toList(),
         currentIndex: _tabController.index,
         onTap: _onItemTapped,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
   }

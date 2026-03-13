@@ -12,7 +12,7 @@ class VerifyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white.withValues(alpha: 0.9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Đăng nhập'),
         backgroundColor: Colors.transparent,
@@ -25,7 +25,7 @@ class VerifyView extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.white70,
+                color: Theme.of(context).colorScheme.surface,
               ),
               padding: const EdgeInsets.all(16),
               margin: const EdgeInsets.symmetric(horizontal: 16),

@@ -42,9 +42,6 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              style: const ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(Colors.orange),
-              ),
               onPressed: fullname.length > 2
                   ? () {
                       var player =

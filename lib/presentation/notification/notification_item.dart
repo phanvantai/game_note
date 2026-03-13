@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:pes_arena/core/theme/app_colors.dart';
 import 'package:pes_arena/firebase/firestore/notification/gn_notification.dart';
 import 'package:pes_arena/routing.dart';
 import 'package:intl/intl.dart';
@@ -28,7 +29,7 @@ class NotificationItem extends StatelessWidget {
                   .add(NotificationEventDelete(notification.id));
             },
             icon: Icons.delete_outline,
-            backgroundColor: Colors.red[500]!,
+            backgroundColor: Theme.of(context).colorScheme.error,
           )
         ],
       ),
@@ -52,7 +53,9 @@ class NotificationItem extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: notification.isRead ? Colors.green[50] : Colors.green[200],
+            color: notification.isRead
+                ? Theme.of(context).colorScheme.surfaceContainerLow
+                : AppColors.success(context).withValues(alpha: 0.3),
           ),
           child: ListTile(
             leading: SizedBox(

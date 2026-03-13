@@ -45,11 +45,13 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
                     }
                   : null,
               child: const Text("Done"),
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all<Color>(
-                  enableDoneButton ? Colors.orange : Colors.grey,
-                ),
-              ),
+              style: enableDoneButton
+                  ? null
+                  : ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                        Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
             ),
           if (widget.numberOfPlayer != null)
             Text("Selecting 2 player. Selected: ${selectedPlayers.length}")

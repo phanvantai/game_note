@@ -7,6 +7,7 @@ import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/constants/assets_path.dart';
 import 'package:pes_arena/presentation/auth/third_party/bloc/third_party_bloc.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/core/theme/app_colors.dart';
 
 import '../../../core/constants/constants.dart';
 import '../auth_custom_button.dart';
@@ -32,7 +33,7 @@ class AuthButtonsView extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Lỗi đăng nhập: ${state.error}'),
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
               duration: const Duration(seconds: 5),
             ),
           );
@@ -41,10 +42,10 @@ class AuthButtonsView extends StatelessWidget {
         // Show success message
         if (state.status == ViewStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Đăng nhập thành công!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: const Text('Đăng nhập thành công!'),
+              backgroundColor: AppColors.success(context),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -54,7 +55,7 @@ class AuthButtonsView extends StatelessWidget {
           const SizedBox(height: 16),
           AuthCustomButton(
             paddingHorizontal: 32,
-            backgroundColor: Colors.blueGrey,
+            backgroundColor: Theme.of(context).colorScheme.secondary,
             onPressed: state.status == ViewStatus.loading
                 ? null
                 : () {
@@ -62,7 +63,7 @@ class AuthButtonsView extends StatelessWidget {
                     thirdPartyBloc.add(const ThirdPartySignInGoogle());
                   },
             child: state.status == ViewStatus.loading
-                ? const Row(
+                ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
@@ -71,13 +72,13 @@ class AuthButtonsView extends StatelessWidget {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                              AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onSecondary),
                         ),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Đang đăng nhập...',
-                        style: kDefaultBoldWhite,
+                        style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSecondary, fontWeight: FontWeight.bold, letterSpacing: 1),
                       ),
                     ],
                   )

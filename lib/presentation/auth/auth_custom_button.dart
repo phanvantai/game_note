@@ -6,7 +6,7 @@ class AuthCustomButton extends StatelessWidget {
   final double? width;
   final double height;
   //final List<Color> gradientColor;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final double? borderRadius;
   final VoidCallback? onPressed;
   final Widget? child;
@@ -23,7 +23,7 @@ class AuthCustomButton extends StatelessWidget {
     this.borderRadius,
     this.textStyle,
     this.child,
-    this.backgroundColor = Colors.orange,
+    this.backgroundColor,
     this.paddingHorizontal = 0,
     this.paddingVertical = 0,
   }) : super(key: key);
@@ -54,7 +54,7 @@ class AuthCustomButton extends StatelessWidget {
               //side: BorderSide(color: Colors.red),
             ),
           ),
-          backgroundColor: WidgetStateProperty.all(backgroundColor),
+          backgroundColor: WidgetStateProperty.all(backgroundColor ?? Theme.of(context).colorScheme.secondary),
           // elevation: MaterialStateProperty.all(3),
           shadowColor: WidgetStateProperty.all(Colors.transparent),
         ),
@@ -65,9 +65,9 @@ class AuthCustomButton extends StatelessWidget {
               Text(
                 buttonText ?? '',
                 style: textStyle ??
-                    const TextStyle(
+                    TextStyle(
                       fontSize: 16,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSecondary,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1,
                     ),

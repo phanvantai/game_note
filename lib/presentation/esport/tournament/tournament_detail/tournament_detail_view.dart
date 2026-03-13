@@ -125,9 +125,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
               ),
             if (state.currentUserIsLeagueAdmin)
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.delete,
-                  color: Colors.red,
+                  color: Theme.of(context).colorScheme.error,
                 ),
                 onPressed: () {
                   final bloc = BlocProvider.of<TournamentDetailBloc>(context);

@@ -22,15 +22,15 @@ class EsportTableView extends StatelessWidget {
 
   static const Color tableBackgroundColor = Colors.transparent;
 
-  static const BoxDecoration tableItemDecor = BoxDecoration(
+  BoxDecoration tableItemDecor(BuildContext context) => BoxDecoration(
     color: tableBackgroundColor,
-    border: Border(bottom: BorderSide(color: Colors.grey, width: 1)),
+    border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1)),
   );
-  static const BoxDecoration tableHeaderDecor = BoxDecoration(
+  BoxDecoration tableHeaderDecor(BuildContext context) => BoxDecoration(
     color: tableBackgroundColor,
     border: Border(
-      bottom: BorderSide(color: Colors.grey, width: 1),
-      top: BorderSide(color: Colors.grey, width: 1),
+      bottom: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
+      top: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
     ),
   );
 
@@ -105,7 +105,7 @@ class EsportTableView extends StatelessWidget {
           children: [
             // ranking
             Container(
-              decoration: tableItemDecor,
+              decoration: tableItemDecor(context),
               alignment: Alignment.center,
               width: tableIconColumnWidth - 4,
               height: tableRowHeight,
@@ -114,8 +114,8 @@ class EsportTableView extends StatelessWidget {
                       'assets/svg/award-solid.svg',
                       width: 16,
                       height: 16,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.red,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context).colorScheme.error,
                         BlendMode.srcIn,
                       ),
                     )
@@ -128,7 +128,7 @@ class EsportTableView extends StatelessWidget {
               alignment: Alignment.center,
               width: tableIconColumnWidth + 4,
               height: tableRowHeight,
-              decoration: tableItemDecor,
+              decoration: tableItemDecor(context),
               child: GNCircleAvatar(
                 size: 32,
                 photoUrl: stats.user?.photoUrl,
@@ -146,8 +146,8 @@ class EsportTableView extends StatelessWidget {
       listStats.length + 1,
       (index) {
         if (index == 0) {
-          return const TableScrollableColumnHeader(
-            tableHeaderDecor: tableHeaderDecor,
+          return TableScrollableColumnHeader(
+            tableHeaderDecor: tableHeaderDecor(context),
             tableRowHeight: tableRowHeight,
             tableNameColumnWidth: tableNameColumnWidth,
             tableStatsColumnWidth: tableStatsColumnWidth,
@@ -156,7 +156,7 @@ class EsportTableView extends StatelessWidget {
         }
         final stats = listStats[index - 1];
         return TableScrollableColumnItem(
-          tableItemDecor: tableItemDecor,
+          tableItemDecor: tableItemDecor(context),
           tableRowHeight: tableRowHeight,
           tableNameColumnWidth: tableNameColumnWidth,
           stats: stats,

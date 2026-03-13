@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pes_arena/core/constants/constants.dart';
-
 import '../../domain/entities/player_model.dart';
 
 class PlayerView extends StatefulWidget {
@@ -32,8 +30,9 @@ class _PlayerViewState extends State<PlayerView> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color:
-              isSelected ? Colors.orange : Colors.grey.withValues(alpha: 0.3),
+          color: isSelected
+              ? Theme.of(context).colorScheme.secondary
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
           // border: Border.all(
           //   color: isSelected ? Colors.orange : Colors.grey,
           // ),
@@ -42,11 +41,9 @@ class _PlayerViewState extends State<PlayerView> {
         child: Center(
           child: Text(
             widget.player.fullname,
-            style: widget.bold == true
-                ? boldTextStyle
-                : widget.onClick != null
-                    ? boldTextStyle
-                    : null,
+            style: (widget.bold == true || widget.onClick != null)
+                ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                : null,
           ),
         ),
       ),

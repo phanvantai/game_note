@@ -86,12 +86,12 @@ class _ProfileViewState extends State<ProfileView>
                               ),
                               CupertinoDialogAction(
                                 child: TextButton.icon(
-                                  style: const ButtonStyle(
+                                  style: ButtonStyle(
                                     // iconColor: WidgetStatePropertyAll(Colors.red),
                                     // textStyle: WidgetStatePropertyAll(
                                     //     TextStyle(color: Colors.red)),
                                     foregroundColor:
-                                        WidgetStatePropertyAll(Colors.red),
+                                        WidgetStatePropertyAll(Theme.of(context).colorScheme.error),
                                   ),
                                   label: const Text('Xoá ảnh đại diện'),
                                   onPressed: () {
@@ -138,16 +138,16 @@ class _ProfileViewState extends State<ProfileView>
                           )
                         : Container(
                             decoration: BoxDecoration(
-                              color: Colors.red[200],
+                              color: Theme.of(context).colorScheme.error,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             padding: const EdgeInsets.all(4),
-                            child: const Text(
+                            child: Text(
                               'Vui lòng cập nhật thông tin',
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.surface,
                               ),
                             ),
                           ),
@@ -243,10 +243,10 @@ class _ProfileViewState extends State<ProfileView>
               ),
               ListTile(
                 leading: const Icon(Icons.logout),
-                iconColor: Colors.red,
-                title: const Text(
+                iconColor: Theme.of(context).colorScheme.error,
+                title: Text(
                   'Đăng xuất',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
                 onTap: () {
                   _signOut(context);
@@ -283,11 +283,11 @@ class _ProfileViewState extends State<ProfileView>
                 context.read<ProfileBloc>().add(SignOutProfileEvent());
                 Navigator.of(context).pop();
               },
-              child: const Text(
+              child: Text(
                 'Đăng xuất',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.red,
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
             ),

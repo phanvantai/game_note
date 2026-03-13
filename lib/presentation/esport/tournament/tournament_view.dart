@@ -26,7 +26,7 @@ class TournamentView extends StatelessWidget {
         length: 2,
         child: Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.indigo[100],
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             centerTitle: false,
             title: Row(
               spacing: 4,
@@ -68,7 +68,7 @@ class TournamentView extends StatelessWidget {
                           top: 6,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.red,
+                              color: Theme.of(context).colorScheme.error,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             width: 8,
@@ -193,7 +193,7 @@ class TournamentView extends StatelessWidget {
             icon: const Icon(Icons.add),
             style: ButtonStyle(
               elevation: WidgetStateProperty.all(0),
-              backgroundColor: WidgetStateProperty.all(Colors.red[100]),
+              backgroundColor: WidgetStateProperty.all(Theme.of(context).colorScheme.secondaryContainer),
             ),
           ),
         ),
