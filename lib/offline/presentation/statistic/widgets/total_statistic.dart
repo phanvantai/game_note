@@ -40,7 +40,7 @@ class TotalStatistic extends StatelessWidget {
         Expanded(
           child: BarChart(
             BarChartData(
-              barTouchData: barTouchData,
+              barTouchData: barTouchData(context),
               titlesData: titlesData,
               borderData: FlBorderData(show: false),
               barGroups: barGroups,
@@ -56,7 +56,7 @@ class TotalStatistic extends StatelessWidget {
     );
   }
 
-  BarTouchData get barTouchData => BarTouchData(
+  BarTouchData barTouchData(BuildContext context) => BarTouchData(
         enabled: false,
         touchTooltipData: BarTouchTooltipData(
           //tooltipBgColor: Colors.transparent,
@@ -70,8 +70,8 @@ class TotalStatistic extends StatelessWidget {
           ) {
             return BarTooltipItem(
               rod.toY.toStringAsFixed(2),
-              const TextStyle(
-                color: Colors.white,
+              TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
             );
@@ -79,16 +79,19 @@ class TotalStatistic extends StatelessWidget {
         ),
       );
   Widget getTitles(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
     String text = statistics[value.toInt()].playerModel.fullname;
 
     return SideTitleWidget(
       meta: meta,
       space: 4,
-      child: Text(text, style: style),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 
@@ -122,7 +125,7 @@ class TotalStatistic extends StatelessWidget {
               ),
               BarChartRodData(
                 toY: e.goalDifferentPerMatch,
-                color: Colors.greenAccent,
+                color: colorGDPerMatch,
               ),
             ],
             showingTooltipIndicators: [0, 1],

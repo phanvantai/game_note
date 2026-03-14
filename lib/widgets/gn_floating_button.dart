@@ -19,7 +19,12 @@ class GNFloatingButton extends StatelessWidget {
       icon: Icon(icon ?? Icons.add),
       style: ButtonStyle(
         elevation: WidgetStateProperty.all(0),
-        backgroundColor: WidgetStateProperty.all(Colors.red[100]),
+        backgroundColor: WidgetStateProperty.all(
+          Theme.of(context).colorScheme.secondary,
+        ),
+        foregroundColor: WidgetStateProperty.all(
+          Theme.of(context).colorScheme.onSecondary,
+        ),
       ),
     );
   }

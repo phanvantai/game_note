@@ -21,8 +21,6 @@ class MatchesView extends StatelessWidget {
               Tab(child: Text('Lịch thi đấu')),
               Tab(child: Text('Kết quả')),
             ],
-            //indicatorColor: Colors.orange,
-            indicatorWeight: 4,
           ),
           const SizedBox(height: 8),
           Expanded(

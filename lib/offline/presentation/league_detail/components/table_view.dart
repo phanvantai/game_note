@@ -10,20 +10,36 @@ class TableView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
-      builder: (context, state) => Column(
-        children: [
-          TableItemView(model: PlayerStats.virtualStats),
-          ...List.generate(
-            state.model!.players.length,
-            (index) => TableItemView(
-              model: PlayerStats.fromModel(
-                index,
-                state.model!.players[index],
+      builder: (context, state) => Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.3),
+            width: 0.5,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            TableItemView(
+              model: PlayerStats.virtualStats,
+              isHeader: true,
+            ),
+            ...List.generate(
+              state.model!.players.length,
+              (index) => TableItemView(
+                model: PlayerStats.fromModel(
+                  index,
+                  state.model!.players[index],
+                ),
+                isEven: index % 2 == 0,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

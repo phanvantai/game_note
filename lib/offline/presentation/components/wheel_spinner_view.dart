@@ -30,7 +30,7 @@ class _WheelSpinnerViewState extends State<WheelSpinnerView> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width * 4 / 5;
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -39,9 +39,9 @@ class _WheelSpinnerViewState extends State<WheelSpinnerView> {
             onPressed: () {
               loadValue();
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.refresh_rounded,
-              color: Colors.green,
+              color: Theme.of(context).colorScheme.secondary,
             ),
           ),
           const SizedBox(height: 32),
@@ -58,11 +58,11 @@ class _WheelSpinnerViewState extends State<WheelSpinnerView> {
                 width: width,
                 child: FortuneWheel(
                   duration: const Duration(seconds: 3),
-                  indicators: const <FortuneIndicator>[
+                  indicators: <FortuneIndicator>[
                     FortuneIndicator(
                       alignment: Alignment.topCenter,
                       child: TriangleIndicator(
-                        color: Colors.red,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                     ),
                   ],

@@ -19,8 +19,10 @@ class UserItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title:
-          Text(user.displayName ?? user.email ?? user.phoneNumber ?? user.id),
+      title: Text(
+        user.displayName ?? user.email ?? user.phoneNumber ?? user.id,
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
       leading: GNCircleAvatar(
         photoUrl: user.photoUrl,
         size: 40,

@@ -10,9 +10,9 @@ class PercentStatistic extends StatelessWidget {
   const PercentStatistic({Key? key, required this.statistics})
       : super(key: key);
 
-  static const Color colorWins = Colors.green;
-  static const Color colorDraws = Colors.grey;
-  static const Color colorLost = Colors.red;
+  final Color colorWins = Colors.green;
+  final Color colorDraws = Colors.grey;
+  final Color colorLost = Colors.red;
 
   final betweenSpace = 0.0;
   final double columnWidth = 20;
@@ -58,7 +58,7 @@ class PercentStatistic extends StatelessWidget {
                     getTooltipItem: (a, b, c, d) {
                       return BarTooltipItem(
                           '${(c.toY - c.fromY).toStringAsFixed(2)}%',
-                          const TextStyle(color: Colors.black));
+                          TextStyle(color: Theme.of(context).colorScheme.onSurface));
                     },
                   ),
                 ),

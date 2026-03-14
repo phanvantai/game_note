@@ -18,86 +18,122 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return AlertDialog(
+      title: const Text('Cập nhật tỉ số'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // home
           Row(
             children: [
-              ClipRRect(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.model.home?.playerModel.color,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  width: 24,
-                  height: 24,
+              Container(
+                decoration: BoxDecoration(
+                  color: widget.model.home?.playerModel.color,
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                width: 24,
+                height: 24,
               ),
               const SizedBox(width: 16),
-              Text(
-                widget.model.home?.playerModel.fullname ?? '',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.normal,
+              Expanded(
+                child: Text(
+                  widget.model.home?.playerModel.fullname ?? '',
+                  style: textTheme.bodyLarge,
                 ),
               ),
-              const Spacer(),
               SizedBox(
-                width: 32,
+                width: 48,
                 child: TextFormField(
-                  //cursorColor: Colors.white,
                   controller: homeController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: colorScheme.secondary,
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 10,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
             ],
           ),
           const SizedBox(height: 16),
           // away
           Row(
             children: [
-              ClipRRect(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.model.away?.playerModel.color,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  width: 24,
-                  height: 24,
+              Container(
+                decoration: BoxDecoration(
+                  color: widget.model.away?.playerModel.color,
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                width: 24,
+                height: 24,
               ),
               const SizedBox(width: 16),
-              Text(
-                widget.model.away?.playerModel.fullname ?? '',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.normal,
+              Expanded(
+                child: Text(
+                  widget.model.away?.playerModel.fullname ?? '',
+                  style: textTheme.bodyLarge,
                 ),
               ),
-              const Spacer(),
               SizedBox(
-                width: 32,
+                width: 48,
                 child: TextFormField(
-                  // cursorColor: Colors.white,
                   controller: awayController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: colorScheme.secondary,
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 10,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
             ],
           ),
         ],
       ),
       actions: [
-        CloseButton(
+        TextButton(
           onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Hủy'),
         ),
-        IconButton(
+        FilledButton(
           onPressed: () {
             var home = int.tryParse(homeController.text);
             var away = int.tryParse(awayController.text);
@@ -107,7 +143,7 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
             widget.callback(widget.model, home, away);
             Navigator.of(context).pop();
           },
-          icon: const Icon(Icons.done),
+          child: const Text('Xác nhận'),
         ),
       ],
     );

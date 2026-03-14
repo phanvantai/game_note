@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pes_arena/core/constants/constants.dart';
-
 import '../../domain/entities/player_model.dart';
 
 class PlayerView extends StatefulWidget {
@@ -18,6 +16,8 @@ class _PlayerViewState extends State<PlayerView> {
   bool isSelected = false;
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: widget.onClick == null
           ? null
@@ -32,21 +32,22 @@ class _PlayerViewState extends State<PlayerView> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color:
-              isSelected ? Colors.orange : Colors.grey.withValues(alpha: 0.3),
-          // border: Border.all(
-          //   color: isSelected ? Colors.orange : Colors.grey,
-          // ),
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected
+              ? colorScheme.secondary
+              : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
           child: Text(
             widget.player.fullname,
-            style: widget.bold == true
-                ? boldTextStyle
-                : widget.onClick != null
-                    ? boldTextStyle
-                    : null,
+            style: (widget.bold == true || widget.onClick != null)
+                ? textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isSelected
+                        ? colorScheme.onSecondary
+                        : colorScheme.onSurface,
+                  )
+                : textTheme.bodyLarge,
           ),
         ),
       ),

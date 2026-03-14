@@ -15,37 +15,73 @@ class TournamentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final status = GNEsportLeagueStatusExtension.fromString(league.status);
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: Theme.of(context).secondaryHeaderColor,
-        borderRadius: BorderRadius.circular(8),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.3),
+          width: 0.5,
+        ),
       ),
-      child: ClipRRect(
-        child: Banner(
-          textStyle: const TextStyle(
-            color: Colors.white,
-            fontSize: 8,
-            fontWeight: FontWeight.bold,
+      child: ListTile(
+        onTap: onTap,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: SvgPicture.asset(
+          'assets/svg/trophy-solid.svg',
+          width: 28,
+          height: 28,
+          colorFilter: ColorFilter.mode(
+            colorScheme.secondary,
+            BlendMode.srcIn,
           ),
-          message: GNEsportLeagueStatusExtension.fromString(league.status).name,
-          location: BannerLocation.topEnd,
-          color: GNEsportLeagueStatusExtension.fromString(league.status).color,
-          child: ListTile(
-            onTap: onTap,
-            leading: SvgPicture.asset(
-              'assets/svg/trophy-solid.svg',
-              width: 32,
-              height: 32,
+        ),
+        title: Text(
+          league.name.isEmpty
+              ? '${league.group?.groupName ?? ''} - ${DateFormat('dd/MM/yyyy').format(league.startDate)}'
+              : league.name,
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          league.description.isEmpty
+              ? league.group?.groupName ?? ''
+              : league.description,
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: status.color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                status.name,
+                style: textTheme.labelSmall?.copyWith(
+                  color: status.color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-            title: Text(league.name.isEmpty
-                ? '${league.group?.groupName ?? ''} - ${DateFormat('dd/MM/yyyy').format(league.startDate)}'
-                : league.name),
-            subtitle: league.description.isEmpty
-                ? Text(league.group!.groupName)
-                : Text(league.description),
-          ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurface.withValues(alpha: 0.3),
+              size: 20,
+            ),
+          ],
         ),
       ),
     );

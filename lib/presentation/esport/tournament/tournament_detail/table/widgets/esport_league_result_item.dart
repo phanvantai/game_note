@@ -17,14 +17,14 @@ class EsportLeagueResultItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
             bottom: BorderSide(
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.outline,
               width: 1,
             ),
             top: BorderSide(
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.outline,
               width: 1,
             )),
       ),
@@ -50,7 +50,7 @@ class EsportLeagueResultItem extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(width: 8.0),
-                const MedalWidget(color: Colors.black54)
+                MedalWidget(color: Theme.of(context).colorScheme.onSurface)
               ],
             ),
           ),

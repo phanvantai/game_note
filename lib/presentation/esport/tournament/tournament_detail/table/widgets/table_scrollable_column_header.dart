@@ -7,17 +7,19 @@ class TableScrollableColumnHeader extends StatelessWidget {
     required this.tableRowHeight,
     required this.tableNameColumnWidth,
     required this.tableStatsColumnWidth,
-    required this.tableStatsTextStyle,
   }) : super(key: key);
 
   final BoxDecoration tableHeaderDecor;
   final double tableRowHeight;
   final double tableNameColumnWidth;
   final double tableStatsColumnWidth;
-  final TextStyle tableStatsTextStyle;
 
   @override
   Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+        );
+
     return Container(
       decoration: tableHeaderDecor,
       height: tableRowHeight,
@@ -25,75 +27,11 @@ class TableScrollableColumnHeader extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(width: tableNameColumnWidth),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text('P', style: tableStatsTextStyle),
+          for (final label in ['P', 'GD', 'PTS', 'W', 'D', 'L', 'F', 'A'])
+            SizedBox(
+              width: tableStatsColumnWidth,
+              child: Center(child: Text(label, style: style)),
             ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                'GD',
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                'PTS',
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                'W',
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                'D',
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                'L',
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                'F',
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                'A',
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
         ],
       ),
     );

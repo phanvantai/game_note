@@ -33,51 +33,56 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           if (widget.onSelectDone != null)
-            ElevatedButton(
+            FilledButton(
               onPressed: enableDoneButton
                   ? () {
                       widget.onSelectDone!(selectedPlayers);
                     }
                   : null,
               child: const Text("Done"),
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all<Color>(
-                  enableDoneButton ? Colors.orange : Colors.grey,
-                ),
+            ),
+          const SizedBox(height: 8),
+          if (widget.numberOfPlayer != null)
+            Text(
+              "Selecting 2 player. Selected: ${selectedPlayers.length}",
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            )
+          else
+            Text(
+              "Selected: ${selectedPlayers.length}",
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
-          if (widget.numberOfPlayer != null)
-            Text("Selecting 2 player. Selected: ${selectedPlayers.length}")
-          else
-            Text("Selected: ${selectedPlayers.length}"),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.builder(
+            child: ListView.separated(
               itemCount: players.length,
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: 8),
               itemBuilder: (context, index) {
-                return Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    PlayerView(
-                      players[index],
-                      onClick: (isSelected) {
-                        setState(() {
-                          isSelected
-                              ? selectedPlayers.add(players[index])
-                              : selectedPlayers.remove(players[index]);
-                        });
-                        if (widget.enableSection != null) {
-                          widget.enableSection!(
-                              selectedPlayers, enableDoneButton);
-                        }
-                      },
-                    )
-                  ],
+                return PlayerView(
+                  players[index],
+                  onClick: (isSelected) {
+                    setState(() {
+                      isSelected
+                          ? selectedPlayers.add(players[index])
+                          : selectedPlayers.remove(players[index]);
+                    });
+                    if (widget.enableSection != null) {
+                      widget.enableSection!(
+                          selectedPlayers, enableDoneButton);
+                    }
+                  },
                 );
               },
             ),

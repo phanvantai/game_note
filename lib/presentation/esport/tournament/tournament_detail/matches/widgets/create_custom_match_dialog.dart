@@ -23,84 +23,73 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AlertDialog(
-      title: const Text('Chọn 2 đội để tạo trận đấu'),
+      title: const Text('Tạo trận đấu'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Dropdown for picking Team 1
-          DropdownButtonHideUnderline(
-            child: DropdownButton<GNUser>(
-              hint: const Text('Đội nhà'),
-              // decoration: const InputDecoration(
-              //   labelText: 'Đội nhà',
-              //   border: OutlineInputBorder(
-              //     borderSide: BorderSide.none,
-              //   ),
-              // ),
-              value: homeTeam,
-              onChanged: (value) {
-                setState(() {
-                  homeTeam = value;
-                });
-              },
-              items: widget.users.map((team) {
-                return DropdownMenuItem<GNUser>(
-                  value: team,
-                  child: EsportMatchTeam(user: team),
-                );
-              }).toList(),
+          DropdownButtonFormField<GNUser>(
+            value: homeTeam,
+            onChanged: (value) => setState(() => homeTeam = value),
+            items: widget.users.map((team) {
+              return DropdownMenuItem<GNUser>(
+                value: team,
+                child: EsportMatchTeam(user: team),
+              );
+            }).toList(),
+            decoration: InputDecoration(
+              hintText: 'Đội nhà',
+              filled: true,
+              fillColor: colorScheme.surfaceContainerHighest,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
           ),
-          const SizedBox(height: 16.0),
-
-          // Dropdown for picking Team 2
-          DropdownButtonHideUnderline(
-            child: DropdownButton<GNUser>(
-              // decoration: const InputDecoration(
-              //   labelText: 'Đội khách',
-              //   border: OutlineInputBorder(
-              //     borderSide: BorderSide.none,
-              //   ),
-              // ),
-              hint: const Text('Đội khách'),
-              value: awayTeam,
-              onChanged: (value) {
-                setState(() {
-                  awayTeam = value;
-                });
-              },
-              items: widget.users.map((team) {
-                return DropdownMenuItem<GNUser>(
-                  value: team,
-                  child: EsportMatchTeam(user: team),
-                );
-              }).toList(),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<GNUser>(
+            value: awayTeam,
+            onChanged: (value) => setState(() => awayTeam = value),
+            items: widget.users.map((team) {
+              return DropdownMenuItem<GNUser>(
+                value: team,
+                child: EsportMatchTeam(user: team),
+              );
+            }).toList(),
+            decoration: InputDecoration(
+              hintText: 'Đội khách',
+              filled: true,
+              fillColor: colorScheme.surfaceContainerHighest,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
           ),
         ],
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
           child: const Text('Hủy'),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: () {
-            // check if both teams are selected
             if (homeTeam == null || awayTeam == null) {
               showToast('Vui lòng chọn đội');
               return;
             }
-
-            // check if both teams are different
             if (homeTeam == awayTeam) {
               showToast('Vui lòng chọn 2 đội khác nhau');
               return;
             }
-
             widget.onMatchCreated(homeTeam!, awayTeam!);
           },
           child: const Text('Tạo trận đấu'),

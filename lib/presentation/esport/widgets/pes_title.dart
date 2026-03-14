@@ -11,6 +11,8 @@ class PesTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return FutureBuilder<List<EsportModel>>(
       future: getIt<GNFirestore>().getEsports(),
       builder: (context, snapshot) {
@@ -35,9 +37,12 @@ class PesTitle extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(snapshot.data!.first.name ?? '',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                snapshot.data!.first.name ?? '',
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           );
         }
