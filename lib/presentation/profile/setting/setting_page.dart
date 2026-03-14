@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/routing.dart';
+import 'package:provider/provider.dart';
+import 'package:pes_arena/core/theme/theme_provider.dart';
 
 import '../../../firebase/auth/gn_auth.dart';
 import '../bloc/profile_bloc.dart';
@@ -26,12 +28,29 @@ class SettingPage extends StatelessWidget {
                 Navigator.of(context).pushNamed(Routing.changePassword);
               },
             ),
+          Builder(
+            builder: (context) {
+              final themeNotifier = context.watch<ThemeNotifier>();
+              return ListTile(
+                leading: const Icon(Icons.dark_mode),
+                title: const Text('Chế độ tối'),
+                trailing: Switch.adaptive(
+                  value: themeNotifier.isDark,
+                  onChanged: (value) {
+                    themeNotifier.setTheme(
+                      value ? ThemeMode.dark : ThemeMode.light,
+                    );
+                  },
+                ),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.delete),
-            iconColor: Colors.red,
-            title: const Text(
+            iconColor: Theme.of(context).colorScheme.error,
+            title: Text(
               'Xoá tài khoản',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             onTap: () {
               _deleteAccount(context, profileBloc);
@@ -62,10 +81,10 @@ class SettingPage extends StatelessWidget {
                 profileBloc.add(DeleteProfileEvent());
                 Navigator.of(context).pop();
               },
-              child: const Text(
+              child: Text(
                 'Xoá tài khoản',
                 style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                    TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.error),
               ),
             ),
           ],

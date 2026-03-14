@@ -13,21 +13,45 @@ class GroupItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).secondaryHeaderColor,
-        borderRadius: BorderRadius.circular(8),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.3),
+          width: 0.5,
+        ),
       ),
       child: ListTile(
-        leading: Image.asset('assets/images/pes_club_logo.png'),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            'assets/images/pes_club_logo.png',
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+          ),
+        ),
         title: Text(
           group.groupName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          'Thành viên: ${group.members.length}  Khu vực: ${group.location}',
-          style: const TextStyle(fontSize: 11),
+          '${group.members.length} thành viên  •  ${group.location}',
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: colorScheme.onSurface.withValues(alpha: 0.3),
+          size: 20,
         ),
         onTap: onTap,
       ),

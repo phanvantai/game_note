@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/offline/presentation/components/select_player_view.dart';
 
 import 'bloc/league_detail_bloc.dart';
@@ -15,10 +16,8 @@ class LeagueDetailView extends StatelessWidget {
     return BlocBuilder<LeagueDetailBloc, LeagueDetailState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: Colors.white,
           appBar: AppBar(
             title: Text(state.model?.name ?? ''),
-            backgroundColor: Colors.white70,
             actions: [
               if (state.status.isAddingPlayer &&
                   state.enableConfirmSelectPlayers)
@@ -44,16 +43,12 @@ class LeagueDetailView extends StatelessWidget {
   }
 
   _leagueDetail(BuildContext context, LeagueDetailState state) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (state.status.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Center(
-          child: Text(
-            'Giải đấu chưa được thiết lập.\nBấm nút + bên dưới để thêm người chơi và bắt đầu giải đấu',
-            style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return const AppEmptyState(
+        icon: Icons.group_add_outlined,
+        title: 'Giải đấu chưa được thiết lập.',
+        subtitle: 'Bấm nút + bên dưới để thêm người chơi và bắt đầu giải đấu',
       );
     }
     if (state.status.isAddingPlayer) {
@@ -64,7 +59,11 @@ class LeagueDetailView extends StatelessWidget {
       );
     }
     if (state.status.isError) {
-      return const Text('error league ');
+      return const AppEmptyState(
+        icon: Icons.error_outline,
+        title: 'Đã xảy ra lỗi',
+        subtitle: 'Không thể tải dữ liệu giải đấu',
+      );
     }
     if (state.status.isLoaded || state.status.isUpdating) {
       return GestureDetector(
@@ -82,8 +81,10 @@ class LeagueDetailView extends StatelessWidget {
       );
     }
     if (state.status.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+      return Center(
+        child: CircularProgressIndicator(
+          color: colorScheme.secondary,
+        ),
       );
     }
     return const SizedBox.shrink();

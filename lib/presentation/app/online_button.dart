@@ -8,8 +8,8 @@ class OnlineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
-      icon: const Icon(Icons.signal_wifi_4_bar),
-      label: const Text("Chế độ Online"),
+      icon: const Icon(Icons.wifi_outlined, size: 18),
+      label: const Text('Online'),
       onPressed: () {
         Navigator.of(context).pushReplacementNamed(Routing.app);
       },

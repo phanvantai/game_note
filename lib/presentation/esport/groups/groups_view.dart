@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
 import '../../../core/common/view_status.dart';
@@ -16,17 +17,14 @@ class GroupsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emptyImage = Image.asset(
-      'assets/images/empty.png',
-      height: 44,
-    );
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BlocBuilder<GroupBloc, GroupState>(
       builder: (context, state) {
         return DefaultTabController(
           length: 2,
           child: Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.indigo[100],
               centerTitle: false,
               title: Row(
                 spacing: 4,
@@ -61,14 +59,14 @@ class GroupsView extends StatelessWidget {
                   builder: (context, state) => IconButton(
                     icon: Stack(
                       children: [
-                        const Icon(Icons.notifications),
+                        const Icon(Icons.notifications_outlined),
                         if (state.unreadNotificationsCount > 0)
                           Positioned(
-                            right: 6,
-                            top: 6,
+                            right: 4,
+                            top: 4,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.red,
+                                color: colorScheme.error,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               width: 8,
@@ -92,177 +90,154 @@ class GroupsView extends StatelessWidget {
                   child: TabBarView(
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      if (state.userGroups.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 60, vertical: 8),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 100),
-                                emptyImage,
-                                const Text(
-                                  'Không có nhóm nào.',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        ListView.builder(
-                          itemBuilder: (context, index) => GroupItem(
-                            group: state.userGroups[index],
-                            onTap: () async {
-                              final _ = await Navigator.of(context).pushNamed(
-                                Routing.groupDetail,
-                                arguments: state.userGroups[index],
-                              );
-                              // ignore: use_build_context_synchronously
-                              BlocProvider.of<GroupBloc>(context)
-                                  .add(GetEsportGroups());
-                            },
-                          ),
-                          itemCount: state.userGroups.length,
-                        ),
-                      state.otherGroups.isEmpty
-                          ? Center(
-                              child: Column(
-                                children: [
-                                  const SizedBox(height: 100),
-                                  emptyImage,
-                                  const Text(
-                                    'Không có nhóm nào',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
+                      state.userGroups.isEmpty
+                          ? const AppEmptyState(
+                              icon: Icons.group_outlined,
+                              title: 'Không có nhóm nào',
+                              subtitle: 'Tạo nhóm mới để bắt đầu',
                             )
                           : ListView.builder(
+                              padding:
+                                  const EdgeInsets.only(top: 8, bottom: 80),
+                              itemBuilder: (context, index) => GroupItem(
+                                group: state.userGroups[index],
+                                onTap: () async {
+                                  await Navigator.of(context).pushNamed(
+                                    Routing.groupDetail,
+                                    arguments: state.userGroups[index],
+                                  );
+                                  if (context.mounted) {
+                                    BlocProvider.of<GroupBloc>(context)
+                                        .add(GetEsportGroups());
+                                  }
+                                },
+                              ),
+                              itemCount: state.userGroups.length,
+                            ),
+                      state.otherGroups.isEmpty
+                          ? const AppEmptyState(
+                              icon: Icons.group_outlined,
+                              title: 'Không có nhóm nào',
+                            )
+                          : ListView.builder(
+                              padding:
+                                  const EdgeInsets.only(top: 8, bottom: 80),
                               itemBuilder: (context, index) => GroupItem(
                                 group: state.otherGroups[index],
                                 onTap: () async {
-                                  final _ =
-                                      await Navigator.of(context).pushNamed(
+                                  await Navigator.of(context).pushNamed(
                                     Routing.groupDetail,
                                     arguments: state.otherGroups[index],
                                   );
-                                  // ignore: use_build_context_synchronously
-                                  BlocProvider.of<GroupBloc>(context)
-                                      .add(GetEsportGroups());
+                                  if (context.mounted) {
+                                    BlocProvider.of<GroupBloc>(context)
+                                        .add(GetEsportGroups());
+                                  }
                                 },
                               ),
                               itemCount: state.otherGroups.length,
-                            )
+                            ),
                     ],
                   ),
                 )
               ],
             ),
-            floatingActionButton: ElevatedButton.icon(
-              onPressed: () {
-                final esportModel =
-                    context.read<EsportBloc>().state.esportModel;
-                if (esportModel == null) {
-                  showToast('Chưa chọn một môn thể thao điện tử');
-                  return;
-                }
-                // show create group dialog
-                showDialog(
-                  context: context,
-                  builder: (BuildContext ctx) {
-                    String groupName = '';
-                    String groupDescription = '';
-                    String selectedProvince = '';
-
-                    return AlertDialog(
-                      title: const Text('Tạo nhóm mới'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextField(
-                            onChanged: (value) {
-                              groupName = value;
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'Tên nhóm',
-                              // errorText: groupName.isEmpty
-                              //     ? 'Tên nhóm không được để trống'
-                              //     : null,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            onChanged: (value) {
-                              groupDescription = value;
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'Mô tả nhóm',
-                            ),
-                            maxLines: 3,
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<String>(
-                            value: null,
-                            onChanged: (value) {
-                              selectedProvince = value!;
-                            },
-                            items: provinces
-                                .map((e) => DropdownMenuItem(
-                                      value: e.name,
-                                      child: Text(e.name),
-                                    ))
-                                .toList(),
-                            decoration: const InputDecoration(
-                              labelText: 'Khu vực',
-                            ),
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Huỷ'),
-                        ),
-                        ElevatedButton(
-                          style: ButtonStyle(
-                              elevation: WidgetStateProperty.all(0)),
-                          onPressed: () {
-                            if (groupName.isEmpty) {
-                              showToast('Tên nhóm không được để trống');
-                              return;
-                            }
-                            if (selectedProvince.isEmpty) {
-                              showToast('Chọn tỉnh thành');
-                              return;
-                            }
-                            BlocProvider.of<GroupBloc>(context).add(
-                              CreateEsportGroup(
-                                groupName: groupName,
-                                esportId: esportModel.id,
-                                description: groupDescription,
-                                location: selectedProvince,
-                              ),
-                            );
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Tạo nhóm'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => _showCreateGroupDialog(context),
               label: const Text('Tạo nhóm'),
               icon: const Icon(Icons.add),
-              style: ButtonStyle(
-                elevation: WidgetStateProperty.all(0),
-                backgroundColor: WidgetStateProperty.all(Colors.red[100]),
-              ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showCreateGroupDialog(BuildContext context) {
+    final esportModel = context.read<EsportBloc>().state.esportModel;
+    if (esportModel == null) {
+      showToast('Chưa chọn một môn thể thao điện tử');
+      return;
+    }
+
+    String groupName = '';
+    String groupDescription = '';
+    String selectedProvince = '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Tạo nhóm mới'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  onChanged: (value) => groupName = value,
+                  decoration: appInputDecoration(
+                    context: context,
+                    hintText: 'Tên nhóm',
+                    prefixIcon: Icons.group_outlined,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  onChanged: (value) => groupDescription = value,
+                  decoration: appInputDecoration(
+                    context: context,
+                    hintText: 'Mô tả nhóm',
+                    prefixIcon: Icons.description_outlined,
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: null,
+                  onChanged: (value) => selectedProvince = value!,
+                  items: provinces
+                      .map((e) => DropdownMenuItem(
+                            value: e.name,
+                            child: Text(e.name),
+                          ))
+                      .toList(),
+                  decoration: appInputDecoration(
+                    context: context,
+                    hintText: 'Khu vực',
+                    prefixIcon: Icons.location_on_outlined,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Huỷ'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (groupName.isEmpty) {
+                  showToast('Tên nhóm không được để trống');
+                  return;
+                }
+                if (selectedProvince.isEmpty) {
+                  showToast('Chọn tỉnh thành');
+                  return;
+                }
+                BlocProvider.of<GroupBloc>(context).add(
+                  CreateEsportGroup(
+                    groupName: groupName,
+                    esportId: esportModel.id,
+                    description: groupDescription,
+                    location: selectedProvince,
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+              child: const Text('Tạo nhóm'),
+            ),
+          ],
         );
       },
     );

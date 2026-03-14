@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/team/bloc/teams_bloc.dart';
 
 class MyTeamsView extends StatelessWidget {
@@ -9,69 +10,77 @@ class MyTeamsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return BlocBuilder<TeamsBloc, TeamsState>(
       buildWhen: (previous, current) => previous.myTeams != current.myTeams,
-      builder: (context, state) => Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.transparent),
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.pink[50],
-        ),
-        margin: const EdgeInsets.symmetric(horizontal: 16),
+      builder: (context, state) => AppCard(
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 12),
           shape: Border.all(color: Colors.transparent),
           collapsedShape: Border.all(color: Colors.transparent),
           initiallyExpanded: true,
-          trailing: ElevatedButton(
+          trailing: FilledButton.tonal(
             onPressed: () {
               showToast('Sắp ra mắt');
               // Navigator.of(context).pushNamed(Routing.createTeam);
             },
-            style: ElevatedButton.styleFrom(
-              elevation: 0,
-              backgroundColor: Colors.white,
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.secondaryContainer,
+              foregroundColor: colorScheme.onSecondaryContainer,
             ),
             child: const Text('Tạo đội'),
           ),
-          title: const Text(
+          title: Text(
             'Đội của tôi',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleSmall,
           ),
-          children: _buildMyTeams(state),
+          children: _buildMyTeams(state, context),
         ),
       ),
     );
   }
 
-  List<Widget> _buildMyTeams(TeamsState state) {
+  List<Widget> _buildMyTeams(TeamsState state, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     if (state.viewStatus.isLoading) {
-      return const [
+      return [
         Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(
+              color: colorScheme.secondary,
+            ),
           ),
         ),
       ];
     }
     if (state.myTeams.isEmpty) {
-      return [
-        const Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(
-            child: Text('Bạn chưa tham gia đội nào'),
-          ),
+      return const [
+        AppEmptyState(
+          icon: Icons.groups_outlined,
+          title: 'Bạn chưa tham gia đội nào',
         ),
       ];
     } else {
       return state.myTeams
           .map(
             (team) => ListTile(
-              title: Text(team.name),
+              leading: Icon(
+                Icons.groups_outlined,
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+              title: Text(
+                team.name,
+                style: textTheme.bodyMedium,
+              ),
+              trailing: Icon(
+                Icons.chevron_right_outlined,
+                color: colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
               onTap: () {
                 // Navigator.of(context).pushNamed(Routing.teamDetail, arguments: team);
               },

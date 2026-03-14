@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
@@ -21,14 +22,15 @@ class TournamentDetailView extends StatefulWidget {
 
 class _TournamentDetailViewState extends State<TournamentDetailView>
     with AutomaticKeepAliveClientMixin {
-  List<Widget> contentWidgets = [];
-
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
       builder: (context, state) => Scaffold(
         appBar: AppBar(
@@ -37,8 +39,12 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             children: [
               SvgPicture.asset(
                 'assets/svg/trophy-solid.svg',
-                width: 24,
-                height: 24,
+                width: 22,
+                height: 22,
+                colorFilter: ColorFilter.mode(
+                  colorScheme.secondary,
+                  BlendMode.srcIn,
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -46,117 +52,27 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   state.league?.name.isEmpty == true
                       ? ("${state.league?.group?.groupName ?? " "} ${DateFormat('dd/MM/yyyy').format(state.league?.startDate ?? DateTime.now())}")
                       : state.league?.name ?? '',
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.bold),
+                  style: textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
             ],
           ),
           actions: [
-            // if current user in group of league
             if (state.currentUserIsMember)
-              // add participant button
               IconButton(
-                icon: const Icon((Icons.person_add)),
-                onPressed: () {
-                  _addParticipant(context, state);
-                },
+                icon: const Icon(Icons.person_add_outlined),
+                onPressed: () => _addParticipant(context, state),
               ),
             if (state.currentUserIsLeagueAdmin)
               IconButton(
-                icon: const Icon(Icons.edit),
-                //title: const Text('Cập nhật trạng thái'),
-                onPressed: () {
-                  final bloc = BlocProvider.of<TournamentDetailBloc>(context);
-                  // show dialog to change league status
-                  showDialog(
-                    context: context,
-                    builder: (ctx) {
-                      return AlertDialog(
-                        title: const Text('Thay đổi trạng thái giải đấu'),
-                        content: BlocBuilder<TournamentDetailBloc,
-                            TournamentDetailState>(
-                          bloc: bloc,
-                          builder: (ctx, state) => Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('Chọn trạng thái mới cho giải đấu:'),
-                              const SizedBox(height: 8),
-                              DropdownButton<GNEsportLeagueStatus>(
-                                value: GNEsportLeagueStatusExtension.fromString(
-                                    state.league?.status),
-                                onChanged: (value) {
-                                  if (value == null) {
-                                    return;
-                                  }
-                                  bloc.add(ChangeLeagueStatus(value));
-                                },
-                                items:
-                                    GNEsportLeagueStatus.values.map((status) {
-                                  return DropdownMenuItem(
-                                    value: status,
-                                    child: Text(status.name),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('Hủy'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // submit league status
-                              bloc.add(SubmitLeagueStatus());
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('Lưu'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: () => _changeStatus(context, state),
               ),
             if (state.currentUserIsLeagueAdmin)
               IconButton(
-                icon: const Icon(
-                  Icons.delete,
-                  color: Colors.red,
-                ),
-                onPressed: () {
-                  final bloc = BlocProvider.of<TournamentDetailBloc>(context);
-                  // show dialog to confirm delete
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Xác nhận xóa giải đấu'),
-                      content: const Text(
-                          'Bạn có chắc chắn muốn xóa giải đấu này không?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Hủy'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            // delete league (inactive)
-                            bloc.add(InactiveLeague());
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Xóa'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                onPressed: () => _deleteLeague(context),
               ),
           ],
         ),
@@ -165,15 +81,18 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             SingleChildScrollView(
               child: Column(
                 spacing: 16.0,
-                children: [
-                  const EsportTableView(),
-                  const EsportMatchesView(),
+                children: const [
+                  EsportTableView(),
+                  EsportMatchesView(),
                 ],
               ),
             ),
             if (state.viewStatus.isLoading)
               const Positioned(
-                  top: 0, right: 0, left: 0, child: LinearProgressIndicator()),
+                  top: 0,
+                  right: 0,
+                  left: 0,
+                  child: LinearProgressIndicator()),
           ],
         ),
         bottomNavigationBar: _bannerAd != null
@@ -185,6 +104,71 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             : null,
       ),
     );
+  }
+
+  void _changeStatus(BuildContext context, TournamentDetailState state) {
+    final bloc = BlocProvider.of<TournamentDetailBloc>(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Trạng thái giải đấu'),
+          content: BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
+            bloc: bloc,
+            builder: (ctx, state) => DropdownButtonFormField<
+                GNEsportLeagueStatus>(
+              value: GNEsportLeagueStatusExtension.fromString(
+                  state.league?.status),
+              onChanged: (value) {
+                if (value != null) bloc.add(ChangeLeagueStatus(value));
+              },
+              items: GNEsportLeagueStatus.values.map((status) {
+                return DropdownMenuItem(
+                  value: status,
+                  child: Text(status.name),
+                );
+              }).toList(),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: colorScheme.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () {
+                bloc.add(SubmitLeagueStatus());
+                Navigator.of(context).pop();
+              },
+              child: const Text('Lưu'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteLeague(BuildContext context) async {
+    final bloc = BlocProvider.of<TournamentDetailBloc>(context);
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: 'Xóa giải đấu',
+      message: 'Bạn có chắc chắn muốn xóa giải đấu này không?',
+      confirmText: 'Xóa',
+      isDestructive: true,
+    );
+    if (confirmed == true) {
+      bloc.add(InactiveLeague());
+    }
   }
 
   @override
@@ -202,12 +186,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     _loadAd();
   }
 
-  /// Loads a banner ad.
   void _loadAd() async {
-    if (isAdsLoaded) {
-      return;
-    }
-    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
+    if (isAdsLoaded) return;
     final AnchoredAdaptiveBannerAdSize? size =
         await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
             MediaQuery.of(context).size.width.truncate());
@@ -216,42 +196,27 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       request: const AdRequest(),
       size: size ?? AdSize.banner,
       listener: BannerAdListener(
-        // Called when an ad is successfully received.
         onAdLoaded: (ad) {
           debugPrint('$ad loaded.');
-          setState(() {
-            isAdsLoaded = true;
-          });
+          setState(() => isAdsLoaded = true);
         },
-        // Called when an ad request failed.
         onAdFailedToLoad: (ad, err) {
           debugPrint('BannerAd failed to load: $err');
-          // Dispose the ad here to free resources.
           ad.dispose();
         },
-        // Called when an ad opens an overlay that covers the screen.
-        onAdOpened: (Ad ad) {
-          debugPrint('on Ad Opened');
-        },
-        // Called when an ad removes an overlay that covers the screen.
-        onAdClosed: (Ad ad) {
-          debugPrint('on Ad Closed');
-        },
-        // Called when an impression occurs on the ad.
-        onAdImpression: (Ad ad) {
-          debugPrint('on Ad Impression');
-        },
+        onAdOpened: (Ad ad) => debugPrint('on Ad Opened'),
+        onAdClosed: (Ad ad) => debugPrint('on Ad Closed'),
+        onAdImpression: (Ad ad) => debugPrint('on Ad Impression'),
       ),
     )..load();
   }
 
-  _addParticipant(BuildContext context, TournamentDetailState state) {
+  void _addParticipant(BuildContext context, TournamentDetailState state) {
     final league = state.league;
-    if (league == null) {
-      return;
-    }
-    final tournamentDetailBloc = BlocProvider.of<TournamentDetailBloc>(context);
-    
+    if (league == null) return;
+    final tournamentDetailBloc =
+        BlocProvider.of<TournamentDetailBloc>(context);
+
     showDialog(
       context: context,
       builder: (context) => AddPlayerPopup(

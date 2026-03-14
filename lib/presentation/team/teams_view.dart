@@ -25,8 +25,9 @@ class _TeamsViewState extends State<TeamsView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return const Scaffold(
-      body: SafeArea(
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: const SafeArea(
           child: Column(
         children: [
           MyTeamsView(),

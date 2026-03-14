@@ -12,7 +12,7 @@ class MedalWidget extends StatelessWidget {
       'assets/svg/medal-solid.svg',
       width: size ?? 24,
       height: size ?? 24,
-      colorFilter: ColorFilter.mode(color ?? Colors.black, BlendMode.srcIn),
+      colorFilter: ColorFilter.mode(color ?? Theme.of(context).colorScheme.onSurface, BlendMode.srcIn),
     );
   }
 }

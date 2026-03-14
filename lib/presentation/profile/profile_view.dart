@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -47,211 +47,253 @@ class _ProfileViewState extends State<ProfileView>
   @override
   void initState() {
     super.initState();
-
     context.read<ProfileBloc>().add(LoadProfileEvent());
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return BlocConsumer<ProfileBloc, ProfileState>(
       builder: (context, state) => Scaffold(
         body: SafeArea(
           child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
               if (state.viewStatus == ViewStatus.loading)
                 const LinearProgressIndicator(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+              // Avatar section
               Center(
-                child: InkWell(
-                  onTap: () {
-                    showCupertinoDialog(
-                        barrierDismissible: true,
-                        context: context,
-                        builder: (dialogContext) {
-                          return CupertinoAlertDialog(
-                            actions: [
-                              CupertinoDialogAction(
-                                child: TextButton.icon(
-                                  label: const Text('Thay đổi ảnh đại diện'),
-                                  onPressed: () {
-                                    // change avatar
-                                    context
-                                        .read<ProfileBloc>()
-                                        .add(ChangeAvatarProfileEvent());
-                                    Navigator.of(dialogContext).pop();
-                                  },
-                                  icon: const Icon(Icons.image),
-                                ),
-                              ),
-                              CupertinoDialogAction(
-                                child: TextButton.icon(
-                                  style: const ButtonStyle(
-                                    // iconColor: WidgetStatePropertyAll(Colors.red),
-                                    // textStyle: WidgetStatePropertyAll(
-                                    //     TextStyle(color: Colors.red)),
-                                    foregroundColor:
-                                        WidgetStatePropertyAll(Colors.red),
-                                  ),
-                                  label: const Text('Xoá ảnh đại diện'),
-                                  onPressed: () {
-                                    // delete avatar
-                                    context
-                                        .read<ProfileBloc>()
-                                        .add(DeleteAvatarProfileEvent());
-                                    Navigator.of(dialogContext).pop();
-                                  },
-                                  icon: const Icon(Icons.delete),
-                                ),
-                              ),
-                            ],
-                          );
-                        });
-                  },
-                  child: CachedNetworkImage(
-                    imageUrl: state.user?.photoUrl ?? '',
-                    width: 100,
-                    height: 100,
-                    imageBuilder: (context, imageProvider) => CircleAvatar(
-                      backgroundImage: imageProvider,
-                      radius: 50,
-                    ),
-                    errorWidget: (context, url, error) => const CircleAvatar(
-                      radius: 50,
-                      child: Icon(Icons.person, size: 50),
-                    ),
+                child: GestureDetector(
+                  onTap: () => _showAvatarOptions(context),
+                  child: Stack(
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: state.user?.photoUrl ?? '',
+                        width: 96,
+                        height: 96,
+                        imageBuilder: (context, imageProvider) => CircleAvatar(
+                          backgroundImage: imageProvider,
+                          radius: 48,
+                        ),
+                        errorWidget: (context, url, error) => CircleAvatar(
+                          radius: 48,
+                          backgroundColor: colorScheme.surfaceContainerHighest,
+                          child: Icon(
+                            Icons.person,
+                            size: 40,
+                            color:
+                                colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: colorScheme.secondary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.surface,
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 14,
+                            color: colorScheme.onSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              // Name + edit
               Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    state.displayUser.isNotEmpty
-                        ? Text(
-                            state.displayUser,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : Container(
-                            decoration: BoxDecoration(
-                              color: Colors.red[200],
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: const Text(
-                              'Vui lòng cập nhật thông tin',
-                              style: TextStyle(
-                                fontSize: 9,
+                child: state.displayUser.isNotEmpty
+                    ? GestureDetector(
+                        onTap: () => _navigateToUpdateProfile(context, state),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              state.displayUser,
+                              style: textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
                               ),
                             ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.edit_outlined,
+                              size: 18,
+                              color: colorScheme.onSurface
+                                  .withValues(alpha: 0.5),
+                            ),
+                          ],
+                        ),
+                      )
+                    : GestureDetector(
+                        onTap: () => _navigateToUpdateProfile(context, state),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                    IconButton(
-                      onPressed: () async {
-                        final _ = await Navigator.of(context).pushNamed(
-                            Routing.updateProfile,
-                            arguments: state.user);
-                        // reload profile
-                        // ignore: use_build_context_synchronously
-                        context.read<ProfileBloc>().add(LoadProfileEvent());
-                      },
-                      icon: const Icon(Icons.edit),
-                    )
+                          child: Text(
+                            'Vui lòng cập nhật thông tin',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onErrorContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 32),
+
+              // Account section
+              _buildSectionLabel(context, 'Tài khoản'),
+              const SizedBox(height: 8),
+              AppCard(
+                child: Column(
+                  children: [
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.person_outline,
+                      title: 'Cập nhật thông tin',
+                      onTap: () =>
+                          _navigateToUpdateProfile(context, state),
+                    ),
+                    Divider(
+                        height: 0.5,
+                        indent: 56,
+                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.lock_outline,
+                      title: 'Đổi mật khẩu',
+                      onTap: () => Navigator.of(context)
+                          .pushNamed(Routing.changePassword),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(Icons.reviews),
-                title: const Text('Đánh giá'),
-                onTap: () {
-                  Uri url;
-                  if (Platform.isAndroid) {
-                    url = Uri.parse(playStoreUrl);
-                  } else {
-                    url = Uri.parse(appStoreUrl);
-                  }
-                  launchUrl(url);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.feedback),
-                title: const Text('Nhận xét góp ý'),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (builder) => const FeedbackView()));
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.videogame_asset_off),
-                title: const Text('Chế độ offline'),
-                onTap: () {
-                  // show dialog to confirm
-                  showDialog(
-                    context: context,
-                    builder: (cxt) => AlertDialog(
-                      title: const Text('Xác nhận'),
-                      content: const Text(
-                          'Chế độ offline là bạn tự tạo dữ liệu trên máy và dữ liệu sẽ chỉ được lưu trên máy của bạn, không được đồng bộ.\n\nBạn có chắc chắn muốn chuyển sang chế độ offline không?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Huỷ'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context)
-                                .pushReplacementNamed(Routing.offline);
-                          },
-                          child: const Text('Chấp nhận'),
-                        ),
-                      ],
+              const SizedBox(height: 24),
+
+              // App section
+              _buildSectionLabel(context, 'Ứng dụng'),
+              const SizedBox(height: 8),
+              AppCard(
+                child: Column(
+                  children: [
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.wifi_off_outlined,
+                      title: 'Chế độ offline',
+                      onTap: () => _switchToOffline(context),
                     ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings),
-                title: const Text('Tuỳ chọn khác'),
-                onTap: () {
-                  Navigator.of(context).pushNamed(Routing.setting,
-                      arguments: context.read<ProfileBloc>());
-                },
-              ),
-              ListTile(
-                onTap: _incrementCounter,
-                leading: const Icon(Icons.info),
-                title: const Text('Phiên bản'),
-                trailing: FutureBuilder<AppInfo>(
-                  future: appInfo(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return Text(snapshot.data!.versionNumber);
-                    } else {
-                      return const Text('1.0.0');
-                    }
-                  },
+                    Divider(
+                        height: 0.5,
+                        indent: 56,
+                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.settings_outlined,
+                      title: 'Tuỳ chọn khác',
+                      onTap: () => Navigator.of(context).pushNamed(
+                          Routing.setting,
+                          arguments: context.read<ProfileBloc>()),
+                    ),
+                  ],
                 ),
               ),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                iconColor: Colors.red,
-                title: const Text(
-                  'Đăng xuất',
-                  style: TextStyle(color: Colors.red),
+              const SizedBox(height: 24),
+
+              // About section
+              _buildSectionLabel(context, 'Thông tin'),
+              const SizedBox(height: 8),
+              AppCard(
+                child: Column(
+                  children: [
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.star_outline,
+                      title: 'Đánh giá',
+                      onTap: () {
+                        Uri url;
+                        if (Platform.isAndroid) {
+                          url = Uri.parse(playStoreUrl);
+                        } else {
+                          url = Uri.parse(appStoreUrl);
+                        }
+                        launchUrl(url);
+                      },
+                    ),
+                    Divider(
+                        height: 0.5,
+                        indent: 56,
+                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.chat_bubble_outline,
+                      title: 'Nhận xét góp ý',
+                      onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const FeedbackView())),
+                    ),
+                    Divider(
+                        height: 0.5,
+                        indent: 56,
+                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                    ListTile(
+                      onTap: _incrementCounter,
+                      leading: Icon(
+                        Icons.info_outline,
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                      title: Text('Phiên bản', style: textTheme.bodyLarge),
+                      trailing: FutureBuilder<AppInfo>(
+                        future: appInfo(),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.hasData
+                                ? snapshot.data!.versionNumber
+                                : '1.0.0',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface
+                                  .withValues(alpha: 0.5),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                onTap: () {
-                  _signOut(context);
-                },
               ),
+              const SizedBox(height: 24),
+
+              // Sign out
+              AppCard(
+                child: _buildMenuItem(
+                  context,
+                  icon: Icons.logout,
+                  title: 'Đăng xuất',
+                  iconColor: colorScheme.error,
+                  textColor: colorScheme.error,
+                  showChevron: false,
+                  onTap: () => _signOut(context),
+                ),
+              ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -264,37 +306,134 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  void _signOut(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext ctx) {
-        return AlertDialog(
-          title: const Text('Xác nhận'),
-          content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Huỷ'),
+  Widget _buildSectionLabel(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.45),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1,
             ),
-            TextButton(
-              onPressed: () {
-                context.read<ProfileBloc>().add(SignOutProfileEvent());
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'Đăng xuất',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? iconColor,
+    Color? textColor,
+    bool showChevron = true,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: iconColor ?? colorScheme.onSurface.withValues(alpha: 0.6),
+      ),
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: textColor,
+            ),
+      ),
+      trailing: showChevron
+          ? Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurface.withValues(alpha: 0.3),
+            )
+          : null,
+      onTap: onTap,
+    );
+  }
+
+  void _showAvatarOptions(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colorScheme.outline.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.image_outlined),
+              title: const Text('Thay đổi ảnh đại diện'),
+              onTap: () {
+                context.read<ProfileBloc>().add(ChangeAvatarProfileEvent());
+                Navigator.of(sheetContext).pop();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: colorScheme.error),
+              title: Text(
+                'Xoá ảnh đại diện',
+                style: TextStyle(color: colorScheme.error),
+              ),
+              onTap: () {
+                context.read<ProfileBloc>().add(DeleteAvatarProfileEvent());
+                Navigator.of(sheetContext).pop();
+              },
+            ),
+            const SizedBox(height: 8),
           ],
-        );
-      },
+        ),
+      ),
     );
+  }
+
+  void _navigateToUpdateProfile(
+      BuildContext context, ProfileState state) async {
+    await Navigator.of(context)
+        .pushNamed(Routing.updateProfile, arguments: state.user);
+    if (mounted) {
+      context.read<ProfileBloc>().add(LoadProfileEvent());
+    }
+  }
+
+  void _switchToOffline(BuildContext context) async {
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: 'Chế độ Offline',
+      message:
+          'Chế độ offline là bạn tự tạo dữ liệu trên máy và dữ liệu sẽ chỉ được lưu trên máy của bạn, không được đồng bộ.\n\nBạn có chắc chắn muốn chuyển sang chế độ offline không?',
+      confirmText: 'Chấp nhận',
+    );
+    if (confirmed == true && mounted) {
+      Navigator.of(context).pushReplacementNamed(Routing.offline);
+    }
+  }
+
+  void _signOut(BuildContext context) async {
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: 'Đăng xuất',
+      message: 'Bạn có chắc chắn muốn đăng xuất không?',
+      confirmText: 'Đăng xuất',
+      isDestructive: true,
+    );
+    if (confirmed == true && mounted) {
+      context.read<ProfileBloc>().add(SignOutProfileEvent());
+    }
   }
 
   @override

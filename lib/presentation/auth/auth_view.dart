@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/core/constants/assets_path.dart';
 import 'package:pes_arena/presentation/app/offline_button.dart';
 
 import 'sign_in/sign_in_page.dart';
@@ -9,44 +10,83 @@ class AuthView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white.withValues(alpha: 0.9),
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: const [OfflineButton()],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 100, width: double.maxFinite),
+              const SizedBox(height: 32),
+              // App logo
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  AssetsPath.appIcon,
+                  width: 80,
+                  height: 80,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'PES Arena',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Đăng nhập để tiếp tục',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(height: 40),
+              // Email sign-in form
               const SignInPage(),
-              const SizedBox(height: 48, width: double.maxFinite),
+              const SizedBox(height: 32),
+              // Divider
               Row(
                 children: [
-                  const Spacer(),
                   Expanded(
-                    child: Container(
-                      height: 1,
-                      width: double.infinity,
-                      color: Colors.grey,
+                    child: Divider(
+                      color: colorScheme.outline,
+                      thickness: 0.5,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Text('Hoặc', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Container(
-                      height: 1,
-                      width: double.infinity,
-                      color: Colors.grey,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Hoặc',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  const Spacer(),
+                  Expanded(
+                    child: Divider(
+                      color: colorScheme.outline,
+                      thickness: 0.5,
+                    ),
+                  ),
                 ],
               ),
+              const SizedBox(height: 24),
+              // Third-party sign-in buttons
               const AuthButtonsView(),
+              const SizedBox(height: 40),
             ],
           ),
         ),

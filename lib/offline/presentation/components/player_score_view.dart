@@ -7,32 +7,33 @@ class PlayerScoreView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Row(
         children: [
-          ClipRRect(
-            child: Container(
-              decoration: BoxDecoration(
-                color: model.playerModel.color,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              width: 24,
-              height: 24,
+          Container(
+            decoration: BoxDecoration(
+              color: model.playerModel.color,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            width: 24,
+            height: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              model.playerModel.fullname,
+              style: textTheme.bodyLarge,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 16),
-          Text(
-            model.playerModel.fullname,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-          const Spacer(),
           Text(
             model.score != null ? model.score.toString() : '__',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(width: 8),
         ],

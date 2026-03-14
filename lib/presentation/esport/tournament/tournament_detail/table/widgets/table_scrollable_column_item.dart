@@ -10,7 +10,6 @@ class TableScrollableColumnItem extends StatelessWidget {
     required this.tableNameColumnWidth,
     required this.stats,
     required this.tableStatsColumnWidth,
-    required this.tableStatsTextStyle,
   }) : super(key: key);
 
   final BoxDecoration tableItemDecor;
@@ -18,10 +17,14 @@ class TableScrollableColumnItem extends StatelessWidget {
   final double tableNameColumnWidth;
   final GNEsportLeagueStat stats;
   final double tableStatsColumnWidth;
-  final TextStyle tableStatsTextStyle;
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final statStyle = textTheme.bodySmall?.copyWith(
+      fontWeight: FontWeight.w600,
+    );
+
     return Container(
       decoration: tableItemDecor,
       height: tableRowHeight,
@@ -30,83 +33,31 @@ class TableScrollableColumnItem extends StatelessWidget {
         children: [
           SizedBox(
             width: tableNameColumnWidth,
-            child: Text(stats.user?.displayName ??
-                stats.user?.email ??
-                stats.user?.phoneNumber ??
-                ''),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                stats.matchesPlayed.toString(),
-                style: tableStatsTextStyle,
-              ),
+            child: Text(
+              stats.user?.displayName ??
+                  stats.user?.email ??
+                  stats.user?.phoneNumber ??
+                  '',
+              style: textTheme.bodySmall,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                stats.goalDifference.toString(),
-                style: tableStatsTextStyle,
+          for (final value in [
+            stats.matchesPlayed,
+            stats.goalDifference,
+            stats.points,
+            stats.wins,
+            stats.draws,
+            stats.losses,
+            stats.goals,
+            stats.goalsConceded,
+          ])
+            SizedBox(
+              width: tableStatsColumnWidth,
+              child: Center(
+                child: Text(value.toString(), style: statStyle),
               ),
             ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                stats.points.toString(),
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                stats.wins.toString(),
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                stats.draws.toString(),
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                stats.losses.toString(),
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                stats.goals.toString(),
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: tableStatsColumnWidth,
-            child: Center(
-              child: Text(
-                stats.goalsConceded.toString(),
-                style: tableStatsTextStyle,
-              ),
-            ),
-          ),
         ],
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 
 import '../../../firebase/firestore/esport/group/gn_esport_group.dart';
 
@@ -24,122 +26,174 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
   DateTime? endDate;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController startDateController = TextEditingController();
-  final TextEditingController endDateController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Tạo giải đấu'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: nameController,
-            decoration: const InputDecoration(labelText: 'Tên giải đấu'),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: descriptionController,
-            decoration: const InputDecoration(labelText: 'Mô tả'),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<GNEsportGroup>(
-            value: selectedGroup,
-            onChanged: (value) {
-              setState(() {
-                selectedGroup = value;
-              });
-            },
-            items: widget.groups.map((group) {
-              return DropdownMenuItem<GNEsportGroup>(
-                value: group,
-                child: Text(group.groupName),
-              );
-            }).toList(),
-            decoration: const InputDecoration(labelText: 'Nhóm'),
-          ),
-          const SizedBox(height: 8),
-          Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        ).then((selectedDate) {
-                          if (selectedDate != null) {
-                            setState(() {
-                              startDateController.text =
-                                  selectedDate.toString();
-                              startDate = selectedDate;
-                            });
-                          }
-                        });
-                      },
-                      child: AbsorbPointer(
-                        child: TextField(
-                          controller: startDateController,
-                          decoration:
-                              const InputDecoration(hintText: 'Ngày bắt đầu'),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        ).then((selectedDate) {
-                          if (selectedDate != null) {
-                            setState(() {
-                              endDateController.text =
-                                  selectedDate.toIso8601String();
-                              endDate = selectedDate;
-                            });
-                          }
-                        });
-                      },
-                      child: AbsorbPointer(
-                        child: TextField(
-                          controller: endDateController,
-                          decoration:
-                              const InputDecoration(hintText: 'Ngày kết thúc'),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: appInputDecoration(
+                context: context,
+                hintText: 'Tên giải đấu',
+                prefixIcon: Icons.emoji_events_outlined,
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: descriptionController,
+              decoration: appInputDecoration(
+                context: context,
+                hintText: 'Mô tả',
+                prefixIcon: Icons.description_outlined,
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<GNEsportGroup>(
+              value: selectedGroup,
+              onChanged: (value) {
+                setState(() {
+                  selectedGroup = value;
+                });
+              },
+              items: widget.groups.map((group) {
+                return DropdownMenuItem<GNEsportGroup>(
+                  value: group,
+                  child: Text(group.groupName),
+                );
+              }).toList(),
+              decoration: appInputDecoration(
+                context: context,
+                hintText: 'Chọn nhóm',
+                prefixIcon: Icons.group_outlined,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      final selected = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (selected != null) {
+                        setState(() {
+                          startDate = selected;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 16,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            startDate != null
+                                ? DateFormat('dd/MM/yy').format(startDate!)
+                                : 'Bắt đầu',
+                            style: TextStyle(
+                              color: startDate != null
+                                  ? null
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      final selected = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (selected != null) {
+                        setState(() {
+                          endDate = selected;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 16,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            endDate != null
+                                ? DateFormat('dd/MM/yy').format(endDate!)
+                                : 'Kết thúc',
+                            style: TextStyle(
+                              color: endDate != null
+                                  ? null
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
           child: const Text('Hủy'),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: () {
-            // name tournament is not required anymore
-            // if (nameController.text.isEmpty) {
-            //   showToast('Tên giải đấu không được để trống');
-            //   return;
-            // }
             if (selectedGroup == null) {
               showToast('Bạn cần chọn nhóm');
               return;
