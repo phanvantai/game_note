@@ -59,9 +59,8 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                 spacing: 6,
                 runSpacing: 4,
                 children: selectedUserIds.map((userId) {
-                  final user = userState.users
-                      .where((u) => u.id == userId)
-                      .firstOrNull;
+                  final matches = userState.users.where((u) => u.id == userId);
+                  final user = matches.isEmpty ? null : matches.first;
                   if (user == null) return const SizedBox.shrink();
                   return Chip(
                     padding: EdgeInsets.zero,

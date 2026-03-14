@@ -89,10 +89,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             ),
             if (state.viewStatus.isLoading)
               const Positioned(
-                  top: 0,
-                  right: 0,
-                  left: 0,
-                  child: LinearProgressIndicator()),
+                  top: 0, right: 0, left: 0, child: LinearProgressIndicator()),
           ],
         ),
         bottomNavigationBar: _bannerAd != null
@@ -116,9 +113,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
           title: const Text('Trạng thái giải đấu'),
           content: BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
             bloc: bloc,
-            builder: (ctx, state) => DropdownButtonFormField<
-                GNEsportLeagueStatus>(
-              value: GNEsportLeagueStatusExtension.fromString(
+            builder: (ctx, state) =>
+                DropdownButtonFormField<GNEsportLeagueStatus>(
+              initialValue: GNEsportLeagueStatusExtension.fromString(
                   state.league?.status),
               onChanged: (value) {
                 if (value != null) bloc.add(ChangeLeagueStatus(value));
@@ -214,8 +211,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   void _addParticipant(BuildContext context, TournamentDetailState state) {
     final league = state.league;
     if (league == null) return;
-    final tournamentDetailBloc =
-        BlocProvider.of<TournamentDetailBloc>(context);
+    final tournamentDetailBloc = BlocProvider.of<TournamentDetailBloc>(context);
 
     showDialog(
       context: context,

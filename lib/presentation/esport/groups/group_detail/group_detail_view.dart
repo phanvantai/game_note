@@ -309,7 +309,7 @@ class _GroupDetailViewState extends State<GroupDetailView> {
       isDestructive: true,
     );
     if (confirmed == true && mounted) {
-      BlocProvider.of<GroupDetailBloc>(context).add(
+      BlocProvider.of<GroupDetailBloc>(this.context).add(
         RemoveMember(state.group.id, userId),
       );
     }

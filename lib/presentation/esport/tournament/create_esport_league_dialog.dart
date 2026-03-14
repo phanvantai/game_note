@@ -54,7 +54,7 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<GNEsportGroup>(
-              value: selectedGroup,
+              initialValue: selectedGroup,
               onChanged: (value) {
                 setState(() {
                   selectedGroup = value;

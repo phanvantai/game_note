@@ -406,7 +406,7 @@ class _ProfileViewState extends State<ProfileView>
     await Navigator.of(context)
         .pushNamed(Routing.updateProfile, arguments: state.user);
     if (mounted) {
-      context.read<ProfileBloc>().add(LoadProfileEvent());
+      this.context.read<ProfileBloc>().add(LoadProfileEvent());
     }
   }
 
@@ -419,7 +419,7 @@ class _ProfileViewState extends State<ProfileView>
       confirmText: 'Chấp nhận',
     );
     if (confirmed == true && mounted) {
-      Navigator.of(context).pushReplacementNamed(Routing.offline);
+      Navigator.of(this.context).pushReplacementNamed(Routing.offline);
     }
   }
 
@@ -432,7 +432,7 @@ class _ProfileViewState extends State<ProfileView>
       isDestructive: true,
     );
     if (confirmed == true && mounted) {
-      context.read<ProfileBloc>().add(SignOutProfileEvent());
+      this.context.read<ProfileBloc>().add(SignOutProfileEvent());
     }
   }
 

@@ -70,7 +70,8 @@ class MenuView extends StatelessWidget {
                       Icons.chevron_right,
                       color: colorScheme.onSurface.withValues(alpha: 0.3),
                     ),
-                    onTap: () => Share.shareXFiles([XFile(dataFile)]),
+                    onTap: () async =>
+                        await SharePlus.instance.share(ShareParams(files: [XFile(dataFile)])),
                   ),
                 ],
               ),
@@ -87,6 +88,7 @@ class MenuView extends StatelessWidget {
       if (result != null) {
         if (!result.files.single.path!
             .endsWith(DatabaseManager.databaseFileName)) {
+          if (!context.mounted) return;
           showAlertDialog(context,
               'Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db');
           return;
@@ -94,10 +96,12 @@ class MenuView extends StatelessWidget {
         await getIt<DatabaseManager>().close();
         File file = File(result.files.single.path!);
         await file.copy(dataFile);
-        await getIt<DatabaseManager>().open().then(
-            (_) => showAlertDialog(context, 'Dữ liệu đã được nhập thành công'));
+        await getIt<DatabaseManager>().open();
+        if (!context.mounted) return;
+        showAlertDialog(context, 'Dữ liệu đã được nhập thành công');
       }
     } catch (e) {
+      if (!context.mounted) return;
       showAlertDialog(context, e.toString());
     }
   }

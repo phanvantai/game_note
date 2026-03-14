@@ -18,21 +18,20 @@ class LeagueListBody extends StatelessWidget {
         itemBuilder: (context, index) => AppCard(
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onDoubleTap: () {
-              showAppConfirmDialog(
+            onDoubleTap: () async {
+              final confirmed = await showAppConfirmDialog(
                 context: context,
                 title: 'Xoá giải đấu',
                 message:
                     'Bạn có chắc muốn xoá giải đấu ${state.leagues[index].name}?',
                 confirmText: 'Xoá',
                 isDestructive: true,
-              ).then((confirmed) {
-                if (confirmed == true) {
-                  context
-                      .read<LeagueListBloc>()
-                      .add(DeleteLeagueEvent(state.leagues[index]));
-                }
-              });
+              );
+              if (confirmed == true && context.mounted) {
+                context
+                    .read<LeagueListBloc>()
+                    .add(DeleteLeagueEvent(state.leagues[index]));
+              }
             },
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(
