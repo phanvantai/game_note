@@ -32,6 +32,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace 'com.november.game_note'
     compileSdkVersion 36
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -48,7 +49,7 @@ android {
 
     defaultConfig {
         applicationId "com.november.game_note"
-        minSdkVersion 23
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
