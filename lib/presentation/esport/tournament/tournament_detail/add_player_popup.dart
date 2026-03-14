@@ -36,54 +36,59 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return BlocBuilder<UserBloc, UserState>(
       bloc: userBloc,
       builder: (userContext, userState) => AlertDialog(
+        title: const Text('Thêm người chơi'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 12),
-            if (selectedUserIds.isNotEmpty)
-              Column(
-                spacing: 0,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Đã chọn ${selectedUserIds.length} người:',
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 0, width: double.maxFinite),
-                  Wrap(
-                    spacing: 4,
-                    children: selectedUserIds.map((userId) {
-                      final user = userState.users
-                          .where((u) => u.id == userId)
-                          .firstOrNull;
-                      if (user == null) return const SizedBox.shrink();
-                      return Chip(
-                        padding: EdgeInsets.zero,
-                        label: Text(user.displayName ??
-                            user.email ??
-                            user.phoneNumber ??
-                            'Unknown'),
-                        deleteIcon: const Icon(Icons.close, size: 16),
-                        onDeleted: () {
-                          setState(() {
-                            selectedUserIds.remove(userId);
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ],
+            if (selectedUserIds.isNotEmpty) ...[
+              Text(
+                'Đã chọn ${selectedUserIds.length} người:',
+                style: textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: selectedUserIds.map((userId) {
+                  final user = userState.users
+                      .where((u) => u.id == userId)
+                      .firstOrNull;
+                  if (user == null) return const SizedBox.shrink();
+                  return Chip(
+                    padding: EdgeInsets.zero,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    label: Text(
+                      user.displayName ??
+                          user.email ??
+                          user.phoneNumber ??
+                          'Unknown',
+                      style: textTheme.labelSmall,
+                    ),
+                    deleteIcon: const Icon(Icons.close, size: 14),
+                    onDeleted: () {
+                      setState(() => selectedUserIds.remove(userId));
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 12),
+            ],
             SizedBox(
               height: 250,
               width: double.maxFinite,
-              child: ListView.separated(
-                separatorBuilder: (context, index) => SizedBox(height: 0),
+              child: ListView.builder(
                 itemCount: userState.users.length,
                 itemBuilder: (ctx, index) {
                   final user = userState.users[index];
-                  // ignore existing participants
                   if (widget.existingParticipants
                       .map((e) => e.userId)
                       .contains(user.id)) {
@@ -91,9 +96,10 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                   }
                   final isSelected = selectedUserIds.contains(user.id);
                   return Container(
+                    margin: const EdgeInsets.only(bottom: 2),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2)
+                          ? colorScheme.secondaryContainer
                           : null,
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -108,9 +114,15 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                           }
                         });
                       },
-                      trailing: isSelected
-                          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.secondary)
-                          : const Icon(Icons.add_circle_outline),
+                      trailing: Icon(
+                        isSelected
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        color: isSelected
+                            ? colorScheme.secondary
+                            : colorScheme.onSurface.withValues(alpha: 0.3),
+                        size: 22,
+                      ),
                     ),
                   );
                 },
@@ -120,13 +132,11 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Hủy'),
           ),
           if (selectedUserIds.isNotEmpty)
-            ElevatedButton(
+            FilledButton(
               onPressed: () {
                 widget.tournamentDetailBloc.add(
                   AddMultipleParticipants(

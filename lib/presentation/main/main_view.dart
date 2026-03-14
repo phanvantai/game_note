@@ -30,15 +30,18 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
 
     tabs = {
       const BottomNavigationBarItem(
-        icon: Icon(Icons.emoji_events),
+        icon: Icon(Icons.emoji_events_outlined),
+        activeIcon: Icon(Icons.emoji_events),
         label: 'Giải đấu',
       ): const TournamentView(),
       const BottomNavigationBarItem(
-        icon: Icon(Icons.group),
+        icon: Icon(Icons.group_outlined),
+        activeIcon: Icon(Icons.group),
         label: 'Nhóm',
       ): const GroupsView(),
       const BottomNavigationBarItem(
-        icon: Icon(Icons.person),
+        icon: Icon(Icons.person_outline),
+        activeIcon: Icon(Icons.person),
         label: 'Cá nhân',
       ): const ProfileView(),
     };
@@ -68,18 +71,9 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
               child: AdWidget(ad: _bannerAd!),
             ),
           BottomNavigationBar(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             items: tabs.keys.toList(),
             currentIndex: _tabController.index,
             onTap: _onItemTapped,
-            selectedItemColor: Theme.of(context).primaryColor,
-            unselectedItemColor: Theme.of(context).unselectedWidgetColor,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-            showUnselectedLabels: true,
-            enableFeedback: true,
-            type: tabs.length > 3
-                ? BottomNavigationBarType.shifting
-                : BottomNavigationBarType.fixed,
           ),
         ],
       ),
@@ -105,12 +99,10 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
     _loadAd();
   }
 
-  /// Loads a banner ad.
   void _loadAd() async {
     if (isAdsLoaded) {
       return;
     }
-    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
     final AnchoredAdaptiveBannerAdSize? size =
         await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
             MediaQuery.of(context).size.width.truncate());
@@ -119,28 +111,22 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       request: const AdRequest(),
       size: size ?? AdSize.banner,
       listener: BannerAdListener(
-        // Called when an ad is successfully received.
         onAdLoaded: (ad) {
           debugPrint('$ad loaded.');
           setState(() {
             isAdsLoaded = true;
           });
         },
-        // Called when an ad request failed.
         onAdFailedToLoad: (ad, err) {
           debugPrint('BannerAd failed to load: $err');
-          // Dispose the ad here to free resources.
           ad.dispose();
         },
-        // Called when an ad opens an overlay that covers the screen.
         onAdOpened: (Ad ad) {
           debugPrint('on Ad Opened');
         },
-        // Called when an ad removes an overlay that covers the screen.
         onAdClosed: (Ad ad) {
           debugPrint('on Ad Closed');
         },
-        // Called when an impression occurs on the ad.
         onAdImpression: (Ad ad) {
           debugPrint('on Ad Impression');
         },

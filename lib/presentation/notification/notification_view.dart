@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 
 import 'bloc/notification_bloc.dart';
 import 'notification_item.dart';
@@ -23,34 +24,35 @@ class _NotificationViewState extends State<NotificationView>
           title: const Text('Thông báo'),
           actions: [
             IconButton(
-                onPressed: () {
-                  context
-                      .read<NotificationBloc>()
-                      .add(NotificationEventMarkAllAsRead());
-                },
-                icon: Icon(Icons.checklist))
+              onPressed: () {
+                context
+                    .read<NotificationBloc>()
+                    .add(NotificationEventMarkAllAsRead());
+              },
+              icon: const Icon(Icons.checklist_outlined),
+              tooltip: 'Đánh dấu tất cả đã đọc',
+            ),
           ],
         ),
         body: Column(
           children: [
             if (state.viewStatus == ViewStatus.loading)
-              LinearProgressIndicator(),
+              const LinearProgressIndicator(),
             Expanded(
               child: RefreshIndicator.adaptive(
                 child: state.notifications.isEmpty
-                    ? const Center(
-                        child: Text('Bạn không có thông báo nào'),
+                    ? const AppEmptyState(
+                        icon: Icons.notifications_none_outlined,
+                        title: 'Không có thông báo nào',
                       )
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ListView.separated(
-                          itemBuilder: (context, index) => NotificationItem(
-                            notification: state.notifications[index],
-                          ),
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 8),
-                          itemCount: state.notifications.length,
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(12),
+                        itemBuilder: (context, index) => NotificationItem(
+                          notification: state.notifications[index],
                         ),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 8),
+                        itemCount: state.notifications.length,
                       ),
                 onRefresh: () async {
                   context

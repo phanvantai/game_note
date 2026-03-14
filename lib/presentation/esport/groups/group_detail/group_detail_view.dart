@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/users/bloc/user_bloc.dart';
@@ -23,115 +24,124 @@ class _GroupDetailViewState extends State<GroupDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return BlocConsumer<GroupDetailBloc, GroupDetailState>(
       builder: (context, state) => Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: true,
-          centerTitle: true,
-          title: ListTile(
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 24),
-              child: Image.asset('assets/images/pes_club_logo.png'),
-            ),
-            title: Text(
-              state.group.groupName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            // trailing: state.isOwner
-            //     ? IconButton(
-            //         icon: const Icon(Icons.edit),
-            //         onPressed: () {},
-            //       )
-            //     : null,
+          title: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/pes_club_logo.png',
+                  width: 32,
+                  height: 32,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  state.group.groupName,
+                  style: textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
         ),
         body: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           children: [
             if (state.viewStatus == ViewStatus.loading)
               const LinearProgressIndicator(),
-            ExpansionTile(
-              leading: const Icon(
-                Icons.description,
-                color: Colors.black,
-              ),
-              expandedAlignment: Alignment.centerLeft,
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16),
-              showTrailingIcon: false,
-              initiallyExpanded: true,
-              maintainState: true,
-              title: const Text(
-                'Mô tả',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              shape: Border.all(color: Colors.transparent),
-              collapsedShape: Border.all(color: Colors.transparent),
-              children: [
-                Text(
+            // Description card
+            if (state.group.description.isNotEmpty) ...[
+              _buildSectionLabel(context, 'Mô tả'),
+              const SizedBox(height: 8),
+              AppCard(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Text(
                   state.group.description,
+                  style: textTheme.bodyMedium,
                   textAlign: TextAlign.justify,
-                )
-              ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+            // Location card
+            _buildSectionLabel(context, 'Khu vực'),
+            const SizedBox(height: 8),
+            AppCard(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_on_outlined,
+                    size: 20,
+                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(state.group.location, style: textTheme.bodyMedium),
+                ],
+              ),
             ),
-            ExpansionTile(
-              leading: const Icon(
-                Icons.location_on,
-                color: Colors.black,
+            const SizedBox(height: 20),
+            // Members card
+            _buildSectionLabel(
+                context, 'Thành viên (${state.members.length})'),
+            const SizedBox(height: 8),
+            AppCard(
+              child: Column(
+                children: state.members.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final user = entry.value;
+                  final isLast = index == state.members.length - 1;
+                  return Column(
+                    children: [
+                      UserItem(
+                        user: user,
+                        trailing: state.isOwner
+                            ? !user.isCurrentUser
+                                ? IconButton(
+                                    onPressed: () => _removeMember(
+                                        false, context, state, user.id),
+                                    icon: Icon(
+                                      Icons.person_remove_outlined,
+                                      color: colorScheme.onSurface
+                                          .withValues(alpha: 0.4),
+                                      size: 20,
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.admin_panel_settings_outlined,
+                                    color: colorScheme.secondary,
+                                    size: 20,
+                                  )
+                            : user.id == state.group.ownerId
+                                ? Icon(
+                                    Icons.admin_panel_settings_outlined,
+                                    color: colorScheme.secondary,
+                                    size: 20,
+                                  )
+                                : null,
+                      ),
+                      if (!isLast)
+                        Divider(
+                          height: 0.5,
+                          indent: 56,
+                          color:
+                              colorScheme.outline.withValues(alpha: 0.15),
+                        ),
+                    ],
+                  );
+                }).toList(),
               ),
-              showTrailingIcon: false,
-              initiallyExpanded: true,
-              expandedAlignment: Alignment.centerLeft,
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16),
-              title: const Text(
-                'Khu vực hoạt động',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              shape: Border.all(color: Colors.transparent),
-              collapsedShape: Border.all(color: Colors.transparent),
-              children: [
-                Text(state.group.location),
-              ],
             ),
-            ExpansionTile(
-              leading: const Icon(
-                Icons.people,
-                color: Colors.black,
-              ),
-              showTrailingIcon: false,
-              initiallyExpanded: true,
-              title: const Text(
-                'Thành viên',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              shape: Border.all(color: Colors.transparent),
-              collapsedShape: Border.all(color: Colors.transparent),
-              children: state.members
-                  .map(
-                    (user) => UserItem(
-                      user: user,
-                      trailing: state.isOwner
-                          ? !user.isCurrentUser
-                              ? IconButton(
-                                  onPressed: () {
-                                    _removeMember(
-                                        false, context, state, user.id);
-                                  },
-                                  icon: const Icon(Icons.person_remove_sharp),
-                                )
-                              : IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.admin_panel_settings,
-                                    color: Colors.red,
-                                  ),
-                                )
-                          : user.id == state.group.ownerId
-                              ? const Icon(Icons.admin_panel_settings,
-                                  color: Colors.red)
-                              : null,
-                    ),
-                  )
-                  .toList(),
-            ),
+            const SizedBox(height: 24),
           ],
         ),
         floatingActionButton: _floatingButton(context, state),
@@ -151,6 +161,23 @@ class _GroupDetailViewState extends State<GroupDetailView> {
     );
   }
 
+  Widget _buildSectionLabel(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.45),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1,
+            ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _bannerAd?.dispose();
@@ -163,12 +190,8 @@ class _GroupDetailViewState extends State<GroupDetailView> {
     _loadAd();
   }
 
-  /// Loads a banner ad.
   void _loadAd() async {
-    if (isAdsLoaded) {
-      return;
-    }
-    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
+    if (isAdsLoaded) return;
     final AnchoredAdaptiveBannerAdSize? size =
         await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
             MediaQuery.of(context).size.width.truncate());
@@ -177,67 +200,46 @@ class _GroupDetailViewState extends State<GroupDetailView> {
       request: const AdRequest(),
       size: size ?? AdSize.banner,
       listener: BannerAdListener(
-        // Called when an ad is successfully received.
         onAdLoaded: (ad) {
           debugPrint('$ad loaded.');
-          setState(() {
-            isAdsLoaded = true;
-          });
+          setState(() => isAdsLoaded = true);
         },
-        // Called when an ad request failed.
         onAdFailedToLoad: (ad, err) {
           debugPrint('BannerAd failed to load: $err');
-          // Dispose the ad here to free resources.
           ad.dispose();
         },
-        // Called when an ad opens an overlay that covers the screen.
-        onAdOpened: (Ad ad) {
-          debugPrint('on Ad Opened');
-        },
-        // Called when an ad removes an overlay that covers the screen.
-        onAdClosed: (Ad ad) {
-          debugPrint('on Ad Closed');
-        },
-        // Called when an impression occurs on the ad.
-        onAdImpression: (Ad ad) {
-          debugPrint('on Ad Impression');
-        },
+        onAdOpened: (Ad ad) => debugPrint('on Ad Opened'),
+        onAdClosed: (Ad ad) => debugPrint('on Ad Closed'),
+        onAdImpression: (Ad ad) => debugPrint('on Ad Impression'),
       ),
     )..load();
   }
 
   Widget? _floatingButton(BuildContext context, GroupDetailState state) {
     if (state.isOwner) {
-      return TextButton.icon(
-        onPressed: () {
-          // show dialog to search user add add to group
-          _addMember(context, state);
-        },
+      return FloatingActionButton.extended(
+        onPressed: () => _addMember(context, state),
         label: const Text('Thêm thành viên'),
-        icon: const Icon(Icons.add),
-        style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(Colors.red[100]),
-        ),
+        icon: const Icon(Icons.person_add_outlined),
       );
     }
     if (state.currentUserIsMember) {
-      return TextButton.icon(
+      return FloatingActionButton.extended(
         onPressed: () {
           if (state.currentUserId != null) {
             _removeMember(true, context, state, state.currentUserId!);
           }
         },
+        backgroundColor: Theme.of(context).colorScheme.error,
+        foregroundColor: Theme.of(context).colorScheme.onError,
         label: const Text('Rời nhóm'),
         icon: const Icon(Icons.exit_to_app),
-        style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(Colors.red[100]),
-        ),
       );
     }
     return null;
   }
 
-  _addMember(BuildContext context, GroupDetailState state) {
+  void _addMember(BuildContext context, GroupDetailState state) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -250,14 +252,14 @@ class _GroupDetailViewState extends State<GroupDetailView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Tìm kiếm',
+                  decoration: appInputDecoration(
+                    context: context,
+                    hintText: 'Tìm kiếm theo tên',
+                    prefixIcon: Icons.search,
                   ),
-                  onChanged: (value) {
-                    userBloc.add(SearchUser(value));
-                  },
+                  onChanged: (value) => userBloc.add(SearchUser(value)),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 SizedBox(
                   height: 250,
                   width: double.maxFinite,
@@ -265,7 +267,6 @@ class _GroupDetailViewState extends State<GroupDetailView> {
                     itemCount: userState.users.length,
                     itemBuilder: (ctx, index) {
                       final user = userState.users[index];
-                      // ignore current user and member of group
                       if (user.isCurrentUser ||
                           state.group.members.contains(user.id)) {
                         return const SizedBox.shrink();
@@ -273,7 +274,6 @@ class _GroupDetailViewState extends State<GroupDetailView> {
                       return UserItem(
                         user: user,
                         onTap: () {
-                          // add user to group
                           BlocProvider.of<GroupDetailBloc>(context).add(
                             AddMember(state.group.id, user.id),
                           );
@@ -287,10 +287,8 @@ class _GroupDetailViewState extends State<GroupDetailView> {
             ),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Hủy'),
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Đóng'),
               ),
             ],
           ),
@@ -299,36 +297,21 @@ class _GroupDetailViewState extends State<GroupDetailView> {
     );
   }
 
-  _removeMember(bool currentUser, BuildContext context, GroupDetailState state,
-      String userId) {
-    showDialog(
+  void _removeMember(bool currentUser, BuildContext context,
+      GroupDetailState state, String userId) async {
+    final confirmed = await showAppConfirmDialog(
       context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Xác nhận'),
-        content: Text(currentUser
-            ? 'Bạn có chắc chắn muốn rời nhóm?'
-            : 'Bạn có chắc chắn muốn xóa thành viên này không?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              BlocProvider.of<GroupDetailBloc>(context).add(
-                RemoveMember(state.group.id, userId),
-              );
-              Navigator.of(context).pop();
-            },
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(Colors.red[100]),
-            ),
-            child: Text(currentUser ? 'Rời nhóm' : 'Xoá thành viên'),
-          ),
-        ],
-      ),
+      title: currentUser ? 'Rời nhóm' : 'Xóa thành viên',
+      message: currentUser
+          ? 'Bạn có chắc chắn muốn rời nhóm?'
+          : 'Bạn có chắc chắn muốn xóa thành viên này không?',
+      confirmText: currentUser ? 'Rời nhóm' : 'Xóa',
+      isDestructive: true,
     );
+    if (confirmed == true && mounted) {
+      BlocProvider.of<GroupDetailBloc>(context).add(
+        RemoveMember(state.group.id, userId),
+      );
+    }
   }
 }

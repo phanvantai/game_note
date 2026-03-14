@@ -40,11 +40,14 @@ class _StatisticBodyState extends State<StatisticBody> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return BlocBuilder<StatisticBloc, StatisticState>(
         builder: (context, state) {
       if (state.viewStatus.isLoading) {
-        return const Center(
-          child: CircularProgressIndicator(),
+        return Center(
+          child: CircularProgressIndicator(
+            color: colorScheme.secondary,
+          ),
         );
       }
       if (state.viewStatus.isSuccess) {
@@ -55,6 +58,11 @@ class _StatisticBodyState extends State<StatisticBody> {
               TabBar(
                 tabs: tabs,
                 dividerHeight: 0,
+                indicatorColor: colorScheme.secondary,
+                labelColor: colorScheme.secondary,
+                unselectedLabelColor:
+                    colorScheme.onSurface.withValues(alpha: 0.5),
+                indicatorSize: TabBarIndicatorSize.label,
               ),
               Expanded(
                 child: TabBarView(

@@ -16,6 +16,8 @@ class _PlayerViewState extends State<PlayerView> {
   bool isSelected = false;
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: widget.onClick == null
           ? null
@@ -31,19 +33,21 @@ class _PlayerViewState extends State<PlayerView> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).colorScheme.secondary
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          // border: Border.all(
-          //   color: isSelected ? Colors.orange : Colors.grey,
-          // ),
-          borderRadius: BorderRadius.circular(8),
+              ? colorScheme.secondary
+              : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
           child: Text(
             widget.player.fullname,
             style: (widget.bold == true || widget.onClick != null)
-                ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
-                : null,
+                ? textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isSelected
+                        ? colorScheme.onSecondary
+                        : colorScheme.onSurface,
+                  )
+                : textTheme.bodyLarge,
           ),
         ),
       ),

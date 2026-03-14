@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 
 import 'bloc/teams_bloc.dart';
 
@@ -8,45 +9,51 @@ class OtherTeamsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return BlocBuilder<TeamsBloc, TeamsState>(
       builder: (context, state) {
-        return Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.transparent),
-            borderRadius: BorderRadius.circular(12),
-            color: Theme.of(context).colorScheme.surfaceContainerLow,
-          ),
-          margin: const EdgeInsets.symmetric(horizontal: 16),
+        return AppCard(
           padding: const EdgeInsets.all(8),
           child: Column(
             children: [
               Row(
                 children: [
-                  const Text(
-                    'Danh sách đội',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Text(
+                      'Danh sách đội',
+                      style: textTheme.titleSmall,
                     ),
                   ),
                   const Spacer(),
                   SearchAnchor(
-                    // headerHeight: 0,
-                    viewSide: const BorderSide(color: Colors.transparent),
+                    viewSide: BorderSide.none,
                     viewElevation: 0,
                     isFullScreen: false,
-                    viewBackgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+                    viewBackgroundColor: colorScheme.surfaceContainerLow,
                     viewConstraints: BoxConstraints.tight(
                         Size(MediaQuery.of(context).size.width, 400)),
                     builder:
                         (BuildContext context, SearchController controller) {
                       return SearchBar(
                         backgroundColor: WidgetStatePropertyAll(
-                            Theme.of(context).colorScheme.surfaceContainerLow),
+                            colorScheme.surfaceContainerHighest),
                         constraints: BoxConstraints.tight(
                             Size(MediaQuery.of(context).size.width * 0.5, 40)),
                         elevation: const WidgetStatePropertyAll(0),
                         hintText: 'Tìm kiếm đội',
+                        hintStyle: WidgetStatePropertyAll(
+                          textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        shape: WidgetStatePropertyAll(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                         controller: controller,
                         onTap: () {
                           controller.openView();
@@ -54,7 +61,13 @@ class OtherTeamsView extends StatelessWidget {
                         onChanged: (_) {
                           controller.openView();
                         },
-                        trailing: const [Icon(Icons.search)],
+                        trailing: [
+                          Icon(
+                            Icons.search_outlined,
+                            color:
+                                colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ],
                       );
                     },
                     suggestionsBuilder:
@@ -64,7 +77,10 @@ class OtherTeamsView extends StatelessWidget {
                         (int index) {
                           final String item = 'item $index';
                           return ListTile(
-                            title: Text(item),
+                            title: Text(
+                              item,
+                              style: textTheme.bodyMedium,
+                            ),
                             onTap: () {
                               controller.closeView(null);
                             },
@@ -75,20 +91,32 @@ class OtherTeamsView extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Expanded(
                 child: state.otherTeams.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Center(
-                          child: Text('Chưa có đội nào, hãy tạo một đội mới.'),
-                        ),
+                    ? const AppEmptyState(
+                        icon: Icons.groups_outlined,
+                        title: 'Chưa có đội nào',
+                        subtitle: 'Hãy tạo một đội mới.',
                       )
                     : ListView.builder(
                         itemCount: 20,
                         itemBuilder: (BuildContext context, int index) {
                           return ListTile(
-                            title: Text('Đội ${index + 1}'),
+                            leading: Icon(
+                              Icons.groups_outlined,
+                              color: colorScheme.onSurface
+                                  .withValues(alpha: 0.6),
+                            ),
+                            title: Text(
+                              'Đội ${index + 1}',
+                              style: textTheme.bodyMedium,
+                            ),
+                            trailing: Icon(
+                              Icons.chevron_right_outlined,
+                              color: colorScheme.onSurface
+                                  .withValues(alpha: 0.4),
+                            ),
                           );
                         },
                       ),

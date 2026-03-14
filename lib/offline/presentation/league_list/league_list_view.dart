@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 
 import '../league_detail/league_detail_page.dart';
 import 'add_tournament_button.dart';
@@ -11,6 +12,7 @@ class LeagueListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Giải đấu'),
@@ -28,29 +30,46 @@ class LeagueListView extends StatelessWidget {
           builder: (context, state) {
             switch (state.status) {
               case LeagueListStatus.error:
-                return const Center(child: Text('error'));
+                return const AppEmptyState(
+                  icon: Icons.error_outline,
+                  title: 'Đã xảy ra lỗi',
+                  subtitle: 'Vui lòng thử lại sau',
+                );
               case LeagueListStatus.loading:
-                return const Center(
-                  child: CircularProgressIndicator(),
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: colorScheme.secondary,
+                  ),
                 );
               case LeagueListStatus.loaded:
                 if (state.leagues.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          onPressed: () => context
-                              .read<LeagueListBloc>()
-                              .add(LeagueListStarted()),
-                          icon: const Icon(Icons.refresh),
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, right: 8),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                            onPressed: () => context
+                                .read<LeagueListBloc>()
+                                .add(LeagueListStarted()),
+                            icon: Icon(
+                              Icons.refresh,
+                              color: colorScheme.onSurface
+                                  .withValues(alpha: 0.5),
+                            ),
+                          ),
                         ),
-                        const Text(
-                          'Chưa có giải đấu nào được tạo.\nBấm nút + bên dưới để tạo một giải đấu',
-                          textAlign: TextAlign.center,
+                      ),
+                      const Expanded(
+                        child: AppEmptyState(
+                          icon: Icons.emoji_events_outlined,
+                          title: 'Chưa có giải đấu nào được tạo.',
+                          subtitle:
+                              'Bấm nút + bên dưới để tạo một giải đấu',
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   );
                 } else {
                   return const LeagueListBody();

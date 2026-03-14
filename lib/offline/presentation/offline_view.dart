@@ -16,15 +16,18 @@ class _OfflineViewState extends State<OfflineView>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   Map<BottomNavigationBarItem, Widget> tabs = const {
     BottomNavigationBarItem(
-      icon: Icon(Icons.sports_soccer),
+      icon: Icon(Icons.sports_soccer_outlined),
+      activeIcon: Icon(Icons.sports_soccer),
       label: 'Giải đấu',
     ): LeaguePage(),
     BottomNavigationBarItem(
-      icon: Icon(Icons.view_column),
+      icon: Icon(Icons.bar_chart_outlined),
+      activeIcon: Icon(Icons.bar_chart),
       label: 'Thống kê',
     ): StatisticView(),
     BottomNavigationBarItem(
-      icon: Icon(Icons.people),
+      icon: Icon(Icons.people_outline),
+      activeIcon: Icon(Icons.people),
       label: 'Người chơi',
     ): MembersView(),
     BottomNavigationBarItem(

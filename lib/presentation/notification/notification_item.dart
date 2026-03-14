@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:pes_arena/core/theme/app_colors.dart';
 import 'package:pes_arena/firebase/firestore/notification/gn_notification.dart';
 import 'package:pes_arena/routing.dart';
 import 'package:intl/intl.dart';
@@ -17,23 +16,27 @@ class NotificationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Slidable(
       endActionPane: ActionPane(
-        motion: StretchMotion(),
+        motion: const StretchMotion(),
         children: [
           SlidableAction(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             onPressed: (ctx) {
               context
                   .read<NotificationBloc>()
                   .add(NotificationEventDelete(notification.id));
             },
             icon: Icons.delete_outline,
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: colorScheme.error,
           )
         ],
       ),
       child: InkWell(
+        borderRadius: BorderRadius.circular(12),
         onTap: () {
           if (!notification.isRead) {
             context
@@ -43,7 +46,6 @@ class NotificationItem extends StatelessWidget {
           if (notification.notificationType ==
                   GNNotificationType.esportsLeague &&
               notification.relatedId != null) {
-            // go to league detail page
             Navigator.of(context).pushNamed(
               Routing.tournamentDetail,
               arguments: notification.relatedId,
@@ -52,12 +54,18 @@ class NotificationItem extends StatelessWidget {
         },
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             color: notification.isRead
-                ? Theme.of(context).colorScheme.surfaceContainerLow
-                : AppColors.success(context).withValues(alpha: 0.3),
+                ? colorScheme.surface
+                : colorScheme.secondaryContainer.withValues(alpha: 0.4),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
           ),
           child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             leading: SizedBox(
               width: 36,
               height: 36,
@@ -65,26 +73,25 @@ class NotificationItem extends StatelessWidget {
             ),
             title: Text(
               notification.title,
-              style: TextStyle(
+              style: textTheme.titleSmall?.copyWith(
                 fontWeight:
-                    notification.isRead ? FontWeight.normal : FontWeight.bold,
-                fontSize: 16,
+                    notification.isRead ? FontWeight.normal : FontWeight.w600,
               ),
             ),
             subtitle: Text(
               notification.message,
-              style: TextStyle(
-                fontWeight:
-                    notification.isRead ? FontWeight.normal : FontWeight.bold,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
             trailing: Text(
-              DateFormat('dd/MM/yyyy\nHH:mm')
+              DateFormat('dd/MM\nHH:mm')
                   .format(notification.timestamp.toLocal()),
               textAlign: TextAlign.right,
-              style: TextStyle(
-                fontWeight:
-                    notification.isRead ? FontWeight.normal : FontWeight.bold,
+              style: textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.4),
               ),
             ),
           ),

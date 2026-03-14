@@ -79,16 +79,19 @@ class TotalStatistic extends StatelessWidget {
         ),
       );
   Widget getTitles(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
     String text = statistics[value.toInt()].playerModel.fullname;
 
     return SideTitleWidget(
       meta: meta,
       space: 4,
-      child: Text(text, style: style),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 

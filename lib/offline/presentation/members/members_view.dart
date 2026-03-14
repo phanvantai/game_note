@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/offline/domain/entities/player_model.dart';
 import 'package:pes_arena/offline/presentation/components/player_view.dart';
 import 'package:pes_arena/offline/data/database/database_manager.dart';
@@ -31,62 +32,66 @@ class _MembersViewState extends State<MembersView>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Người chơi'),
       ),
       body: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: players.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Chưa có người chơi nào.\nBấm nút + bên dưới để thêm người chơi.',
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              : ListView.separated(
-                  itemCount: players.length,
-                  itemBuilder: (context, index) {
-                    return Dismissible(
-                      direction: DismissDirection.endToStart,
-                      key: Key(players[index].id.toString()),
-                      onDismissed: (direction) {
-                        getIt<DatabaseManager>()
-                            .deletePlayer(players[index])
-                            .then((value) {
-                          // ignore: use_build_context_synchronously
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Đã xóa ${players[index].fullname}',
-                              ),
+        child: players.isEmpty
+            ? const AppEmptyState(
+                icon: Icons.person_outline,
+                title: 'Chưa có người chơi nào.',
+                subtitle: 'Bấm nút + bên dưới để thêm người chơi.',
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: players.length,
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                    direction: DismissDirection.endToStart,
+                    key: Key(players[index].id.toString()),
+                    onDismissed: (direction) {
+                      getIt<DatabaseManager>()
+                          .deletePlayer(players[index])
+                          .then((value) {
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Đã xóa ${players[index].fullname}',
                             ),
-                          );
-                          loadPlayer();
-                        });
-                      },
-                      confirmDismiss: (direction) {
-                        return Future.value(false);
-                      },
-                      background: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.error,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                          ),
+                        );
+                        loadPlayer();
+                      });
+                    },
+                    confirmDismiss: (direction) {
+                      return Future.value(false);
+                    },
+                    background: Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.error,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: PlayerView(
-                        players[index],
-                        onClick: null,
-                        bold: true,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      child: Icon(
+                        Icons.delete_outline,
+                        color: colorScheme.onError,
                       ),
-                    );
-                  },
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 16),
-                ),
-        ),
+                    ),
+                    child: PlayerView(
+                      players[index],
+                      onClick: null,
+                      bold: true,
+                    ),
+                  );
+                },
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_player',

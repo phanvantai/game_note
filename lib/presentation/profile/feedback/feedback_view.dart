@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/feedback/gn_firestore_feedback.dart';
 import 'package:pes_arena/injection_container.dart';
@@ -24,7 +25,6 @@ class _FeedbackViewState extends State<FeedbackView> {
     if (kDebugMode) {
       print('FeedbackView init');
     }
-    // getFeedback();
   }
 
   @override
@@ -42,55 +42,59 @@ class _FeedbackViewState extends State<FeedbackView> {
     );
   }
 
-  _addFeedback() {
-    // create feedback
+  void _addFeedback() {
     final user = getIt<GNAuth>().auth.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Bạn cần đăng nhập để gửi phản hồi.'),
+        SnackBar(
+          content: const Text('Bạn cần đăng nhập để gửi phản hồi.'),
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
       return;
     }
+
+    String title = '';
+    String detail = '';
+
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
-        String title = '';
-        String detail = '';
-
         return AlertDialog(
           title: const Text('Tạo phản hồi'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                onChanged: (value) {
-                  title = value;
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Tiêu đề',
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  onChanged: (value) => title = value,
+                  decoration: appInputDecoration(
+                    context: context,
+                    hintText: 'Tiêu đề',
+                    prefixIcon: Icons.title,
+                  ),
                 ),
-              ),
-              TextField(
-                onChanged: (value) {
-                  detail = value;
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Nội dung',
+                const SizedBox(height: 12),
+                TextField(
+                  onChanged: (value) => detail = value,
+                  decoration: appInputDecoration(
+                    context: context,
+                    hintText: 'Nội dung',
+                    prefixIcon: Icons.notes,
+                  ),
+                  maxLines: 4,
                 ),
-                maxLines: 6,
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Huỷ'),
             ),
-            ElevatedButton(
+            FilledButton(
               onPressed: () {
                 if (title.isEmpty || detail.isEmpty) {
                   showToast('Vui lòng điền đầy đủ thông tin.');
@@ -101,13 +105,13 @@ class _FeedbackViewState extends State<FeedbackView> {
                       'Tiêu đề phải có ít nhất 5 ký tự\nNội dung phải có ít nhất 10 ký tự.');
                   return;
                 }
-                // create feedback logic here
                 getIt<GNFirestore>()
                     .createFeedback(title, detail, user.uid)
                     .then(
                       (_) => showToast('Góp ý đã được gửi thành công!'),
                     );
                 Navigator.of(context).pop();
+                setState(() {});
               },
               child: const Text('Gửi'),
             ),
@@ -122,34 +126,27 @@ class _FeedbackViewState extends State<FeedbackView> {
       future: getIt<GNFirestore>().getAllFeedback(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(
-            child: Text('Error: ${snapshot.error}'),
+          return AppEmptyState(
+            icon: Icons.error_outline,
+            title: 'Đã xảy ra lỗi',
+            subtitle: '${snapshot.error}',
           );
-        } else if (snapshot.hasData) {
+        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           final feedbackList = snapshot.data!;
-          if (feedbackList.isEmpty) {
-            return const Center(
-              child: Text(
-                  'Chưa có góp ý/phản hồi nào\nBạn có thể thêm bằng cách nhấn vào nút + bên dưới.'),
-            );
-          }
           return ListView.separated(
+            padding: const EdgeInsets.all(16),
             itemCount: feedbackList.length,
-            itemBuilder: (context, index) {
-              final feedback = feedbackList[index];
-
-              return FeedbackItem(feedback: feedback);
-            },
-            separatorBuilder: (context, index) => const Divider(),
+            itemBuilder: (context, index) =>
+                FeedbackItem(feedback: feedbackList[index]),
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
           );
         } else {
-          return const Center(
-            child: Text(
-                'Chưa có góp ý/phản hồi nào\nBạn có thể thêm bằng cách nhấn vào nút + bên dưới.'),
+          return const AppEmptyState(
+            icon: Icons.chat_bubble_outline,
+            title: 'Chưa có góp ý nào',
+            subtitle: 'Nhấn nút + để thêm góp ý mới',
           );
         }
       },

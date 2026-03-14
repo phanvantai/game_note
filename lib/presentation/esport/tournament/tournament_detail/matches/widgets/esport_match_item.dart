@@ -17,81 +17,82 @@ class EsportMatchItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final hasMedals = match.medals != null && match.medals! > 0;
+
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          // border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(8),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+          color: colorScheme.surface,
+          border: Border.all(
+            color: hasMedals
+                ? colorScheme.secondary.withValues(alpha: 0.4)
+                : colorScheme.outline.withValues(alpha: 0.2),
+            width: hasMedals ? 1.5 : 0.5,
+          ),
         ),
-        // padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Center(
-                      child: Text(
-                        match.isFinished
-                            ? 'FT'
-                            : DateFormat('d MMM').format(match.date),
-                        style: const TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.normal),
-                      ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Center(
+                  child: Text(
+                    match.isFinished
+                        ? 'FT'
+                        : DateFormat('d MMM').format(match.date),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      fontWeight:
+                          match.isFinished ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
-                  Expanded(
-                    flex: 6,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (match.homeTeam != null)
-                          EsportMatchTeam(user: match.homeTeam!),
-                        if (match.awayTeam != null)
-                          EsportMatchTeam(user: match.awayTeam!),
-                      ],
-                    ),
-                  ),
-                  Flexible(
-                    flex: 1,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            match.isFinished ? match.homeScore.toString() : '-',
-                            style: const TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            match.isFinished ? match.awayScore.toString() : '-',
-                            style: const TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (match.medals != null && match.medals! > 0)
-              Positioned(
-                right: 0,
-                child: Container(
-                  height: double.maxFinite,
-                  width: 4,
-                  color: Colors.red[300],
                 ),
-              )
-          ],
+              ),
+              Expanded(
+                flex: 6,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (match.homeTeam != null)
+                      EsportMatchTeam(user: match.homeTeam!),
+                    if (match.awayTeam != null)
+                      EsportMatchTeam(user: match.awayTeam!),
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: 1,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        match.isFinished ? match.homeScore.toString() : '-',
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        match.isFinished ? match.awayScore.toString() : '-',
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

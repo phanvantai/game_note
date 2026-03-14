@@ -8,8 +8,8 @@ class OfflineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
-      icon: const Icon(Icons.signal_wifi_off_sharp),
-      label: const Text("Chế độ Offline"),
+      icon: const Icon(Icons.wifi_off_outlined, size: 18),
+      label: const Text('Offline'),
       onPressed: () {
         Navigator.of(context).pushReplacementNamed(Routing.offline);
       },
