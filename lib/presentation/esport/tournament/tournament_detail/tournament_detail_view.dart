@@ -41,29 +41,29 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       builder: (context, state) => Scaffold(
         appBar: AppBar(
           centerTitle: false,
-          title: Row(
-            children: [
-              SvgPicture.asset(
-                'assets/svg/trophy-solid.svg',
-                width: 22,
-                height: 22,
-                colorFilter: ColorFilter.mode(
-                  colorScheme.secondary,
-                  BlendMode.srcIn,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  state.league?.name.isEmpty == true
-                      ? ("${state.league?.group?.groupName ?? " "} ${DateFormat('dd/MM/yyyy').format(state.league?.startDate ?? DateTime.now())}")
-                      : state.league?.name ?? '',
-                  style: textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
+          // title: Row(
+          //   children: [
+          //     SvgPicture.asset(
+          //       'assets/svg/trophy-solid.svg',
+          //       width: 22,
+          //       height: 22,
+          //       colorFilter: ColorFilter.mode(
+          //         colorScheme.secondary,
+          //         BlendMode.srcIn,
+          //       ),
+          //     ),
+          //     const SizedBox(width: 8),
+          //     Expanded(
+          //       child: Text(
+          //         state.league?.name.isEmpty == true
+          //             ? ("${state.league?.group?.groupName ?? " "} ${DateFormat('dd/MM/yyyy').format(state.league?.startDate ?? DateTime.now())}")
+          //             : state.league?.name ?? '',
+          //         style: textTheme.titleSmall
+          //             ?.copyWith(fontWeight: FontWeight.w600),
+          //       ),
+          //     ),
+          //   ],
+          // ),
           actions: [
             PopupMenuButton<String>(
               onSelected: (value) {
@@ -114,8 +114,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
-                      leading: Icon(Icons.delete_outline,
-                          color: colorScheme.error),
+                      leading:
+                          Icon(Icons.delete_outline, color: colorScheme.error),
                       title: Text('Xóa giải đấu',
                           style: TextStyle(color: colorScheme.error)),
                       contentPadding: EdgeInsets.zero,
@@ -128,7 +128,6 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
         body: Stack(
           children: [
             SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 80),
               child: Column(
                 spacing: 16.0,
                 children: [
@@ -141,11 +140,26 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(top: 12),
-                            child: Text(
-                              _leagueName(state),
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 8,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/svg/trophy-solid.svg',
+                                  width: 22,
+                                  height: 22,
+                                  colorFilter: ColorFilter.mode(
+                                    colorScheme.secondary,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                Text(
+                                  _leagueName(state),
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const EsportTableView(),
@@ -159,10 +173,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             ),
             if (state.viewStatus.isLoading)
               const Positioned(
-                  top: 0,
-                  right: 0,
-                  left: 0,
-                  child: LinearProgressIndicator()),
+                  top: 0, right: 0, left: 0, child: LinearProgressIndicator()),
           ],
         ),
         bottomNavigationBar: _bannerAd != null
@@ -184,8 +195,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   }
 
   Future<void> _shareStandings(TournamentDetailState state) async {
-    final boundary = _tableKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
+    final boundary =
+        _tableKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) return;
 
     final image = await boundary.toImage(pixelRatio: 3.0);
@@ -196,10 +207,14 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     final tempDir = Directory.systemTemp;
     final file = File('${tempDir.path}/league_standings.png');
     await file.writeAsBytes(pngBytes);
+    final box = context.findRenderObject() as RenderBox?;
 
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: 'Bảng xếp hạng - ${_leagueName(state)}',
+    await SharePlus.instance.share(
+      ShareParams(
+        title: 'Bảng xếp hạng - ${_leagueName(state)}',
+        files: [XFile(file.path)],
+        sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+      ),
     );
   }
 
@@ -213,8 +228,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
           title: const Text('Trạng thái giải đấu'),
           content: BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
             bloc: bloc,
-            builder: (ctx, state) => DropdownButtonFormField<
-                GNEsportLeagueStatus>(
+            builder: (ctx, state) =>
+                DropdownButtonFormField<GNEsportLeagueStatus>(
               value: GNEsportLeagueStatusExtension.fromString(
                   state.league?.status),
               onChanged: (value) {
@@ -311,8 +326,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   void _addParticipant(BuildContext context, TournamentDetailState state) {
     final league = state.league;
     if (league == null) return;
-    final tournamentDetailBloc =
-        BlocProvider.of<TournamentDetailBloc>(context);
+    final tournamentDetailBloc = BlocProvider.of<TournamentDetailBloc>(context);
 
     showDialog(
       context: context,

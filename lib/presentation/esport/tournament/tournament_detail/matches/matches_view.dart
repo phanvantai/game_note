@@ -130,8 +130,7 @@ class EsportMatchesView extends StatelessWidget {
                 if (state.currentUserIsMember)
                   SlidableAction(
                     borderRadius: BorderRadius.circular(12),
-                    backgroundColor:
-                        Theme.of(context).colorScheme.error,
+                    backgroundColor: Theme.of(context).colorScheme.error,
                     icon: Icons.delete_outline,
                     onPressed: (context) {
                       context
@@ -142,11 +141,9 @@ class EsportMatchesView extends StatelessWidget {
                 if (state.currentUserIsMember)
                   SlidableAction(
                     borderRadius: BorderRadius.circular(12),
-                    backgroundColor:
-                        Theme.of(context).colorScheme.secondary,
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
                     icon: Icons.monetization_on_outlined,
-                    onPressed: (ctx) =>
-                        _showMedalDialog(context, match),
+                    onPressed: (ctx) => _showMedalDialog(context, match),
                   ),
               ],
             ),
@@ -163,6 +160,7 @@ class EsportMatchesView extends StatelessWidget {
         },
         separatorBuilder: (context, index) => const SizedBox(height: 8),
         itemCount: matches.length,
+        padding: EdgeInsets.only(bottom: 48),
       ),
     );
   }
@@ -193,8 +191,7 @@ class EsportMatchesView extends StatelessWidget {
               FocusScope.of(context).unfocus();
               final medal = int.tryParse(medalController.text);
               if (medal == null) {
-                showToast('Nhập số lượng medal',
-                    gravity: ToastGravity.TOP);
+                showToast('Nhập số lượng medal', gravity: ToastGravity.TOP);
                 return;
               }
               context
@@ -284,8 +281,7 @@ class EsportMatchesView extends StatelessWidget {
               FocusScope.of(context).unfocus();
               if (homeScoreController.text.isEmpty ||
                   awayScoreController.text.isEmpty) {
-                showToast('Nhập kết quả trận đấu',
-                    gravity: ToastGravity.TOP);
+                showToast('Nhập kết quả trận đấu', gravity: ToastGravity.TOP);
                 return;
               }
               final homeScore = int.parse(homeScoreController.text);
