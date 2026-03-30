@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pes_arena/core/common/view_status.dart';
@@ -6,6 +10,7 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/helpers/admob_helper.dart';
 import 'add_player_popup.dart';
@@ -24,6 +29,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     with AutomaticKeepAliveClientMixin {
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
+  final GlobalKey _tableKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -59,31 +65,95 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             ],
           ),
           actions: [
-            if (state.currentUserIsMember)
-              IconButton(
-                icon: const Icon(Icons.person_add_outlined),
-                onPressed: () => _addParticipant(context, state),
-              ),
-            if (state.currentUserIsLeagueAdmin)
-              IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () => _changeStatus(context, state),
-              ),
-            if (state.currentUserIsLeagueAdmin)
-              IconButton(
-                icon: Icon(Icons.delete_outline, color: colorScheme.error),
-                onPressed: () => _deleteLeague(context),
-              ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'share':
+                    _shareStandings(state);
+                    break;
+                  case 'add_participant':
+                    _addParticipant(context, state);
+                    break;
+                  case 'change_status':
+                    _changeStatus(context, state);
+                    break;
+                  case 'delete':
+                    _deleteLeague(context);
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                if (state.participants.isNotEmpty)
+                  const PopupMenuItem(
+                    value: 'share',
+                    child: ListTile(
+                      leading: Icon(Icons.share),
+                      title: Text('Chia sẻ BXH'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (state.currentUserIsMember)
+                  const PopupMenuItem(
+                    value: 'add_participant',
+                    child: ListTile(
+                      leading: Icon(Icons.person_add_outlined),
+                      title: Text('Thêm người chơi'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (state.currentUserIsLeagueAdmin)
+                  const PopupMenuItem(
+                    value: 'change_status',
+                    child: ListTile(
+                      leading: Icon(Icons.edit_outlined),
+                      title: Text('Trạng thái'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (state.currentUserIsLeagueAdmin)
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(Icons.delete_outline,
+                          color: colorScheme.error),
+                      title: Text('Xóa giải đấu',
+                          style: TextStyle(color: colorScheme.error)),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
         body: Stack(
           children: [
             SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 80),
               child: Column(
                 spacing: 16.0,
-                children: const [
-                  EsportTableView(),
-                  EsportMatchesView(),
+                children: [
+                  RepaintBoundary(
+                    key: _tableKey,
+                    child: Container(
+                      color: colorScheme.surface,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: Text(
+                              _leagueName(state),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const EsportTableView(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const EsportMatchesView(),
                 ],
               ),
             ),
@@ -103,6 +173,33 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
               )
             : null,
       ),
+    );
+  }
+
+  String _leagueName(TournamentDetailState state) {
+    if (state.league?.name.isEmpty == true) {
+      return "${state.league?.group?.groupName ?? " "} ${DateFormat('dd/MM/yyyy').format(state.league?.startDate ?? DateTime.now())}";
+    }
+    return state.league?.name ?? '';
+  }
+
+  Future<void> _shareStandings(TournamentDetailState state) async {
+    final boundary = _tableKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
+    if (boundary == null) return;
+
+    final image = await boundary.toImage(pixelRatio: 3.0);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) return;
+
+    final pngBytes = byteData.buffer.asUint8List();
+    final tempDir = Directory.systemTemp;
+    final file = File('${tempDir.path}/league_standings.png');
+    await file.writeAsBytes(pngBytes);
+
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      text: 'Bảng xếp hạng - ${_leagueName(state)}',
     );
   }
 
