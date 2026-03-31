@@ -33,8 +33,8 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
             actions: _buildActions(context, state),
           ),
           body: SafeArea(
-            child: _leagueDetail(context, state),
             bottom: false,
+            child: _leagueDetail(context, state),
           ),
           floatingActionButton: state.status.needFloatButton
               ? const LeagueDetailFloatingButton()
@@ -92,8 +92,8 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
   }
 
   Future<void> _shareStandings(String leagueName) async {
-    final boundary = _tableKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
+    final boundary =
+        _tableKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) return;
 
     final image = await boundary.toImage(pixelRatio: 3.0);
@@ -105,9 +105,9 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
     final file = File('${tempDir.path}/league_standings.png');
     await file.writeAsBytes(pngBytes);
 
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: 'Bảng xếp hạng - $leagueName',
+    await SharePlus.instance.share(
+      ShareParams(
+          files: [XFile(file.path)], text: 'Bảng xếp hạng - $leagueName'),
     );
   }
 

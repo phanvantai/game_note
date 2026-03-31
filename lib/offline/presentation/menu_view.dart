@@ -70,7 +70,8 @@ class MenuView extends StatelessWidget {
                       Icons.chevron_right,
                       color: colorScheme.onSurface.withValues(alpha: 0.3),
                     ),
-                    onTap: () => Share.shareXFiles([XFile(dataFile)]),
+                    onTap: () => SharePlus.instance
+                        .share(ShareParams(files: [XFile(dataFile)])),
                   ),
                 ],
               ),
@@ -84,7 +85,7 @@ class MenuView extends StatelessWidget {
   void _importData(BuildContext context) async {
     try {
       final result = await FilePicker.platform.pickFiles();
-      if (result != null) {
+      if (result != null && context.mounted) {
         if (!result.files.single.path!
             .endsWith(DatabaseManager.databaseFileName)) {
           showAlertDialog(context,
@@ -95,9 +96,11 @@ class MenuView extends StatelessWidget {
         File file = File(result.files.single.path!);
         await file.copy(dataFile);
         await getIt<DatabaseManager>().open().then(
+            // ignore: use_build_context_synchronously
             (_) => showAlertDialog(context, 'Dữ liệu đã được nhập thành công'));
       }
     } catch (e) {
+      // ignore: use_build_context_synchronously
       showAlertDialog(context, e.toString());
     }
   }

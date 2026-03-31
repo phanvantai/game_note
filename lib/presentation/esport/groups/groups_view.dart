@@ -193,7 +193,7 @@ class GroupsView extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: null,
+                  initialValue: null,
                   onChanged: (value) => selectedProvince = value!,
                   items: provinces
                       .map((e) => DropdownMenuItem(

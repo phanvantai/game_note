@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -10,13 +9,14 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/helpers/admob_helper.dart';
 import 'add_player_popup.dart';
 import 'bloc/tournament_detail_bloc.dart';
 import 'matches/matches_view.dart';
 import 'table/table_view.dart';
+import 'widgets/league_share_card.dart';
+import 'widgets/share_preview_bottom_sheet.dart';
 
 class TournamentDetailView extends StatefulWidget {
   const TournamentDetailView({Key? key}) : super(key: key);
@@ -29,7 +29,12 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     with AutomaticKeepAliveClientMixin {
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
-  final GlobalKey _tableKey = GlobalKey();
+
+  /// Key used to capture the off-screen share card (no horizontal scroll).
+  final GlobalKey _shareCardKey = GlobalKey();
+
+  /// Width used for the off-screen share card. Wide enough to fit all columns.
+  static const double _shareCardWidth = 520.0;
 
   @override
   Widget build(BuildContext context) {
@@ -41,38 +46,41 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       builder: (context, state) => Scaffold(
         appBar: AppBar(
           centerTitle: false,
-          // title: Row(
-          //   children: [
-          //     SvgPicture.asset(
-          //       'assets/svg/trophy-solid.svg',
-          //       width: 22,
-          //       height: 22,
-          //       colorFilter: ColorFilter.mode(
-          //         colorScheme.secondary,
-          //         BlendMode.srcIn,
-          //       ),
-          //     ),
-          //     const SizedBox(width: 8),
-          //     Expanded(
-          //       child: Text(
-          //         state.league?.name.isEmpty == true
-          //             ? ("${state.league?.group?.groupName ?? " "} ${DateFormat('dd/MM/yyyy').format(state.league?.startDate ?? DateTime.now())}")
-          //             : state.league?.name ?? '',
-          //         style: textTheme.titleSmall
-          //             ?.copyWith(fontWeight: FontWeight.w600),
-          //       ),
-          //     ),
-          //   ],
-          // ),
+          title: Row(
+            children: [
+              SvgPicture.asset(
+                'assets/svg/trophy-solid.svg',
+                width: 22,
+                height: 22,
+                colorFilter: ColorFilter.mode(
+                  colorScheme.secondary,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  state.league?.name.isEmpty == true
+                      ? ("${state.league?.group?.groupName ?? " "} ${DateFormat('dd/MM/yyyy').format(state.league?.startDate ?? DateTime.now())}")
+                      : state.league?.name ?? '',
+                  style: textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
           actions: [
+            if (state.currentUserIsMember)
+              IconButton(
+                icon: const Icon(Icons.person_add_outlined),
+                tooltip: 'Thêm người chơi',
+                onPressed: () => _addParticipant(context, state),
+              ),
             PopupMenuButton<String>(
               onSelected: (value) {
                 switch (value) {
                   case 'share':
                     _shareStandings(state);
-                    break;
-                  case 'add_participant':
-                    _addParticipant(context, state);
                     break;
                   case 'change_status':
                     _changeStatus(context, state);
@@ -89,15 +97,6 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                     child: ListTile(
                       leading: Icon(Icons.share),
                       title: Text('Chia sẻ BXH'),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                if (state.currentUserIsMember)
-                  const PopupMenuItem(
-                    value: 'add_participant',
-                    child: ListTile(
-                      leading: Icon(Icons.person_add_outlined),
-                      title: Text('Thêm người chơi'),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -131,42 +130,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
               child: Column(
                 spacing: 16.0,
                 children: [
-                  RepaintBoundary(
-                    key: _tableKey,
-                    child: Container(
-                      color: colorScheme.surface,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              spacing: 8,
-                              children: [
-                                SvgPicture.asset(
-                                  'assets/svg/trophy-solid.svg',
-                                  width: 22,
-                                  height: 22,
-                                  colorFilter: ColorFilter.mode(
-                                    colorScheme.secondary,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                                Text(
-                                  _leagueName(state),
-                                  style: textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const EsportTableView(),
-                        ],
-                      ),
-                    ),
-                  ),
+                  const EsportTableView(),
                   const EsportMatchesView(),
                 ],
               ),
@@ -174,6 +138,22 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             if (state.viewStatus.isLoading)
               const Positioned(
                   top: 0, right: 0, left: 0, child: LinearProgressIndicator()),
+
+            // Off-screen share card — positioned far outside the visible area
+            // so Flutter fully paints it (required for toImage()).
+            // Offstage would skip painting and cause a debugNeedsPaint error.
+            Positioned(
+              left: -_shareCardWidth - 10,
+              top: 0,
+              child: RepaintBoundary(
+                key: _shareCardKey,
+                child: LeagueShareCard(
+                  leagueName: _leagueName(state),
+                  participants: state.participants,
+                  cardWidth: _shareCardWidth,
+                ),
+              ),
+            ),
           ],
         ),
         bottomNavigationBar: _bannerAd != null
@@ -195,26 +175,23 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   }
 
   Future<void> _shareStandings(TournamentDetailState state) async {
-    final boundary =
-        _tableKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    // Capture from the hidden full-width share card (no scroll clipping).
+    final boundary = _shareCardKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
     if (boundary == null) return;
 
-    final image = await boundary.toImage(pixelRatio: 3.0);
+    // Use a pixel ratio of ~2.5 for a high-quality image without being too heavy.
+    final image = await boundary.toImage(pixelRatio: 2.5);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     if (byteData == null) return;
 
     final pngBytes = byteData.buffer.asUint8List();
-    final tempDir = Directory.systemTemp;
-    final file = File('${tempDir.path}/league_standings.png');
-    await file.writeAsBytes(pngBytes);
-    final box = context.findRenderObject() as RenderBox?;
 
-    await SharePlus.instance.share(
-      ShareParams(
-        title: 'Bảng xếp hạng - ${_leagueName(state)}',
-        files: [XFile(file.path)],
-        sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
-      ),
+    if (!mounted) return;
+    await showSharePreviewBottomSheet(
+      context: context,
+      imageBytes: pngBytes,
+      leagueName: _leagueName(state),
     );
   }
 
@@ -230,7 +207,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             bloc: bloc,
             builder: (ctx, state) =>
                 DropdownButtonFormField<GNEsportLeagueStatus>(
-              value: GNEsportLeagueStatusExtension.fromString(
+              initialValue: GNEsportLeagueStatusExtension.fromString(
                   state.league?.status),
               onChanged: (value) {
                 if (value != null) bloc.add(ChangeLeagueStatus(value));

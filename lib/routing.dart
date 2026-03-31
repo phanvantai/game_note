@@ -3,7 +3,6 @@ import 'package:pes_arena/offline/presentation/offline_view.dart';
 import 'package:pes_arena/presentation/app/app_view.dart';
 import 'package:pes_arena/presentation/auth/verify/verify_page.dart';
 import 'package:pes_arena/presentation/profile/change_password/change_password_page.dart';
-import 'package:pes_arena/presentation/team/create_team/create_team_page.dart';
 
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
@@ -29,7 +28,7 @@ class Routing {
   static const String updateProfile = '/update-profile';
   static const String setting = '/setting';
   static const String changePassword = '/change-password';
-  
+
   // notification
   static const String notification = '/notification';
 
@@ -42,8 +41,6 @@ class Routing {
           return const OfflineView();
         case Routing.verify:
           return const VerifyPage();
-        case Routing.createTeam:
-          return const CreateTeamPage();
         // esport
         case Routing.groupDetail:
           return const GroupDetailPage();
@@ -57,7 +54,7 @@ class Routing {
           return const SettingPage();
         case Routing.changePassword:
           return const ChangePasswordPage();
-          
+
         // notification
         case Routing.notification:
           return const NotificationPage();

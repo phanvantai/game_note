@@ -31,7 +31,7 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           DropdownButtonFormField<GNUser>(
-            value: homeTeam,
+            initialValue: homeTeam,
             onChanged: (value) => setState(() => homeTeam = value),
             items: widget.users.map((team) {
               return DropdownMenuItem<GNUser>(
@@ -53,7 +53,7 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<GNUser>(
-            value: awayTeam,
+            initialValue: awayTeam,
             onChanged: (value) => setState(() => awayTeam = value),
             items: widget.users.map((team) {
               return DropdownMenuItem<GNUser>(
