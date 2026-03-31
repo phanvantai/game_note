@@ -85,8 +85,7 @@ class _ProfileViewState extends State<ProfileView>
                           child: Icon(
                             Icons.person,
                             size: 40,
-                            color:
-                                colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: colorScheme.onSurface.withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -133,8 +132,8 @@ class _ProfileViewState extends State<ProfileView>
                             Icon(
                               Icons.edit_outlined,
                               size: 18,
-                              color: colorScheme.onSurface
-                                  .withValues(alpha: 0.5),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.5),
                             ),
                           ],
                         ),
@@ -170,8 +169,7 @@ class _ProfileViewState extends State<ProfileView>
                       context,
                       icon: Icons.person_outline,
                       title: 'Cập nhật thông tin',
-                      onTap: () =>
-                          _navigateToUpdateProfile(context, state),
+                      onTap: () => _navigateToUpdateProfile(context, state),
                     ),
                     Divider(
                         height: 0.5,
@@ -246,9 +244,8 @@ class _ProfileViewState extends State<ProfileView>
                       context,
                       icon: Icons.chat_bubble_outline,
                       title: 'Nhận xét góp ý',
-                      onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const FeedbackView())),
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const FeedbackView())),
                     ),
                     Divider(
                         height: 0.5,
@@ -269,8 +266,8 @@ class _ProfileViewState extends State<ProfileView>
                                 ? snapshot.data!.versionNumber
                                 : '1.0.0',
                             style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurface
-                                  .withValues(alpha: 0.5),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.5),
                             ),
                           );
                         },
@@ -405,7 +402,7 @@ class _ProfileViewState extends State<ProfileView>
       BuildContext context, ProfileState state) async {
     await Navigator.of(context)
         .pushNamed(Routing.updateProfile, arguments: state.user);
-    if (mounted) {
+    if (context.mounted) {
       context.read<ProfileBloc>().add(LoadProfileEvent());
     }
   }
@@ -418,7 +415,7 @@ class _ProfileViewState extends State<ProfileView>
           'Chế độ offline là bạn tự tạo dữ liệu trên máy và dữ liệu sẽ chỉ được lưu trên máy của bạn, không được đồng bộ.\n\nBạn có chắc chắn muốn chuyển sang chế độ offline không?',
       confirmText: 'Chấp nhận',
     );
-    if (confirmed == true && mounted) {
+    if (confirmed == true && context.mounted) {
       Navigator.of(context).pushReplacementNamed(Routing.offline);
     }
   }
@@ -431,7 +428,7 @@ class _ProfileViewState extends State<ProfileView>
       confirmText: 'Đăng xuất',
       isDestructive: true,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed == true && context.mounted) {
       context.read<ProfileBloc>().add(SignOutProfileEvent());
     }
   }

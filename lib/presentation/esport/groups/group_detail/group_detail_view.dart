@@ -75,8 +75,7 @@ class _GroupDetailViewState extends State<GroupDetailView> {
             _buildSectionLabel(context, 'Khu vực'),
             const SizedBox(height: 8),
             AppCard(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   Icon(
@@ -91,8 +90,7 @@ class _GroupDetailViewState extends State<GroupDetailView> {
             ),
             const SizedBox(height: 20),
             // Members card
-            _buildSectionLabel(
-                context, 'Thành viên (${state.members.length})'),
+            _buildSectionLabel(context, 'Thành viên (${state.members.length})'),
             const SizedBox(height: 8),
             AppCard(
               child: Column(
@@ -133,8 +131,7 @@ class _GroupDetailViewState extends State<GroupDetailView> {
                         Divider(
                           height: 0.5,
                           indent: 56,
-                          color:
-                              colorScheme.outline.withValues(alpha: 0.15),
+                          color: colorScheme.outline.withValues(alpha: 0.15),
                         ),
                     ],
                   );
@@ -308,7 +305,7 @@ class _GroupDetailViewState extends State<GroupDetailView> {
       confirmText: currentUser ? 'Rời nhóm' : 'Xóa',
       isDestructive: true,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed == true && context.mounted) {
       BlocProvider.of<GroupDetailBloc>(context).add(
         RemoveMember(state.group.id, userId),
       );

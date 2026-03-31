@@ -1,6 +1,6 @@
 import 'failure.dart';
 import 'result.dart';
 
-abstract class Usecase<Type, Params> {
-  Future<Result<Failure, Type>> call(Params params);
+abstract class Usecase<T, Params> {
+  Future<Result<Failure, T>> call(Params params);
 }

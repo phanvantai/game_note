@@ -15,17 +15,13 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/helpers/shared_preferences_helper.dart';
-import 'data/repositories/esport/esport_chat_repository_impl.dart';
 import 'data/repositories/esport/esport_group_repository_impl.dart';
 import 'data/repositories/esport/esport_league_repository_impl.dart';
 import 'data/repositories/notification_repository_impl.dart';
-import 'data/repositories/team_repository_impl.dart';
 import 'data/repositories/user_repository_impl.dart';
-import 'domain/repositories/esport/esport_chat_repository.dart';
 import 'domain/repositories/esport/esport_group_repository.dart';
 import 'domain/repositories/esport/esport_league_repository.dart';
 import 'domain/repositories/notification_repository.dart';
-import 'domain/repositories/team_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'firebase/firestore/gn_firestore.dart';
 import 'firebase/messaging/gn_firebase_messaging.dart';
@@ -41,7 +37,6 @@ import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'presentation/notification/bloc/notification_bloc.dart';
 import 'presentation/profile/bloc/profile_bloc.dart';
-import 'presentation/team/bloc/teams_bloc.dart';
 import 'presentation/users/bloc/user_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -98,12 +93,10 @@ Future<void> init() async {
   // data
   // repositories
   getIt.registerFactory<UserRepository>(() => UserRepositoryImpl());
-  getIt.registerFactory<TeamRepository>(() => TeamRepositoryImpl());
   getIt.registerFactory<EsportGroupRepository>(
       () => EsportGroupRepositoryImpl());
   getIt.registerFactory<EsportLeagueRepository>(
       () => EsportLeagueRepositoryImpl());
-  getIt.registerFactory<EsportChatRepository>(() => EsportChatRepositoryImpl());
 
   getIt.registerFactory<NotificationRepository>(
       () => NotificationRepositoryImpl());
@@ -111,8 +104,6 @@ Future<void> init() async {
   getIt.registerFactory(() => SignInBloc());
   getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
   getIt.registerFactory<ProfileBloc>(() => ProfileBloc(getIt()));
-
-  getIt.registerFactory<TeamsBloc>(() => TeamsBloc(getIt()));
 
   getIt.registerFactory<EsportBloc>(() => EsportBloc());
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));

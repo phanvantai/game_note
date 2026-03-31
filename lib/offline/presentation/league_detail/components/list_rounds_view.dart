@@ -19,6 +19,7 @@ class ListRoundsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 80),
       itemCount: list.length,
       itemBuilder: ((context, index) {
         return Container(

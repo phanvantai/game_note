@@ -27,7 +27,7 @@ class LeagueListBody extends StatelessWidget {
                 confirmText: 'Xoá',
                 isDestructive: true,
               ).then((confirmed) {
-                if (confirmed == true) {
+                if (confirmed == true && context.mounted) {
                   context
                       .read<LeagueListBloc>()
                       .add(DeleteLeagueEvent(state.leagues[index]));
