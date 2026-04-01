@@ -10,11 +10,7 @@ import '../firestore/gn_firestore.dart';
 
 class GNAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-    // Add explicit client ID configuration
-    serverClientId:
-        '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com',
-  );
+  late final Future<void> _googleSignInInitialized;
 
   FirebaseAuth get auth => _auth;
 
@@ -29,6 +25,10 @@ class GNAuth {
       print(
           '🔧 GNAuth: Initializing with server client ID: 256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com');
     }
+    _googleSignInInitialized = GoogleSignIn.instance.initialize(
+      serverClientId:
+          '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com',
+    );
 
     // Listen to auth state changes
     _auth.authStateChanges().listen(
@@ -105,25 +105,10 @@ class GNAuth {
     }
 
     try {
-      // Check if Google Play Services is available (Android only)
-      if (kDebugMode) {
-        print('📱 GNAuth: Checking Google Play Services availability...');
-        final isAvailable = await googleSignIn.isSignedIn();
-        print('🔍 GNAuth: Google Sign-In already signed in: $isAvailable');
-      }
+      await _googleSignInInitialized;
 
-      final GoogleSignInAccount? googleSignInAccount =
-          await googleSignIn.signIn();
-
-      if (googleSignInAccount == null) {
-        if (kDebugMode) {
-          print('🚫 GNAuth: Google Sign-In cancelled by user');
-        }
-        throw FirebaseAuthException(
-          code: 'ERROR_ABORTED_BY_USER',
-          message: 'Sign in aborted by user',
-        );
-      }
+      final GoogleSignInAccount googleSignInAccount =
+          await GoogleSignIn.instance.authenticate();
 
       if (kDebugMode) {
         print(
@@ -132,23 +117,19 @@ class GNAuth {
       }
 
       final GoogleSignInAuthentication googleSignInAuthentication =
-          await googleSignInAccount.authentication;
+          googleSignInAccount.authentication;
 
       if (kDebugMode) {
         print('🎫 GNAuth: Tokens received');
         print(
-            '   - Access Token: ${googleSignInAuthentication.accessToken != null ? "✅" : "❌"}');
-        print(
             '   - ID Token: ${googleSignInAuthentication.idToken != null ? "✅" : "❌"}');
 
-        if (googleSignInAuthentication.accessToken == null ||
-            googleSignInAuthentication.idToken == null) {
-          print('⚠️ GNAuth: Missing required tokens!');
+        if (googleSignInAuthentication.idToken == null) {
+          print('⚠️ GNAuth: Missing ID token!');
         }
       }
 
       final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleSignInAuthentication.accessToken,
         idToken: googleSignInAuthentication.idToken,
       );
 
@@ -162,6 +143,20 @@ class GNAuth {
         print('👤 User UID: ${result.user?.uid}');
       }
       return result;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        if (kDebugMode) {
+          print('🚫 GNAuth: Google Sign-In cancelled by user');
+        }
+        throw FirebaseAuthException(
+          code: 'ERROR_ABORTED_BY_USER',
+          message: 'Sign in aborted by user',
+        );
+      }
+      if (kDebugMode) {
+        print('❌ GNAuth: Google Sign-In exception: $e');
+      }
+      rethrow;
     } on FirebaseAuthException catch (e) {
       if (kDebugMode) {
         print('🔥 GNAuth: Firebase Auth Exception:');

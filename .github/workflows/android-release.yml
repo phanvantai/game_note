@@ -1,7 +1,7 @@
 name: Android Release
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
   # allow manual trigger on actions tab
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       # Set up environment variables for Gradle to match local environment
       - name: Set up Gradle properties and environment
         run: |
@@ -27,7 +27,7 @@ jobs:
           echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties
         env:
           GRADLE_OPTS: "-Xmx4096m -XX:MaxMetaspaceSize=1024m"
-          
+
       - name: Download Android keystore
         id: android_keystore
         uses: timheuer/base64-to-file@v1.0.3
@@ -42,21 +42,21 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
       - uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: "zulu"
           java-version: "21.x"
-          cache: 'gradle'
+          cache: "gradle"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
-          channel: 'stable'
+          flutter-version: "3.35.5"
+          channel: "stable"
           cache: true
-        
+
       - name: Get dependencies
         run: flutter pub get
-        
+
       - name: Flutter clean
         run: flutter clean
-        
+
       - name: Start release build
         run: |
           flutter build appbundle --release
@@ -68,7 +68,7 @@ jobs:
         with:
           name: android-release
           path: build/app/outputs/bundle/release/app-release.aab
-  
+
   # deploy to play store
   deploy:
     name: Deploy Android Build
@@ -77,19 +77,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Get Android Build from artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: android-release
-    - name: Release Build to internal track
-      uses: r0adkll/upload-google-play@v1
-      with:
-        serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
-        packageName: com.november.game_note
-        releaseFiles: app-release.aab
-        # build open testing
-        # track: beta
-        # build production
-        track: production
-        status: completed
+      - uses: actions/checkout@v3
+      - name: Get Android Build from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release
+      - name: Release Build to internal track
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+          packageName: com.november.game_note
+          releaseFiles: app-release.aab
+          # build open testing
+          # track: beta
+          # build production
+          track: production
+          status: completed
