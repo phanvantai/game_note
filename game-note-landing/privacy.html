@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — PES Arena</title>
+  <meta name="description" content="PES Arena Privacy Policy. Learn how we protect your data and respect your privacy.">
+  <link rel="icon" type="image/png" href="assets/app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            arena: {
+              50: '#FFF7F3', 100: '#FFE8DC', 200: '#FFCFB8', 300: '#FFAD8A',
+              400: '#F98B62', 500: '#E8734A', 600: '#CC5C33', 700: '#A84521',
+              800: '#7A3018', 900: '#4A1A09',
+            },
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            body: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .fade-up {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .fade-up.delay-1 { transition-delay: 0.1s; }
+    .fade-up.delay-2 { transition-delay: 0.2s; }
+    .lang-dropdown { display: none; }
+    .lang-dropdown.open { display: block; }
+    .prose h2 { margin-top: 2.5rem; margin-bottom: 0.75rem; }
+    .prose h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    .prose p, .prose ul { margin-bottom: 1rem; }
+    .prose ul { list-style: disc; padding-left: 1.5rem; }
+    .prose li { margin-bottom: 0.25rem; }
+    @media (prefers-reduced-motion: reduce) {
+      .fade-up { opacity: 1; transform: none; transition: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body class="bg-white text-arena-700 font-body overflow-x-hidden">
+
+  <!-- ============ NAVIGATION ============ -->
+  <nav class="fixed top-4 left-4 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-arena-500/5 border border-arena-100 px-4 lg:px-6 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <img src="assets/app-icon.png" alt="PES Arena" class="w-9 h-9 rounded-xl shadow-sm">
+        <span class="font-heading font-bold text-lg text-arena-700">PES Arena</span>
+      </a>
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <button id="lang-toggle" class="flex items-center gap-1.5 text-sm font-medium text-arena-500 hover:text-arena-700 px-3 py-1.5 rounded-lg hover:bg-arena-50 transition-colors cursor-pointer" aria-label="Change language">
+            <span id="lang-current-flag">🇺🇸</span>
+            <span id="lang-current-code">EN</span>
+            <svg class="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="lang-dropdown" class="lang-dropdown absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-arena-100 py-1.5 min-w-[160px]">
+            <button onclick="setLang('en')" class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-arena-700 hover:bg-arena-50 transition-colors cursor-pointer">🇺🇸 English</button>
+            <button onclick="setLang('vi')" class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-arena-700 hover:bg-arena-50 transition-colors cursor-pointer">🇻🇳 Tiếng Việt</button>
+          </div>
+        </div>
+        <a href="index.html" class="text-sm font-medium text-arena-500 hover:text-arena-700 px-3 py-1.5 rounded-lg hover:bg-arena-50 transition-colors cursor-pointer" data-i18n="nav.back">Back to Home</a>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ============ HEADER ============ -->
+  <section class="relative pt-32 pb-12 bg-gradient-to-b from-arena-50 to-white">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="fade-up inline-flex items-center gap-2 bg-arena-100 text-arena-600 text-sm font-medium px-4 py-1.5 rounded-full mb-4">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+        <span data-i18n="header.badge">Your Privacy Matters</span>
+      </div>
+      <h1 class="fade-up delay-1 font-heading font-extrabold text-4xl sm:text-5xl text-arena-800 mb-4" data-i18n="header.title">Privacy Policy</h1>
+      <p class="fade-up delay-2 text-arena-400" data-i18n="header.updated">Last updated: April 17, 2026</p>
+    </div>
+  </section>
+
+
+  <!-- ============ CONTENT ============ -->
+  <section class="py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="fade-up prose text-arena-500 leading-relaxed">
+
+        <p data-i18n="intro">
+          PES Arena ("we", "our", or "the app") is a Flutter-based mobile application for football and esports communities, developed by an independent developer. We are committed to protecting your privacy. This policy explains what data we collect, how we use it, and the choices you have.
+        </p>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s1.title">1. Offline Mode — Local Data Storage</h2>
+        <p data-i18n="s1.p1">
+          In Offline Mode, all tournament data is stored <strong>locally on your device</strong> using SQLite. No internet connection is required and no data is sent to our servers.
+        </p>
+        <ul>
+          <li data-i18n="s1.l1">Tournament names, player names, match scores, and standings remain on your device</li>
+          <li data-i18n="s1.l2">No account or personal information is required</li>
+          <li data-i18n="s1.l3">Uninstalling the app permanently removes all offline data</li>
+        </ul>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s2.title">2. Online Mode — Account & Firebase</h2>
+        <p data-i18n="s2.p1">
+          Online Mode requires an account. You may sign in with email/password or Google Sign-In. When you use Online Mode, the following data is stored on <strong>Firebase (Google)</strong>:
+        </p>
+        <ul>
+          <li data-i18n="s2.l1">Your display name, profile photo (if uploaded), and user ID</li>
+          <li data-i18n="s2.l2">Groups you create or join, including member lists and tournament data</li>
+          <li data-i18n="s2.l3">Match results, standings, and player statistics within online tournaments</li>
+          <li data-i18n="s2.l4">Group chat messages sent within the app</li>
+        </ul>
+        <p data-i18n="s2.p2">
+          This data is stored in Firebase Firestore and Firebase Storage and is governed by Google's privacy policy. We use Firebase Auth to manage sign-in securely.
+        </p>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s3.title">3. Push Notifications</h2>
+        <p data-i18n="s3.p1">
+          We use <strong>Firebase Cloud Messaging (FCM)</strong> to send push notifications about tournament updates and group activity. A device token is registered with FCM when you enable notifications. You can disable notifications at any time through your device's system settings.
+        </p>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s4.title">4. Analytics</h2>
+        <p data-i18n="s4.p1">
+          We use <strong>Firebase Analytics</strong> to understand how the app is used and improve the experience. Our analytics are privacy-safe:
+        </p>
+        <ul>
+          <li data-i18n="s4.l1"><strong>No personally identifiable information (PII)</strong> is ever sent to analytics</li>
+          <li data-i18n="s4.l2">We track general usage patterns: feature usage, screen views, and app events</li>
+          <li data-i18n="s4.l3">Tournament names, player names, and chat messages are never sent to analytics</li>
+        </ul>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s5.title">5. Advertising</h2>
+        <p data-i18n="s5.p1">
+          The app uses <strong>Google Mobile Ads (AdMob)</strong> to display advertisements. AdMob may collect and use data for ad personalization based on your device and usage. You can opt out of personalized ads through your device's ad settings. Please refer to Google's privacy policy for details on how AdMob handles data.
+        </p>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s6.title">6. Photo & Media Access</h2>
+        <p data-i18n="s6.p1">
+          The app may request access to your photo library to allow you to upload a profile avatar. Photos are only accessed when you explicitly choose to select one and are uploaded to <strong>Firebase Storage</strong>. We do not access your camera roll for any other purpose.
+        </p>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s7.title">7. Third-Party Services</h2>
+        <p data-i18n="s7.p1">
+          PES Arena integrates with the following third-party services, each governed by their own privacy policies:
+        </p>
+        <ul>
+          <li data-i18n="s7.l1"><strong>Firebase Auth</strong> (Google) — secure user authentication</li>
+          <li data-i18n="s7.l2"><strong>Firebase Firestore</strong> (Google) — real-time database for online features</li>
+          <li data-i18n="s7.l3"><strong>Firebase Storage</strong> (Google) — profile image and media storage</li>
+          <li data-i18n="s7.l4"><strong>Firebase Cloud Messaging</strong> (Google) — push notifications</li>
+          <li data-i18n="s7.l5"><strong>Firebase Analytics</strong> (Google) — anonymous usage analytics</li>
+          <li data-i18n="s7.l6"><strong>Google Mobile Ads / AdMob</strong> — in-app advertising</li>
+          <li data-i18n="s7.l7"><strong>Google Sign-In</strong> — optional OAuth authentication</li>
+        </ul>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s8.title">8. Data Retention & Deletion</h2>
+        <p data-i18n="s8.p1">
+          You have full control over your data. You can delete it at any time by:
+        </p>
+        <ul>
+          <li data-i18n="s8.l1">Uninstalling the app (removes all offline data)</li>
+          <li data-i18n="s8.l2">Going to Profile > Settings > Delete Account in the app to permanently delete your online account and all associated data from our Firebase servers</li>
+          <li data-i18n="s8.l3">Emailing us at taipv.swe@gmail.com to request manual data deletion</li>
+        </ul>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s9.title">9. Children's Privacy</h2>
+        <p data-i18n="s9.p1">
+          PES Arena is not directed at children under 13. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us and we will take steps to delete it.
+        </p>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s10.title">10. Changes to This Policy</h2>
+        <p data-i18n="s10.p1">
+          We may update this privacy policy from time to time. Any changes will be reflected on this page with an updated "Last updated" date. We encourage you to review this policy periodically.
+        </p>
+
+        <h2 class="font-heading font-bold text-2xl text-arena-800" data-i18n="s11.title">11. Contact Us</h2>
+        <p data-i18n="s11.p1">
+          If you have any questions or concerns about this privacy policy, please contact us at:
+        </p>
+        <p class="font-medium text-arena-700">
+          taipv.swe@gmail.com
+        </p>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="bg-arena-900 text-arena-300 py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-3">
+          <img src="assets/app-icon.png" alt="PES Arena" class="w-8 h-8 rounded-lg">
+          <span class="font-heading font-bold text-white">PES Arena</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm">
+          <span class="text-white cursor-default" data-i18n="footer.privacy">Privacy Policy</span>
+          <a href="support.html" class="hover:text-white transition-colors cursor-pointer" data-i18n="footer.support">Support</a>
+          <a href="index.html" class="hover:text-white transition-colors cursor-pointer" data-i18n="footer.home">Home</a>
+        </div>
+        <p class="text-sm text-arena-400">&copy; 2026 PES Arena. <span data-i18n="footer.rights">All rights reserved.</span></p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ============ SCRIPTS ============ -->
+  <script>
+    const T = {
+      en: {
+        'nav.back': 'Back to Home',
+        'header.badge': 'Your Privacy Matters',
+        'header.title': 'Privacy Policy',
+        'header.updated': 'Last updated: April 17, 2026',
+        'intro': 'PES Arena ("we", "our", or "the app") is a Flutter-based mobile application for football and esports communities, developed by an independent developer. We are committed to protecting your privacy. This policy explains what data we collect, how we use it, and the choices you have.',
+        's1.title': '1. Offline Mode — Local Data Storage',
+        's1.p1': 'In Offline Mode, all tournament data is stored <strong>locally on your device</strong> using SQLite. No internet connection is required and no data is sent to our servers.',
+        's1.l1': 'Tournament names, player names, match scores, and standings remain on your device',
+        's1.l2': 'No account or personal information is required',
+        's1.l3': 'Uninstalling the app permanently removes all offline data',
+        's2.title': '2. Online Mode — Account & Firebase',
+        's2.p1': 'Online Mode requires an account. You may sign in with email/password or Google Sign-In. When you use Online Mode, the following data is stored on <strong>Firebase (Google)</strong>:',
+        's2.l1': 'Your display name, profile photo (if uploaded), and user ID',
+        's2.l2': 'Groups you create or join, including member lists and tournament data',
+        's2.l3': 'Match results, standings, and player statistics within online tournaments',
+        's2.l4': 'Group chat messages sent within the app',
+        's2.p2': "This data is stored in Firebase Firestore and Firebase Storage and is governed by Google's privacy policy. We use Firebase Auth to manage sign-in securely.",
+        's3.title': '3. Push Notifications',
+        's3.p1': 'We use <strong>Firebase Cloud Messaging (FCM)</strong> to send push notifications about tournament updates and group activity. A device token is registered with FCM when you enable notifications. You can disable notifications at any time through your device\'s system settings.',
+        's4.title': '4. Analytics',
+        's4.p1': 'We use <strong>Firebase Analytics</strong> to understand how the app is used and improve the experience. Our analytics are privacy-safe:',
+        's4.l1': '<strong>No personally identifiable information (PII)</strong> is ever sent to analytics',
+        's4.l2': 'We track general usage patterns: feature usage, screen views, and app events',
+        's4.l3': 'Tournament names, player names, and chat messages are never sent to analytics',
+        's5.title': '5. Advertising',
+        's5.p1': 'The app uses <strong>Google Mobile Ads (AdMob)</strong> to display advertisements. AdMob may collect and use data for ad personalization based on your device and usage. You can opt out of personalized ads through your device\'s ad settings. Please refer to Google\'s privacy policy for details on how AdMob handles data.',
+        's6.title': '6. Photo & Media Access',
+        's6.p1': 'The app may request access to your photo library to allow you to upload a profile avatar. Photos are only accessed when you explicitly choose to select one and are uploaded to <strong>Firebase Storage</strong>. We do not access your camera roll for any other purpose.',
+        's7.title': '7. Third-Party Services',
+        's7.p1': 'PES Arena integrates with the following third-party services, each governed by their own privacy policies:',
+        's7.l1': '<strong>Firebase Auth</strong> (Google) — secure user authentication',
+        's7.l2': '<strong>Firebase Firestore</strong> (Google) — real-time database for online features',
+        's7.l3': '<strong>Firebase Storage</strong> (Google) — profile image and media storage',
+        's7.l4': '<strong>Firebase Cloud Messaging</strong> (Google) — push notifications',
+        's7.l5': '<strong>Firebase Analytics</strong> (Google) — anonymous usage analytics',
+        's7.l6': '<strong>Google Mobile Ads / AdMob</strong> — in-app advertising',
+        's7.l7': '<strong>Google Sign-In</strong> — optional OAuth authentication',
+        's8.title': '8. Data Retention & Deletion',
+        's8.p1': 'You have full control over your data. You can delete it at any time by:',
+        's8.l1': 'Uninstalling the app (removes all offline data)',
+        's8.l2': 'Going to Profile > Settings > Delete Account in the app to permanently delete your online account and all associated data from our Firebase servers',
+        's8.l3': 'Emailing us at taipv.swe@gmail.com to request manual data deletion',
+        's9.title': "9. Children's Privacy",
+        's9.p1': 'PES Arena is not directed at children under 13. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us and we will take steps to delete it.',
+        's10.title': '10. Changes to This Policy',
+        's10.p1': 'We may update this privacy policy from time to time. Any changes will be reflected on this page with an updated "Last updated" date. We encourage you to review this policy periodically.',
+        's11.title': '11. Contact Us',
+        's11.p1': 'If you have any questions or concerns about this privacy policy, please contact us at:',
+        'footer.privacy': 'Privacy Policy',
+        'footer.support': 'Support',
+        'footer.home': 'Home',
+        'footer.rights': 'All rights reserved.',
+      },
+      vi: {
+        'nav.back': 'Về Trang Chủ',
+        'header.badge': 'Quyền Riêng Tư Của Bạn',
+        'header.title': 'Chính Sách Bảo Mật',
+        'header.updated': 'Cập nhật lần cuối: 17 tháng 4, 2026',
+        'intro': 'PES Arena ("chúng tôi" hoặc "ứng dụng") là ứng dụng di động Flutter dành cho cộng đồng bóng đá và esports, được phát triển bởi nhà phát triển độc lập. Chúng tôi cam kết bảo vệ quyền riêng tư của bạn. Chính sách này giải thích dữ liệu chúng tôi thu thập, cách sử dụng và các lựa chọn bạn có.',
+        's1.title': '1. Chế Độ Offline — Lưu Trữ Dữ Liệu Cục Bộ',
+        's1.p1': 'Trong Chế Độ Offline, tất cả dữ liệu giải đấu được lưu trữ <strong>cục bộ trên thiết bị</strong> bằng SQLite. Không cần kết nối internet và không có dữ liệu nào được gửi đến máy chủ.',
+        's1.l1': 'Tên giải đấu, tên cầu thủ, tỉ số trận đấu và bảng xếp hạng được giữ trên thiết bị',
+        's1.l2': 'Không cần tài khoản hoặc thông tin cá nhân',
+        's1.l3': 'Gỡ cài đặt ứng dụng sẽ xóa vĩnh viễn tất cả dữ liệu offline',
+        's2.title': '2. Chế Độ Online — Tài Khoản & Firebase',
+        's2.p1': 'Chế Độ Online yêu cầu tài khoản. Bạn có thể đăng nhập bằng email/mật khẩu hoặc Google Sign-In. Khi sử dụng Chế Độ Online, dữ liệu sau được lưu trên <strong>Firebase (Google)</strong>:',
+        's2.l1': 'Tên hiển thị, ảnh đại diện (nếu tải lên) và ID người dùng',
+        's2.l2': 'Các nhóm bạn tạo hoặc tham gia, bao gồm danh sách thành viên và dữ liệu giải đấu',
+        's2.l3': 'Kết quả trận đấu, bảng xếp hạng và thống kê cầu thủ trong các giải đấu online',
+        's2.l4': 'Tin nhắn chat nhóm được gửi trong ứng dụng',
+        's2.p2': 'Dữ liệu này được lưu trong Firebase Firestore và Firebase Storage và được quản lý bởi chính sách bảo mật của Google. Chúng tôi sử dụng Firebase Auth để quản lý đăng nhập an toàn.',
+        's3.title': '3. Thông Báo Đẩy',
+        's3.p1': 'Chúng tôi sử dụng <strong>Firebase Cloud Messaging (FCM)</strong> để gửi thông báo đẩy về cập nhật giải đấu và hoạt động nhóm. Token thiết bị được đăng ký với FCM khi bạn bật thông báo. Bạn có thể tắt thông báo bất kỳ lúc nào qua cài đặt hệ thống của thiết bị.',
+        's4.title': '4. Phân Tích',
+        's4.p1': 'Chúng tôi sử dụng <strong>Firebase Analytics</strong> để hiểu cách ứng dụng được sử dụng và cải thiện trải nghiệm. Phân tích của chúng tôi bảo vệ quyền riêng tư:',
+        's4.l1': '<strong>Không có thông tin nhận dạng cá nhân (PII)</strong> nào được gửi đến phân tích',
+        's4.l2': 'Chúng tôi theo dõi các mẫu sử dụng chung: sử dụng tính năng, lượt xem màn hình và sự kiện ứng dụng',
+        's4.l3': 'Tên giải đấu, tên cầu thủ và tin nhắn chat không bao giờ được gửi đến phân tích',
+        's5.title': '5. Quảng Cáo',
+        's5.p1': 'Ứng dụng sử dụng <strong>Google Mobile Ads (AdMob)</strong> để hiển thị quảng cáo. AdMob có thể thu thập và sử dụng dữ liệu để cá nhân hóa quảng cáo dựa trên thiết bị và cách sử dụng của bạn. Bạn có thể từ chối quảng cáo cá nhân hóa qua cài đặt quảng cáo của thiết bị.',
+        's6.title': '6. Truy Cập Ảnh & Phương Tiện',
+        's6.p1': 'Ứng dụng có thể yêu cầu quyền truy cập thư viện ảnh để cho phép bạn tải ảnh đại diện. Ảnh chỉ được truy cập khi bạn chủ động chọn và được tải lên <strong>Firebase Storage</strong>. Chúng tôi không truy cập thư viện ảnh cho bất kỳ mục đích nào khác.',
+        's7.title': '7. Dịch Vụ Bên Thứ Ba',
+        's7.p1': 'PES Arena tích hợp với các dịch vụ bên thứ ba sau, mỗi dịch vụ được quản lý bởi chính sách bảo mật riêng:',
+        's7.l1': '<strong>Firebase Auth</strong> (Google) — xác thực người dùng an toàn',
+        's7.l2': '<strong>Firebase Firestore</strong> (Google) — cơ sở dữ liệu thời gian thực cho tính năng online',
+        's7.l3': '<strong>Firebase Storage</strong> (Google) — lưu trữ ảnh đại diện và phương tiện',
+        's7.l4': '<strong>Firebase Cloud Messaging</strong> (Google) — thông báo đẩy',
+        's7.l5': '<strong>Firebase Analytics</strong> (Google) — phân tích sử dụng ẩn danh',
+        's7.l6': '<strong>Google Mobile Ads / AdMob</strong> — quảng cáo trong ứng dụng',
+        's7.l7': '<strong>Google Sign-In</strong> — xác thực OAuth tùy chọn',
+        's8.title': '8. Lưu Giữ & Xóa Dữ Liệu',
+        's8.p1': 'Bạn có toàn quyền kiểm soát dữ liệu. Bạn có thể xóa bất kỳ lúc nào bằng cách:',
+        's8.l1': 'Gỡ cài đặt ứng dụng (xóa tất cả dữ liệu offline)',
+        's8.l2': 'Vào Hồ Sơ > Cài Đặt > Xóa Tài Khoản trong ứng dụng để xóa vĩnh viễn tài khoản online và tất cả dữ liệu liên quan khỏi máy chủ Firebase',
+        's8.l3': 'Gửi email đến taipv.swe@gmail.com để yêu cầu xóa dữ liệu thủ công',
+        's9.title': '9. Quyền Riêng Tư Trẻ Em',
+        's9.p1': 'PES Arena không hướng đến trẻ em dưới 13 tuổi. Chúng tôi không cố ý thu thập thông tin cá nhân từ trẻ em. Nếu bạn tin rằng trẻ em đã cung cấp thông tin cá nhân cho chúng tôi, vui lòng liên hệ và chúng tôi sẽ xóa thông tin đó.',
+        's10.title': '10. Thay Đổi Chính Sách',
+        's10.p1': 'Chúng tôi có thể cập nhật chính sách bảo mật này theo thời gian. Mọi thay đổi sẽ được phản ánh trên trang này với ngày "Cập nhật lần cuối" mới. Chúng tôi khuyến khích bạn xem lại chính sách này định kỳ.',
+        's11.title': '11. Liên Hệ',
+        's11.p1': 'Nếu bạn có bất kỳ câu hỏi hoặc thắc mắc nào về chính sách bảo mật này, vui lòng liên hệ chúng tôi tại:',
+        'footer.privacy': 'Chính Sách Bảo Mật',
+        'footer.support': 'Hỗ Trợ',
+        'footer.home': 'Trang Chủ',
+        'footer.rights': 'Đã đăng ký bản quyền.',
+      }
+    };
+
+    const langMeta = {
+      en: { flag: '\u{1F1FA}\u{1F1F8}', code: 'EN', htmlLang: 'en' },
+      vi: { flag: '\u{1F1FB}\u{1F1F3}', code: 'VI', htmlLang: 'vi' },
+    };
+
+    let currentLang = localStorage.getItem('pa-lang') || 'en';
+
+    function setLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('pa-lang', lang);
+      document.documentElement.lang = langMeta[lang].htmlLang;
+      document.getElementById('lang-current-flag').textContent = langMeta[lang].flag;
+      document.getElementById('lang-current-code').textContent = langMeta[lang].code;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (T[lang] && T[lang][key]) el.innerHTML = T[lang][key];
+      });
+      document.getElementById('lang-dropdown').classList.remove('open');
+    }
+
+    document.getElementById('lang-toggle').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('lang-dropdown').classList.toggle('open');
+    });
+    document.addEventListener('click', () => {
+      document.getElementById('lang-dropdown').classList.remove('open');
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    setLang(currentLang);
+  </script>
+</body>
+</html>

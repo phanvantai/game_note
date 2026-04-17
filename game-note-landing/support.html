@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support — PES Arena</title>
+  <meta name="description" content="Get help with PES Arena. FAQs, troubleshooting, and contact information.">
+  <link rel="icon" type="image/png" href="assets/app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            arena: {
+              50: '#FFF7F3', 100: '#FFE8DC', 200: '#FFCFB8', 300: '#FFAD8A',
+              400: '#F98B62', 500: '#E8734A', 600: '#CC5C33', 700: '#A84521',
+              800: '#7A3018', 900: '#4A1A09',
+            },
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            body: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .fade-up {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .fade-up.delay-1 { transition-delay: 0.1s; }
+    .fade-up.delay-2 { transition-delay: 0.2s; }
+    .fade-up.delay-3 { transition-delay: 0.3s; }
+    .lang-dropdown { display: none; }
+    .lang-dropdown.open { display: block; }
+    .faq-answer { display: none; }
+    .faq-answer.open { display: block; }
+    .faq-toggle svg { transition: transform 0.2s ease; }
+    .faq-toggle.open svg { transform: rotate(45deg); }
+    @media (prefers-reduced-motion: reduce) {
+      .fade-up { opacity: 1; transform: none; transition: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body class="bg-white text-arena-700 font-body overflow-x-hidden">
+
+  <!-- ============ NAVIGATION ============ -->
+  <nav class="fixed top-4 left-4 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-arena-500/5 border border-arena-100 px-4 lg:px-6 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <img src="assets/app-icon.png" alt="PES Arena" class="w-9 h-9 rounded-xl shadow-sm">
+        <span class="font-heading font-bold text-lg text-arena-700">PES Arena</span>
+      </a>
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <button id="lang-toggle" class="flex items-center gap-1.5 text-sm font-medium text-arena-500 hover:text-arena-700 px-3 py-1.5 rounded-lg hover:bg-arena-50 transition-colors cursor-pointer" aria-label="Change language">
+            <span id="lang-current-flag">🇺🇸</span>
+            <span id="lang-current-code">EN</span>
+            <svg class="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="lang-dropdown" class="lang-dropdown absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-arena-100 py-1.5 min-w-[160px]">
+            <button onclick="setLang('en')" class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-arena-700 hover:bg-arena-50 transition-colors cursor-pointer">🇺🇸 English</button>
+            <button onclick="setLang('vi')" class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-arena-700 hover:bg-arena-50 transition-colors cursor-pointer">🇻🇳 Tiếng Việt</button>
+          </div>
+        </div>
+        <a href="index.html" class="text-sm font-medium text-arena-500 hover:text-arena-700 px-3 py-1.5 rounded-lg hover:bg-arena-50 transition-colors cursor-pointer" data-i18n="nav.back">Back to Home</a>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ============ HEADER ============ -->
+  <section class="relative pt-32 pb-12 bg-gradient-to-b from-arena-50 to-white">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="fade-up inline-flex items-center gap-2 bg-arena-100 text-arena-600 text-sm font-medium px-4 py-1.5 rounded-full mb-4">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        <span data-i18n="header.badge">We're Here to Help</span>
+      </div>
+      <h1 class="fade-up delay-1 font-heading font-extrabold text-4xl sm:text-5xl text-arena-800 mb-4" data-i18n="header.title">Support Center</h1>
+      <p class="fade-up delay-2 text-lg text-arena-400 max-w-xl mx-auto" data-i18n="header.subtitle">Find answers to common questions or reach out to us directly</p>
+    </div>
+  </section>
+
+
+  <!-- ============ CONTACT OPTIONS ============ -->
+  <section class="py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid sm:grid-cols-3 gap-5 mb-16">
+        <!-- Email -->
+        <a href="mailto:taipv.swe@gmail.com" class="fade-up group bg-white border border-arena-100 rounded-2xl p-6 text-center hover:shadow-lg hover:border-arena-200 transition-all duration-300 cursor-pointer">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-arena-800 mb-1" data-i18n="contact.email.title">Email Us</h3>
+          <p class="text-sm text-arena-400">taipv.swe@gmail.com</p>
+        </a>
+
+        <!-- App Store -->
+        <a href="https://apps.apple.com/us/app/game-note/id6443969710" target="_blank" rel="noopener" class="fade-up delay-1 group bg-white border border-arena-100 rounded-2xl p-6 text-center hover:shadow-lg hover:border-arena-200 transition-all duration-300 cursor-pointer">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-arena-800 mb-1" data-i18n="contact.appstore.title">Rate on App Store</h3>
+          <p class="text-sm text-arena-400" data-i18n="contact.appstore.desc">Leave a review on iOS</p>
+        </a>
+
+        <!-- Google Play -->
+        <a href="https://play.google.com/store/apps/details?id=com.november.game_note" target="_blank" rel="noopener" class="fade-up delay-2 group bg-white border border-arena-100 rounded-2xl p-6 text-center hover:shadow-lg hover:border-arena-200 transition-all duration-300 cursor-pointer">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.3.17.64.24.99.19l13.12-7.57-2.83-2.83-11.28 10.21zM.5 1.34C.19 1.67 0 2.17 0 2.82v18.36c0 .65.19 1.15.5 1.48l.08.07L10.45 12.9v-.23L.58 1.27.5 1.34zM20.49 10.5l-2.83-1.63-3.17 2.89v.46l3.17 2.9 2.84-1.64c.81-.47.81-1.52-.01-1.98zM4.17.24L17.29 7.81l-2.83 2.83L3.18.43C3.49-.02 3.87-.12 4.17.24z"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-arena-800 mb-1" data-i18n="contact.play.title">Rate on Google Play</h3>
+          <p class="text-sm text-arena-400" data-i18n="contact.play.desc">Leave a review on Android</p>
+        </a>
+      </div>
+
+
+      <!-- ============ FAQ ============ -->
+      <div class="max-w-3xl mx-auto">
+        <h2 class="fade-up font-heading font-extrabold text-3xl text-arena-800 text-center mb-10" data-i18n="faq.title">Frequently Asked Questions</h2>
+
+        <div class="space-y-3">
+          <!-- FAQ 1 -->
+          <div class="fade-up bg-white border border-arena-100 rounded-xl overflow-hidden">
+            <button class="faq-toggle flex items-center justify-between w-full px-6 py-4 text-left cursor-pointer hover:bg-arena-50/50 transition-colors" onclick="toggleFaq(this)">
+              <span class="font-medium text-arena-800 pr-4" data-i18n="faq.q1">Do I need an account to use the app?</span>
+              <svg class="w-5 h-5 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            </button>
+            <div class="faq-answer px-6 pb-4">
+              <p class="text-sm text-arena-500 leading-relaxed" data-i18n="faq.a1">No account is needed to use Offline Mode. You can create and manage local tournaments right away without signing in. An account (email/password or Google Sign-In) is only required to access Online Mode features like groups, real-time tournaments, and group chat.</p>
+            </div>
+          </div>
+
+          <!-- FAQ 2 -->
+          <div class="fade-up delay-1 bg-white border border-arena-100 rounded-xl overflow-hidden">
+            <button class="faq-toggle flex items-center justify-between w-full px-6 py-4 text-left cursor-pointer hover:bg-arena-50/50 transition-colors" onclick="toggleFaq(this)">
+              <span class="font-medium text-arena-800 pr-4" data-i18n="faq.q2">What's the difference between Online and Offline mode?</span>
+              <svg class="w-5 h-5 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            </button>
+            <div class="faq-answer px-6 pb-4">
+              <p class="text-sm text-arena-500 leading-relaxed" data-i18n="faq.a2">Offline Mode stores all tournament data locally on your device using SQLite — no internet required. Online Mode uses Firebase to sync data in real time across all participants, supports group chat, push notifications, and lets players from anywhere join your tournament. Both modes support full round-robin tournament management and player statistics.</p>
+            </div>
+          </div>
+
+          <!-- FAQ 3 -->
+          <div class="fade-up delay-1 bg-white border border-arena-100 rounded-xl overflow-hidden">
+            <button class="faq-toggle flex items-center justify-between w-full px-6 py-4 text-left cursor-pointer hover:bg-arena-50/50 transition-colors" onclick="toggleFaq(this)">
+              <span class="font-medium text-arena-800 pr-4" data-i18n="faq.q3">How do I create a tournament?</span>
+              <svg class="w-5 h-5 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            </button>
+            <div class="faq-answer px-6 pb-4">
+              <p class="text-sm text-arena-500 leading-relaxed" data-i18n="faq.a3">For Offline Mode: tap the "+" button on the home screen, add your players, and the app automatically generates a round-robin schedule. For Online Mode: first create or join a group, then create a tournament inside the group. Other group members can see the tournament and matches update in real time.</p>
+            </div>
+          </div>
+
+          <!-- FAQ 4 -->
+          <div class="fade-up delay-2 bg-white border border-arena-100 rounded-xl overflow-hidden">
+            <button class="faq-toggle flex items-center justify-between w-full px-6 py-4 text-left cursor-pointer hover:bg-arena-50/50 transition-colors" onclick="toggleFaq(this)">
+              <span class="font-medium text-arena-800 pr-4" data-i18n="faq.q4">How do I invite friends to my online group?</span>
+              <svg class="w-5 h-5 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            </button>
+            <div class="faq-answer px-6 pb-4">
+              <p class="text-sm text-arena-500 leading-relaxed" data-i18n="faq.a4">Once you create a group in Online Mode, you can share the group link or invite code with your friends. They need to sign in to the app and join using the code. Group admins can also search for users by their profile name and invite them directly.</p>
+            </div>
+          </div>
+
+          <!-- FAQ 5 -->
+          <div class="fade-up delay-2 bg-white border border-arena-100 rounded-xl overflow-hidden">
+            <button class="faq-toggle flex items-center justify-between w-full px-6 py-4 text-left cursor-pointer hover:bg-arena-50/50 transition-colors" onclick="toggleFaq(this)">
+              <span class="font-medium text-arena-800 pr-4" data-i18n="faq.q5">Is the app free?</span>
+              <svg class="w-5 h-5 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            </button>
+            <div class="faq-answer px-6 pb-4">
+              <p class="text-sm text-arena-500 leading-relaxed" data-i18n="faq.a5">Yes, PES Arena is free to download and use. The app is supported by ads. All core features — offline tournaments, online groups, match management, player stats, and group chat — are available for free.</p>
+            </div>
+          </div>
+
+          <!-- FAQ 6 -->
+          <div class="fade-up delay-3 bg-white border border-arena-100 rounded-xl overflow-hidden">
+            <button class="faq-toggle flex items-center justify-between w-full px-6 py-4 text-left cursor-pointer hover:bg-arena-50/50 transition-colors" onclick="toggleFaq(this)">
+              <span class="font-medium text-arena-800 pr-4" data-i18n="faq.q6">How do I delete my account and data?</span>
+              <svg class="w-5 h-5 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            </button>
+            <div class="faq-answer px-6 pb-4">
+              <p class="text-sm text-arena-500 leading-relaxed" data-i18n="faq.a6">For offline data: uninstalling the app removes all locally stored data. For your online account: go to Profile > Settings > Delete Account in the app. This will permanently remove your account and associated data from our Firebase servers. You can also email us at taipv.swe@gmail.com to request account deletion.</p>
+            </div>
+          </div>
+
+          <!-- FAQ 7 -->
+          <div class="fade-up delay-3 bg-white border border-arena-100 rounded-xl overflow-hidden">
+            <button class="faq-toggle flex items-center justify-between w-full px-6 py-4 text-left cursor-pointer hover:bg-arena-50/50 transition-colors" onclick="toggleFaq(this)">
+              <span class="font-medium text-arena-800 pr-4" data-i18n="faq.q7">How do I report a bug or request a feature?</span>
+              <svg class="w-5 h-5 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            </button>
+            <div class="faq-answer px-6 pb-4">
+              <p class="text-sm text-arena-500 leading-relaxed" data-i18n="faq.a7">Send us an email at taipv.swe@gmail.com with details about the bug or your feature idea. Please include your device model and OS version for bug reports. We read every message and prioritize based on community interest.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ STILL NEED HELP ============ -->
+  <section class="py-16 bg-gradient-to-b from-white to-arena-50/50">
+    <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="fade-up bg-white border border-arena-100 rounded-2xl p-8 shadow-sm">
+        <div class="w-14 h-14 bg-gradient-to-br from-arena-400 to-arena-600 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3 class="font-heading font-bold text-xl text-arena-800 mb-2" data-i18n="help.title">Still Need Help?</h3>
+        <p class="text-sm text-arena-400 mb-6" data-i18n="help.desc">Can't find what you're looking for? Send us an email and we'll get back to you as soon as possible.</p>
+        <a href="mailto:taipv.swe@gmail.com" class="inline-flex items-center gap-2 bg-arena-600 hover:bg-arena-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors duration-200 cursor-pointer">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <span data-i18n="help.cta">Contact Us</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="bg-arena-900 text-arena-300 py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-3">
+          <img src="assets/app-icon.png" alt="PES Arena" class="w-8 h-8 rounded-lg">
+          <span class="font-heading font-bold text-white">PES Arena</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm">
+          <a href="privacy.html" class="hover:text-white transition-colors cursor-pointer" data-i18n="footer.privacy">Privacy Policy</a>
+          <span class="text-white cursor-default" data-i18n="footer.support">Support</span>
+          <a href="index.html" class="hover:text-white transition-colors cursor-pointer" data-i18n="footer.home">Home</a>
+        </div>
+        <p class="text-sm text-arena-400">&copy; 2026 PES Arena. <span data-i18n="footer.rights">All rights reserved.</span></p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ============ SCRIPTS ============ -->
+  <script>
+    function toggleFaq(btn) {
+      const answer = btn.nextElementSibling;
+      const isOpen = answer.classList.toggle('open');
+      btn.classList.toggle('open', isOpen);
+    }
+
+    const T = {
+      en: {
+        'nav.back': 'Back to Home',
+        'header.badge': "We're Here to Help",
+        'header.title': 'Support Center',
+        'header.subtitle': 'Find answers to common questions or reach out to us directly',
+        'contact.email.title': 'Email Us',
+        'contact.appstore.title': 'Rate on App Store',
+        'contact.appstore.desc': 'Leave a review on iOS',
+        'contact.play.title': 'Rate on Google Play',
+        'contact.play.desc': 'Leave a review on Android',
+        'faq.title': 'Frequently Asked Questions',
+        'faq.q1': 'Do I need an account to use the app?',
+        'faq.a1': 'No account is needed to use Offline Mode. You can create and manage local tournaments right away without signing in. An account (email/password or Google Sign-In) is only required to access Online Mode features like groups, real-time tournaments, and group chat.',
+        'faq.q2': "What's the difference between Online and Offline mode?",
+        'faq.a2': 'Offline Mode stores all tournament data locally on your device using SQLite — no internet required. Online Mode uses Firebase to sync data in real time across all participants, supports group chat, push notifications, and lets players from anywhere join your tournament. Both modes support full round-robin tournament management and player statistics.',
+        'faq.q3': 'How do I create a tournament?',
+        'faq.a3': 'For Offline Mode: tap the "+" button on the home screen, add your players, and the app automatically generates a round-robin schedule. For Online Mode: first create or join a group, then create a tournament inside the group. Other group members can see the tournament and matches update in real time.',
+        'faq.q4': 'How do I invite friends to my online group?',
+        'faq.a4': 'Once you create a group in Online Mode, you can share the group link or invite code with your friends. They need to sign in to the app and join using the code. Group admins can also search for users by their profile name and invite them directly.',
+        'faq.q5': 'Is the app free?',
+        'faq.a5': 'Yes, PES Arena is free to download and use. The app is supported by ads. All core features — offline tournaments, online groups, match management, player stats, and group chat — are available for free.',
+        'faq.q6': 'How do I delete my account and data?',
+        'faq.a6': 'For offline data: uninstalling the app removes all locally stored data. For your online account: go to Profile > Settings > Delete Account in the app. This will permanently remove your account and associated data from our Firebase servers. You can also email us at taipv.swe@gmail.com to request account deletion.',
+        'faq.q7': 'How do I report a bug or request a feature?',
+        'faq.a7': 'Send us an email at taipv.swe@gmail.com with details about the bug or your feature idea. Please include your device model and OS version for bug reports. We read every message and prioritize based on community interest.',
+        'help.title': 'Still Need Help?',
+        'help.desc': "Can't find what you're looking for? Send us an email and we'll get back to you as soon as possible.",
+        'help.cta': 'Contact Us',
+        'footer.privacy': 'Privacy Policy',
+        'footer.support': 'Support',
+        'footer.home': 'Home',
+        'footer.rights': 'All rights reserved.',
+      },
+      vi: {
+        'nav.back': 'Về Trang Chủ',
+        'header.badge': 'Chúng Tôi Sẵn Sàng Hỗ Trợ',
+        'header.title': 'Trung Tâm Hỗ Trợ',
+        'header.subtitle': 'Tìm câu trả lời cho các câu hỏi thường gặp hoặc liên hệ trực tiếp với chúng tôi',
+        'contact.email.title': 'Gửi Email',
+        'contact.appstore.title': 'Đánh Giá App Store',
+        'contact.appstore.desc': 'Viết đánh giá trên iOS',
+        'contact.play.title': 'Đánh Giá Google Play',
+        'contact.play.desc': 'Viết đánh giá trên Android',
+        'faq.title': 'Câu Hỏi Thường Gặp',
+        'faq.q1': 'Tôi có cần tài khoản để dùng ứng dụng không?',
+        'faq.a1': 'Không cần tài khoản để sử dụng Chế Độ Offline. Bạn có thể tạo và quản lý giải đấu cục bộ ngay lập tức mà không cần đăng nhập. Tài khoản (email/mật khẩu hoặc Google Sign-In) chỉ cần để truy cập các tính năng Chế Độ Online như nhóm, giải đấu thời gian thực và chat nhóm.',
+        'faq.q2': 'Sự khác biệt giữa chế độ Online và Offline là gì?',
+        'faq.a2': 'Chế Độ Offline lưu tất cả dữ liệu giải đấu cục bộ trên thiết bị bằng SQLite — không cần internet. Chế Độ Online dùng Firebase để đồng bộ dữ liệu thời gian thực cho tất cả người tham gia, hỗ trợ chat nhóm, thông báo đẩy và cho phép người chơi từ khắp nơi tham gia giải đấu.',
+        'faq.q3': 'Làm cách nào để tạo giải đấu?',
+        'faq.a3': 'Chế Độ Offline: nhấn nút "+" trên màn hình chính, thêm cầu thủ và ứng dụng tự động tạo lịch round-robin. Chế Độ Online: đầu tiên tạo hoặc tham gia nhóm, sau đó tạo giải đấu trong nhóm. Các thành viên khác có thể xem giải đấu và cập nhật trận đấu thời gian thực.',
+        'faq.q4': 'Làm cách nào để mời bạn bè vào nhóm online?',
+        'faq.a4': 'Sau khi tạo nhóm trong Chế Độ Online, bạn có thể chia sẻ link nhóm hoặc mã mời với bạn bè. Họ cần đăng nhập vào ứng dụng và tham gia bằng mã. Quản trị viên nhóm cũng có thể tìm kiếm người dùng theo tên hồ sơ và mời trực tiếp.',
+        'faq.q5': 'Ứng dụng có miễn phí không?',
+        'faq.a5': 'Có, PES Arena miễn phí tải và sử dụng. Ứng dụng được hỗ trợ bởi quảng cáo. Tất cả tính năng cốt lõi — giải đấu offline, nhóm online, quản lý trận đấu, thống kê cầu thủ và chat nhóm — đều miễn phí.',
+        'faq.q6': 'Làm cách nào để xóa tài khoản và dữ liệu?',
+        'faq.a6': 'Dữ liệu offline: gỡ cài đặt ứng dụng để xóa tất cả dữ liệu cục bộ. Tài khoản online: vào Hồ Sơ > Cài Đặt > Xóa Tài Khoản trong ứng dụng. Thao tác này sẽ xóa vĩnh viễn tài khoản và dữ liệu liên quan khỏi máy chủ Firebase. Bạn cũng có thể gửi email đến taipv.swe@gmail.com để yêu cầu xóa tài khoản.',
+        'faq.q7': 'Làm cách nào để báo lỗi hoặc yêu cầu tính năng?',
+        'faq.a7': 'Gửi email đến taipv.swe@gmail.com với chi tiết về lỗi hoặc ý tưởng tính năng. Vui lòng bao gồm model thiết bị và phiên bản OS cho báo cáo lỗi. Chúng tôi đọc mọi tin nhắn và ưu tiên dựa trên quan tâm của cộng đồng.',
+        'help.title': 'Vẫn Cần Hỗ Trợ?',
+        'help.desc': 'Không tìm thấy câu trả lời? Gửi email cho chúng tôi và chúng tôi sẽ phản hồi sớm nhất có thể.',
+        'help.cta': 'Liên Hệ',
+        'footer.privacy': 'Chính Sách Bảo Mật',
+        'footer.support': 'Hỗ Trợ',
+        'footer.home': 'Trang Chủ',
+        'footer.rights': 'Đã đăng ký bản quyền.',
+      }
+    };
+
+    const langMeta = {
+      en: { flag: '\u{1F1FA}\u{1F1F8}', code: 'EN', htmlLang: 'en' },
+      vi: { flag: '\u{1F1FB}\u{1F1F3}', code: 'VI', htmlLang: 'vi' },
+    };
+
+    let currentLang = localStorage.getItem('pa-lang') || 'en';
+
+    function setLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('pa-lang', lang);
+      document.documentElement.lang = langMeta[lang].htmlLang;
+      document.getElementById('lang-current-flag').textContent = langMeta[lang].flag;
+      document.getElementById('lang-current-code').textContent = langMeta[lang].code;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (T[lang] && T[lang][key]) el.innerHTML = T[lang][key];
+      });
+      document.getElementById('lang-dropdown').classList.remove('open');
+    }
+
+    document.getElementById('lang-toggle').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('lang-dropdown').classList.toggle('open');
+    });
+    document.addEventListener('click', () => {
+      document.getElementById('lang-dropdown').classList.remove('open');
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    setLang(currentLang);
+  </script>
+</body>
+</html>
