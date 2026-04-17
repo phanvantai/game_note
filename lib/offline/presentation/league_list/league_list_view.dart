@@ -8,22 +8,23 @@ import 'bloc/league_list_bloc.dart';
 import 'league_list_body.dart';
 
 class LeagueListView extends StatelessWidget {
-  const LeagueListView({Key? key}) : super(key: key);
+  const LeagueListView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Giải đấu'),
-      ),
+      appBar: AppBar(title: const Text('Giải đấu')),
       body: SafeArea(
         child: BlocConsumer<LeagueListBloc, LeagueListState>(
           listener: (context, state) {
             if (state.newLeague != null) {
-              Navigator.of(context).push(MaterialPageRoute(
+              Navigator.of(context).push(
+                MaterialPageRoute(
                   builder: (context) =>
-                      LeagueDetailPage(model: state.newLeague!)));
+                      LeagueDetailPage(model: state.newLeague!),
+                ),
+              );
               context.read<LeagueListBloc>().add(LeagueListStarted());
             }
           },
@@ -50,13 +51,14 @@ class LeagueListView extends StatelessWidget {
                         child: Align(
                           alignment: Alignment.topRight,
                           child: IconButton(
-                            onPressed: () => context
-                                .read<LeagueListBloc>()
-                                .add(LeagueListStarted()),
+                            onPressed: () => context.read<LeagueListBloc>().add(
+                              LeagueListStarted(),
+                            ),
                             icon: Icon(
                               Icons.refresh,
-                              color: colorScheme.onSurface
-                                  .withValues(alpha: 0.5),
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                           ),
                         ),
@@ -65,8 +67,7 @@ class LeagueListView extends StatelessWidget {
                         child: AppEmptyState(
                           icon: Icons.emoji_events_outlined,
                           title: 'Chưa có giải đấu nào được tạo.',
-                          subtitle:
-                              'Bấm nút + bên dưới để tạo một giải đấu',
+                          subtitle: 'Bấm nút + bên dưới để tạo một giải đấu',
                         ),
                       ),
                     ],

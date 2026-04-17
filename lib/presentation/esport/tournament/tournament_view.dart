@@ -14,7 +14,7 @@ import '../groups/bloc/group_bloc.dart';
 import 'create_esport_league_dialog.dart';
 
 class TournamentView extends StatelessWidget {
-  const TournamentView({Key? key}) : super(key: key);
+  const TournamentView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -97,8 +97,7 @@ class TournamentView extends StatelessWidget {
                             subtitle: 'Tạo giải đấu mới để bắt đầu',
                           )
                         : ListView.builder(
-                            padding: const EdgeInsets.only(
-                                top: 8, bottom: 80),
+                            padding: const EdgeInsets.only(top: 8, bottom: 80),
                             itemBuilder: (context, index) => TournamentItem(
                               league: state.userLeagues[index],
                               onTap: () async {
@@ -107,8 +106,9 @@ class TournamentView extends StatelessWidget {
                                   arguments: state.userLeagues[index].id,
                                 );
                                 if (context.mounted) {
-                                  BlocProvider.of<TournamentBloc>(context)
-                                      .add(GetTournaments());
+                                  BlocProvider.of<TournamentBloc>(
+                                    context,
+                                  ).add(GetTournaments());
                                 }
                               },
                             ),
@@ -120,8 +120,7 @@ class TournamentView extends StatelessWidget {
                             title: 'Không có giải đấu nào',
                           )
                         : ListView.builder(
-                            padding: const EdgeInsets.only(
-                                top: 8, bottom: 80),
+                            padding: const EdgeInsets.only(top: 8, bottom: 80),
                             itemBuilder: (context, index) => TournamentItem(
                               league: state.otherLeagues[index],
                               onTap: () async {
@@ -130,8 +129,9 @@ class TournamentView extends StatelessWidget {
                                   arguments: state.otherLeagues[index].id,
                                 );
                                 if (context.mounted) {
-                                  BlocProvider.of<TournamentBloc>(context)
-                                      .add(GetTournaments());
+                                  BlocProvider.of<TournamentBloc>(
+                                    context,
+                                  ).add(GetTournaments());
                                 }
                               },
                             ),
@@ -139,7 +139,7 @@ class TournamentView extends StatelessWidget {
                           ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
           floatingActionButton: FloatingActionButton.extended(
@@ -147,7 +147,8 @@ class TournamentView extends StatelessWidget {
               final groups = context.read<GroupBloc>().state.userGroups;
               if (groups.isEmpty) {
                 showToast(
-                    'Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước');
+                  'Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước',
+                );
                 return;
               }
               showDialog(
@@ -157,7 +158,7 @@ class TournamentView extends StatelessWidget {
                     groups: groups,
                     onAddLeague:
                         (name, groupId, startDate, endDate, description) {
-                      context.read<TournamentBloc>().add(
+                          context.read<TournamentBloc>().add(
                             AddTournament(
                               name: name,
                               groupId: groupId,
@@ -166,8 +167,8 @@ class TournamentView extends StatelessWidget {
                               description: description,
                             ),
                           );
-                      Navigator.of(ctx).pop();
-                    },
+                          Navigator.of(ctx).pop();
+                        },
                   );
                 },
               );

@@ -6,7 +6,7 @@ import '../bloc/league_detail_bloc.dart';
 import 'table_item_view.dart';
 
 class TableView extends StatelessWidget {
-  const TableView({Key? key}) : super(key: key);
+  const TableView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +24,7 @@ class TableView extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
-            TableItemView(
-              model: PlayerStats.virtualStats,
-              isHeader: true,
-            ),
+            TableItemView(model: PlayerStats.virtualStats, isHeader: true),
             ...List.generate(
               state.model!.players.length,
               (index) => TableItemView(

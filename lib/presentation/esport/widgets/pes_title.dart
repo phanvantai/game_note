@@ -7,7 +7,7 @@ import '../../../firebase/firestore/gn_firestore.dart';
 import '../../../injection_container.dart';
 
 class PesTitle extends StatelessWidget {
-  const PesTitle({Key? key}) : super(key: key);
+  const PesTitle({super.key});
 
   @override
   Widget build(BuildContext context) {

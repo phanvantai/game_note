@@ -8,7 +8,7 @@ import 'package:pes_arena/injection_container.dart';
 import 'add_player_dialog.dart';
 
 class MembersView extends StatefulWidget {
-  const MembersView({Key? key}) : super(key: key);
+  const MembersView({super.key});
 
   @override
   State<MembersView> createState() => _MembersViewState();
@@ -35,9 +35,7 @@ class _MembersViewState extends State<MembersView>
     final colorScheme = Theme.of(context).colorScheme;
     super.build(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Người chơi'),
-      ),
+      appBar: AppBar(title: const Text('Người chơi')),
       body: SafeArea(
         child: players.isEmpty
             ? const AppEmptyState(
@@ -56,16 +54,16 @@ class _MembersViewState extends State<MembersView>
                       getIt<DatabaseManager>()
                           .deletePlayer(players[index])
                           .then((value) {
-                        // ignore: use_build_context_synchronously
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Đã xóa ${players[index].fullname}',
-                            ),
-                          ),
-                        );
-                        loadPlayer();
-                      });
+                            // ignore: use_build_context_synchronously
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Đã xóa ${players[index].fullname}',
+                                ),
+                              ),
+                            );
+                            loadPlayer();
+                          });
                     },
                     confirmDismiss: (direction) {
                       return Future.value(false);
@@ -102,7 +100,7 @@ class _MembersViewState extends State<MembersView>
     );
   }
 
-  _addNewPlayer() {
+  void _addNewPlayer() {
     showDialog(
       context: context,
       builder: (_) => AddPlayerDialog(

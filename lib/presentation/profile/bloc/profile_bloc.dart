@@ -19,7 +19,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<DeleteAvatarProfileEvent>(_onDeleteAvatar);
   }
 
-  _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
+  Future<void> _onLoadProfile(
+    LoadProfileEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       final user = await _userRepository.loadProfile();
@@ -29,7 +32,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
-  _onSignOut(SignOutProfileEvent event, Emitter<ProfileState> emit) async {
+  Future<void> _onSignOut(
+    SignOutProfileEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _userRepository.signOut();
@@ -39,7 +45,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
-  _onDeleteProfile(DeleteProfileEvent event, Emitter<ProfileState> emit) async {
+  Future<void> _onDeleteProfile(
+    DeleteProfileEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _userRepository.deleteAccount();
@@ -48,8 +57,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
-  _onChangeAvatar(
-      ChangeAvatarProfileEvent event, Emitter<ProfileState> emit) async {
+  Future<void> _onChangeAvatar(
+    ChangeAvatarProfileEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _userRepository.changeAvatar();
@@ -59,8 +70,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
-  _onDeleteAvatar(
-      DeleteAvatarProfileEvent event, Emitter<ProfileState> emit) async {
+  Future<void> _onDeleteAvatar(
+    DeleteAvatarProfileEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _userRepository.deleteAvatar();

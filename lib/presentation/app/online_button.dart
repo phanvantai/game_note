@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../routing.dart';
 
 class OnlineButton extends StatelessWidget {
-  const OnlineButton({Key? key}) : super(key: key);
+  const OnlineButton({super.key});
 
   @override
   Widget build(BuildContext context) {

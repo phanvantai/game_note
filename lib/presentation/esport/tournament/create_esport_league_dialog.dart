@@ -7,13 +7,19 @@ import '../../../firebase/firestore/esport/group/gn_esport_group.dart';
 
 class CreateEsportLeagueDialog extends StatefulWidget {
   final List<GNEsportGroup> groups;
-  final Function(String name, String groupId, DateTime? startDate,
-      DateTime? endDate, String description) onAddLeague;
+  final Function(
+    String name,
+    String groupId,
+    DateTime? startDate,
+    DateTime? endDate,
+    String description,
+  )
+  onAddLeague;
   const CreateEsportLeagueDialog({
-    Key? key,
+    super.key,
     required this.groups,
     required this.onAddLeague,
-  }) : super(key: key);
+  });
 
   @override
   State<CreateEsportLeagueDialog> createState() =>
@@ -92,11 +98,13 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 14),
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -104,10 +112,9 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
                           Icon(
                             Icons.calendar_today,
                             size: 16,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.5),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.5),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -117,10 +124,8 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
                             style: TextStyle(
                               color: startDate != null
                                   ? null
-                                  : Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.4),
+                                  : Theme.of(context).colorScheme.onSurface
+                                        .withValues(alpha: 0.4),
                             ),
                           ),
                         ],
@@ -146,11 +151,13 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 14),
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -158,10 +165,9 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
                           Icon(
                             Icons.calendar_today,
                             size: 16,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.5),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.5),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -171,10 +177,8 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
                             style: TextStyle(
                               color: endDate != null
                                   ? null
-                                  : Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.4),
+                                  : Theme.of(context).colorScheme.onSurface
+                                        .withValues(alpha: 0.4),
                             ),
                           ),
                         ],

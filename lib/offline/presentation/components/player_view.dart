@@ -5,8 +5,7 @@ class PlayerView extends StatefulWidget {
   final bool? bold;
   final PlayerModel player;
   final Function(bool)? onClick;
-  const PlayerView(this.player, {Key? key, required this.onClick, this.bold})
-      : super(key: key);
+  const PlayerView(this.player, {super.key, required this.onClick, this.bold});
 
   @override
   State<PlayerView> createState() => _PlayerViewState();

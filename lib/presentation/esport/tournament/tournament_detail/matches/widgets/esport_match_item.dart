@@ -9,11 +9,11 @@ class EsportMatchItem extends StatelessWidget {
   final Function()? onTap;
   final Function()? onLongPress;
   const EsportMatchItem({
-    Key? key,
+    super.key,
     required this.match,
     this.onTap,
     this.onLongPress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +50,9 @@ class EsportMatchItem extends StatelessWidget {
                         : DateFormat('d MMM').format(match.date),
                     style: textTheme.labelSmall?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.5),
-                      fontWeight:
-                          match.isFinished ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: match.isFinished
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                     ),
                   ),
                 ),

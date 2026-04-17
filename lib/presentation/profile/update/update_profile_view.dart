@@ -7,7 +7,7 @@ import 'package:pes_arena/presentation/profile/update/bloc/update_profile_bloc.d
 import '../../../core/common/view_status.dart';
 
 class UpdateProfileView extends StatefulWidget {
-  const UpdateProfileView({Key? key}) : super(key: key);
+  const UpdateProfileView({super.key});
 
   @override
   State<UpdateProfileView> createState() => _UpdateProfileViewState();
@@ -43,9 +43,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
         }
       },
       builder: (context, state) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Cập nhật thông tin'),
-        ),
+        appBar: AppBar(title: const Text('Cập nhật thông tin')),
         body: Column(
           children: [
             if (state.viewStatus == ViewStatus.loading)
@@ -93,15 +91,13 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
                           ? null
                           : () {
                               FocusScope.of(context).unfocus();
-                              context
-                                  .read<UpdateProfileBloc>()
-                                  .add(SubmittUpdateProfile(
-                                    userDisplayName:
-                                        _displayNameController.text,
-                                    userPhoneNumber:
-                                        _phoneNumberController.text,
-                                    userEmail: _emailController.text,
-                                  ));
+                              context.read<UpdateProfileBloc>().add(
+                                SubmittUpdateProfile(
+                                  userDisplayName: _displayNameController.text,
+                                  userPhoneNumber: _phoneNumberController.text,
+                                  userEmail: _emailController.text,
+                                ),
+                              );
                             },
                       style: FilledButton.styleFrom(
                         backgroundColor: colorScheme.secondary,
@@ -121,7 +117,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

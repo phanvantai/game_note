@@ -6,7 +6,7 @@ import 'core/theme/theme_provider.dart';
 import 'routing.dart';
 
 class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {

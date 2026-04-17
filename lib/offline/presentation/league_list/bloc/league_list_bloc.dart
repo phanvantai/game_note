@@ -24,7 +24,10 @@ class LeagueListBloc extends Bloc<LeagueListEvent, LeagueListState> {
     on<CreateLeagueEvent>(_onCreateLeague);
   }
 
-  _onStarted(LeagueListStarted event, Emitter<LeagueListState> emit) async {
+  Future<void> _onStarted(
+    LeagueListStarted event,
+    Emitter<LeagueListState> emit,
+  ) async {
     emit(state.copyWith(status: LeagueListStatus.loading));
     var result = await getLeagues.call(GetLeaguesParams());
     result.fold(
@@ -33,21 +36,26 @@ class LeagueListBloc extends Bloc<LeagueListEvent, LeagueListState> {
     );
   }
 
-  _onDeleteLeague(
-      DeleteLeagueEvent event, Emitter<LeagueListState> emit) async {
+  Future<void> _onDeleteLeague(
+    DeleteLeagueEvent event,
+    Emitter<LeagueListState> emit,
+  ) async {
     if (event.leagueModel.id == null) {
       return;
     }
     emit(state.copyWith(status: LeagueListStatus.loading));
-    final result =
-        await deleteLeague.call(GetLeagueParams(event.leagueModel.id!));
+    final result = await deleteLeague.call(
+      GetLeagueParams(event.leagueModel.id!),
+    );
     result.fold((l) => null, (r) {
       add(LeagueListStarted());
     });
   }
 
-  _onCreateLeague(
-      CreateLeagueEvent event, Emitter<LeagueListState> emit) async {
+  Future<void> _onCreateLeague(
+    CreateLeagueEvent event,
+    Emitter<LeagueListState> emit,
+  ) async {
     emit(state.copyWith(status: LeagueListStatus.loading));
     // create league
     var now = DateTime.now();

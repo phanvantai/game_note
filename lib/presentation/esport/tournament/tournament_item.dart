@@ -7,11 +7,7 @@ import '../../../firebase/firestore/esport/league/gn_esport_league.dart';
 class TournamentItem extends StatelessWidget {
   final GNEsportLeague league;
   final Function() onTap;
-  const TournamentItem({
-    Key? key,
-    required this.league,
-    required this.onTap,
-  }) : super(key: key);
+  const TournamentItem({super.key, required this.league, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -32,16 +28,12 @@ class TournamentItem extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onTap,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: SvgPicture.asset(
           'assets/svg/trophy-solid.svg',
           width: 28,
           height: 28,
-          colorFilter: ColorFilter.mode(
-            colorScheme.secondary,
-            BlendMode.srcIn,
-          ),
+          colorFilter: ColorFilter.mode(colorScheme.secondary, BlendMode.srcIn),
         ),
         title: Text(
           league.name.isEmpty
@@ -61,8 +53,7 @@ class TournamentItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: status.color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6),

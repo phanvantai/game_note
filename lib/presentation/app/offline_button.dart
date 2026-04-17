@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../routing.dart';
 
 class OfflineButton extends StatelessWidget {
-  const OfflineButton({Key? key}) : super(key: key);
+  const OfflineButton({super.key});
 
   @override
   Widget build(BuildContext context) {

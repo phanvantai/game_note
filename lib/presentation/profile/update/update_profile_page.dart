@@ -7,7 +7,7 @@ import 'package:pes_arena/presentation/profile/update/update_profile_view.dart';
 import '../../../firebase/firestore/user/gn_user.dart';
 
 class UpdateProfilePage extends StatelessWidget {
-  const UpdateProfilePage({Key? key}) : super(key: key);
+  const UpdateProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {

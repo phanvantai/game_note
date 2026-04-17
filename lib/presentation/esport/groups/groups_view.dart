@@ -13,7 +13,7 @@ import 'bloc/group_bloc.dart';
 import 'widgets/group_item.dart';
 
 class GroupsView extends StatelessWidget {
-  const GroupsView({Key? key}) : super(key: key);
+  const GroupsView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -97,8 +97,10 @@ class GroupsView extends StatelessWidget {
                               subtitle: 'Tạo nhóm mới để bắt đầu',
                             )
                           : ListView.builder(
-                              padding:
-                                  const EdgeInsets.only(top: 8, bottom: 80),
+                              padding: const EdgeInsets.only(
+                                top: 8,
+                                bottom: 80,
+                              ),
                               itemBuilder: (context, index) => GroupItem(
                                 group: state.userGroups[index],
                                 onTap: () async {
@@ -107,8 +109,9 @@ class GroupsView extends StatelessWidget {
                                     arguments: state.userGroups[index],
                                   );
                                   if (context.mounted) {
-                                    BlocProvider.of<GroupBloc>(context)
-                                        .add(GetEsportGroups());
+                                    BlocProvider.of<GroupBloc>(
+                                      context,
+                                    ).add(GetEsportGroups());
                                   }
                                 },
                               ),
@@ -120,8 +123,10 @@ class GroupsView extends StatelessWidget {
                               title: 'Không có nhóm nào',
                             )
                           : ListView.builder(
-                              padding:
-                                  const EdgeInsets.only(top: 8, bottom: 80),
+                              padding: const EdgeInsets.only(
+                                top: 8,
+                                bottom: 80,
+                              ),
                               itemBuilder: (context, index) => GroupItem(
                                 group: state.otherGroups[index],
                                 onTap: () async {
@@ -130,8 +135,9 @@ class GroupsView extends StatelessWidget {
                                     arguments: state.otherGroups[index],
                                   );
                                   if (context.mounted) {
-                                    BlocProvider.of<GroupBloc>(context)
-                                        .add(GetEsportGroups());
+                                    BlocProvider.of<GroupBloc>(
+                                      context,
+                                    ).add(GetEsportGroups());
                                   }
                                 },
                               ),
@@ -139,7 +145,7 @@ class GroupsView extends StatelessWidget {
                             ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
             floatingActionButton: FloatingActionButton.extended(
@@ -196,10 +202,12 @@ class GroupsView extends StatelessWidget {
                   initialValue: null,
                   onChanged: (value) => selectedProvince = value!,
                   items: provinces
-                      .map((e) => DropdownMenuItem(
-                            value: e.name,
-                            child: Text(e.name),
-                          ))
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e.name,
+                          child: Text(e.name),
+                        ),
+                      )
                       .toList(),
                   decoration: appInputDecoration(
                     context: context,

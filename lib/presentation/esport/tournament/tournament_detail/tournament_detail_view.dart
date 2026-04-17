@@ -19,7 +19,7 @@ import 'widgets/league_share_card.dart';
 import 'widgets/share_preview_bottom_sheet.dart';
 
 class TournamentDetailView extends StatefulWidget {
-  const TournamentDetailView({Key? key}) : super(key: key);
+  const TournamentDetailView({super.key});
 
   @override
   State<TournamentDetailView> createState() => _TournamentDetailViewState();
@@ -63,8 +63,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   state.league?.name.isEmpty == true
                       ? ("${state.league?.group?.groupName ?? " "} ${DateFormat('dd/MM/yyyy').format(state.league?.startDate ?? DateTime.now())}")
                       : state.league?.name ?? '',
-                  style: textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -113,10 +114,14 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
-                      leading:
-                          Icon(Icons.delete_outline, color: colorScheme.error),
-                      title: Text('Xóa giải đấu',
-                          style: TextStyle(color: colorScheme.error)),
+                      leading: Icon(
+                        Icons.delete_outline,
+                        color: colorScheme.error,
+                      ),
+                      title: Text(
+                        'Xóa giải đấu',
+                        style: TextStyle(color: colorScheme.error),
+                      ),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -129,15 +134,16 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             SingleChildScrollView(
               child: Column(
                 spacing: 16.0,
-                children: [
-                  const EsportTableView(),
-                  const EsportMatchesView(),
-                ],
+                children: [const EsportTableView(), const EsportMatchesView()],
               ),
             ),
             if (state.viewStatus.isLoading)
               const Positioned(
-                  top: 0, right: 0, left: 0, child: LinearProgressIndicator()),
+                top: 0,
+                right: 0,
+                left: 0,
+                child: LinearProgressIndicator(),
+              ),
 
             // Off-screen share card — positioned far outside the visible area
             // so Flutter fully paints it (required for toImage()).
@@ -176,8 +182,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
 
   Future<void> _shareStandings(TournamentDetailState state) async {
     // Capture from the hidden full-width share card (no scroll clipping).
-    final boundary = _shareCardKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
+    final boundary =
+        _shareCardKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
     if (boundary == null) return;
 
     // Use a pixel ratio of ~2.5 for a high-quality image without being too heavy.
@@ -207,26 +214,27 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             bloc: bloc,
             builder: (ctx, state) =>
                 DropdownButtonFormField<GNEsportLeagueStatus>(
-              initialValue: GNEsportLeagueStatusExtension.fromString(
-                  state.league?.status),
-              onChanged: (value) {
-                if (value != null) bloc.add(ChangeLeagueStatus(value));
-              },
-              items: GNEsportLeagueStatus.values.map((status) {
-                return DropdownMenuItem(
-                  value: status,
-                  child: Text(status.name),
-                );
-              }).toList(),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  initialValue: GNEsportLeagueStatusExtension.fromString(
+                    state.league?.status,
+                  ),
+                  onChanged: (value) {
+                    if (value != null) bloc.add(ChangeLeagueStatus(value));
+                  },
+                  items: GNEsportLeagueStatus.values.map((status) {
+                    return DropdownMenuItem(
+                      value: status,
+                      child: Text(status.name),
+                    );
+                  }).toList(),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
           actions: [
             TextButton(
@@ -278,8 +286,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   void _loadAd() async {
     if (isAdsLoaded) return;
     final AnchoredAdaptiveBannerAdSize? size =
-        await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-            MediaQuery.of(context).size.width.truncate());
+        await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
+          MediaQuery.of(context).size.width.truncate(),
+        );
     _bannerAd = BannerAd(
       adUnitId: AdmobHelper.bannerUnitIDDetailBottom,
       request: const AdRequest(),

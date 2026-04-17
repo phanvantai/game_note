@@ -6,7 +6,7 @@ import 'bloc/notification_bloc.dart';
 import 'notification_view.dart';
 
 class NotificationPage extends StatelessWidget {
-  const NotificationPage({Key? key}) : super(key: key);
+  const NotificationPage({super.key});
 
   @override
   Widget build(BuildContext context) {

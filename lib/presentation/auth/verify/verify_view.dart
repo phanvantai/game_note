@@ -6,7 +6,7 @@ import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import '../../../injection_container.dart';
 
 class VerifyView extends StatelessWidget {
-  VerifyView({Key? key}) : super(key: key);
+  VerifyView({super.key});
 
   final TextEditingController _codeController = TextEditingController();
 
@@ -18,10 +18,7 @@ class VerifyView extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text(
-          'Đăng nhập',
-          style: textTheme.titleMedium,
-        ),
+        title: Text('Đăng nhập', style: textTheme.titleMedium),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -42,10 +39,7 @@ class VerifyView extends StatelessWidget {
                     color: colorScheme.secondary,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Xác thực tài khoản',
-                    style: textTheme.titleLarge,
-                  ),
+                  Text('Xác thực tài khoản', style: textTheme.titleLarge),
                   const SizedBox(height: 8),
                   Text(
                     'Mã xác thực đã được gửi đến số điện thoại của bạn',
@@ -104,7 +98,7 @@ class VerifyView extends StatelessWidget {
                   // ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

@@ -9,12 +9,12 @@ class ListRoundsView extends StatelessWidget {
   final Function(MatchModel)? reUpdateMatchCallback;
   final bool status;
   const ListRoundsView({
-    Key? key,
+    super.key,
     required this.list,
     this.updateMatchCallback,
     this.status = false,
     this.reUpdateMatchCallback,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class ListRoundsView extends StatelessWidget {
                     model: match,
                     callback: updateMatchCallback,
                     reUpdateMatchCallback: reUpdateMatchCallback,
-                  )
+                  ),
             ],
           ),
         );

@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class LegendWidget extends StatelessWidget {
-  const LegendWidget({
-    Key? key,
-    required this.name,
-    required this.color,
-  }) : super(key: key);
+  const LegendWidget({super.key, required this.name, required this.color});
   final String name;
   final Color color;
 
@@ -17,18 +13,12 @@ class LegendWidget extends StatelessWidget {
         Container(
           width: 16,
           height: 16,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
         ),
         const SizedBox(width: 6),
         Text(
           name,
-          style: const TextStyle(
-            color: Color(0xff757391),
-            fontSize: 16,
-          ),
+          style: const TextStyle(color: Color(0xff757391), fontSize: 16),
         ),
       ],
     );
@@ -36,10 +26,7 @@ class LegendWidget extends StatelessWidget {
 }
 
 class LegendsListWidget extends StatelessWidget {
-  const LegendsListWidget({
-    Key? key,
-    required this.legends,
-  }) : super(key: key);
+  const LegendsListWidget({super.key, required this.legends});
   final List<Legend> legends;
 
   @override
@@ -47,12 +34,7 @@ class LegendsListWidget extends StatelessWidget {
     return Wrap(
       spacing: 32,
       children: legends
-          .map(
-            (e) => LegendWidget(
-              name: e.name,
-              color: e.color,
-            ),
-          )
+          .map((e) => LegendWidget(name: e.name, color: e.color))
           .toList(),
     );
   }

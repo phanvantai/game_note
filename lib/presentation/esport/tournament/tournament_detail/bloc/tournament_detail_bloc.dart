@@ -20,7 +20,7 @@ class TournamentDetailBloc
   final EsportLeagueRepository _esportLeagueRepository;
 
   TournamentDetailBloc(this._esportLeagueRepository)
-      : super(const TournamentDetailState()) {
+    : super(const TournamentDetailState()) {
     on<GetParticipantStats>(_onGetParticipants);
     on<GetMatches>(_onGetMatches);
     on<GetParticipantsAndMatches>(_onGetParticipantsAndMatches);
@@ -49,8 +49,12 @@ class TournamentDetailBloc
 
     on<GetLeague>(_onGetLeague);
     on<LoadLeagueError>((event, emit) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: event.message));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: event.message,
+        ),
+      );
     });
   }
 
@@ -58,49 +62,64 @@ class TournamentDetailBloc
   StreamSubscription<List<GNEsportLeagueStat>>? _participantsSubscription;
   StreamSubscription<GNEsportLeague>? _leagueSubscription;
 
-  _onGetLeague(GetLeague event, Emitter<TournamentDetailState> emit) async {
+  Future<void> _onGetLeague(
+    GetLeague event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     _participantsSubscription?.cancel();
     _participantsSubscription = _esportLeagueRepository
         .listenForLeagueStats(event.leagueId)
         .listen((participants) {
-      if (state.league?.id != null) {
-        add(GetParticipantsAndMatches(state.league!.id));
-      }
-    });
+          if (state.league?.id != null) {
+            add(GetParticipantsAndMatches(state.league!.id));
+          }
+        });
 
     _matchesSubscription?.cancel();
     _matchesSubscription = _esportLeagueRepository
         .listenForMatchesUpdated(event.leagueId)
         .listen((matches) async {
-      add(UpdateMatches(matches));
-    });
+          add(UpdateMatches(matches));
+        });
     _leagueSubscription?.cancel();
     _leagueSubscription = _esportLeagueRepository
         .listenForLeagueUpdated(event.leagueId)
-        .listen((league) {
-      add(UpdateLeague(league));
-    }, onError: (e) {
-      //add(LoadLeagueError(e.toString()));
-    });
+        .listen(
+          (league) {
+            add(UpdateLeague(league));
+          },
+          onError: (e) {
+            //add(LoadLeagueError(e.toString()));
+          },
+        );
 
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       final league = await _esportLeagueRepository.getLeague(event.leagueId);
       if (league == null) {
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             viewStatus: ViewStatus.failure,
-            errorMessage: 'Không tìm thấy giải đấu'));
+            errorMessage: 'Không tìm thấy giải đấu',
+          ),
+        );
         return;
       }
       emit(state.copyWith(viewStatus: ViewStatus.success, league: league));
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onUpdateLeague(
-      UpdateLeague event, Emitter<TournamentDetailState> emit) async {
+    UpdateLeague event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final newLeague = event.league.copyWith(group: state.league?.group);
     emit(state.copyWith(league: newLeague));
     if (event.league.isActive) {
@@ -109,24 +128,32 @@ class TournamentDetailBloc
   }
 
   void _onUpdateMatches(
-      UpdateMatches event, Emitter<TournamentDetailState> emit) async {
+    UpdateMatches event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final users = state.users;
-    emit(state.copyWith(
-      matches: event.matches
-          .map((e) => e.copyWith(
+    emit(
+      state.copyWith(
+        matches: event.matches
+            .map(
+              (e) => e.copyWith(
                 homeTeam: users.isNotEmpty
                     ? users.firstWhere((element) => element.id == e.homeTeamId)
                     : null,
                 awayTeam: users.isNotEmpty
                     ? users.firstWhere((element) => element.id == e.awayTeamId)
                     : null,
-              ))
-          .toList(),
-    ));
+              ),
+            )
+            .toList(),
+      ),
+    );
   }
 
   void _onUpdateMatchMedals(
-      UpdateMatchMedals event, Emitter<TournamentDetailState> emit) async {
+    UpdateMatchMedals event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final leagueId = state.league?.id;
     if (leagueId == null) {
       return;
@@ -134,16 +161,25 @@ class TournamentDetailBloc
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.updateMatchMedals(
-          event.matchId, leagueId, event.medals);
+        event.matchId,
+        leagueId,
+        event.medals,
+      );
       add(GetMatches(leagueId));
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onUpdateStartingMedals(
-      UpdateStartingMedals event, Emitter<TournamentDetailState> emit) async {
+    UpdateStartingMedals event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final leagueId = state.league?.id;
     if (leagueId == null) {
       return;
@@ -151,15 +187,23 @@ class TournamentDetailBloc
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.updateLeagueStartingMedals(
-          leagueId, event.medals);
+        leagueId,
+        event.medals,
+      );
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onUpdateUnitMedals(
-      UpdateUnitMedals event, Emitter<TournamentDetailState> emit) async {
+    UpdateUnitMedals event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final leagueId = state.league?.id;
     if (leagueId == null) {
       return;
@@ -167,16 +211,24 @@ class TournamentDetailBloc
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.updateLeagueUnitMedals(
-          leagueId, event.unitMedals);
+        leagueId,
+        event.unitMedals,
+      );
       emit(state.copyWith(viewStatus: ViewStatus.success));
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onCreateCustomMatch(
-      CreateCustomMatch event, Emitter<TournamentDetailState> emit) async {
+    CreateCustomMatch event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     if (state.viewStatus == ViewStatus.loading) {
       return;
     }
@@ -200,13 +252,19 @@ class TournamentDetailBloc
       add(GetMatches(leagueId));
       showToast('Tạo trận đấu thành công');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onDeleteMatch(
-      DeleteEsportMatch event, Emitter<TournamentDetailState> emit) async {
+    DeleteEsportMatch event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final leagueId = state.league?.id;
     if (leagueId == null) {
       return;
@@ -217,13 +275,19 @@ class TournamentDetailBloc
       add(GetParticipantStats(leagueId));
       showToast('Xoá trận đấu thành công');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onInactiveLeague(
-      InactiveLeague event, Emitter<TournamentDetailState> emit) async {
+    InactiveLeague event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final league = state.league;
     if (league == null) {
       return;
@@ -234,19 +298,27 @@ class TournamentDetailBloc
       emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast('Đã xoá giải đấu');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onChangeLeagueStatus(
-      ChangeLeagueStatus event, Emitter<TournamentDetailState> emit) async {
+    ChangeLeagueStatus event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final newLeague = state.league?.copyWith(status: event.status.value);
     emit(state.copyWith(league: newLeague));
   }
 
   void _onSubmitLeagueStatus(
-      SubmitLeagueStatus event, Emitter<TournamentDetailState> emit) async {
+    SubmitLeagueStatus event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final league = state.league;
     if (league == null) {
       return;
@@ -257,17 +329,24 @@ class TournamentDetailBloc
       emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast('Cập nhật trạng thái giải đấu thành công');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onGetParticipants(
-      GetParticipantStats event, Emitter<TournamentDetailState> emit) async {
+    GetParticipantStats event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      final participants =
-          await _esportLeagueRepository.getLeagueStats(event.tournamentId);
+      final participants = await _esportLeagueRepository.getLeagueStats(
+        event.tournamentId,
+      );
       List<GNUser> users = [];
       for (var participant in participants) {
         final user = participant.user;
@@ -282,51 +361,71 @@ class TournamentDetailBloc
         if (a.goals != b.goals) return b.goals.compareTo(a.goals);
         return b.matchesPlayed.compareTo(a.matchesPlayed);
       });
-      emit(state.copyWith(
-        viewStatus: ViewStatus.success,
-        participants: participants,
-        users: users,
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.success,
+          participants: participants,
+          users: users,
+        ),
+      );
       add(GetMatches(event.tournamentId));
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onGetMatches(
-      GetMatches event, Emitter<TournamentDetailState> emit) async {
+    GetMatches event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      final matches =
-          await _esportLeagueRepository.getMatches(event.tournamentId);
+      final matches = await _esportLeagueRepository.getMatches(
+        event.tournamentId,
+      );
       final users = state.users;
       emit(
         state.copyWith(
           viewStatus: ViewStatus.success,
           matches: matches
-              .map((e) => e.copyWith(
-                    homeTeam: users
-                        .firstWhere((element) => element.id == e.homeTeamId),
-                    awayTeam: users
-                        .firstWhere((element) => element.id == e.awayTeamId),
-                  ))
+              .map(
+                (e) => e.copyWith(
+                  homeTeam: users.firstWhere(
+                    (element) => element.id == e.homeTeamId,
+                  ),
+                  awayTeam: users.firstWhere(
+                    (element) => element.id == e.awayTeamId,
+                  ),
+                ),
+              )
               .toList(),
         ),
       );
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
-  void _onGetParticipantsAndMatches(GetParticipantsAndMatches event,
-      Emitter<TournamentDetailState> emit) async {
+  void _onGetParticipantsAndMatches(
+    GetParticipantsAndMatches event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       // Load participants and matches in parallel for better performance
-      final data = await _esportLeagueRepository
-          .getParticipantsAndMatches(event.leagueId);
+      final data = await _esportLeagueRepository.getParticipantsAndMatches(
+        event.leagueId,
+      );
 
       // Extract users from participants
       List<GNUser> users = [];
@@ -345,20 +444,28 @@ class TournamentDetailBloc
         return b.matchesPlayed.compareTo(a.matchesPlayed);
       });
 
-      emit(state.copyWith(
-        viewStatus: ViewStatus.success,
-        participants: data.participants,
-        users: users,
-        matches: data.matches, // Matches already have user data populated
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.success,
+          participants: data.participants,
+          users: users,
+          matches: data.matches, // Matches already have user data populated
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onAddParticipant(
-      AddParticipant event, Emitter<TournamentDetailState> emit) async {
+    AddParticipant event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final leagueId = state.league?.id;
     if (leagueId == null) {
       return;
@@ -366,17 +473,25 @@ class TournamentDetailBloc
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.addParticipant(
-          leagueId: leagueId, userId: event.userId);
+        leagueId: leagueId,
+        userId: event.userId,
+      );
       add(GetParticipantStats(leagueId));
       showToast('Thêm người chơi thành công');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onAddMultipleParticipants(
-      AddMultipleParticipants event, Emitter<TournamentDetailState> emit) async {
+    AddMultipleParticipants event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final leagueId = state.league?.id;
     if (leagueId == null) {
       return;
@@ -387,17 +502,25 @@ class TournamentDetailBloc
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.addMultipleParticipants(
-          leagueId: leagueId, userIds: event.userIds);
+        leagueId: leagueId,
+        userIds: event.userIds,
+      );
       add(GetParticipantStats(leagueId));
       showToast('Thêm ${event.userIds.length} người chơi thành công');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onGenerateRound(
-      GenerateRound event, Emitter<TournamentDetailState> emit) async {
+    GenerateRound event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final leagueId = state.league?.id;
     if (leagueId == null) {
       return;
@@ -409,18 +532,25 @@ class TournamentDetailBloc
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.generateRound(
-          leagueId: leagueId,
-          teamIds: state.participants.map((e) => e.userId).toList());
+        leagueId: leagueId,
+        teamIds: state.participants.map((e) => e.userId).toList(),
+      );
       add(GetMatches(leagueId));
       showToast('Tạo vòng đấu thành công');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void _onUpdateMatch(
-      UpdateEsportMatch event, Emitter<TournamentDetailState> emit) async {
+    UpdateEsportMatch event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
     final leagueId = state.league?.id;
     if (leagueId == null) {
       return;
@@ -431,8 +561,12 @@ class TournamentDetailBloc
       add(GetParticipantStats(leagueId));
       showToast('Cập nhật trận đấu thành công');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 

@@ -16,7 +16,7 @@ import 'bloc/profile_bloc.dart';
 import 'feedback/feedback_view.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -132,8 +132,9 @@ class _ProfileViewState extends State<ProfileView>
                             Icon(
                               Icons.edit_outlined,
                               size: 18,
-                              color:
-                                  colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                           ],
                         ),
@@ -142,7 +143,9 @@ class _ProfileViewState extends State<ProfileView>
                         onTap: () => _navigateToUpdateProfile(context, state),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: colorScheme.errorContainer,
                             borderRadius: BorderRadius.circular(8),
@@ -172,15 +175,17 @@ class _ProfileViewState extends State<ProfileView>
                       onTap: () => _navigateToUpdateProfile(context, state),
                     ),
                     Divider(
-                        height: 0.5,
-                        indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                      height: 0.5,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.lock_outline,
                       title: 'Đổi mật khẩu',
-                      onTap: () => Navigator.of(context)
-                          .pushNamed(Routing.changePassword),
+                      onTap: () => Navigator.of(
+                        context,
+                      ).pushNamed(Routing.changePassword),
                     ),
                   ],
                 ),
@@ -200,16 +205,18 @@ class _ProfileViewState extends State<ProfileView>
                       onTap: () => _switchToOffline(context),
                     ),
                     Divider(
-                        height: 0.5,
-                        indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                      height: 0.5,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.settings_outlined,
                       title: 'Tuỳ chọn khác',
                       onTap: () => Navigator.of(context).pushNamed(
-                          Routing.setting,
-                          arguments: context.read<ProfileBloc>()),
+                        Routing.setting,
+                        arguments: context.read<ProfileBloc>(),
+                      ),
                     ),
                   ],
                 ),
@@ -237,20 +244,23 @@ class _ProfileViewState extends State<ProfileView>
                       },
                     ),
                     Divider(
-                        height: 0.5,
-                        indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                      height: 0.5,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.chat_bubble_outline,
                       title: 'Nhận xét góp ý',
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const FeedbackView())),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const FeedbackView()),
+                      ),
                     ),
                     Divider(
-                        height: 0.5,
-                        indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                      height: 0.5,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                    ),
                     ListTile(
                       onTap: _incrementCounter,
                       leading: Icon(
@@ -266,8 +276,9 @@ class _ProfileViewState extends State<ProfileView>
                                 ? snapshot.data!.versionNumber
                                 : '1.0.0',
                             style: textTheme.bodyMedium?.copyWith(
-                              color:
-                                  colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                           );
                         },
@@ -309,13 +320,12 @@ class _ProfileViewState extends State<ProfileView>
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.45),
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.45),
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1,
+        ),
       ),
     );
   }
@@ -337,9 +347,9 @@ class _ProfileViewState extends State<ProfileView>
       ),
       title: Text(
         title,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: textColor,
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(color: textColor),
       ),
       trailing: showChevron
           ? Icon(
@@ -399,9 +409,12 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   void _navigateToUpdateProfile(
-      BuildContext context, ProfileState state) async {
-    await Navigator.of(context)
-        .pushNamed(Routing.updateProfile, arguments: state.user);
+    BuildContext context,
+    ProfileState state,
+  ) async {
+    await Navigator.of(
+      context,
+    ).pushNamed(Routing.updateProfile, arguments: state.user);
     if (context.mounted) {
       context.read<ProfileBloc>().add(LoadProfileEvent());
     }

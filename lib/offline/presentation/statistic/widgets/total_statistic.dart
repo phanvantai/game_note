@@ -9,10 +9,7 @@ import 'legends_list_widget.dart';
 
 class TotalStatistic extends StatelessWidget {
   final List<PersonalStatistic> statistics;
-  const TotalStatistic({
-    Key? key,
-    required this.statistics,
-  }) : super(key: key);
+  const TotalStatistic({super.key, required this.statistics});
 
   final Color colorPointPerMatch = Colors.deepOrange;
   final Color colorGDPerMatch = Colors.greenAccent;
@@ -24,9 +21,7 @@ class TotalStatistic extends StatelessWidget {
     }
     // calcualate
     // poit permatch
-    statistics.sort(
-      (a, b) => b.pointPerMatch.compareTo(a.pointPerMatch),
-    );
+    statistics.sort((a, b) => b.pointPerMatch.compareTo(a.pointPerMatch));
     return Column(
       children: [
         const SizedBox(height: 16),
@@ -47,22 +42,24 @@ class TotalStatistic extends StatelessWidget {
               gridData: const FlGridData(show: false),
               alignment: BarChartAlignment.spaceAround,
               maxY: statistics.map((e) => e.pointPerMatch).reduce(max) + 0.15,
-              minY: statistics.map((e) => e.goalDifferentPerMatch).reduce(min) -
+              minY:
+                  statistics.map((e) => e.goalDifferentPerMatch).reduce(min) -
                   0.15,
             ),
           ),
-        )
+        ),
       ],
     );
   }
 
   BarTouchData barTouchData(BuildContext context) => BarTouchData(
-        enabled: false,
-        touchTooltipData: BarTouchTooltipData(
-          //tooltipBgColor: Colors.transparent,
-          tooltipPadding: EdgeInsets.zero,
-          tooltipMargin: 8,
-          getTooltipItem: (
+    enabled: false,
+    touchTooltipData: BarTouchTooltipData(
+      //tooltipBgColor: Colors.transparent,
+      tooltipPadding: EdgeInsets.zero,
+      tooltipMargin: 8,
+      getTooltipItem:
+          (
             BarChartGroupData group,
             int groupIndex,
             BarChartRodData rod,
@@ -76,8 +73,8 @@ class TotalStatistic extends StatelessWidget {
               ),
             );
           },
-        ),
-      );
+    ),
+  );
   Widget getTitles(double value, TitleMeta meta) {
     String text = statistics[value.toInt()].playerModel.fullname;
 
@@ -86,49 +83,39 @@ class TotalStatistic extends StatelessWidget {
       space: 4,
       child: Text(
         text,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         overflow: TextOverflow.ellipsis,
       ),
     );
   }
 
   FlTitlesData get titlesData => FlTitlesData(
-        show: true,
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 28,
-            getTitlesWidget: getTitles,
-          ),
-        ),
-        leftTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      );
+    show: true,
+    bottomTitles: AxisTitles(
+      sideTitles: SideTitles(
+        showTitles: true,
+        reservedSize: 28,
+        getTitlesWidget: getTitles,
+      ),
+    ),
+    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  );
 
   List<BarChartGroupData> get barGroups => statistics
-      .mapIndexed((index, e) => BarChartGroupData(
-            x: index,
-            barRods: [
-              BarChartRodData(
-                toY: e.pointPerMatch,
-                color: colorPointPerMatch,
-              ),
-              BarChartRodData(
-                toY: e.goalDifferentPerMatch,
-                color: colorGDPerMatch,
-              ),
-            ],
-            showingTooltipIndicators: [0, 1],
-          ))
+      .mapIndexed(
+        (index, e) => BarChartGroupData(
+          x: index,
+          barRods: [
+            BarChartRodData(toY: e.pointPerMatch, color: colorPointPerMatch),
+            BarChartRodData(
+              toY: e.goalDifferentPerMatch,
+              color: colorGDPerMatch,
+            ),
+          ],
+          showingTooltipIndicators: [0, 1],
+        ),
+      )
       .toList();
 }

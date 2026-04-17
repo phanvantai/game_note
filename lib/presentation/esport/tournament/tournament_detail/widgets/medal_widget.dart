@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 class MedalWidget extends StatelessWidget {
   final Color? color;
   final double? size;
-  const MedalWidget({Key? key, this.color, this.size}) : super(key: key);
+  const MedalWidget({super.key, this.color, this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +12,10 @@ class MedalWidget extends StatelessWidget {
       'assets/svg/medal-solid.svg',
       width: size ?? 24,
       height: size ?? 24,
-      colorFilter: ColorFilter.mode(color ?? Theme.of(context).colorScheme.onSurface, BlendMode.srcIn),
+      colorFilter: ColorFilter.mode(
+        color ?? Theme.of(context).colorScheme.onSurface,
+        BlendMode.srcIn,
+      ),
     );
   }
 }

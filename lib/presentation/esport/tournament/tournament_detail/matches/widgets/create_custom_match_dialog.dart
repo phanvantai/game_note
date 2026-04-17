@@ -7,10 +7,10 @@ class CreateCustomMatchDialog extends StatefulWidget {
   final List<GNUser> users;
   final Function(GNUser homeTeam, GNUser awayTeam) onMatchCreated;
   const CreateCustomMatchDialog({
-    Key? key,
+    super.key,
     required this.users,
     required this.onMatchCreated,
-  }) : super(key: key);
+  });
 
   @override
   State<CreateCustomMatchDialog> createState() =>
@@ -47,8 +47,10 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -69,8 +71,10 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
             ),
           ),
         ],

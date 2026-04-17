@@ -12,17 +12,19 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<UpdateFootballFeature>(_onUpdateFootballFeature);
   }
 
-  _onUpdateFootballFeature(
-      UpdateFootballFeature event, Emitter<AppState> emit) {
+  void _onUpdateFootballFeature(
+    UpdateFootballFeature event,
+    Emitter<AppState> emit,
+  ) {
     emit(state.copyWith(enableFootballFeature: event.enableFootballFeature));
   }
 
-  _onInitApp(InitApp event, Emitter<AppState> emit) {
+  void _onInitApp(InitApp event, Emitter<AppState> emit) {
     // Do something
     getProvinces();
   }
 
-  _onAuthStatusChanged(AuthStatusChanged event, Emitter<AppState> emit) {
+  void _onAuthStatusChanged(AuthStatusChanged event, Emitter<AppState> emit) {
     emit(state.copyWith(status: event.status));
   }
 }

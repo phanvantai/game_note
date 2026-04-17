@@ -4,9 +4,11 @@ import 'package:pes_arena/offline/domain/entities/match_model.dart';
 class UpdateMatchDialog extends StatefulWidget {
   final MatchModel model;
   final Function(MatchModel model, int homeScore, int awayScore) callback;
-  const UpdateMatchDialog(
-      {Key? key, required this.model, required this.callback})
-      : super(key: key);
+  const UpdateMatchDialog({
+    super.key,
+    required this.model,
+    required this.callback,
+  });
 
   @override
   State<UpdateMatchDialog> createState() => _UpdateMatchDialogState();

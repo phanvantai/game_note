@@ -5,7 +5,7 @@ import 'package:pes_arena/core/ultils.dart';
 import 'bloc/sign_in_bloc.dart';
 
 class SignInView extends StatefulWidget {
-  const SignInView({Key? key}) : super(key: key);
+  const SignInView({super.key});
 
   @override
   State<SignInView> createState() => _SignInViewState();
@@ -77,8 +77,7 @@ class _SignInViewState extends State<SignInView> {
                     horizontal: 16,
                     vertical: 14,
                   ),
-                  errorText:
-                      state.emailError.isEmpty ? null : state.emailError,
+                  errorText: state.emailError.isEmpty ? null : state.emailError,
                 ),
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
@@ -133,24 +132,19 @@ class _SignInViewState extends State<SignInView> {
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: colorScheme.error,
-                    width: 1.5,
-                  ),
+                  borderSide: BorderSide(color: colorScheme.error, width: 1.5),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: colorScheme.error,
-                    width: 1.5,
-                  ),
+                  borderSide: BorderSide(color: colorScheme.error, width: 1.5),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 14,
                 ),
-                errorText:
-                    state.passwordError.isEmpty ? null : state.passwordError,
+                errorText: state.passwordError.isEmpty
+                    ? null
+                    : state.passwordError,
               ),
               keyboardType: TextInputType.visiblePassword,
               obscureText: !showPassword,
@@ -170,9 +164,7 @@ class _SignInViewState extends State<SignInView> {
                     ? null
                     : () {
                         FocusManager.instance.primaryFocus?.unfocus();
-                        context
-                            .read<SignInBloc>()
-                            .add(EmailSignInSubmitted());
+                        context.read<SignInBloc>().add(EmailSignInSubmitted());
                       },
                 style: FilledButton.styleFrom(
                   backgroundColor: colorScheme.secondary,
@@ -180,8 +172,9 @@ class _SignInViewState extends State<SignInView> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  disabledBackgroundColor:
-                      colorScheme.secondary.withValues(alpha: 0.6),
+                  disabledBackgroundColor: colorScheme.secondary.withValues(
+                    alpha: 0.6,
+                  ),
                 ),
                 child: state.status == SignInStatus.loading
                     ? SizedBox(

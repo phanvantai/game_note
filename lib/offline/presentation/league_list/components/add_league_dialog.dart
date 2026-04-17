@@ -3,7 +3,7 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 
 class AddLeagueDialog extends StatefulWidget {
   final Function(String)? callback;
-  const AddLeagueDialog({Key? key, this.callback}) : super(key: key);
+  const AddLeagueDialog({super.key, this.callback});
 
   @override
   State<AddLeagueDialog> createState() => _AddLeagueDialogState();

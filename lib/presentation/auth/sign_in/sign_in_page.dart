@@ -5,7 +5,7 @@ import 'package:pes_arena/presentation/auth/sign_in/sign_in_view.dart';
 import 'package:pes_arena/injection_container.dart';
 
 class SignInPage extends StatelessWidget {
-  const SignInPage({Key? key}) : super(key: key);
+  const SignInPage({super.key});
 
   @override
   Widget build(BuildContext context) {

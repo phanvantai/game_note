@@ -6,7 +6,7 @@ import 'sign_in/sign_in_page.dart';
 import 'third_party/auth_buttons_view.dart';
 
 class AuthView extends StatelessWidget {
-  const AuthView({Key? key}) : super(key: key);
+  const AuthView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +28,7 @@ class AuthView extends StatelessWidget {
               // App logo
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
-                child: Image.asset(
-                  AssetsPath.appIcon,
-                  width: 80,
-                  height: 80,
-                ),
+                child: Image.asset(AssetsPath.appIcon, width: 80, height: 80),
               ),
               const SizedBox(height: 16),
               Text(
@@ -59,10 +55,7 @@ class AuthView extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Divider(
-                      color: colorScheme.outline,
-                      thickness: 0.5,
-                    ),
+                    child: Divider(color: colorScheme.outline, thickness: 0.5),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -76,10 +69,7 @@ class AuthView extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: Divider(
-                      color: colorScheme.outline,
-                      thickness: 0.5,
-                    ),
+                    child: Divider(color: colorScheme.outline, thickness: 0.5),
                   ),
                 ],
               ),

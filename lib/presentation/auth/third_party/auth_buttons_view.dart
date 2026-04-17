@@ -10,7 +10,7 @@ import 'package:pes_arena/presentation/auth/third_party/bloc/third_party_bloc.da
 import 'package:pes_arena/injection_container.dart';
 
 class AuthButtonsView extends StatelessWidget {
-  const AuthButtonsView({Key? key}) : super(key: key);
+  const AuthButtonsView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -76,10 +76,7 @@ class AuthButtonsView extends StatelessWidget {
                   backgroundColor: isDark
                       ? colorScheme.surfaceContainerHighest
                       : Colors.white,
-                  side: BorderSide(
-                    color: colorScheme.outline,
-                    width: 1,
-                  ),
+                  side: BorderSide(color: colorScheme.outline, width: 1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

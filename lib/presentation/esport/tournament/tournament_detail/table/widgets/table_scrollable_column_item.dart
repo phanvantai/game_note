@@ -4,13 +4,13 @@ import '../../../../../../firebase/firestore/esport/league/stats/gn_esport_leagu
 
 class TableScrollableColumnItem extends StatelessWidget {
   const TableScrollableColumnItem({
-    Key? key,
+    super.key,
     required this.tableItemDecor,
     required this.tableRowHeight,
     required this.tableNameColumnWidth,
     required this.stats,
     required this.tableStatsColumnWidth,
-  }) : super(key: key);
+  });
 
   final BoxDecoration tableItemDecor;
   final double tableRowHeight;
@@ -54,9 +54,7 @@ class TableScrollableColumnItem extends StatelessWidget {
           ])
             SizedBox(
               width: tableStatsColumnWidth,
-              child: Center(
-                child: Text(value.toString(), style: statStyle),
-              ),
+              child: Center(child: Text(value.toString(), style: statStyle)),
             ),
         ],
       ),

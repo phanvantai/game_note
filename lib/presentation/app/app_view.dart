@@ -7,7 +7,7 @@ import '../main/main_page.dart';
 import 'bloc/app_bloc.dart';
 
 class AppView extends StatelessWidget {
-  const AppView({Key? key}) : super(key: key);
+  const AppView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class AppView extends StatelessWidget {
     );
   }
 
-  _appView(BuildContext context, AppState state) {
+  StatelessWidget _appView(BuildContext context, AppState state) {
     switch (state.status) {
       case AppStatus.authenticated:
         return const MainPage();

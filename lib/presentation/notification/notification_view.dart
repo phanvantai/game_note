@@ -7,7 +7,7 @@ import 'bloc/notification_bloc.dart';
 import 'notification_item.dart';
 
 class NotificationView extends StatefulWidget {
-  const NotificationView({Key? key}) : super(key: key);
+  const NotificationView({super.key});
 
   @override
   State<NotificationView> createState() => _NotificationViewState();
@@ -25,9 +25,9 @@ class _NotificationViewState extends State<NotificationView>
           actions: [
             IconButton(
               onPressed: () {
-                context
-                    .read<NotificationBloc>()
-                    .add(NotificationEventMarkAllAsRead());
+                context.read<NotificationBloc>().add(
+                  NotificationEventMarkAllAsRead(),
+                );
               },
               icon: const Icon(Icons.checklist_outlined),
               tooltip: 'Đánh dấu tất cả đã đọc',
@@ -55,9 +55,9 @@ class _NotificationViewState extends State<NotificationView>
                         itemCount: state.notifications.length,
                       ),
                 onRefresh: () async {
-                  context
-                      .read<NotificationBloc>()
-                      .add(NotificationEventFetch());
+                  context.read<NotificationBloc>().add(
+                    NotificationEventFetch(),
+                  );
                 },
               ),
             ),

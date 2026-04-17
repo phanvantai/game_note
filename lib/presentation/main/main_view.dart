@@ -11,7 +11,7 @@ import '../esport/tournament/tournament_view.dart';
 import '../profile/profile_view.dart';
 
 class MainView extends StatefulWidget {
-  const MainView({Key? key}) : super(key: key);
+  const MainView({super.key});
 
   @override
   State<MainView> createState() => _MainViewState();
@@ -104,8 +104,9 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       return;
     }
     final AnchoredAdaptiveBannerAdSize? size =
-        await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-            MediaQuery.of(context).size.width.truncate());
+        await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
+          MediaQuery.of(context).size.width.truncate(),
+        );
     _bannerAd = BannerAd(
       adUnitId: AdmobHelper.bannerUnitIDHomeBottom,
       request: const AdRequest(),

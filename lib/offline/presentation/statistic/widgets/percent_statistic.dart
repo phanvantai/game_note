@@ -7,8 +7,7 @@ import 'legends_list_widget.dart';
 
 class PercentStatistic extends StatelessWidget {
   final List<PersonalStatistic> statistics;
-  const PercentStatistic({Key? key, required this.statistics})
-      : super(key: key);
+  const PercentStatistic({super.key, required this.statistics});
 
   final Color colorWins = Colors.green;
   final Color colorDraws = Colors.grey;
@@ -19,9 +18,7 @@ class PercentStatistic extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    statistics.sort(
-      (a, b) => b.percentWin.compareTo(a.percentWin),
-    );
+    statistics.sort((a, b) => b.percentWin.compareTo(a.percentWin));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 28),
       child: Column(
@@ -57,8 +54,11 @@ class PercentStatistic extends StatelessWidget {
                     // tooltipBgColor: Colors.grey,
                     getTooltipItem: (a, b, c, d) {
                       return BarTooltipItem(
-                          '${(c.toY - c.fromY).toStringAsFixed(2)}%',
-                          TextStyle(color: Theme.of(context).colorScheme.onSurface));
+                        '${(c.toY - c.fromY).toStringAsFixed(2)}%',
+                        TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -66,7 +66,11 @@ class PercentStatistic extends StatelessWidget {
                 gridData: const FlGridData(show: false),
                 barGroups: statistics.mapIndexed((index, e) {
                   return generateGroupData(
-                      index, e.percentWin, e.percentDraw, e.percentLose);
+                    index,
+                    e.percentWin,
+                    e.percentDraw,
+                    e.percentLose,
+                  );
                 }).toList(),
                 maxY: 100 + betweenSpace * 2,
                 extraLinesData: ExtraLinesData(

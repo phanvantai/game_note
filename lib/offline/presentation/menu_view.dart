@@ -12,7 +12,7 @@ import '../data/database/database_manager.dart';
 import '../../injection_container.dart';
 
 class MenuView extends StatelessWidget {
-  const MenuView({Key? key}) : super(key: key);
+  const MenuView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +20,7 @@ class MenuView extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        actions: const [OnlineButton()],
-      ),
+      appBar: AppBar(centerTitle: true, actions: const [OnlineButton()]),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -70,8 +67,9 @@ class MenuView extends StatelessWidget {
                       Icons.chevron_right,
                       color: colorScheme.onSurface.withValues(alpha: 0.3),
                     ),
-                    onTap: () => SharePlus.instance
-                        .share(ShareParams(files: [XFile(dataFile)])),
+                    onTap: () => SharePlus.instance.share(
+                      ShareParams(files: [XFile(dataFile)]),
+                    ),
                   ),
                 ],
               ),
@@ -84,20 +82,24 @@ class MenuView extends StatelessWidget {
 
   void _importData(BuildContext context) async {
     try {
-      final result = await FilePicker.platform.pickFiles();
+      final result = await FilePicker.pickFiles();
       if (result != null && context.mounted) {
-        if (!result.files.single.path!
-            .endsWith(DatabaseManager.databaseFileName)) {
-          showAlertDialog(context,
-              'Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db');
+        if (!result.files.single.path!.endsWith(
+          DatabaseManager.databaseFileName,
+        )) {
+          showAlertDialog(
+            context,
+            'Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db',
+          );
           return;
         }
         await getIt<DatabaseManager>().close();
         File file = File(result.files.single.path!);
         await file.copy(dataFile);
         await getIt<DatabaseManager>().open().then(
-            // ignore: use_build_context_synchronously
-            (_) => showAlertDialog(context, 'Dữ liệu đã được nhập thành công'));
+          // ignore: use_build_context_synchronously
+          (_) => showAlertDialog(context, 'Dữ liệu đã được nhập thành công'),
+        );
       }
     } catch (e) {
       // ignore: use_build_context_synchronously

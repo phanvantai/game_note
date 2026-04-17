@@ -13,11 +13,11 @@ class AddPlayerPopup extends StatefulWidget {
   final TournamentDetailBloc tournamentDetailBloc;
 
   const AddPlayerPopup({
-    Key? key,
+    super.key,
     required this.league,
     required this.existingParticipants,
     required this.tournamentDetailBloc,
-  }) : super(key: key);
+  });
 
   @override
   State<AddPlayerPopup> createState() => _AddPlayerPopupState();
@@ -98,9 +98,7 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 2),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? colorScheme.secondaryContainer
-                          : null,
+                      color: isSelected ? colorScheme.secondaryContainer : null,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: UserItem(
@@ -115,9 +113,7 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                         });
                       },
                       trailing: Icon(
-                        isSelected
-                            ? Icons.check_circle
-                            : Icons.circle_outlined,
+                        isSelected ? Icons.check_circle : Icons.circle_outlined,
                         color: isSelected
                             ? colorScheme.secondary
                             : colorScheme.onSurface.withValues(alpha: 0.3),
@@ -140,7 +136,9 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
               onPressed: () {
                 widget.tournamentDetailBloc.add(
                   AddMultipleParticipants(
-                      widget.league.id, selectedUserIds.toList()),
+                    widget.league.id,
+                    selectedUserIds.toList(),
+                  ),
                 );
                 Navigator.of(context).pop();
               },
