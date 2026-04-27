@@ -154,6 +154,21 @@ class UpdateLeague extends TournamentDetailEvent {
   List<Object> get props => [league];
 }
 
+class UpdateLeagueCostConfig extends TournamentDetailEvent {
+  final bool rankPayoutEnabled;
+  final List<int> rankPayouts;
+  final int defaultMatchCost;
+
+  const UpdateLeagueCostConfig({
+    required this.rankPayoutEnabled,
+    required this.rankPayouts,
+    required this.defaultMatchCost,
+  });
+
+  @override
+  List<Object> get props => [rankPayoutEnabled, rankPayouts, defaultMatchCost];
+}
+
 class UpdateMatches extends TournamentDetailEvent {
   final List<GNEsportMatch> matches;
 

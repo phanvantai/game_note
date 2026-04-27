@@ -31,6 +31,9 @@
 .pub/
 /build/
 
+# Test coverage output
+/coverage/
+
 # Web related
 lib/generated_plugin_registrant.dart
 

@@ -151,7 +151,16 @@ class TournamentView extends StatelessWidget {
                   return CreateEsportLeagueDialog(
                     groups: groups,
                     onAddLeague:
-                        (name, groupId, startDate, endDate, description) {
+                        (
+                          name,
+                          groupId,
+                          startDate,
+                          endDate,
+                          description,
+                          rankPayoutEnabled,
+                          rankPayouts,
+                          defaultMatchCost,
+                        ) {
                           context.read<TournamentBloc>().add(
                             AddTournament(
                               name: name,
@@ -159,6 +168,9 @@ class TournamentView extends StatelessWidget {
                               startDate: startDate,
                               endDate: endDate,
                               description: description,
+                              rankPayoutEnabled: rankPayoutEnabled,
+                              rankPayouts: rankPayouts,
+                              defaultMatchCost: defaultMatchCost,
                             ),
                           );
                           Navigator.of(ctx).pop();

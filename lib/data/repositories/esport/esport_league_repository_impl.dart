@@ -17,6 +17,9 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
     DateTime? startDate,
     DateTime? endDate,
     String description = '',
+    bool rankPayoutEnabled = false,
+    List<int> rankPayouts = const [],
+    int defaultMatchCost = 50000,
   }) {
     return getIt<GNFirestore>().addLeague(
       name: name,
@@ -24,6 +27,9 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       startDate: startDate,
       endDate: endDate,
       description: description,
+      rankPayoutEnabled: rankPayoutEnabled,
+      rankPayouts: rankPayouts,
+      defaultMatchCost: defaultMatchCost,
     );
   }
 
@@ -74,6 +80,7 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       homeScore: match.homeScore,
       awayScore: match.awayScore,
       medals: match.medals,
+      matchCost: match.matchCost,
     );
   }
 

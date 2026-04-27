@@ -116,6 +116,35 @@ The project follows **Clean Architecture** principles with clear layer separatio
 
 ## Testing & Quality
 
+### Coverage Policy
+- **Target: 100% line coverage** for all production code under `lib/`. Every PR
+  that adds or modifies code must include tests that maintain this bar.
+- **Exclusions** (allowed to skip): `main.dart`, `injection_container.dart`,
+  generated files, ad/analytics integrations, and pure-platform-channel glue
+  that requires a real device. Everything else — entities, repositories, blocs,
+  use cases, pure widgets — is in scope.
+- **Run locally**: `flutter test --coverage` produces `coverage/lcov.info`. To
+  view as HTML: `genhtml coverage/lcov.info -o coverage/html && open
+  coverage/html/index.html`.
+- **Refactor for testability**: if existing code blocks tests (global state,
+  hard-wired side effects, missing DI seams), refactor it as part of the test
+  PR. Don't write tests around untestable code.
+
+### Test Layering
+- **Unit tests** (most of the suite): pure logic, entity serialization, blocs.
+  Use `bloc_test` for blocs and `mocktail` for repository fakes.
+- **Widget tests**: every widget that has branching/conditional rendering or
+  computed display values. Skip widgets that are pure layout passthroughs.
+- **Test naming**: describe behavior in Vietnamese where the team prefers it
+  (matches existing tests under `test/`).
+
+### Test Structure
+- Mirror `lib/` paths under `test/`. Example: `lib/presentation/foo/bar.dart`
+  → `test/presentation/foo/bar_test.dart`.
+- Pure factories that need testing (e.g. Firestore deserialization) should
+  expose a `fromMap(Map, String id)` next to `fromFirestore(DocumentSnapshot)`
+  so tests don't need to mock `DocumentSnapshot`.
+
 ### Code Quality
 - **Linting**: Uses `flutter_lints` (configured in `analysis_options.yaml`)
 - **Error Handling**: Proper exception handling with user-friendly messages

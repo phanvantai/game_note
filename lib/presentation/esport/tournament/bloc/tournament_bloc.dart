@@ -49,6 +49,9 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
         startDate: event.startDate,
         endDate: event.endDate,
         description: event.description,
+        rankPayoutEnabled: event.rankPayoutEnabled,
+        rankPayouts: event.rankPayouts,
+        defaultMatchCost: event.defaultMatchCost,
       );
       add(GetTournaments());
       showToast('Tạo giải đấu thành công');

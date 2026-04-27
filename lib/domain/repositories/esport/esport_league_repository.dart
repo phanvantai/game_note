@@ -25,6 +25,9 @@ abstract class EsportLeagueRepository {
     DateTime? startDate,
     DateTime? endDate,
     String description = '',
+    bool rankPayoutEnabled = false,
+    List<int> rankPayouts = const [],
+    int defaultMatchCost = 50000,
   });
 
   Future<List<GNEsportLeagueStat>> getLeagueStats(String leagueId);

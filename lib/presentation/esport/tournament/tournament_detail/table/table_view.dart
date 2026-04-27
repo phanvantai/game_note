@@ -6,6 +6,7 @@ import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/
 import 'package:pes_arena/widgets/gn_circle_avatar.dart';
 
 import '../../../../../firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import '../../cost/cost_summary_panel.dart';
 import 'widgets/table_fixed_column_header.dart';
 import 'widgets/table_scrollable_column_header.dart';
 import 'widgets/table_scrollable_column_item.dart';
@@ -54,6 +55,7 @@ class EsportTableView extends StatelessWidget {
             subtitle: 'Thêm người chơi để bắt đầu giải đấu',
           );
         }
+        final league = state.league;
         return SingleChildScrollView(
           padding: const EdgeInsets.only(top: 16.0),
           child: Column(
@@ -81,6 +83,12 @@ class EsportTableView extends StatelessWidget {
                   ),
                 ],
               ),
+              if (league != null)
+                CostSummaryPanel(
+                  league: league,
+                  sortedStats: state.participants,
+                  matches: state.matches,
+                ),
             ],
           ),
         );

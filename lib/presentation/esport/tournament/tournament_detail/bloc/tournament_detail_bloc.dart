@@ -45,6 +45,7 @@ class TournamentDetailBloc
     on<UpdateMatchMedals>(_onUpdateMatchMedals);
 
     on<UpdateLeague>(_onUpdateLeague);
+    on<UpdateLeagueCostConfig>(_onUpdateLeagueCostConfig);
     on<UpdateMatches>(_onUpdateMatches);
 
     on<GetLeague>(_onGetLeague);
@@ -124,6 +125,32 @@ class TournamentDetailBloc
     emit(state.copyWith(league: newLeague));
     if (event.league.isActive) {
       add(GetParticipantsAndMatches(event.league.id));
+    }
+  }
+
+  Future<void> _onUpdateLeagueCostConfig(
+    UpdateLeagueCostConfig event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    final league = state.league;
+    if (league == null) return;
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      final updated = league.copyWith(
+        rankPayoutEnabled: event.rankPayoutEnabled,
+        rankPayouts: event.rankPayouts,
+        defaultMatchCost: event.defaultMatchCost,
+      );
+      await _esportLeagueRepository.updateLeague(updated);
+      emit(state.copyWith(viewStatus: ViewStatus.success, league: updated));
+      showToast('Đã cập nhật chi phí giải đấu');
+    } catch (e) {
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 

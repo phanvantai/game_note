@@ -78,8 +78,10 @@ String removeVietnameseDiacritics(String input) {
   return buffer.toString();
 }
 
-// Show toast message
-void showToast(
+/// Signature cho hook showToast — cho phép test override.
+typedef ToastImpl = void Function(String message, {ToastGravity gravity});
+
+void _platformShowToast(
   String message, {
   ToastGravity gravity = ToastGravity.BOTTOM,
 }) {
@@ -93,3 +95,21 @@ void showToast(
     fontSize: 16.0,
   );
 }
+
+ToastImpl _toastImpl = _platformShowToast;
+
+// Show toast message
+void showToast(
+  String message, {
+  ToastGravity gravity = ToastGravity.BOTTOM,
+}) {
+  _toastImpl(message, gravity: gravity);
+}
+
+/// Override showToast trong test. Nhớ gọi [resetShowToast] ở `tearDown`.
+@visibleForTesting
+void setShowToastImpl(ToastImpl impl) => _toastImpl = impl;
+
+/// Khôi phục lại impl mặc định (Fluttertoast).
+@visibleForTesting
+void resetShowToast() => _toastImpl = _platformShowToast;

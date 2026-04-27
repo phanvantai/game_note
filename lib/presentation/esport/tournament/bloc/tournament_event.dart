@@ -15,6 +15,9 @@ class AddTournament extends TournamentEvent {
   final DateTime? startDate;
   final DateTime? endDate;
   final String description;
+  final bool rankPayoutEnabled;
+  final List<int> rankPayouts;
+  final int defaultMatchCost;
 
   const AddTournament({
     required this.name,
@@ -22,8 +25,20 @@ class AddTournament extends TournamentEvent {
     this.startDate,
     this.endDate,
     this.description = '',
+    this.rankPayoutEnabled = false,
+    this.rankPayouts = const [],
+    this.defaultMatchCost = 50000,
   });
 
   @override
-  List<Object?> get props => [name, groupId, startDate, endDate, description];
+  List<Object?> get props => [
+        name,
+        groupId,
+        startDate,
+        endDate,
+        description,
+        rankPayoutEnabled,
+        rankPayouts,
+        defaultMatchCost,
+      ];
 }

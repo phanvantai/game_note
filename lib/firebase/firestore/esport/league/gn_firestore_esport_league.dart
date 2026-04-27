@@ -67,6 +67,9 @@ extension GNFirestoreEsportLeague on GNFirestore {
     DateTime? startDate,
     DateTime? endDate,
     String description = '',
+    bool rankPayoutEnabled = false,
+    List<int> rankPayouts = const [],
+    int defaultMatchCost = 50000,
   }) async {
     // Reference to the Firestore collection
     final leaguesCollection =
@@ -83,6 +86,9 @@ extension GNFirestoreEsportLeague on GNFirestore {
       isActive: true, // League is active by default
       description: description,
       participants: const [], // Empty list of participants
+      rankPayoutEnabled: rankPayoutEnabled,
+      rankPayouts: rankPayouts,
+      defaultMatchCost: defaultMatchCost,
     );
 
     // Add the new league to Firestore

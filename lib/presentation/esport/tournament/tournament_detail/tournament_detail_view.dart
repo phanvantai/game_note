@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -95,6 +96,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   case 'change_status':
                     _changeStatus(context, state);
                     break;
+                  case 'edit_cost':
+                    _editCostConfig(context, state);
+                    break;
                   case 'delete':
                     _deleteLeague(context);
                     break;
@@ -116,6 +120,15 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                     child: ListTile(
                       leading: Icon(Icons.edit_outlined),
                       title: Text('Trạng thái'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (state.currentUserIsLeagueAdmin)
+                  const PopupMenuItem(
+                    value: 'edit_cost',
+                    child: ListTile(
+                      leading: Icon(Icons.payments_outlined),
+                      title: Text('Sửa chi phí'),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -262,6 +275,135 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
           ],
         );
       },
+    );
+  }
+
+  List<int> _parseRankPayouts(String raw) {
+    return raw
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .map((e) => int.tryParse(e) ?? 0)
+        .where((v) => v > 0)
+        .toList();
+  }
+
+  void _editCostConfig(BuildContext context, TournamentDetailState state) {
+    final league = state.league;
+    if (league == null) return;
+    final bloc = BlocProvider.of<TournamentDetailBloc>(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    bool rankPayoutEnabled = league.rankPayoutEnabled;
+    final rankPayoutsController = TextEditingController(
+      text: league.rankPayouts.isEmpty
+          ? '50000, 100000, 150000'
+          : league.rankPayouts.join(', '),
+    );
+    final defaultMatchCostController = TextEditingController(
+      text: league.defaultMatchCost.toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocalState) => AlertDialog(
+          title: const Text('Sửa chi phí'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: const Text('Tính tiền theo thứ hạng'),
+                  subtitle: const Text(
+                    'Hạng dưới góp tiền cho hạng nhất theo cấu hình',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  value: rankPayoutEnabled,
+                  onChanged: (v) =>
+                      setLocalState(() => rankPayoutEnabled = v),
+                ),
+                if (rankPayoutEnabled) ...[
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: rankPayoutsController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      labelText: 'VD: 50000, 100000, 150000',
+                      prefixIcon:
+                          const Icon(Icons.format_list_numbered, size: 20),
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerHighest,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Lần lượt: hạng 2, hạng 3, hạng 4… đóng cho hạng 1.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+                const SizedBox(height: 12),
+                TextField(
+                  controller: defaultMatchCostController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    labelText: 'Tiền mặc định mỗi trận (VND)',
+                    prefixIcon: const Icon(Icons.attach_money, size: 20),
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Số này sẽ được điền sẵn khi bật cost cho từng trận lúc nhập kết quả.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () {
+                FocusScope.of(ctx).unfocus();
+                final parsedRankPayouts = rankPayoutEnabled
+                    ? _parseRankPayouts(rankPayoutsController.text)
+                    : <int>[];
+                if (rankPayoutEnabled && parsedRankPayouts.isEmpty) {
+                  showToast('Nhập số tiền theo thứ hạng (VD: 50000, 100000)');
+                  return;
+                }
+                final defaultMatchCost = int.tryParse(
+                      defaultMatchCostController.text.trim(),
+                    ) ??
+                    50000;
+                bloc.add(UpdateLeagueCostConfig(
+                  rankPayoutEnabled: rankPayoutEnabled,
+                  rankPayouts: parsedRankPayouts,
+                  defaultMatchCost: defaultMatchCost,
+                ));
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Lưu'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

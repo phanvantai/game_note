@@ -126,6 +126,7 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     int? homeScore,
     int? awayScore,
     int? medals,
+    int? matchCost,
   }) async {
     // Get the match document reference
     final matchRef = await firestore
@@ -154,6 +155,7 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       awayScore: awayScore,
       isFinished: homeScore != null && awayScore != null,
       medals: medals,
+      matchCost: matchCost ?? match.matchCost,
     );
 
     await matchRef.reference.update(newMatch.toMap());

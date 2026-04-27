@@ -14,6 +14,9 @@ class GNEsportMatch extends Equatable {
   final bool isFinished; // match is finished
   final String leagueId; // league id
   final int? medals; // medals for the winner
+  // Override tiền cho riêng trận này (VND). null ⇒ dùng league.defaultMatchCost.
+  // 0 ⇒ trận này không tính tiền.
+  final int? matchCost;
 
   final GNUser? homeTeam;
   final GNUser? awayTeam;
@@ -31,6 +34,7 @@ class GNEsportMatch extends Equatable {
   static const String fieldIsFinished = 'isFinished';
   static const String fieldLeagueId = 'leagueId';
   static const String fieldMedals = 'medals';
+  static const String fieldMatchCost = 'matchCost';
 
   const GNEsportMatch({
     required this.id,
@@ -44,6 +48,7 @@ class GNEsportMatch extends Equatable {
     this.homeTeam,
     this.awayTeam,
     this.medals,
+    this.matchCost,
   });
 
   @override
@@ -57,6 +62,7 @@ class GNEsportMatch extends Equatable {
         date,
         isFinished,
         leagueId,
+        matchCost,
       ];
 
   GNEsportMatch copyWith({
@@ -71,6 +77,7 @@ class GNEsportMatch extends Equatable {
     GNUser? homeTeam,
     GNUser? awayTeam,
     int? medals,
+    int? matchCost,
   }) {
     return GNEsportMatch(
       id: id ?? this.id,
@@ -84,6 +91,7 @@ class GNEsportMatch extends Equatable {
       homeTeam: homeTeam ?? this.homeTeam,
       awayTeam: awayTeam ?? this.awayTeam,
       medals: medals ?? this.medals,
+      matchCost: matchCost ?? this.matchCost,
     );
   }
 
@@ -97,21 +105,33 @@ class GNEsportMatch extends Equatable {
       fieldIsFinished: isFinished,
       fieldLeagueId: leagueId,
       fieldMedals: medals,
+      fieldMatchCost: matchCost,
     };
   }
 
   factory GNEsportMatch.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    return GNEsportMatch.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+  }
+
+  /// Pure factory cho test — không cần `DocumentSnapshot`.
+  factory GNEsportMatch.fromMap(Map<String, dynamic> data, String id) {
+    DateTime toDate(Object? v) {
+      if (v is DateTime) return v;
+      if (v is Timestamp) return v.toDate();
+      return DateTime.now();
+    }
+
     return GNEsportMatch(
-      id: doc.id,
+      id: id,
       homeTeamId: data[fieldHomeTeamId],
       awayTeamId: data[fieldAwayTeamId],
       homeScore: data[fieldHomeScore] ?? 0,
       awayScore: data[fieldAwayScore] ?? 0,
-      date: (data[fieldDate] as Timestamp).toDate(),
+      date: toDate(data[fieldDate]),
       isFinished: data[fieldIsFinished],
       leagueId: data[fieldLeagueId],
       medals: data[fieldMedals] ?? 0,
+      matchCost: (data[fieldMatchCost] as num?)?.toInt(),
     );
   }
 }
