@@ -43,7 +43,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     final colorScheme = Theme.of(context).colorScheme;
 
     return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
-      builder: (context, state) => Scaffold(
+      builder: (context, state) => DefaultTabController(
+        length: 3,
+        child: Scaffold(
         appBar: AppBar(
           centerTitle: false,
           title: Row(
@@ -68,6 +70,13 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   ),
                 ),
               ),
+            ],
+          ),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'BXH'),
+              Tab(text: 'Lịch thi đấu'),
+              Tab(text: 'Kết quả'),
             ],
           ),
           actions: [
@@ -131,11 +140,12 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
         ),
         body: Stack(
           children: [
-            SingleChildScrollView(
-              child: Column(
-                spacing: 16.0,
-                children: [const EsportTableView(), const EsportMatchesView()],
-              ),
+            const TabBarView(
+              children: [
+                EsportTableView(),
+                EsportMatchesView(isFixtures: true),
+                EsportMatchesView(isFixtures: false),
+              ],
             ),
             if (state.viewStatus.isLoading)
               const Positioned(
@@ -169,6 +179,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                 child: AdWidget(ad: _bannerAd!),
               )
             : null,
+        ),
       ),
     );
   }
