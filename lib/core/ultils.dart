@@ -49,6 +49,35 @@ void showSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
+const Map<String, String> _diacriticsMap = {
+  'a': 'àáảãạăằắẳẵặâầấẩẫậ',
+  'e': 'èéẻẽẹêềếểễệ',
+  'i': 'ìíỉĩị',
+  'o': 'òóỏõọôồốổỗộơờớởỡợ',
+  'u': 'ùúủũụưừứửữự',
+  'y': 'ỳýỷỹỵ',
+  'd': 'đ',
+};
+
+/// Strip Vietnamese diacritics and lowercase the string,
+/// for accent-insensitive search ("Tài" → "tai").
+String removeVietnameseDiacritics(String input) {
+  final lower = input.toLowerCase();
+  final buffer = StringBuffer();
+  for (final ch in lower.runes) {
+    final char = String.fromCharCode(ch);
+    String replaced = char;
+    for (final entry in _diacriticsMap.entries) {
+      if (entry.value.contains(char)) {
+        replaced = entry.key;
+        break;
+      }
+    }
+    buffer.write(replaced);
+  }
+  return buffer.toString();
+}
+
 // Show toast message
 void showToast(
   String message, {

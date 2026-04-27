@@ -132,16 +132,17 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
     List<GNEsportMatch> matches,
     String query,
   ) {
-    final tokens = query
-        .toLowerCase()
+    final tokens = removeVietnameseDiacritics(query)
         .split(RegExp(r'\s+'))
         .where((t) => t.isNotEmpty)
         .toList();
     if (tokens.isEmpty) return matches;
 
     return matches.where((match) {
-      final home = (match.homeTeam?.displayName ?? '').toLowerCase();
-      final away = (match.awayTeam?.displayName ?? '').toLowerCase();
+      final home =
+          removeVietnameseDiacritics(match.homeTeam?.displayName ?? '');
+      final away =
+          removeVietnameseDiacritics(match.awayTeam?.displayName ?? '');
       return tokens.every((t) => home.contains(t) || away.contains(t));
     }).toList();
   }
