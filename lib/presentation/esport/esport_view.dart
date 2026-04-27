@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -49,30 +48,28 @@ class _EsportViewState extends State<EsportView>
         centerTitle: false,
         title: Row(
           children: [
-            BlocBuilder<EsportBloc, EsportState>(
-              builder: (context, state) => state.esportModel != null
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: CachedNetworkImage(
-                            imageUrl: state.esportModel!.image ?? '',
-                            height: 32,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          state.esportModel!.name ?? '',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    )
-                  : const SizedBox.shrink(),
-            ) /* const PesTitle()*/,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.asset(
+                    'assets/images/pes.jpg',
+                    height: 32,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                BlocBuilder<EsportBloc, EsportState>(
+                  builder: (context, state) => Text(
+                    state.esportModel?.name ?? '',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             Expanded(
               child: TabBar(
                 dividerHeight: 0,

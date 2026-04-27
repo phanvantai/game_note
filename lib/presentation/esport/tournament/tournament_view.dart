@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
@@ -9,7 +8,6 @@ import 'package:pes_arena/presentation/esport/tournament/tournament_item.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
 import '../../../routing.dart';
-import '../bloc/esport_bloc.dart';
 import '../groups/bloc/group_bloc.dart';
 import 'create_esport_league_dialog.dart';
 
@@ -29,16 +27,12 @@ class TournamentView extends StatelessWidget {
             title: Row(
               spacing: 4,
               children: [
-                BlocBuilder<EsportBloc, EsportState>(
-                  builder: (context, state) => state.esportModel != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: CachedNetworkImage(
-                            imageUrl: state.esportModel!.image ?? '',
-                            height: 32,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.asset(
+                    'assets/images/pes.jpg',
+                    height: 32,
+                  ),
                 ),
                 Expanded(
                   child: TabBar(
