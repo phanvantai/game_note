@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
@@ -70,7 +71,7 @@ class GroupsView extends StatelessWidget {
                       ],
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, Routing.notification);
+                      context.push(Routing.notification);
                     },
                   ),
                 ),
@@ -98,9 +99,9 @@ class GroupsView extends StatelessWidget {
                               itemBuilder: (context, index) => GroupItem(
                                 group: state.userGroups[index],
                                 onTap: () async {
-                                  await Navigator.of(context).pushNamed(
+                                  await context.push(
                                     Routing.groupDetail,
-                                    arguments: state.userGroups[index],
+                                    extra: state.userGroups[index],
                                   );
                                   if (context.mounted) {
                                     BlocProvider.of<GroupBloc>(
@@ -124,9 +125,9 @@ class GroupsView extends StatelessWidget {
                               itemBuilder: (context, index) => GroupItem(
                                 group: state.otherGroups[index],
                                 onTap: () async {
-                                  await Navigator.of(context).pushNamed(
+                                  await context.push(
                                     Routing.groupDetail,
-                                    arguments: state.otherGroups[index],
+                                    extra: state.otherGroups[index],
                                   );
                                   if (context.mounted) {
                                     BlocProvider.of<GroupBloc>(

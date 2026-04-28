@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
-import 'presentation/web_shell/web_shell.dart';
 import 'routing.dart';
 
 class App extends StatelessWidget {
@@ -13,15 +12,12 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(
       builder: (context, themeNotifier, _) {
-        return MaterialApp(
-          onGenerateRoute: Routing.generateRoute,
-          initialRoute: Routing.app,
+        return MaterialApp.router(
+          routerConfig: appRouter,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeNotifier.themeMode,
-          builder: (context, child) =>
-              WebShell(child: child ?? const SizedBox.shrink()),
         );
       },
     );

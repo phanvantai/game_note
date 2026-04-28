@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/firebase/firestore/notification/gn_notification.dart';
 import 'package:pes_arena/routing.dart';
 import 'package:intl/intl.dart';
@@ -43,9 +44,9 @@ class NotificationItem extends StatelessWidget {
           if (notification.notificationType ==
                   GNNotificationType.esportsLeague &&
               notification.relatedId != null) {
-            Navigator.of(context).pushNamed(
+            context.push(
               Routing.tournamentDetail,
-              arguments: notification.relatedId,
+              extra: notification.relatedId,
             );
           }
         },

@@ -7,12 +7,11 @@ import 'bloc/group_detail_bloc.dart';
 import 'group_detail_view.dart';
 
 class GroupDetailPage extends StatelessWidget {
-  const GroupDetailPage({super.key});
+  final GNEsportGroup group;
+  const GroupDetailPage({super.key, required this.group});
 
   @override
   Widget build(BuildContext context) {
-    final GNEsportGroup group =
-        ModalRoute.of(context)!.settings.arguments as GNEsportGroup;
     return BlocProvider(
       create: (_) => GroupDetailBloc(getIt(), group)
         ..add(GetGroupDetail(group.id))

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,7 +13,6 @@ import '../../core/constants/constants.dart';
 import '../../core/ultils.dart';
 import '../../routing.dart';
 import 'bloc/profile_bloc.dart';
-import 'feedback/feedback_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -183,9 +183,7 @@ class _ProfileViewState extends State<ProfileView>
                       context,
                       icon: Icons.lock_outline,
                       title: 'Đổi mật khẩu',
-                      onTap: () => Navigator.of(
-                        context,
-                      ).pushNamed(Routing.changePassword),
+                      onTap: () => context.push(Routing.changePassword),
                     ),
                   ],
                 ),
@@ -215,9 +213,9 @@ class _ProfileViewState extends State<ProfileView>
                       context,
                       icon: Icons.settings_outlined,
                       title: 'Tuỳ chọn khác',
-                      onTap: () => Navigator.of(context).pushNamed(
+                      onTap: () => context.push(
                         Routing.setting,
-                        arguments: context.read<ProfileBloc>(),
+                        extra: context.read<ProfileBloc>(),
                       ),
                     ),
                   ],
@@ -252,9 +250,7 @@ class _ProfileViewState extends State<ProfileView>
                       context,
                       icon: Icons.chat_bubble_outline,
                       title: 'Nhận xét góp ý',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const FeedbackView()),
-                      ),
+                      onTap: () => context.push(Routing.feedback),
                     ),
                     Divider(
                       height: 0.5,
@@ -412,9 +408,7 @@ class _ProfileViewState extends State<ProfileView>
     BuildContext context,
     ProfileState state,
   ) async {
-    await Navigator.of(
-      context,
-    ).pushNamed(Routing.updateProfile, arguments: state.user);
+    await context.push(Routing.updateProfile, extra: state.user);
     if (context.mounted) {
       context.read<ProfileBloc>().add(LoadProfileEvent());
     }
@@ -429,7 +423,7 @@ class _ProfileViewState extends State<ProfileView>
       confirmText: 'Chấp nhận',
     );
     if (confirmed == true && context.mounted) {
-      Navigator.of(context).pushReplacementNamed(Routing.offline);
+      context.go(Routing.offline);
     }
   }
 

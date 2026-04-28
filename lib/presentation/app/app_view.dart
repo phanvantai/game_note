@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../routing.dart';
 import '../auth/auth_view.dart';
@@ -16,7 +17,7 @@ class AppView extends StatelessWidget {
           previous.enableFootballFeature != current.enableFootballFeature,
       listener: (context, state) {
         // Do something
-        Navigator.of(context).pushReplacementNamed(Routing.app);
+        context.go(Routing.app);
       },
       buildWhen: (previous, current) => previous.status != current.status,
       builder: (context, state) => AnimatedSwitcher(
