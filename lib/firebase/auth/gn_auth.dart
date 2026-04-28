@@ -187,6 +187,14 @@ class GNAuth {
         print('   - Message: ${e.message}');
         print('   - Plugin: ${e.plugin}');
       }
+      // Web signInWithPopup throws these when the user closes/blocks the popup.
+      // Normalise to the same code native flow uses so callers handle uniformly.
+      if (e.code == 'popup-closed-by-user' || e.code == 'cancelled-popup-request') {
+        throw FirebaseAuthException(
+          code: 'ERROR_ABORTED_BY_USER',
+          message: 'Sign in aborted by user',
+        );
+      }
       rethrow;
     } catch (e) {
       if (kDebugMode) {

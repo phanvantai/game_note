@@ -74,5 +74,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'gamenoteapp.appspot.com',
     measurementId: 'G-L85M3EVLFZ',
   );
-
 }
