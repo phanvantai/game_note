@@ -9,8 +9,6 @@ name: Web Release
 # mỗi khi push vào main, hoặc bấm "Run workflow" trong tab Actions.
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
 
 jobs:
