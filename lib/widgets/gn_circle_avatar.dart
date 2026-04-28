@@ -16,7 +16,11 @@ class GNCircleAvatar extends StatelessWidget {
             ? CachedNetworkImageProvider(photoUrl!)
             : null,
         child: photoUrl == null
-            ? Icon(Icons.person, color: Theme.of(context).colorScheme.onSurface)
+            ? Icon(
+                Icons.person,
+                size: size * 0.6,
+                color: Theme.of(context).colorScheme.onSurface,
+              )
             : null,
       ),
     );
