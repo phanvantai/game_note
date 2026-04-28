@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -130,7 +131,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                 }
               },
               itemBuilder: (context) => [
-                if (state.participants.isNotEmpty)
+                if (!kIsWeb && state.participants.isNotEmpty)
                   const PopupMenuItem(
                     value: 'share',
                     child: ListTile(
@@ -219,7 +220,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
             ),
           ],
         ),
-        bottomNavigationBar: _bannerAd != null
+        bottomNavigationBar: (!kIsWeb && _bannerAd != null)
             ? SizedBox(
                 width: _bannerAd!.size.width.toDouble(),
                 height: _bannerAd!.size.height.toDouble(),
@@ -400,7 +401,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   }
 
   void _loadAd() async {
-    if (isAdsLoaded) return;
+    if (kIsWeb || isAdsLoaded) return;
     final AnchoredAdaptiveBannerAdSize? size =
         await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
           MediaQuery.of(context).size.width.truncate(),

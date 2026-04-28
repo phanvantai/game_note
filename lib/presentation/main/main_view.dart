@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/helpers/admob_helper.dart';
@@ -50,7 +51,9 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
 
     context.read<GroupBloc>().add(GetEsportGroups());
 
-    getIt<GNFirebaseMessaging>().initialize();
+    if (!kIsWeb) {
+      getIt<GNFirebaseMessaging>().initialize();
+    }
   }
 
   @override
@@ -64,7 +67,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_bannerAd != null)
+          if (!kIsWeb && _bannerAd != null)
             SizedBox(
               width: _bannerAd!.size.width.toDouble(),
               height: _bannerAd!.size.height.toDouble(),
@@ -100,7 +103,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   }
 
   void _loadAd() async {
-    if (isAdsLoaded) {
+    if (kIsWeb || isAdsLoaded) {
       return;
     }
     final AnchoredAdaptiveBannerAdSize? size =

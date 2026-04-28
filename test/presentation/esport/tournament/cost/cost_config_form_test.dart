@@ -65,6 +65,35 @@ void main() {
       await tester.pump();
       expect(find.widgetWithText(TextField, '50, 100, 150'), findsNothing);
     });
+
+    testWidgets(
+        'rank payouts field: inputFormatter chỉ cho số, dấu phẩy, khoảng trắng',
+        (tester) async {
+      await tester.pumpWidget(
+        _wrap(const CostConfigForm(initialRankPayoutEnabled: true)),
+      );
+
+      final field = tester.widget<TextField>(
+        find.widgetWithText(TextField, '50, 100, 150'),
+      );
+      expect(field.keyboardType, TextInputType.text);
+      expect(field.inputFormatters, isNotNull);
+      expect(field.inputFormatters!.length, 1);
+
+      // chạy formatter trên input bẩn → chỉ giữ digit, ',', whitespace
+      final formatter = field.inputFormatters!.first;
+      String filter(String raw) => formatter
+          .formatEditUpdate(
+            TextEditingValue.empty,
+            TextEditingValue(text: raw),
+          )
+          .text;
+
+      expect(filter('50, 100, 150'), '50, 100, 150');
+      expect(filter('abc50,100xyz'), '50,100');
+      expect(filter('50.5;100'), '505100');
+      expect(filter('  20 , 40 '), '  20 , 40 ');
+    });
   });
 
   group('CostConfigForm — validateAndCollect', () {

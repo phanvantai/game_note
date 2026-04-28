@@ -10,7 +10,7 @@ import '../firestore/gn_firestore.dart';
 
 class GNAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  late final Future<void> _googleSignInInitialized;
+  Future<void>? _googleSignInInitialized;
 
   FirebaseAuth get auth => _auth;
 
@@ -21,14 +21,15 @@ class GNAuth {
   bool _isSignInWithEmailAndPassword = false;
 
   GNAuth() {
-    if (kDebugMode) {
-      print(
-          '🔧 GNAuth: Initializing with server client ID: 256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com');
+    if (!kIsWeb) {
+      const googleClientId =
+          '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com';
+      if (kDebugMode) {
+        print('🔧 GNAuth: Initializing Google Sign-In with $googleClientId');
+      }
+      _googleSignInInitialized =
+          GoogleSignIn.instance.initialize(serverClientId: googleClientId);
     }
-    _googleSignInInitialized = GoogleSignIn.instance.initialize(
-      serverClientId:
-          '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com',
-    );
 
     // Listen to auth state changes
     _auth.authStateChanges().listen(
@@ -105,7 +106,12 @@ class GNAuth {
     }
 
     try {
-      await _googleSignInInitialized;
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider();
+        return await _auth.signInWithPopup(provider);
+      }
+
+      await _googleSignInInitialized!;
 
       final GoogleSignInAccount googleSignInAccount =
           await GoogleSignIn.instance.authenticate();

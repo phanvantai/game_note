@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
@@ -68,7 +67,7 @@ class _ProfileViewState extends State<ProfileView>
               // Avatar section
               Center(
                 child: GestureDetector(
-                  onTap: () => _showAvatarOptions(context),
+                  onTap: kIsWeb ? null : () => _showAvatarOptions(context),
                   child: Stack(
                     children: [
                       CachedNetworkImage(
@@ -89,26 +88,27 @@ class _ProfileViewState extends State<ProfileView>
                           ),
                         ),
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: colorScheme.secondary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.surface,
-                              width: 2,
+                      if (!kIsWeb)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: colorScheme.secondary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.surface,
+                                width: 2,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 14,
+                              color: colorScheme.onSecondary,
                             ),
                           ),
-                          child: Icon(
-                            Icons.camera_alt,
-                            size: 14,
-                            color: colorScheme.onSecondary,
-                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -198,17 +198,19 @@ class _ProfileViewState extends State<ProfileView>
               AppCard(
                 child: Column(
                   children: [
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.wifi_off_outlined,
-                      title: 'Chế độ offline',
-                      onTap: () => _switchToOffline(context),
-                    ),
-                    Divider(
-                      height: 0.5,
-                      indent: 56,
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                    ),
+                    if (!kIsWeb) ...[
+                      _buildMenuItem(
+                        context,
+                        icon: Icons.wifi_off_outlined,
+                        title: 'Chế độ offline',
+                        onTap: () => _switchToOffline(context),
+                      ),
+                      Divider(
+                        height: 0.5,
+                        indent: 56,
+                        color: colorScheme.outline.withValues(alpha: 0.2),
+                      ),
+                    ],
                     _buildMenuItem(
                       context,
                       icon: Icons.settings_outlined,
@@ -234,12 +236,10 @@ class _ProfileViewState extends State<ProfileView>
                       icon: Icons.star_outline,
                       title: 'Đánh giá',
                       onTap: () {
-                        Uri url;
-                        if (Platform.isAndroid) {
-                          url = Uri.parse(playStoreUrl);
-                        } else {
-                          url = Uri.parse(appStoreUrl);
-                        }
+                        final url = defaultTargetPlatform ==
+                                TargetPlatform.android
+                            ? Uri.parse(playStoreUrl)
+                            : Uri.parse(appStoreUrl);
                         launchUrl(url);
                       },
                     ),

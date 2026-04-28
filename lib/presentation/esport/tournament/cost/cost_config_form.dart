@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 
@@ -114,7 +115,10 @@ class CostConfigFormState extends State<CostConfigForm> {
           const SizedBox(height: 4),
           TextField(
             controller: _rankPayoutsController,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.text,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9,\s]')),
+            ],
             decoration: appInputDecoration(
               context: context,
               hintText: 'VD: 50, 100, 150 (k VND)',

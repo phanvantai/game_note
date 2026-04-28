@@ -24,7 +24,8 @@
           "projectId": "gamenoteapp",
           "configurations": {
             "android": "1:256841801977:android:34ed79428e1c2ce16b8228",
-            "ios": "1:256841801977:ios:ca5f6c73eff78aac6b8228"
+            "ios": "1:256841801977:ios:ca5f6c73eff78aac6b8228",
+            "web": "1:256841801977:web:8d6e12f22c5175a36b8228"
           }
         }
       }
@@ -42,5 +43,19 @@
         "*.local"
       ]
     }
-  ]
+  ],
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
 }

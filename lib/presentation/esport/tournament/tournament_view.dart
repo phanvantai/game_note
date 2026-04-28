@@ -10,7 +10,7 @@ import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart'
 
 import '../../../routing.dart';
 import '../groups/bloc/group_bloc.dart';
-import 'create_esport_league_dialog.dart';
+import 'create_esport_league_page.dart';
 
 class TournamentView extends StatelessWidget {
   const TournamentView({super.key});
@@ -101,34 +101,36 @@ class TournamentView extends StatelessWidget {
       showToast('Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước');
       return;
     }
-    showDialog(
-      context: context,
-      builder: (ctx) => CreateEsportLeagueDialog(
-        groups: groups,
-        onAddLeague: (
-          name,
-          groupId,
-          startDate,
-          endDate,
-          description,
-          rankPayoutEnabled,
-          rankPayouts,
-          defaultMatchCost,
-        ) {
-          context.read<TournamentBloc>().add(
-            AddTournament(
-              name: name,
-              groupId: groupId,
-              startDate: startDate,
-              endDate: endDate,
-              description: description,
-              rankPayoutEnabled: rankPayoutEnabled,
-              rankPayouts: rankPayouts,
-              defaultMatchCost: defaultMatchCost,
-            ),
-          );
-          Navigator.of(ctx).pop();
-        },
+    final tournamentBloc = context.read<TournamentBloc>();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => CreateEsportLeaguePage(
+          groups: groups,
+          onAddLeague: (
+            name,
+            groupId,
+            startDate,
+            endDate,
+            description,
+            rankPayoutEnabled,
+            rankPayouts,
+            defaultMatchCost,
+          ) {
+            tournamentBloc.add(
+              AddTournament(
+                name: name,
+                groupId: groupId,
+                startDate: startDate,
+                endDate: endDate,
+                description: description,
+                rankPayoutEnabled: rankPayoutEnabled,
+                rankPayouts: rankPayouts,
+                defaultMatchCost: defaultMatchCost,
+              ),
+            );
+            Navigator.of(ctx).pop();
+          },
+        ),
       ),
     );
   }
