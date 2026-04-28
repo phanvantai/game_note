@@ -27,9 +27,12 @@ class Routing {
   // community
   static const String createTeam = '/create-team';
 
-  // esport
-  static const String groupDetail = '/group-detail';
-  static const String tournamentDetail = '/tournament-detail';
+  // esport — base paths, use helper methods for navigation
+  static const String groupDetail = '/group';
+  static const String tournamentDetail = '/tournament';
+
+  static String groupDetailPath(String groupId) => '/group/$groupId';
+  static String tournamentDetailPath(String leagueId) => '/tournament/$leagueId';
 
   // profile
   static const String updateProfile = '/update-profile';
@@ -112,19 +115,24 @@ final GoRouter appRouter = GoRouter(
           ),
         ),
         GoRoute(
-          path: Routing.groupDetail,
+          path: '/group/:groupId',
           pageBuilder: (context, state) => _slide(
             context: context,
             state: state,
-            child: GroupDetailPage(group: state.extra! as GNEsportGroup),
+            child: GroupDetailPage(
+              groupId: state.pathParameters['groupId']!,
+              initialGroup: state.extra as GNEsportGroup?,
+            ),
           ),
         ),
         GoRoute(
-          path: Routing.tournamentDetail,
+          path: '/tournament/:leagueId',
           pageBuilder: (context, state) => _slide(
             context: context,
             state: state,
-            child: TournamentDetailPage(leagueId: state.extra! as String),
+            child: TournamentDetailPage(
+              leagueId: state.pathParameters['leagueId']!,
+            ),
           ),
         ),
         GoRoute(

@@ -187,10 +187,7 @@ class _MyLeaguesTab extends StatelessWidget {
     return TournamentItem(
       league: league,
       onTap: () async {
-        await context.push(
-          Routing.tournamentDetail,
-          extra: league.id,
-        );
+        await context.push(Routing.tournamentDetailPath(league.id));
         // Returning from the detail page may have changed the league
         // (status, name, participants) — refresh the "my" list silently.
         if (context.mounted) {
@@ -286,8 +283,7 @@ class _OtherLeaguesTabState extends State<_OtherLeaguesTab> {
                 return TournamentItem(
                   league: state.otherLeagues[index],
                   onTap: () => context.push(
-                    Routing.tournamentDetail,
-                    extra: state.otherLeagues[index].id,
+                    Routing.tournamentDetailPath(state.otherLeagues[index].id),
                   ),
                 );
               },

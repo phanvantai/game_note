@@ -45,8 +45,7 @@ class NotificationItem extends StatelessWidget {
                   GNNotificationType.esportsLeague &&
               notification.relatedId != null) {
             context.push(
-              Routing.tournamentDetail,
-              extra: notification.relatedId,
+              Routing.tournamentDetailPath(notification.relatedId!),
             );
           }
         },

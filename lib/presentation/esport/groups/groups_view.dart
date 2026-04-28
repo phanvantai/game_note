@@ -100,7 +100,7 @@ class GroupsView extends StatelessWidget {
                                 group: state.userGroups[index],
                                 onTap: () async {
                                   await context.push(
-                                    Routing.groupDetail,
+                                    Routing.groupDetailPath(state.userGroups[index].id),
                                     extra: state.userGroups[index],
                                   );
                                   if (context.mounted) {
@@ -126,7 +126,7 @@ class GroupsView extends StatelessWidget {
                                 group: state.otherGroups[index],
                                 onTap: () async {
                                   await context.push(
-                                    Routing.groupDetail,
+                                    Routing.groupDetailPath(state.otherGroups[index].id),
                                     extra: state.otherGroups[index],
                                   );
                                   if (context.mounted) {
