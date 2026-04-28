@@ -13,11 +13,11 @@ class LeagueShareCard extends StatelessWidget {
   final double cardWidth;
 
   const LeagueShareCard({
-    Key? key,
+    super.key,
     required this.leagueName,
     required this.participants,
     this.cardWidth = 480,
-  }) : super(key: key);
+  });
 
   // Column header labels & flex values
   static const List<String> _headers = [
@@ -135,8 +135,9 @@ class LeagueShareCard extends StatelessWidget {
       const Color(0xFFB0C4DE), // Silver
       const Color(0xFFCD7F32), // Bronze
     ];
-    final rowColor =
-        index % 2 == 0 ? const Color(0x00000000) : const Color(0x0AFFFFFF);
+    final rowColor = index % 2 == 0
+        ? const Color(0x00000000)
+        : const Color(0x0AFFFFFF);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
@@ -175,10 +176,7 @@ class LeagueShareCard extends StatelessWidget {
             flex: _flexes[1],
             child: Row(
               children: [
-                GNCircleAvatar(
-                  size: 26,
-                  photoUrl: stats.user?.photoUrl,
-                ),
+                GNCircleAvatar(size: 26, photoUrl: stats.user?.photoUrl),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -209,8 +207,9 @@ class LeagueShareCard extends StatelessWidget {
                       ? const Color(0xFF6CB4E4)
                       : const Color(0xFFCCCCCC),
                   fontSize: _headers[ci] == 'PTS' ? 12 : 11,
-                  fontWeight:
-                      _headers[ci] == 'PTS' ? FontWeight.w800 : FontWeight.w500,
+                  fontWeight: _headers[ci] == 'PTS'
+                      ? FontWeight.w800
+                      : FontWeight.w500,
                 ),
               ),
             ),
@@ -247,11 +246,7 @@ class LeagueShareCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            height: 1,
-            width: 40,
-            color: const Color(0xFF334455),
-          ),
+          Container(height: 1, width: 40, color: const Color(0xFF334455)),
           const SizedBox(width: 8),
           const Text(
             'PES Arena',
@@ -263,11 +258,7 @@ class LeagueShareCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            height: 1,
-            width: 40,
-            color: const Color(0xFF334455),
-          ),
+          Container(height: 1, width: 40, color: const Color(0xFF334455)),
         ],
       ),
     );

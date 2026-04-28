@@ -1,10 +1,12 @@
 name: pes_arena
-description: Social platform for PES players - create groups, tournaments, and compete with your crew.
+description: Social platform for PES players - create groups, tournaments, and
+  compete with your crew.
 publish_to: "none"
-version: 2.2.0+37
+version: 2.3.0+38
 
 environment:
-  sdk: ">=2.16.1 <3.0.0"
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.41.0"
 
 dependencies:
   flutter:
@@ -32,7 +34,7 @@ dependencies:
 
   flutter_fortune_wheel: ^1.2.0
 
-  file_picker: ^10.1.9
+  file_picker: ^11.0.2
   share_plus: ^12.0.2
 
   shared_preferences: ^2.0.15
@@ -67,13 +69,18 @@ dependencies:
   intl: ^0.20.2
 
   # Google Mobile Ads
-  google_mobile_ads: ^7.0.0
+  google_mobile_ads: ^8.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -82,4 +89,15 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/svg/
-    - assets/province.json
+
+flutter_launcher_icons:
+  image_path: "assets/images/icon.png"
+  android: "launcher_icon"
+  min_sdk_android: 21
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/images/icon.png"
+    background_color: "#ffffff"
+    theme_color: "#ffffff"

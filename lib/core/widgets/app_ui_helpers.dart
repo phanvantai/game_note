@@ -6,12 +6,7 @@ class AppCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
 
-  const AppCard({
-    Key? key,
-    required this.child,
-    this.padding,
-    this.margin,
-  }) : super(key: key);
+  const AppCard({super.key, required this.child, this.padding, this.margin});
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +21,7 @@ class AppCard extends StatelessWidget {
           width: 0.5,
         ),
       ),
-      child: padding != null
-          ? Padding(padding: padding!, child: child)
-          : child,
+      child: padding != null ? Padding(padding: padding!, child: child) : child,
     );
   }
 }
@@ -40,11 +33,11 @@ class AppEmptyState extends StatelessWidget {
   final String? subtitle;
 
   const AppEmptyState({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     this.subtitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,8 +57,8 @@ class AppEmptyState extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
@@ -73,8 +66,8 @@ class AppEmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.4),
-                    ),
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -108,10 +101,12 @@ Future<bool?> showAppConfirmDialog({
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
           style: FilledButton.styleFrom(
-            backgroundColor:
-                isDestructive ? colorScheme.error : colorScheme.secondary,
-            foregroundColor:
-                isDestructive ? colorScheme.onError : colorScheme.onSecondary,
+            backgroundColor: isDestructive
+                ? colorScheme.error
+                : colorScheme.secondary,
+            foregroundColor: isDestructive
+                ? colorScheme.onError
+                : colorScheme.onSecondary,
           ),
           child: Text(confirmText),
         ),
@@ -140,10 +135,7 @@ Future<T?> showAppFormDialog<T>({
           child: Text(cancelText),
         ),
         if (onSubmit != null)
-          FilledButton(
-            onPressed: onSubmit,
-            child: Text(submitText),
-          ),
+          FilledButton(onPressed: onSubmit, child: Text(submitText)),
       ],
     ),
   );
@@ -162,9 +154,7 @@ InputDecoration appInputDecoration({
   return InputDecoration(
     hintText: hintText,
     labelText: labelText,
-    hintStyle: TextStyle(
-      color: colorScheme.onSurface.withValues(alpha: 0.4),
-    ),
+    hintStyle: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.4)),
     prefixIcon: prefixIcon != null
         ? Icon(
             prefixIcon,
@@ -181,29 +171,17 @@ InputDecoration appInputDecoration({
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(
-        color: colorScheme.secondary,
-        width: 1.5,
-      ),
+      borderSide: BorderSide(color: colorScheme.secondary, width: 1.5),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(
-        color: colorScheme.error,
-        width: 1.5,
-      ),
+      borderSide: BorderSide(color: colorScheme.error, width: 1.5),
     ),
     focusedErrorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(
-        color: colorScheme.error,
-        width: 1.5,
-      ),
+      borderSide: BorderSide(color: colorScheme.error, width: 1.5),
     ),
-    contentPadding: const EdgeInsets.symmetric(
-      horizontal: 16,
-      vertical: 14,
-    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     errorText: errorText,
   );
 }

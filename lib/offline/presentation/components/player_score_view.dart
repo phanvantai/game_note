@@ -3,7 +3,7 @@ import 'package:pes_arena/offline/domain/entities/result_model.dart';
 
 class PlayerScoreView extends StatelessWidget {
   final ResultModel model;
-  const PlayerScoreView({Key? key, required this.model}) : super(key: key);
+  const PlayerScoreView({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +31,7 @@ class PlayerScoreView extends StatelessWidget {
           ),
           Text(
             model.score != null ? model.score.toString() : '__',
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 8),
         ],

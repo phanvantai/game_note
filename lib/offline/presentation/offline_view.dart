@@ -6,7 +6,7 @@ import 'menu_view.dart';
 import 'statistic/statistic_view.dart';
 
 class OfflineView extends StatefulWidget {
-  const OfflineView({Key? key}) : super(key: key);
+  const OfflineView({super.key});
 
   @override
   State<OfflineView> createState() => _OfflineViewState();
@@ -30,10 +30,7 @@ class _OfflineViewState extends State<OfflineView>
       activeIcon: Icon(Icons.people),
       label: 'Người chơi',
     ): MembersView(),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.menu),
-      label: 'Khác',
-    ): MenuView(),
+    BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Khác'): MenuView(),
   };
   late TabController _tabController;
   @override

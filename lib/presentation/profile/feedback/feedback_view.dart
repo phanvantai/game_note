@@ -11,7 +11,7 @@ import '../../../firebase/firestore/feedback/feedback_model.dart';
 import '../../../firebase/firestore/gn_firestore.dart';
 
 class FeedbackView extends StatefulWidget {
-  const FeedbackView({Key? key}) : super(key: key);
+  const FeedbackView({super.key});
 
   @override
   State<FeedbackView> createState() => _FeedbackViewState();
@@ -30,9 +30,7 @@ class _FeedbackViewState extends State<FeedbackView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Góp ý'),
-      ),
+      appBar: AppBar(title: const Text('Góp ý')),
       body: _body(),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_feedback',
@@ -49,8 +47,7 @@ class _FeedbackViewState extends State<FeedbackView> {
         SnackBar(
           content: const Text('Bạn cần đăng nhập để gửi phản hồi.'),
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
       return;
@@ -102,14 +99,13 @@ class _FeedbackViewState extends State<FeedbackView> {
                 }
                 if (title.length < 5 || detail.length < 10) {
                   showToast(
-                      'Tiêu đề phải có ít nhất 5 ký tự\nNội dung phải có ít nhất 10 ký tự.');
+                    'Tiêu đề phải có ít nhất 5 ký tự\nNội dung phải có ít nhất 10 ký tự.',
+                  );
                   return;
                 }
                 getIt<GNFirestore>()
                     .createFeedback(title, detail, user.uid)
-                    .then(
-                      (_) => showToast('Góp ý đã được gửi thành công!'),
-                    );
+                    .then((_) => showToast('Góp ý đã được gửi thành công!'));
                 Navigator.of(context).pop();
                 setState(() {});
               },

@@ -7,7 +7,7 @@ import 'bloc/group_detail_bloc.dart';
 import 'group_detail_view.dart';
 
 class GroupDetailPage extends StatelessWidget {
-  const GroupDetailPage({Key? key}) : super(key: key);
+  const GroupDetailPage({super.key});
 
   @override
   Widget build(BuildContext context) {

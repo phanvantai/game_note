@@ -11,57 +11,63 @@ import 'package:pes_arena/presentation/esport/tournament/tournament_detail/match
 
 import '../bloc/tournament_detail_bloc.dart';
 
-class EsportMatchesView extends StatelessWidget {
-  const EsportMatchesView({Key? key}) : super(key: key);
+class EsportMatchesView extends StatefulWidget {
+  final bool isFixtures;
+
+  const EsportMatchesView({super.key, required this.isFixtures});
+
+  @override
+  State<EsportMatchesView> createState() => _EsportMatchesViewState();
+}
+
+class _EsportMatchesViewState extends State<EsportMatchesView> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  bool get isFixtures => widget.isFixtures;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
-        builder: (context, state) {
-      return DefaultTabController(
-        length: 2,
-        child: Column(
+      builder: (context, state) {
+        final allMatches = isFixtures ? state.fixtures : state.results;
+        final matches = isFixtures
+            ? allMatches
+            : _filterByPlayerNames(allMatches, _searchQuery);
+        final showActions =
+            isFixtures &&
+            state.currentUserIsMember &&
+            state.participants.length > 1;
+
+        return Column(
           children: [
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  TabBar(
-                    indicator: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      color: colorScheme.secondaryContainer,
-                    ),
-                    indicatorPadding:
-                        const EdgeInsets.symmetric(horizontal: -16),
-                    indicatorWeight: 0,
-                    dividerColor: Colors.transparent,
-                    tabAlignment: TabAlignment.start,
-                    isScrollable: true,
-                    tabs: const [
-                      Tab(child: Text('Lịch thi đấu')),
-                      Tab(child: Text('Kết quả')),
-                    ],
-                  ),
-                  const Spacer(),
-                  if (state.currentUserIsMember &&
-                      state.participants.length > 1) ...[
+            if (showActions)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                child: Row(
+                  children: [
+                    const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.add),
+                      tooltip: 'Tạo trận tùy chỉnh',
                       onPressed: () {
                         showDialog(
                           context: context,
                           builder: (cxt) => CreateCustomMatchDialog(
                             users: state.users,
                             onMatchCreated: (home, away) {
-                              context
-                                  .read<TournamentDetailBloc>()
-                                  .add(CreateCustomMatch(
-                                    homeTeam: home,
-                                    awayTeam: away,
-                                  ));
+                              context.read<TournamentDetailBloc>().add(
+                                CreateCustomMatch(
+                                  homeTeam: home,
+                                  awayTeam: away,
+                                ),
+                              );
                               Navigator.of(context).pop();
                             },
                           ),
@@ -70,9 +76,9 @@ class EsportMatchesView extends StatelessWidget {
                     ),
                     FilledButton.tonal(
                       onPressed: () {
-                        context
-                            .read<TournamentDetailBloc>()
-                            .add(const GenerateRound());
+                        context.read<TournamentDetailBloc>().add(
+                          const GenerateRound(),
+                        );
                       },
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -83,45 +89,106 @@ class EsportMatchesView extends StatelessWidget {
                       child: const Text('Tạo vòng đấu'),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 400,
-              child: TabBarView(
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildMatchList(context, state.fixtures, state, true),
-                  _buildMatchList(context, state.results, state, false),
-                ],
+            if (!isFixtures && state.results.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) =>
+                      setState(() => _searchQuery = value),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: 'Tìm theo tên người chơi (vd: A B)',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    suffixIcon: _searchQuery.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.close, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          ),
+                    filled: true,
+                    fillColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
               ),
-            ),
+            Expanded(child: _buildMatchList(context, matches, state)),
           ],
-        ),
-      );
-    });
+        );
+      },
+    );
+  }
+
+  List<GNEsportMatch> _filterByPlayerNames(
+    List<GNEsportMatch> matches,
+    String query,
+  ) {
+    final tokens = removeVietnameseDiacritics(query)
+        .split(RegExp(r'\s+'))
+        .where((t) => t.isNotEmpty)
+        .toList();
+    if (tokens.isEmpty) return matches;
+
+    return matches.where((match) {
+      final home =
+          removeVietnameseDiacritics(match.homeTeam?.displayName ?? '');
+      final away =
+          removeVietnameseDiacritics(match.awayTeam?.displayName ?? '');
+      return tokens.every((t) => home.contains(t) || away.contains(t));
+    }).toList();
+  }
+
+  Future<void> _refresh(BuildContext context) async {
+    final bloc = context.read<TournamentDetailBloc>();
+    final leagueId = bloc.state.league?.id;
+    if (leagueId == null) return;
+    final tickBefore = bloc.state.refreshTick;
+    bloc.add(GetParticipantsAndMatches(leagueId));
+    await bloc.stream.firstWhere((s) => s.refreshTick > tickBefore);
   }
 
   Widget _buildMatchList(
     BuildContext context,
     List<GNEsportMatch> matches,
     TournamentDetailState state,
-    bool isFixtures,
   ) {
     if (matches.isEmpty) {
-      return AppEmptyState(
-        icon: isFixtures
-            ? Icons.calendar_today_outlined
-            : Icons.scoreboard_outlined,
-        title: isFixtures ? 'Chưa có lịch thi đấu' : 'Chưa có kết quả',
+      final empty = !isFixtures && _searchQuery.isNotEmpty
+          ? const AppEmptyState(
+              icon: Icons.search_off,
+              title: 'Không tìm thấy trận nào',
+            )
+          : AppEmptyState(
+              icon: isFixtures
+                  ? Icons.calendar_today_outlined
+                  : Icons.scoreboard_outlined,
+              title: isFixtures ? 'Chưa có lịch thi đấu' : 'Chưa có kết quả',
+            );
+      return RefreshIndicator(
+        onRefresh: () => _refresh(context),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [SizedBox(height: 400, child: empty)],
+        ),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: ListView.separated(
-        itemBuilder: (context, index) {
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
           final match = matches[index];
           return Slidable(
             endActionPane: ActionPane(
@@ -133,17 +200,10 @@ class EsportMatchesView extends StatelessWidget {
                     backgroundColor: Theme.of(context).colorScheme.error,
                     icon: Icons.delete_outline,
                     onPressed: (context) {
-                      context
-                          .read<TournamentDetailBloc>()
-                          .add(DeleteEsportMatch(match));
+                      context.read<TournamentDetailBloc>().add(
+                        DeleteEsportMatch(match),
+                      );
                     },
-                  ),
-                if (state.currentUserIsMember)
-                  SlidableAction(
-                    borderRadius: BorderRadius.circular(12),
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    icon: Icons.monetization_on_outlined,
-                    onPressed: (ctx) => _showMedalDialog(context, match),
                   ),
               ],
             ),
@@ -158,147 +218,156 @@ class EsportMatchesView extends StatelessWidget {
             ),
           );
         },
-        separatorBuilder: (context, index) => const SizedBox(height: 8),
-        itemCount: matches.length,
-        padding: EdgeInsets.only(bottom: 48),
-      ),
-    );
-  }
-
-  void _showMedalDialog(BuildContext context, GNEsportMatch match) {
-    final medalController = TextEditingController()
-      ..text = match.medals.toString();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Số lượng medal'),
-        content: TextField(
-          controller: medalController,
-          keyboardType: TextInputType.number,
-          decoration: appInputDecoration(
-            context: context,
-            hintText: 'Nhập số lượng',
-            prefixIcon: Icons.monetization_on_outlined,
-          ),
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          itemCount: matches.length,
+          padding: const EdgeInsets.symmetric(vertical: 8),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () {
-              FocusScope.of(context).unfocus();
-              final medal = int.tryParse(medalController.text);
-              if (medal == null) {
-                showToast('Nhập số lượng medal', gravity: ToastGravity.TOP);
-                return;
-              }
-              context
-                  .read<TournamentDetailBloc>()
-                  .add(UpdateMatchMedals(match.id, medal));
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cập nhật'),
-          ),
-        ],
       ),
     );
   }
 
   void _updateMatchDialog(BuildContext context, GNEsportMatch match) {
-    final homeScoreController = TextEditingController();
-    final awayScoreController = TextEditingController();
+    final homeScoreController = TextEditingController(
+      text: match.isFinished ? (match.homeScore?.toString() ?? '') : '',
+    );
+    final awayScoreController = TextEditingController(
+      text: match.isFinished ? (match.awayScore?.toString() ?? '') : '',
+    );
     final colorScheme = Theme.of(context).colorScheme;
+    final league = context.read<TournamentDetailBloc>().state.league;
+    final defaultPrefillK = (league?.defaultMatchCost ?? 50000) ~/ 1000;
+    bool costEnabled = (match.matchCost ?? 0) > 0;
+    final matchCostController = TextEditingController(
+      text: ((match.matchCost ?? 0) > 0
+              ? (match.matchCost! ~/ 1000)
+              : defaultPrefillK)
+          .toString(),
+    );
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cập nhật kết quả'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (match.homeTeam != null)
-              Row(
-                children: [
-                  Expanded(child: EsportMatchTeam(user: match.homeTeam!)),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 56,
-                    child: TextField(
-                      controller: homeScoreController,
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerHighest,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocalState) => AlertDialog(
+          title: const Text('Cập nhật kết quả'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (match.homeTeam != null)
+                Row(
+                  children: [
+                    Expanded(child: EsportMatchTeam(user: match.homeTeam!)),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 56,
+                      child: TextField(
+                        controller: homeScoreController,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: colorScheme.surfaceContainerHighest,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 12,
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 12),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 8),
-            if (match.awayTeam != null)
-              Row(
-                children: [
-                  Expanded(child: EsportMatchTeam(user: match.awayTeam!)),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 56,
-                    child: TextField(
-                      controller: awayScoreController,
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerHighest,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                  ],
+                ),
+              const SizedBox(height: 8),
+              if (match.awayTeam != null)
+                Row(
+                  children: [
+                    Expanded(child: EsportMatchTeam(user: match.awayTeam!)),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 56,
+                      child: TextField(
+                        controller: awayScoreController,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: colorScheme.surfaceContainerHighest,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 12,
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 12),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: const Text('Có tiền cho trận này'),
+                value: costEnabled,
+                onChanged: (v) => setLocalState(() => costEnabled = v),
               ),
+              if (costEnabled)
+                TextField(
+                  controller: matchCostController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    labelText: 'Số tiền (k VND)',
+                    prefixIcon: const Icon(Icons.attach_money, size: 20),
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                if (homeScoreController.text.isEmpty ||
+                    awayScoreController.text.isEmpty) {
+                  showToast('Nhập kết quả trận đấu', gravity: ToastGravity.TOP);
+                  return;
+                }
+                final homeScore = int.parse(homeScoreController.text);
+                final awayScore = int.parse(awayScoreController.text);
+                final matchCost = costEnabled
+                    ? (int.tryParse(matchCostController.text.trim()) ??
+                            defaultPrefillK) *
+                        1000
+                    : 0;
+                context.read<TournamentDetailBloc>().add(
+                  UpdateEsportMatch(
+                    match.copyWith(
+                      homeScore: homeScore,
+                      awayScore: awayScore,
+                      matchCost: matchCost,
+                    ),
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cập nhật'),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () {
-              FocusScope.of(context).unfocus();
-              if (homeScoreController.text.isEmpty ||
-                  awayScoreController.text.isEmpty) {
-                showToast('Nhập kết quả trận đấu', gravity: ToastGravity.TOP);
-                return;
-              }
-              final homeScore = int.parse(homeScoreController.text);
-              final awayScore = int.parse(awayScoreController.text);
-              context.read<TournamentDetailBloc>().add(
-                    UpdateEsportMatch(
-                      match.copyWith(
-                        homeScore: homeScore,
-                        awayScore: awayScore,
-                      ),
-                    ),
-                  );
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cập nhật'),
-          ),
-        ],
       ),
     );
   }

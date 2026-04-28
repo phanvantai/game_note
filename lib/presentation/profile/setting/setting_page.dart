@@ -8,7 +8,7 @@ import '../../../firebase/auth/gn_auth.dart';
 import '../bloc/profile_bloc.dart';
 
 class SettingPage extends StatelessWidget {
-  const SettingPage({Key? key}) : super(key: key);
+  const SettingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +55,7 @@ class SettingPage extends StatelessWidget {
             onTap: () {
               _deleteAccount(context, profileBloc);
             },
-          )
+          ),
         ],
       ),
     );
@@ -68,7 +68,8 @@ class SettingPage extends StatelessWidget {
         return AlertDialog(
           title: const Text('Xác nhận'),
           content: const Text(
-              'Bạn có chắc chắn muốn xoá tài khoản không?\n\nTất cả dữ liệu cá nhân của bạn sẽ bị xoá và không thể khôi phục. Một số dữ liệu liên quan đến nhóm và các người chơi khác sẽ vẫn được giữ lại.'),
+            'Bạn có chắc chắn muốn xoá tài khoản không?\n\nTất cả dữ liệu cá nhân của bạn sẽ bị xoá và không thể khôi phục. Một số dữ liệu liên quan đến nhóm và các người chơi khác sẽ vẫn được giữ lại.',
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -83,8 +84,10 @@ class SettingPage extends StatelessWidget {
               },
               child: Text(
                 'Xoá tài khoản',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.error),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
             ),
           ],

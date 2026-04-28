@@ -11,6 +11,7 @@ import 'package:pes_arena/offline/domain/usecases/set_players_for_league.dart';
 import 'package:pes_arena/offline/domain/usecases/update_match.dart';
 import 'package:pes_arena/presentation/profile/change_password/bloc/change_password_bloc.dart';
 import 'package:pes_arena/service/permission_util.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -47,39 +48,40 @@ Future<void> init() async {
   getIt.registerSingleton(
       SharedPreferencesHelper(await getIt.getAsync<SharedPreferences>()));
 
-  getIt.registerSingleton(DatabaseManager());
-
-  getIt.registerSingleton(LeagueManager(getIt()));
-
   getIt.registerSingleton(PermissionUtil());
 
-  // datasources
-  getIt.registerSingleton<LeagueLocalDatasource>(
-      LeagueLocalDatasourceImpl(getIt()));
+  if (!kIsWeb) {
+    getIt.registerSingleton(DatabaseManager());
 
-  // repositories
-  getIt.registerSingleton<LeagueRepository>(LeagueRepositoryImpl(getIt()));
+    getIt.registerSingleton(LeagueManager(getIt()));
 
-  // usecases
-  getIt.registerSingleton(GetLeagues(getIt()));
-  getIt.registerSingleton(CreateLeague(getIt()));
-  getIt.registerSingleton(GetLeague(getIt()));
-  getIt.registerSingleton(DeleteLeague(getIt()));
+    // datasources
+    getIt.registerSingleton<LeagueLocalDatasource>(
+        LeagueLocalDatasourceImpl(getIt()));
 
-  getIt.registerSingleton(SetPlayersForLeague(getIt()));
-  getIt.registerSingleton(CreateRounds(getIt()));
-  getIt.registerSingleton(UpdateMatch(getIt()));
+    // repositories
+    getIt.registerSingleton<LeagueRepository>(LeagueRepositoryImpl(getIt()));
 
-  // bloc
-  //getIt.registerFactory<LeagueListBloc>(() => LeagueListBloc(getLeagues: getLeagues))
-  getIt.registerFactory<LeagueDetailBloc>(
-    () => LeagueDetailBloc(
-      getLeague: getIt(),
-      setPlayersForLeague: getIt(),
-      createRounds: getIt(),
-      updateMatch: getIt(),
-    ),
-  );
+    // usecases
+    getIt.registerSingleton(GetLeagues(getIt()));
+    getIt.registerSingleton(CreateLeague(getIt()));
+    getIt.registerSingleton(GetLeague(getIt()));
+    getIt.registerSingleton(DeleteLeague(getIt()));
+
+    getIt.registerSingleton(SetPlayersForLeague(getIt()));
+    getIt.registerSingleton(CreateRounds(getIt()));
+    getIt.registerSingleton(UpdateMatch(getIt()));
+
+    // bloc
+    getIt.registerFactory<LeagueDetailBloc>(
+      () => LeagueDetailBloc(
+        getLeague: getIt(),
+        setPlayersForLeague: getIt(),
+        createRounds: getIt(),
+        updateMatch: getIt(),
+      ),
+    );
+  }
 
   getIt.registerSingleton(AppBloc());
 
@@ -87,7 +89,9 @@ Future<void> init() async {
   getIt.registerSingleton(GNAuth());
   getIt.registerSingleton(GNFirestore());
   getIt.registerSingleton(GNStorage());
-  getIt.registerSingleton(GNFirebaseMessaging());
+  if (!kIsWeb) {
+    getIt.registerSingleton(GNFirebaseMessaging());
+  }
 
   /// online mode
   // data

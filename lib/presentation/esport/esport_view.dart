@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -7,7 +6,7 @@ import 'groups/groups_view.dart';
 import 'tournament/tournament_view.dart';
 
 class EsportView extends StatefulWidget {
-  const EsportView({Key? key}) : super(key: key);
+  const EsportView({super.key});
 
   @override
   State<EsportView> createState() => _EsportViewState();
@@ -27,8 +26,11 @@ class _EsportViewState extends State<EsportView>
       const Tab(text: 'Giải đấu'): const TournamentView(),
       const Tab(text: 'Nhóm'): const GroupsView(),
     };
-    _tabController =
-        TabController(length: tabs.length, vsync: this, initialIndex: 0);
+    _tabController = TabController(
+      length: tabs.length,
+      vsync: this,
+      initialIndex: 0,
+    );
   }
 
   @override
@@ -46,25 +48,28 @@ class _EsportViewState extends State<EsportView>
         centerTitle: false,
         title: Row(
           children: [
-            BlocBuilder<EsportBloc, EsportState>(
-                builder: (context, state) => state.esportModel != null
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: CachedNetworkImage(
-                              imageUrl: state.esportModel!.image ?? '',
-                              height: 32,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(state.esportModel!.name ?? '',
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                        ],
-                      )
-                    : const SizedBox.shrink()) /* const PesTitle()*/,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.asset(
+                    'assets/images/pes.jpg',
+                    height: 32,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                BlocBuilder<EsportBloc, EsportState>(
+                  builder: (context, state) => Text(
+                    state.esportModel?.name ?? '',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             Expanded(
               child: TabBar(
                 dividerHeight: 0,
@@ -74,7 +79,7 @@ class _EsportViewState extends State<EsportView>
                 indicatorSize: TabBarIndicatorSize.label,
                 tabAlignment: TabAlignment.start,
               ),
-            )
+            ),
           ],
         ),
       ),

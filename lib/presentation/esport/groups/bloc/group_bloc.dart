@@ -45,7 +45,6 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
         groupName: event.groupName,
         esportId: event.esportId,
         description: event.description,
-        location: event.location,
       );
       emit(state.copyWith(
         viewStatus: ViewStatus.success,

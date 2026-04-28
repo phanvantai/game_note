@@ -5,7 +5,7 @@ import 'bloc/league_list_bloc.dart';
 import 'components/add_league_dialog.dart';
 
 class AddTournamentButton extends StatelessWidget {
-  const AddTournamentButton({Key? key}) : super(key: key);
+  const AddTournamentButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +14,11 @@ class AddTournamentButton extends StatelessWidget {
       onPressed: () {
         showDialog(
           context: context,
-          builder: (buildContext) => AddLeagueDialog(callback: (name) {
-            context.read<LeagueListBloc>().add(CreateLeagueEvent(name));
-          }),
+          builder: (buildContext) => AddLeagueDialog(
+            callback: (name) {
+              context.read<LeagueListBloc>().add(CreateLeagueEvent(name));
+            },
+          ),
         );
       },
       tooltip: 'Thêm giải đấu mới',

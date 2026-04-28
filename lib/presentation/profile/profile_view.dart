@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
@@ -16,7 +15,7 @@ import 'bloc/profile_bloc.dart';
 import 'feedback/feedback_view.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -68,7 +67,7 @@ class _ProfileViewState extends State<ProfileView>
               // Avatar section
               Center(
                 child: GestureDetector(
-                  onTap: () => _showAvatarOptions(context),
+                  onTap: kIsWeb ? null : () => _showAvatarOptions(context),
                   child: Stack(
                     children: [
                       CachedNetworkImage(
@@ -89,26 +88,27 @@ class _ProfileViewState extends State<ProfileView>
                           ),
                         ),
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: colorScheme.secondary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.surface,
-                              width: 2,
+                      if (!kIsWeb)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: colorScheme.secondary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.surface,
+                                width: 2,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 14,
+                              color: colorScheme.onSecondary,
                             ),
                           ),
-                          child: Icon(
-                            Icons.camera_alt,
-                            size: 14,
-                            color: colorScheme.onSecondary,
-                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -132,8 +132,9 @@ class _ProfileViewState extends State<ProfileView>
                             Icon(
                               Icons.edit_outlined,
                               size: 18,
-                              color:
-                                  colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                           ],
                         ),
@@ -142,7 +143,9 @@ class _ProfileViewState extends State<ProfileView>
                         onTap: () => _navigateToUpdateProfile(context, state),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: colorScheme.errorContainer,
                             borderRadius: BorderRadius.circular(8),
@@ -172,15 +175,17 @@ class _ProfileViewState extends State<ProfileView>
                       onTap: () => _navigateToUpdateProfile(context, state),
                     ),
                     Divider(
-                        height: 0.5,
-                        indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                      height: 0.5,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.lock_outline,
                       title: 'Đổi mật khẩu',
-                      onTap: () => Navigator.of(context)
-                          .pushNamed(Routing.changePassword),
+                      onTap: () => Navigator.of(
+                        context,
+                      ).pushNamed(Routing.changePassword),
                     ),
                   ],
                 ),
@@ -193,23 +198,27 @@ class _ProfileViewState extends State<ProfileView>
               AppCard(
                 child: Column(
                   children: [
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.wifi_off_outlined,
-                      title: 'Chế độ offline',
-                      onTap: () => _switchToOffline(context),
-                    ),
-                    Divider(
+                    if (!kIsWeb) ...[
+                      _buildMenuItem(
+                        context,
+                        icon: Icons.wifi_off_outlined,
+                        title: 'Chế độ offline',
+                        onTap: () => _switchToOffline(context),
+                      ),
+                      Divider(
                         height: 0.5,
                         indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                        color: colorScheme.outline.withValues(alpha: 0.2),
+                      ),
+                    ],
                     _buildMenuItem(
                       context,
                       icon: Icons.settings_outlined,
                       title: 'Tuỳ chọn khác',
                       onTap: () => Navigator.of(context).pushNamed(
-                          Routing.setting,
-                          arguments: context.read<ProfileBloc>()),
+                        Routing.setting,
+                        arguments: context.read<ProfileBloc>(),
+                      ),
                     ),
                   ],
                 ),
@@ -227,30 +236,31 @@ class _ProfileViewState extends State<ProfileView>
                       icon: Icons.star_outline,
                       title: 'Đánh giá',
                       onTap: () {
-                        Uri url;
-                        if (Platform.isAndroid) {
-                          url = Uri.parse(playStoreUrl);
-                        } else {
-                          url = Uri.parse(appStoreUrl);
-                        }
+                        final url = defaultTargetPlatform ==
+                                TargetPlatform.android
+                            ? Uri.parse(playStoreUrl)
+                            : Uri.parse(appStoreUrl);
                         launchUrl(url);
                       },
                     ),
                     Divider(
-                        height: 0.5,
-                        indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                      height: 0.5,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.chat_bubble_outline,
                       title: 'Nhận xét góp ý',
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const FeedbackView())),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const FeedbackView()),
+                      ),
                     ),
                     Divider(
-                        height: 0.5,
-                        indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2)),
+                      height: 0.5,
+                      indent: 56,
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                    ),
                     ListTile(
                       onTap: _incrementCounter,
                       leading: Icon(
@@ -266,8 +276,9 @@ class _ProfileViewState extends State<ProfileView>
                                 ? snapshot.data!.versionNumber
                                 : '1.0.0',
                             style: textTheme.bodyMedium?.copyWith(
-                              color:
-                                  colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                           );
                         },
@@ -309,13 +320,12 @@ class _ProfileViewState extends State<ProfileView>
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.45),
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.45),
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1,
+        ),
       ),
     );
   }
@@ -337,9 +347,9 @@ class _ProfileViewState extends State<ProfileView>
       ),
       title: Text(
         title,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: textColor,
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(color: textColor),
       ),
       trailing: showChevron
           ? Icon(
@@ -399,9 +409,12 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   void _navigateToUpdateProfile(
-      BuildContext context, ProfileState state) async {
-    await Navigator.of(context)
-        .pushNamed(Routing.updateProfile, arguments: state.user);
+    BuildContext context,
+    ProfileState state,
+  ) async {
+    await Navigator.of(
+      context,
+    ).pushNamed(Routing.updateProfile, arguments: state.user);
     if (context.mounted) {
       context.read<ProfileBloc>().add(LoadProfileEvent());
     }

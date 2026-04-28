@@ -7,7 +7,7 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/profile/change_password/bloc/change_password_bloc.dart';
 
 class ChangePasswordView extends StatefulWidget {
-  const ChangePasswordView({Key? key}) : super(key: key);
+  const ChangePasswordView({super.key});
 
   @override
   State<ChangePasswordView> createState() => _ChangePasswordViewState();
@@ -35,9 +35,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
 
     return BlocConsumer<ChangePasswordBloc, ChangePasswordState>(
       builder: (context, state) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Đổi mật khẩu'),
-        ),
+        appBar: AppBar(title: const Text('Đổi mật khẩu')),
         body: Column(
           children: [
             if (state.viewStatus.isLoading) const LinearProgressIndicator(),
@@ -98,7 +96,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                       suffixIcon: _buildVisibilityToggle(
                         _isObscureConfirm,
                         () => setState(
-                            () => _isObscureConfirm = !_isObscureConfirm),
+                          () => _isObscureConfirm = !_isObscureConfirm,
+                        ),
                       ),
                       errorText: state.errorConfirmPassword.isEmpty
                           ? null
@@ -112,9 +111,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                       onPressed: !state.notValidForm
                           ? () {
                               FocusScope.of(context).unfocus();
-                              context
-                                  .read<ChangePasswordBloc>()
-                                  .add(const ChangePasswordSubmitted());
+                              context.read<ChangePasswordBloc>().add(
+                                const ChangePasswordSubmitted(),
+                              );
                             }
                           : null,
                       style: FilledButton.styleFrom(

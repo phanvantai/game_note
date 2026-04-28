@@ -9,10 +9,7 @@ import 'bloc/notification_bloc.dart';
 
 class NotificationItem extends StatelessWidget {
   final GNNotification notification;
-  const NotificationItem({
-    Key? key,
-    required this.notification,
-  }) : super(key: key);
+  const NotificationItem({super.key, required this.notification});
 
   @override
   Widget build(BuildContext context) {
@@ -26,22 +23,22 @@ class NotificationItem extends StatelessWidget {
           SlidableAction(
             borderRadius: BorderRadius.circular(12),
             onPressed: (ctx) {
-              context
-                  .read<NotificationBloc>()
-                  .add(NotificationEventDelete(notification.id));
+              context.read<NotificationBloc>().add(
+                NotificationEventDelete(notification.id),
+              );
             },
             icon: Icons.delete_outline,
             backgroundColor: colorScheme.error,
-          )
+          ),
         ],
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
           if (!notification.isRead) {
-            context
-                .read<NotificationBloc>()
-                .add(NotificationEventMarkAsRead(notification.id));
+            context.read<NotificationBloc>().add(
+              NotificationEventMarkAsRead(notification.id),
+            );
           }
           if (notification.notificationType ==
                   GNNotificationType.esportsLeague &&
@@ -64,8 +61,10 @@ class NotificationItem extends StatelessWidget {
             ),
           ),
           child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
             leading: SizedBox(
               width: 36,
               height: 36,
@@ -74,8 +73,9 @@ class NotificationItem extends StatelessWidget {
             title: Text(
               notification.title,
               style: textTheme.titleSmall?.copyWith(
-                fontWeight:
-                    notification.isRead ? FontWeight.normal : FontWeight.w600,
+                fontWeight: notification.isRead
+                    ? FontWeight.normal
+                    : FontWeight.w600,
               ),
             ),
             subtitle: Text(
@@ -87,8 +87,9 @@ class NotificationItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             trailing: Text(
-              DateFormat('dd/MM\nHH:mm')
-                  .format(notification.timestamp.toLocal()),
+              DateFormat(
+                'dd/MM\nHH:mm',
+              ).format(notification.timestamp.toLocal()),
               textAlign: TextAlign.right,
               style: textTheme.labelSmall?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.4),

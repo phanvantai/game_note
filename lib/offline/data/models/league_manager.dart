@@ -23,36 +23,38 @@ class LeagueManager {
 
   LeagueModel get league => _leagueModel;
 
-  setLeague(LeagueModel leagueModel) async {
+  Future<void> setLeague(LeagueModel leagueModel) async {
     _leagueModel = leagueModel;
     await setPlayers(_leagueModel.players.map((e) => e.playerModel).toList());
   }
 
   List<PlayerModel> get players => _players;
 
-  setPlayers(List<PlayerModel> players) async {
+  Future<void> setPlayers(List<PlayerModel> players) async {
     _players = players;
   }
 
-  getLeague(int id) async {
+  Future<void> getLeague(int id) async {
     var abc = await databaseManager.getLeague(id);
     if (abc != null) {
       await setLeague(abc);
     }
   }
 
-  addPlayersToLeague() async {
+  Future<void> addPlayersToLeague() async {
     List<PlayerStatsModel> playersStats = [];
     for (var player in _players) {
-      var model =
-          PlayerStatsModel(playerModel: player, leagueId: _leagueModel.id!);
+      var model = PlayerStatsModel(
+        playerModel: player,
+        leagueId: _leagueModel.id!,
+      );
       var id = await databaseManager.createPlayerStats(model);
       playersStats.add(model.copyWith(id: id));
     }
     await setLeague(league.copyWith(players: playersStats));
   }
 
-  createRounds() async {
+  Future<void> createRounds() async {
     var listMaps = TournamentHelper.createRounds(
       players,
       PlayerModel.virtualPlayer,
@@ -73,14 +75,18 @@ class LeagueManager {
         match = match.copyWith(id: matchId);
 
         // create result home
-        var resultHome =
-            ResultModel(matchId: matchId, playerModel: map.keys.first);
+        var resultHome = ResultModel(
+          matchId: matchId,
+          playerModel: map.keys.first,
+        );
         var resultHomeId = await databaseManager.createResult(resultHome);
         resultHome = resultHome.copyWith(id: resultHomeId);
 
         // create result away
-        var resultAway =
-            ResultModel(matchId: matchId, playerModel: map.values.first);
+        var resultAway = ResultModel(
+          matchId: matchId,
+          playerModel: map.values.first,
+        );
         var resultAwayId = await databaseManager.createResult(resultAway);
         resultAway = resultAway.copyWith(id: resultAwayId);
 
@@ -98,7 +104,7 @@ class LeagueManager {
     setLeague(league.copyWith(rounds: rounds));
   }
 
-  updateMatch(MatchModel model, int home, int away) async {
+  Future<void> updateMatch(MatchModel model, int home, int away) async {
     // update result home
     await databaseManager.updateResult(model.home!.copyWith(score: home));
     // update result away
@@ -107,13 +113,19 @@ class LeagueManager {
     await databaseManager.updateMatch(model.copyWith(status: true));
 
     // update player stats
-    final homeStats = await updatePlayerStats(league.players.lastWhere(
-        (element) => element.playerModel == model.home!.playerModel));
+    final homeStats = await updatePlayerStats(
+      league.players.lastWhere(
+        (element) => element.playerModel == model.home!.playerModel,
+      ),
+    );
     if (homeStats != null) {
       await databaseManager.updatePlayerStats(homeStats);
     }
-    final awayStats = await updatePlayerStats(league.players.lastWhere(
-        (element) => element.playerModel == model.away!.playerModel));
+    final awayStats = await updatePlayerStats(
+      league.players.lastWhere(
+        (element) => element.playerModel == model.away!.playerModel,
+      ),
+    );
     if (awayStats != null) {
       await databaseManager.updatePlayerStats(awayStats);
     }
@@ -126,10 +138,12 @@ class LeagueManager {
   }
 
   Future<PlayerStatsModel?> updatePlayerStats(
-      PlayerStatsModel playerStatsModel) async {
+    PlayerStatsModel playerStatsModel,
+  ) async {
     // get league
-    final newLeague =
-        await databaseManager.getLeague(playerStatsModel.leagueId);
+    final newLeague = await databaseManager.getLeague(
+      playerStatsModel.leagueId,
+    );
     if (newLeague == null) {
       return null;
     }
@@ -138,11 +152,18 @@ class LeagueManager {
     List<MatchModel> matchs = [];
     for (var element in newLeague.rounds) {
       // only count match done and has player model
-      matchs.addAll(element.matches.where((element) =>
-          (element.away != null && element.home != null && element.status) &&
-          (element.home!.playerModel.id == playerStatsModel.playerModel.id ||
-              element.away!.playerModel.id ==
-                  playerStatsModel.playerModel.id)));
+      matchs.addAll(
+        element.matches.where(
+          (element) =>
+              (element.away != null &&
+                  element.home != null &&
+                  element.status) &&
+              (element.home!.playerModel.id ==
+                      playerStatsModel.playerModel.id ||
+                  element.away!.playerModel.id ==
+                      playerStatsModel.playerModel.id),
+        ),
+      );
     }
 
     // create player stats

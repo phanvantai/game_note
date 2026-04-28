@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
@@ -12,7 +13,7 @@ import '../../../../core/helpers/admob_helper.dart';
 import '../../../users/user_item.dart';
 
 class GroupDetailView extends StatefulWidget {
-  const GroupDetailView({Key? key}) : super(key: key);
+  const GroupDetailView({super.key});
 
   @override
   State<GroupDetailView> createState() => _GroupDetailViewState();
@@ -44,8 +45,9 @@ class _GroupDetailViewState extends State<GroupDetailView> {
               Expanded(
                 child: Text(
                   state.group.groupName,
-                  style: textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -61,8 +63,10 @@ class _GroupDetailViewState extends State<GroupDetailView> {
               _buildSectionLabel(context, 'Mô tả'),
               const SizedBox(height: 8),
               AppCard(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Text(
                   state.group.description,
                   style: textTheme.bodyMedium,
@@ -71,24 +75,6 @@ class _GroupDetailViewState extends State<GroupDetailView> {
               ),
               const SizedBox(height: 20),
             ],
-            // Location card
-            _buildSectionLabel(context, 'Khu vực'),
-            const SizedBox(height: 8),
-            AppCard(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    size: 20,
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(state.group.location, style: textTheme.bodyMedium),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
             // Members card
             _buildSectionLabel(context, 'Thành viên (${state.members.length})'),
             const SizedBox(height: 8),
@@ -104,28 +90,33 @@ class _GroupDetailViewState extends State<GroupDetailView> {
                         user: user,
                         trailing: state.isOwner
                             ? !user.isCurrentUser
-                                ? IconButton(
-                                    onPressed: () => _removeMember(
-                                        false, context, state, user.id),
-                                    icon: Icon(
-                                      Icons.person_remove_outlined,
-                                      color: colorScheme.onSurface
-                                          .withValues(alpha: 0.4),
+                                  ? IconButton(
+                                      onPressed: () => _removeMember(
+                                        false,
+                                        context,
+                                        state,
+                                        user.id,
+                                      ),
+                                      icon: Icon(
+                                        Icons.person_remove_outlined,
+                                        color: colorScheme.onSurface.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                        size: 20,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.admin_panel_settings_outlined,
+                                      color: colorScheme.secondary,
                                       size: 20,
-                                    ),
-                                  )
-                                : Icon(
-                                    Icons.admin_panel_settings_outlined,
-                                    color: colorScheme.secondary,
-                                    size: 20,
-                                  )
+                                    )
                             : user.id == state.group.ownerId
-                                ? Icon(
-                                    Icons.admin_panel_settings_outlined,
-                                    color: colorScheme.secondary,
-                                    size: 20,
-                                  )
-                                : null,
+                            ? Icon(
+                                Icons.admin_panel_settings_outlined,
+                                color: colorScheme.secondary,
+                                size: 20,
+                              )
+                            : null,
                       ),
                       if (!isLast)
                         Divider(
@@ -142,7 +133,7 @@ class _GroupDetailViewState extends State<GroupDetailView> {
           ],
         ),
         floatingActionButton: _floatingButton(context, state),
-        bottomNavigationBar: _bannerAd != null
+        bottomNavigationBar: (!kIsWeb && _bannerAd != null)
             ? SizedBox(
                 width: _bannerAd!.size.width.toDouble(),
                 height: _bannerAd!.size.height.toDouble(),
@@ -164,13 +155,12 @@ class _GroupDetailViewState extends State<GroupDetailView> {
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.45),
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.45),
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1,
+        ),
       ),
     );
   }
@@ -188,10 +178,11 @@ class _GroupDetailViewState extends State<GroupDetailView> {
   }
 
   void _loadAd() async {
-    if (isAdsLoaded) return;
+    if (kIsWeb || isAdsLoaded) return;
     final AnchoredAdaptiveBannerAdSize? size =
-        await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-            MediaQuery.of(context).size.width.truncate());
+        await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
+          MediaQuery.of(context).size.width.truncate(),
+        );
     _bannerAd = BannerAd(
       adUnitId: AdmobHelper.bannerUnitIDDetailBottom,
       request: const AdRequest(),
@@ -271,9 +262,9 @@ class _GroupDetailViewState extends State<GroupDetailView> {
                       return UserItem(
                         user: user,
                         onTap: () {
-                          BlocProvider.of<GroupDetailBloc>(context).add(
-                            AddMember(state.group.id, user.id),
-                          );
+                          BlocProvider.of<GroupDetailBloc>(
+                            context,
+                          ).add(AddMember(state.group.id, user.id));
                           Navigator.of(context).pop();
                         },
                       );
@@ -294,8 +285,12 @@ class _GroupDetailViewState extends State<GroupDetailView> {
     );
   }
 
-  void _removeMember(bool currentUser, BuildContext context,
-      GroupDetailState state, String userId) async {
+  void _removeMember(
+    bool currentUser,
+    BuildContext context,
+    GroupDetailState state,
+    String userId,
+  ) async {
     final confirmed = await showAppConfirmDialog(
       context: context,
       title: currentUser ? 'Rời nhóm' : 'Xóa thành viên',
@@ -306,9 +301,9 @@ class _GroupDetailViewState extends State<GroupDetailView> {
       isDestructive: true,
     );
     if (confirmed == true && context.mounted) {
-      BlocProvider.of<GroupDetailBloc>(context).add(
-        RemoveMember(state.group.id, userId),
-      );
+      BlocProvider.of<GroupDetailBloc>(
+        context,
+      ).add(RemoveMember(state.group.id, userId));
     }
   }
 }

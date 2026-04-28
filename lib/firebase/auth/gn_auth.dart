@@ -10,7 +10,7 @@ import '../firestore/gn_firestore.dart';
 
 class GNAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  late final Future<void> _googleSignInInitialized;
+  Future<void>? _googleSignInInitialized;
 
   FirebaseAuth get auth => _auth;
 
@@ -21,14 +21,15 @@ class GNAuth {
   bool _isSignInWithEmailAndPassword = false;
 
   GNAuth() {
-    if (kDebugMode) {
-      print(
-          '🔧 GNAuth: Initializing with server client ID: 256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com');
+    if (!kIsWeb) {
+      const googleClientId =
+          '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com';
+      if (kDebugMode) {
+        print('🔧 GNAuth: Initializing Google Sign-In with $googleClientId');
+      }
+      _googleSignInInitialized =
+          GoogleSignIn.instance.initialize(serverClientId: googleClientId);
     }
-    _googleSignInInitialized = GoogleSignIn.instance.initialize(
-      serverClientId:
-          '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com',
-    );
 
     // Listen to auth state changes
     _auth.authStateChanges().listen(
@@ -105,7 +106,12 @@ class GNAuth {
     }
 
     try {
-      await _googleSignInInitialized;
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider();
+        return await _auth.signInWithPopup(provider);
+      }
+
+      await _googleSignInInitialized!;
 
       final GoogleSignInAccount googleSignInAccount =
           await GoogleSignIn.instance.authenticate();
@@ -144,17 +150,34 @@ class GNAuth {
       }
       return result;
     } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) {
-        if (kDebugMode) {
-          print('🚫 GNAuth: Google Sign-In cancelled by user');
-        }
-        throw FirebaseAuthException(
-          code: 'ERROR_ABORTED_BY_USER',
-          message: 'Sign in aborted by user',
-        );
-      }
+      // v7's Android plugin maps several Credential Manager errors
+      // (NoCredentialException, GetCredentialUnknownException, ...) to
+      // `canceled`. Always log the full description so config issues
+      // (SHA-1, serverClientId, OAuth consent screen) don't hide as
+      // "user cancelled".
       if (kDebugMode) {
-        print('❌ GNAuth: Google Sign-In exception: $e');
+        print('❌ GNAuth: GoogleSignInException');
+        print('   - Code: ${e.code}');
+        print('   - Description: ${e.description}');
+        print('   - Details: ${e.details}');
+      }
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        // Heuristic: a real cancellation has no description. Anything else
+        // is a config/runtime error misreported as cancellation.
+        final desc = e.description?.trim() ?? '';
+        if (desc.isEmpty) {
+          if (kDebugMode) {
+            print('🚫 GNAuth: Google Sign-In cancelled by user');
+          }
+          throw FirebaseAuthException(
+            code: 'ERROR_ABORTED_BY_USER',
+            message: 'Sign in aborted by user',
+          );
+        }
+        if (kDebugMode) {
+          print(
+              '⚠️ GNAuth: code=canceled but has description → likely config error, not real cancel');
+        }
       }
       rethrow;
     } on FirebaseAuthException catch (e) {
@@ -163,6 +186,14 @@ class GNAuth {
         print('   - Code: ${e.code}');
         print('   - Message: ${e.message}');
         print('   - Plugin: ${e.plugin}');
+      }
+      // Web signInWithPopup throws these when the user closes/blocks the popup.
+      // Normalise to the same code native flow uses so callers handle uniformly.
+      if (e.code == 'popup-closed-by-user' || e.code == 'cancelled-popup-request') {
+        throw FirebaseAuthException(
+          code: 'ERROR_ABORTED_BY_USER',
+          message: 'Sign in aborted by user',
+        );
       }
       rethrow;
     } catch (e) {

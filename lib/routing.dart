@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pes_arena/offline/presentation/offline_view.dart';
 import 'package:pes_arena/presentation/app/app_view.dart';
@@ -38,6 +39,8 @@ class Routing {
         case Routing.app:
           return const AppView();
         case Routing.offline:
+        case Routing.offlineLeague:
+          if (kIsWeb) return const AppView();
           return const OfflineView();
         case Routing.verify:
           return const VerifyPage();

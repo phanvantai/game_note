@@ -3,10 +3,11 @@ import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'presentation/web_shell/web_shell.dart';
 import 'routing.dart';
 
 class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +20,8 @@ class App extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeNotifier.themeMode,
+          builder: (context, child) =>
+              WebShell(child: child ?? const SizedBox.shrink()),
         );
       },
     );

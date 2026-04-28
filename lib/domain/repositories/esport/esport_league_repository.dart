@@ -1,7 +1,11 @@
+import 'package:pes_arena/firebase/firestore/esport/league/gn_firestore_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 
 import '../../../firebase/firestore/esport/league/gn_esport_league.dart';
+
+export 'package:pes_arena/firebase/firestore/esport/league/gn_firestore_esport_league.dart'
+    show LeaguesPage;
 
 // Data class for parallel loading results
 class LeagueDetailData {
@@ -15,7 +19,16 @@ class LeagueDetailData {
 }
 
 abstract class EsportLeagueRepository {
-  Future<List<GNEsportLeague>> getLeagues();
+  /// Leagues the current user owns or participates in.
+  /// Server-side filtered (2 parallel queries, deduped). No pagination.
+  Future<List<GNEsportLeague>> getMyLeagues();
+
+  /// Leagues the current user is NOT in. Paginated; pass `startAfter` from
+  /// the previous page's `lastDoc` to load the next page.
+  Future<LeaguesPage> getOtherLeagues({
+    Object? startAfter,
+    int limit,
+  });
 
   Future<GNEsportLeague?> getLeague(String leagueId);
 
@@ -25,6 +38,9 @@ abstract class EsportLeagueRepository {
     DateTime? startDate,
     DateTime? endDate,
     String description = '',
+    bool rankPayoutEnabled = false,
+    List<int> rankPayouts = const [],
+    int defaultMatchCost = 50000,
   });
 
   Future<List<GNEsportLeagueStat>> getLeagueStats(String leagueId);
@@ -50,18 +66,17 @@ abstract class EsportLeagueRepository {
   Future<void> inactiveLeague(GNEsportLeague league);
   Future<void> deleteMatch(GNEsportMatch match);
   Future<void> createCustomMatch(GNEsportMatch match);
-  Future<void> updateLeagueStartingMedals(String leagueId, int startingMedals);
-  Future<void> updateLeagueUnitMedals(String leagueId, int unitMedals);
-
-  Future<void> updateMatchMedals(String matchId, String leagueId, int medals);
 
   // Parallel loading method to get both participants and matches efficiently
   Future<LeagueDetailData> getParticipantsAndMatches(String leagueId);
+
+  /// Admin-only: rebuild every stat doc in the league from its finished
+  /// matches. Use to recover from drift caused by legacy update bugs or
+  /// manual data edits.
+  Future<void> recomputeLeagueStats(String leagueId);
 
   // Streams
   Stream<List<GNEsportLeagueStat>> listenForLeagueStats(String leagueId);
   Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId);
   Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId);
-
-  Stream<List<GNEsportLeague>> listenForLeagues();
 }

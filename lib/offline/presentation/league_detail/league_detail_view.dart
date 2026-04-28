@@ -14,7 +14,7 @@ import 'components/table_view.dart';
 import 'league_detail_floating_button.dart';
 
 class LeagueDetailView extends StatefulWidget {
-  const LeagueDetailView({Key? key}) : super(key: key);
+  const LeagueDetailView({super.key});
 
   @override
   State<LeagueDetailView> createState() => _LeagueDetailViewState();
@@ -32,10 +32,7 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
             title: Text(state.model?.name ?? ''),
             actions: _buildActions(context, state),
           ),
-          body: SafeArea(
-            bottom: false,
-            child: _leagueDetail(context, state),
-          ),
+          body: SafeArea(bottom: false, child: _leagueDetail(context, state)),
           floatingActionButton: state.status.needFloatButton
               ? const LeagueDetailFloatingButton()
               : null,
@@ -50,8 +47,9 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
         PopupMenuButton<String>(
           onSelected: (value) {
             if (value == 'confirm') {
-              BlocProvider.of<LeagueDetailBloc>(context)
-                  .add(ConfirmPlayersInLeague());
+              BlocProvider.of<LeagueDetailBloc>(
+                context,
+              ).add(ConfirmPlayersInLeague());
             }
           },
           itemBuilder: (context) => [
@@ -107,7 +105,9 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
 
     await SharePlus.instance.share(
       ShareParams(
-          files: [XFile(file.path)], text: 'Bảng xếp hạng - $leagueName'),
+        files: [XFile(file.path)],
+        text: 'Bảng xếp hạng - $leagueName',
+      ),
     );
   }
 
@@ -122,9 +122,9 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
     }
     if (state.status.isAddingPlayer) {
       return SelectPlayerView(
-        enableSection: (players, enable) =>
-            BlocProvider.of<LeagueDetailBloc>(context)
-                .add(AddPlayersToLeague(players)),
+        enableSection: (players, enable) => BlocProvider.of<LeagueDetailBloc>(
+          context,
+        ).add(AddPlayersToLeague(players)),
       );
     }
     if (state.status.isError) {
@@ -151,13 +151,13 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         child: Text(
                           state.model?.name ?? '',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -175,9 +175,7 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
     }
     if (state.status.isLoading) {
       return Center(
-        child: CircularProgressIndicator(
-          color: colorScheme.secondary,
-        ),
+        child: CircularProgressIndicator(color: colorScheme.secondary),
       );
     }
     return const SizedBox.shrink();

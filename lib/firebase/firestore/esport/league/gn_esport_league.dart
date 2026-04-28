@@ -65,8 +65,14 @@ class GNEsportLeague extends Equatable {
   final String description; // league description
   final List<String> participants; // list of participants
   final String? status; // status of the league: upcoming, ongoing, finished
-  final int? startingMedals;
-  final int? valueMedal;
+
+  // Cost split config (chi phí tiền máy/ăn uống giữa người chơi).
+  // Tracker only — app does not handle payments.
+  final bool rankPayoutEnabled;
+  final List<int> rankPayouts; // index 0 = số tiền hạng 2 trả cho hạng 1, ...
+  // Số tiền prefill cho ô "Tiền trận này" khi user bật cost cho 1 trận.
+  // Không phải toggle bật/tắt feature — per-match cost luôn có thể bật từng trận.
+  final int defaultMatchCost;
 
   final GNEsportGroup? group; // group this league belongs to
 
@@ -84,8 +90,9 @@ class GNEsportLeague extends Equatable {
   static const String fieldDescription = 'description';
   static const String fieldParticipants = 'participants';
   static const String fieldStatus = 'status';
-  static const String fieldStartingMedals = 'startingMedals';
-  static const String fieldValueMedal = 'valueMedal';
+  static const String fieldRankPayoutEnabled = 'rankPayoutEnabled';
+  static const String fieldRankPayouts = 'rankPayouts';
+  static const String fieldDefaultMatchCost = 'defaultMatchCost';
 
   const GNEsportLeague({
     required this.id,
@@ -99,15 +106,14 @@ class GNEsportLeague extends Equatable {
     required this.participants,
     this.group,
     this.status,
-    this.startingMedals,
-    this.valueMedal,
+    this.rankPayoutEnabled = false,
+    this.rankPayouts = const [],
+    this.defaultMatchCost = 50000,
   });
 
   @override
   List<Object?> get props => [
         id,
-        startingMedals,
-        valueMedal,
         ownerId,
         groupId,
         name,
@@ -118,12 +124,13 @@ class GNEsportLeague extends Equatable {
         participants,
         status,
         group,
+        rankPayoutEnabled,
+        rankPayouts,
+        defaultMatchCost,
       ];
 
   GNEsportLeague copyWith({
     String? id,
-    int? startingMedals,
-    int? valueMedal,
     String? ownerId,
     String? groupId,
     String? name,
@@ -134,11 +141,12 @@ class GNEsportLeague extends Equatable {
     List<String>? participants,
     GNEsportGroup? group,
     String? status,
+    bool? rankPayoutEnabled,
+    List<int>? rankPayouts,
+    int? defaultMatchCost,
   }) {
     return GNEsportLeague(
       id: id ?? this.id,
-      startingMedals: startingMedals ?? this.startingMedals,
-      valueMedal: valueMedal ?? this.valueMedal,
       ownerId: ownerId ?? this.ownerId,
       groupId: groupId ?? this.groupId,
       name: name ?? this.name,
@@ -149,6 +157,9 @@ class GNEsportLeague extends Equatable {
       participants: participants ?? this.participants,
       group: group ?? this.group,
       status: status ?? this.status,
+      rankPayoutEnabled: rankPayoutEnabled ?? this.rankPayoutEnabled,
+      rankPayouts: rankPayouts ?? this.rankPayouts,
+      defaultMatchCost: defaultMatchCost ?? this.defaultMatchCost,
     );
   }
 
@@ -163,28 +174,43 @@ class GNEsportLeague extends Equatable {
       fieldDescription: description,
       fieldParticipants: participants,
       fieldStatus: status,
-      fieldStartingMedals: startingMedals,
-      fieldValueMedal: valueMedal,
+      fieldRankPayoutEnabled: rankPayoutEnabled,
+      fieldRankPayouts: rankPayouts,
+      fieldDefaultMatchCost: defaultMatchCost,
     };
   }
 
   factory GNEsportLeague.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    return GNEsportLeague.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+  }
+
+  /// Pure factory cho test — không cần `DocumentSnapshot`.
+  /// `startDate`/`endDate` chấp nhận Firestore `Timestamp` hoặc `DateTime`.
+  factory GNEsportLeague.fromMap(Map<String, dynamic> data, String id) {
+    DateTime? toDate(Object? v) {
+      if (v == null) return null;
+      if (v is DateTime) return v;
+      if (v is Timestamp) return v.toDate();
+      return null;
+    }
+
     return GNEsportLeague(
-      id: doc.id, // league id
-      ownerId: data[fieldOwnerId] ?? '', // owner id of the league
+      id: id,
+      ownerId: data[fieldOwnerId] ?? '',
       groupId: data[fieldGroupId],
       name: data[fieldName],
-      startDate: (data[fieldStartDate] as Timestamp).toDate(),
-      endDate: data[fieldEndDate] != null
-          ? (data[fieldEndDate] as Timestamp).toDate()
-          : null,
+      startDate: toDate(data[fieldStartDate]) ?? DateTime.now(),
+      endDate: toDate(data[fieldEndDate]),
       isActive: data[fieldIsActive] ?? true,
       description: data[fieldDescription],
       participants: List<String>.from(data[fieldParticipants] ?? []),
       status: data[fieldStatus] ?? 'upcoming',
-      startingMedals: data[fieldStartingMedals] ?? 0,
-      valueMedal: data[fieldValueMedal] ?? 0,
+      rankPayoutEnabled: data[fieldRankPayoutEnabled] ?? false,
+      rankPayouts: List<int>.from(
+        (data[fieldRankPayouts] as List?)?.map((e) => (e as num).toInt()) ??
+            const [],
+      ),
+      defaultMatchCost: (data[fieldDefaultMatchCost] as num?)?.toInt() ?? 50000,
     );
   }
 }

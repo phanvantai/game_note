@@ -5,10 +5,7 @@ import '../../../../../../widgets/gn_circle_avatar.dart';
 
 class EsportMatchTeam extends StatelessWidget {
   final GNUser user;
-  const EsportMatchTeam({
-    Key? key,
-    required this.user,
-  }) : super(key: key);
+  const EsportMatchTeam({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -18,17 +15,12 @@ class EsportMatchTeam extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
         children: [
-          GNCircleAvatar(
-            photoUrl: user.photoUrl,
-            size: 28,
-          ),
+          GNCircleAvatar(photoUrl: user.photoUrl, size: 28),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
               user.displayName ?? user.email ?? user.phoneNumber ?? user.id,
-              style: textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+              style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
               overflow: TextOverflow.ellipsis,
             ),
           ),

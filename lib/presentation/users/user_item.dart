@@ -9,12 +9,12 @@ class UserItem extends StatelessWidget {
   final Function()? onLongPress;
   final Widget? trailing;
   const UserItem({
-    Key? key,
+    super.key,
     required this.user,
     this.onTap,
     this.onLongPress,
     this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +23,7 @@ class UserItem extends StatelessWidget {
         user.displayName ?? user.email ?? user.phoneNumber ?? user.id,
         style: Theme.of(context).textTheme.bodyLarge,
       ),
-      leading: GNCircleAvatar(
-        photoUrl: user.photoUrl,
-        size: 40,
-      ),
+      leading: GNCircleAvatar(photoUrl: user.photoUrl, size: 40),
       onTap: onTap,
       onLongPress: onLongPress,
       trailing: trailing,

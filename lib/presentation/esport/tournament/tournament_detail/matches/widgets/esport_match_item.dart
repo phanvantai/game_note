@@ -9,17 +9,16 @@ class EsportMatchItem extends StatelessWidget {
   final Function()? onTap;
   final Function()? onLongPress;
   const EsportMatchItem({
-    Key? key,
+    super.key,
     required this.match,
     this.onTap,
     this.onLongPress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final hasMedals = match.medals != null && match.medals! > 0;
 
     return InkWell(
       onTap: onTap,
@@ -31,10 +30,8 @@ class EsportMatchItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           color: colorScheme.surface,
           border: Border.all(
-            color: hasMedals
-                ? colorScheme.secondary.withValues(alpha: 0.4)
-                : colorScheme.outline.withValues(alpha: 0.2),
-            width: hasMedals ? 1.5 : 0.5,
+            color: colorScheme.outline.withValues(alpha: 0.2),
+            width: 0.5,
           ),
         ),
         child: Padding(
@@ -50,8 +47,9 @@ class EsportMatchItem extends StatelessWidget {
                         : DateFormat('d MMM').format(match.date),
                     style: textTheme.labelSmall?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.5),
-                      fontWeight:
-                          match.isFinished ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: match.isFinished
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                     ),
                   ),
                 ),

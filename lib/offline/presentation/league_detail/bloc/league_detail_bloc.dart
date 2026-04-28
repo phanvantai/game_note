@@ -32,7 +32,10 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     on<UpdateMatchEvent>(_updateMatch);
   }
 
-  _loadLeague(LoadLeagueEvent event, Emitter<LeagueDetailState> emit) async {
+  Future<void> _loadLeague(
+    LoadLeagueEvent event,
+    Emitter<LeagueDetailState> emit,
+  ) async {
     emit(const LeagueDetailState());
     emit(state.copyWith(status: LeagueDetailStatus.loading));
     var result = await getLeague.call(GetLeagueParams(event.leagueId));
@@ -40,37 +43,48 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
       if (r.players.isEmpty) {
         emit(state.copyWith(status: LeagueDetailStatus.empty, model: r));
       } else {
-        emit(state.copyWith(
-          status: LeagueDetailStatus.loaded,
-          model: r,
-          players: r.players.map((e) => e.playerModel).toList(),
-        ));
+        emit(
+          state.copyWith(
+            status: LeagueDetailStatus.loaded,
+            model: r,
+            players: r.players.map((e) => e.playerModel).toList(),
+          ),
+        );
       }
     });
   }
 
-  _startAddPlayers(AddPlayersStarted event, Emitter<LeagueDetailState> emit) {
+  void _startAddPlayers(
+    AddPlayersStarted event,
+    Emitter<LeagueDetailState> emit,
+  ) {
     emit(state.copyWith(status: LeagueDetailStatus.addingPlayer));
   }
 
-  _addPlayers(AddPlayersToLeague event, Emitter<LeagueDetailState> emit) {
+  void _addPlayers(AddPlayersToLeague event, Emitter<LeagueDetailState> emit) {
     List<PlayerModel> players = [];
     players.addAll(event.players);
     emit(state.copyWith(players: players, enable: players.length > 2));
   }
 
-  _confirmPlayers(
-      ConfirmPlayersInLeague event, Emitter<LeagueDetailState> emit) async {
+  Future<void> _confirmPlayers(
+    ConfirmPlayersInLeague event,
+    Emitter<LeagueDetailState> emit,
+  ) async {
     emit(state.copyWith(status: LeagueDetailStatus.updating));
-    var result = await setPlayersForLeague
-        .call(SetPlayersForLeagueParams(state.players));
+    var result = await setPlayersForLeague.call(
+      SetPlayersForLeagueParams(state.players),
+    );
     result.fold(
       (l) => null,
       (r) => emit(state.copyWith(status: LeagueDetailStatus.loaded, model: r)),
     );
   }
 
-  _addNewRounds(AddNewRounds event, Emitter<LeagueDetailState> emit) async {
+  Future<void> _addNewRounds(
+    AddNewRounds event,
+    Emitter<LeagueDetailState> emit,
+  ) async {
     // create rounds
     emit(state.copyWith(status: LeagueDetailStatus.updating));
     var result = await createRounds.call(CreateRoundsParams());
@@ -80,13 +94,18 @@ class LeagueDetailBloc extends Bloc<LeagueDetailEvent, LeagueDetailState> {
     );
   }
 
-  _updateMatch(UpdateMatchEvent event, Emitter<LeagueDetailState> emit) async {
+  Future<void> _updateMatch(
+    UpdateMatchEvent event,
+    Emitter<LeagueDetailState> emit,
+  ) async {
     emit(state.copyWith(status: LeagueDetailStatus.updating));
-    var result = await updateMatch.call(UpdateMatchParams(
-      matchModel: event.matchModel,
-      homeScore: event.homeScore,
-      awayScore: event.awayScore,
-    ));
+    var result = await updateMatch.call(
+      UpdateMatchParams(
+        matchModel: event.matchModel,
+        homeScore: event.homeScore,
+        awayScore: event.awayScore,
+      ),
+    );
     result.fold(
       (l) => null,
       (r) => emit(state.copyWith(status: LeagueDetailStatus.loaded, model: r)),

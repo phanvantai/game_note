@@ -7,7 +7,7 @@ import 'bloc/tournament_detail_bloc.dart';
 import 'tournament_detail_view.dart';
 
 class TournamentDetailPage extends StatelessWidget {
-  const TournamentDetailPage({Key? key}) : super(key: key);
+  const TournamentDetailPage({super.key});
 
   @override
   Widget build(BuildContext context) {

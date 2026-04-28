@@ -1,11 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
 import '../../../core/common/view_status.dart';
-import '../../../core/databases/province.dart';
 import '../../../core/ultils.dart';
 import '../../../routing.dart';
 import '../bloc/esport_bloc.dart';
@@ -13,7 +11,7 @@ import 'bloc/group_bloc.dart';
 import 'widgets/group_item.dart';
 
 class GroupsView extends StatelessWidget {
-  const GroupsView({Key? key}) : super(key: key);
+  const GroupsView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,16 +27,12 @@ class GroupsView extends StatelessWidget {
               title: Row(
                 spacing: 4,
                 children: [
-                  BlocBuilder<EsportBloc, EsportState>(
-                    builder: (context, state) => state.esportModel != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: CachedNetworkImage(
-                              imageUrl: state.esportModel!.image ?? '',
-                              height: 32,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Image.asset(
+                      'assets/images/pes.jpg',
+                      height: 32,
+                    ),
                   ),
                   Expanded(
                     child: TabBar(
@@ -97,8 +91,10 @@ class GroupsView extends StatelessWidget {
                               subtitle: 'Tạo nhóm mới để bắt đầu',
                             )
                           : ListView.builder(
-                              padding:
-                                  const EdgeInsets.only(top: 8, bottom: 80),
+                              padding: const EdgeInsets.only(
+                                top: 8,
+                                bottom: 80,
+                              ),
                               itemBuilder: (context, index) => GroupItem(
                                 group: state.userGroups[index],
                                 onTap: () async {
@@ -107,8 +103,9 @@ class GroupsView extends StatelessWidget {
                                     arguments: state.userGroups[index],
                                   );
                                   if (context.mounted) {
-                                    BlocProvider.of<GroupBloc>(context)
-                                        .add(GetEsportGroups());
+                                    BlocProvider.of<GroupBloc>(
+                                      context,
+                                    ).add(GetEsportGroups());
                                   }
                                 },
                               ),
@@ -120,8 +117,10 @@ class GroupsView extends StatelessWidget {
                               title: 'Không có nhóm nào',
                             )
                           : ListView.builder(
-                              padding:
-                                  const EdgeInsets.only(top: 8, bottom: 80),
+                              padding: const EdgeInsets.only(
+                                top: 8,
+                                bottom: 80,
+                              ),
                               itemBuilder: (context, index) => GroupItem(
                                 group: state.otherGroups[index],
                                 onTap: () async {
@@ -130,8 +129,9 @@ class GroupsView extends StatelessWidget {
                                     arguments: state.otherGroups[index],
                                   );
                                   if (context.mounted) {
-                                    BlocProvider.of<GroupBloc>(context)
-                                        .add(GetEsportGroups());
+                                    BlocProvider.of<GroupBloc>(
+                                      context,
+                                    ).add(GetEsportGroups());
                                   }
                                 },
                               ),
@@ -139,7 +139,7 @@ class GroupsView extends StatelessWidget {
                             ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
             floatingActionButton: FloatingActionButton.extended(
@@ -162,7 +162,6 @@ class GroupsView extends StatelessWidget {
 
     String groupName = '';
     String groupDescription = '';
-    String selectedProvince = '';
 
     showDialog(
       context: context,
@@ -191,22 +190,6 @@ class GroupsView extends StatelessWidget {
                   ),
                   maxLines: 3,
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: null,
-                  onChanged: (value) => selectedProvince = value!,
-                  items: provinces
-                      .map((e) => DropdownMenuItem(
-                            value: e.name,
-                            child: Text(e.name),
-                          ))
-                      .toList(),
-                  decoration: appInputDecoration(
-                    context: context,
-                    hintText: 'Khu vực',
-                    prefixIcon: Icons.location_on_outlined,
-                  ),
-                ),
               ],
             ),
           ),
@@ -221,16 +204,11 @@ class GroupsView extends StatelessWidget {
                   showToast('Tên nhóm không được để trống');
                   return;
                 }
-                if (selectedProvince.isEmpty) {
-                  showToast('Chọn tỉnh thành');
-                  return;
-                }
                 BlocProvider.of<GroupBloc>(context).add(
                   CreateEsportGroup(
                     groupName: groupName,
                     esportId: esportModel.id,
                     description: groupDescription,
-                    location: selectedProvince,
                   ),
                 );
                 Navigator.of(context).pop();

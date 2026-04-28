@@ -8,7 +8,7 @@ import 'legends_list_widget.dart';
 
 class MultiStatistic extends StatelessWidget {
   final List<PersonalStatistic> statistics;
-  const MultiStatistic({Key? key, required this.statistics}) : super(key: key);
+  const MultiStatistic({super.key, required this.statistics});
 
   static const Color colorChampion = Colors.orange;
   static const Color colorRunnerUp = Colors.green;
@@ -21,13 +21,13 @@ class MultiStatistic extends StatelessWidget {
   Widget build(BuildContext context) {
     List<BarChartGroupData> rawBarGroups;
     List<BarChartGroupData> showingBarGroups;
-    statistics.sort(
-      (a, b) => b.percentWinLeague.compareTo(a.percentWinLeague),
-    );
+    statistics.sort((a, b) => b.percentWinLeague.compareTo(a.percentWinLeague));
 
     final items = statistics
-        .mapIndexed((index, e) =>
-            makeGroupData(index, e.percentWinLeague, e.percentRunnerUpLeague))
+        .mapIndexed(
+          (index, e) =>
+              makeGroupData(index, e.percentWinLeague, e.percentRunnerUpLeague),
+        )
         .toList();
 
     rawBarGroups = items;
@@ -51,13 +51,13 @@ class MultiStatistic extends StatelessWidget {
                 touchTooltipData: BarTouchTooltipData(
                   // tooltipBgColor: Colors.grey,
                   getTooltipItem: (a, b, c, d) => BarTooltipItem(
-                      c.toY.toStringAsFixed(2), const TextStyle()),
+                    c.toY.toStringAsFixed(2),
+                    const TextStyle(),
+                  ),
                 ),
               ),
               titlesData: titlesData,
-              borderData: FlBorderData(
-                show: false,
-              ),
+              borderData: FlBorderData(show: false),
               barGroups: showingBarGroups,
               gridData: const FlGridData(show: false),
             ),
@@ -68,29 +68,25 @@ class MultiStatistic extends StatelessWidget {
   }
 
   FlTitlesData get titlesData => FlTitlesData(
-        show: true,
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: bottomTitles,
-            reservedSize: 42,
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 28,
-            interval: 1,
-            getTitlesWidget: leftTitles,
-          ),
-        ),
-      );
+    show: true,
+    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    bottomTitles: AxisTitles(
+      sideTitles: SideTitles(
+        showTitles: true,
+        getTitlesWidget: bottomTitles,
+        reservedSize: 42,
+      ),
+    ),
+    leftTitles: AxisTitles(
+      sideTitles: SideTitles(
+        showTitles: true,
+        reservedSize: 28,
+        interval: 1,
+        getTitlesWidget: leftTitles,
+      ),
+    ),
+  );
 
   Widget leftTitles(double value, TitleMeta meta) {
     const style = TextStyle(
@@ -117,9 +113,7 @@ class MultiStatistic extends StatelessWidget {
     return SideTitleWidget(
       meta: meta,
       space: 0,
-      child: FittedBox(
-        child: Text(text, style: style),
-      ),
+      child: FittedBox(child: Text(text, style: style)),
     );
   }
 
@@ -145,16 +139,8 @@ class MultiStatistic extends StatelessWidget {
       barsSpace: 4,
       x: x,
       barRods: [
-        BarChartRodData(
-          toY: y1,
-          color: colorChampion,
-          width: widthChampion,
-        ),
-        BarChartRodData(
-          toY: y2,
-          color: colorRunnerUp,
-          width: widthRunnerUp,
-        ),
+        BarChartRodData(toY: y1, color: colorChampion, width: widthChampion),
+        BarChartRodData(toY: y2, color: colorRunnerUp, width: widthRunnerUp),
       ],
     );
   }

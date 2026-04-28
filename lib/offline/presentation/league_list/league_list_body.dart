@@ -6,7 +6,7 @@ import '../league_detail/league_detail_page.dart';
 import 'bloc/league_list_bloc.dart';
 
 class LeagueListBody extends StatelessWidget {
-  const LeagueListBody({Key? key}) : super(key: key);
+  const LeagueListBody({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,16 +28,19 @@ class LeagueListBody extends StatelessWidget {
                 isDestructive: true,
               ).then((confirmed) {
                 if (confirmed == true && context.mounted) {
-                  context
-                      .read<LeagueListBloc>()
-                      .add(DeleteLeagueEvent(state.leagues[index]));
+                  context.read<LeagueListBloc>().add(
+                    DeleteLeagueEvent(state.leagues[index]),
+                  );
                 }
               });
             },
             onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
+              Navigator.of(context).push(
+                MaterialPageRoute(
                   builder: (context) =>
-                      LeagueDetailPage(model: state.leagues[index])));
+                      LeagueDetailPage(model: state.leagues[index]),
+                ),
+              );
             },
             child: Padding(
               padding: const EdgeInsets.all(20),

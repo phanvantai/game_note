@@ -1,0 +1,41 @@
+name: Web Release
+
+# Build Flutter web + deploy lên Firebase Hosting (project gamenoteapp).
+#
+# Setup lần đầu (chạy local 1 lần):
+#   firebase init hosting:github
+# Lệnh này sẽ tự tạo Google Service Account và lưu key vào GitHub Secret
+# FIREBASE_SERVICE_ACCOUNT_GAMENOTEAPP. Sau đó workflow này chạy tự động
+# mỗi khi push vào main, hoặc bấm "Run workflow" trong tab Actions.
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.6"
+          channel: "stable"
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build web (release)
+        run: flutter build web --release
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GAMENOTEAPP }}
+          projectId: gamenoteapp
+          channelId: live

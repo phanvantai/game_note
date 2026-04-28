@@ -13,7 +13,15 @@ class GNEsportMatch extends Equatable {
   final DateTime date; // match date
   final bool isFinished; // match is finished
   final String leagueId; // league id
-  final int? medals; // medals for the winner
+  // Override tiền cho riêng trận này (VND). null ⇒ dùng league.defaultMatchCost.
+  // 0 ⇒ trận này không tính tiền.
+  final int? matchCost;
+
+  /// Server-assigned timestamp of the last write. Used as an optimistic-lock
+  /// version for concurrent score updates: the UI captures this when the
+  /// edit dialog opens and the transaction rejects the write if it doesn't
+  /// match anymore. Null on legacy docs that pre-date this field.
+  final Timestamp? updatedAt;
 
   final GNUser? homeTeam;
   final GNUser? awayTeam;
@@ -30,7 +38,8 @@ class GNEsportMatch extends Equatable {
   static const String fieldDate = 'date';
   static const String fieldIsFinished = 'isFinished';
   static const String fieldLeagueId = 'leagueId';
-  static const String fieldMedals = 'medals';
+  static const String fieldMatchCost = 'matchCost';
+  static const String fieldUpdatedAt = 'updatedAt';
 
   const GNEsportMatch({
     required this.id,
@@ -43,13 +52,13 @@ class GNEsportMatch extends Equatable {
     required this.leagueId,
     this.homeTeam,
     this.awayTeam,
-    this.medals,
+    this.matchCost,
+    this.updatedAt,
   });
 
   @override
   List<Object?> get props => [
         id,
-        medals,
         homeTeamId,
         awayTeamId,
         homeScore,
@@ -57,6 +66,8 @@ class GNEsportMatch extends Equatable {
         date,
         isFinished,
         leagueId,
+        matchCost,
+        updatedAt,
       ];
 
   GNEsportMatch copyWith({
@@ -70,7 +81,8 @@ class GNEsportMatch extends Equatable {
     String? leagueId,
     GNUser? homeTeam,
     GNUser? awayTeam,
-    int? medals,
+    int? matchCost,
+    Timestamp? updatedAt,
   }) {
     return GNEsportMatch(
       id: id ?? this.id,
@@ -83,7 +95,8 @@ class GNEsportMatch extends Equatable {
       leagueId: leagueId ?? this.leagueId,
       homeTeam: homeTeam ?? this.homeTeam,
       awayTeam: awayTeam ?? this.awayTeam,
-      medals: medals ?? this.medals,
+      matchCost: matchCost ?? this.matchCost,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -96,22 +109,35 @@ class GNEsportMatch extends Equatable {
       fieldDate: Timestamp.fromDate(date),
       fieldIsFinished: isFinished,
       fieldLeagueId: leagueId,
-      fieldMedals: medals,
+      fieldMatchCost: matchCost,
     };
   }
 
   factory GNEsportMatch.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    return GNEsportMatch.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+  }
+
+  /// Pure factory cho test — không cần `DocumentSnapshot`.
+  factory GNEsportMatch.fromMap(Map<String, dynamic> data, String id) {
+    DateTime toDate(Object? v) {
+      if (v is DateTime) return v;
+      if (v is Timestamp) return v.toDate();
+      return DateTime.now();
+    }
+
     return GNEsportMatch(
-      id: doc.id,
+      id: id,
       homeTeamId: data[fieldHomeTeamId],
       awayTeamId: data[fieldAwayTeamId],
       homeScore: data[fieldHomeScore] ?? 0,
       awayScore: data[fieldAwayScore] ?? 0,
-      date: (data[fieldDate] as Timestamp).toDate(),
+      date: toDate(data[fieldDate]),
       isFinished: data[fieldIsFinished],
       leagueId: data[fieldLeagueId],
-      medals: data[fieldMedals] ?? 0,
+      matchCost: (data[fieldMatchCost] as num?)?.toInt(),
+      updatedAt: data[fieldUpdatedAt] is Timestamp
+          ? data[fieldUpdatedAt] as Timestamp
+          : null,
     );
   }
 }

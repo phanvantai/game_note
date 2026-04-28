@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -68,4 +65,13 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.november.gameNote',
   );
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyBvFiCXJNYWZTF3hkaJyvqspXY6b40zgX0',
+    appId: '1:256841801977:web:8d6e12f22c5175a36b8228',
+    messagingSenderId: '256841801977',
+    projectId: 'gamenoteapp',
+    authDomain: 'gamenoteapp.firebaseapp.com',
+    storageBucket: 'gamenoteapp.appspot.com',
+    measurementId: 'G-L85M3EVLFZ',
+  );
 }

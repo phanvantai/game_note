@@ -8,7 +8,7 @@ import 'package:pes_arena/offline/presentation/statistic/widgets/percent_statist
 import 'package:pes_arena/offline/presentation/statistic/widgets/total_statistic.dart';
 
 class StatisticBody extends StatefulWidget {
-  const StatisticBody({Key? key}) : super(key: key);
+  const StatisticBody({super.key});
 
   @override
   State<StatisticBody> createState() => _StatisticBodyState();
@@ -16,21 +16,9 @@ class StatisticBody extends StatefulWidget {
 
 class _StatisticBodyState extends State<StatisticBody> {
   final tabs = const [
-    Tab(
-      icon: FittedBox(
-        child: Text('Điểm/Hiệu số'),
-      ),
-    ),
-    Tab(
-      icon: FittedBox(
-        child: Text('Vô địch/Á quân'),
-      ),
-    ),
-    Tab(
-      icon: FittedBox(
-        child: Text('Thắng/Hoà/Thua'),
-      ),
-    ),
+    Tab(icon: FittedBox(child: Text('Điểm/Hiệu số'))),
+    Tab(icon: FittedBox(child: Text('Vô địch/Á quân'))),
+    Tab(icon: FittedBox(child: Text('Thắng/Hoà/Thua'))),
   ];
   @override
   void initState() {
@@ -42,43 +30,43 @@ class _StatisticBodyState extends State<StatisticBody> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return BlocBuilder<StatisticBloc, StatisticState>(
-        builder: (context, state) {
-      if (state.viewStatus.isLoading) {
-        return Center(
-          child: CircularProgressIndicator(
-            color: colorScheme.secondary,
-          ),
-        );
-      }
-      if (state.viewStatus.isSuccess) {
-        return DefaultTabController(
-          length: tabs.length,
-          child: Column(
-            children: [
-              TabBar(
-                tabs: tabs,
-                dividerHeight: 0,
-                indicatorColor: colorScheme.secondary,
-                labelColor: colorScheme.secondary,
-                unselectedLabelColor:
-                    colorScheme.onSurface.withValues(alpha: 0.5),
-                indicatorSize: TabBarIndicatorSize.label,
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    TotalStatistic(statistics: state.listStatistic),
-                    MultiStatistic(statistics: state.listStatistic),
-                    PercentStatistic(statistics: state.listStatistic),
-                  ],
+      builder: (context, state) {
+        if (state.viewStatus.isLoading) {
+          return Center(
+            child: CircularProgressIndicator(color: colorScheme.secondary),
+          );
+        }
+        if (state.viewStatus.isSuccess) {
+          return DefaultTabController(
+            length: tabs.length,
+            child: Column(
+              children: [
+                TabBar(
+                  tabs: tabs,
+                  dividerHeight: 0,
+                  indicatorColor: colorScheme.secondary,
+                  labelColor: colorScheme.secondary,
+                  unselectedLabelColor: colorScheme.onSurface.withValues(
+                    alpha: 0.5,
+                  ),
+                  indicatorSize: TabBarIndicatorSize.label,
                 ),
-              ),
-              const SizedBox(height: kDefaultPadding)
-            ],
-          ),
-        );
-      }
-      return const SizedBox.shrink();
-    });
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      TotalStatistic(statistics: state.listStatistic),
+                      MultiStatistic(statistics: state.listStatistic),
+                      PercentStatistic(statistics: state.listStatistic),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: kDefaultPadding),
+              ],
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
   }
 }

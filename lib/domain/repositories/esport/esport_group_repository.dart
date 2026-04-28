@@ -9,7 +9,6 @@ abstract class EsportGroupRepository {
     required String groupName,
     required String esportId,
     String description = '',
-    required String location,
   });
 
   Future<void> addMemberToGroup({

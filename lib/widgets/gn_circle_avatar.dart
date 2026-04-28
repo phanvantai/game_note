@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 class GNCircleAvatar extends StatelessWidget {
   final String? photoUrl;
   final double size;
-  const GNCircleAvatar({
-    Key? key,
-    this.photoUrl,
-    this.size = 48,
-  }) : super(key: key);
+  const GNCircleAvatar({super.key, this.photoUrl, this.size = 48});
 
   @override
   Widget build(BuildContext context) {
@@ -16,11 +12,13 @@ class GNCircleAvatar extends StatelessWidget {
       width: size,
       height: size,
       child: CircleAvatar(
-        backgroundImage:
-            photoUrl != null ? CachedNetworkImageProvider(photoUrl!) : null,
+        backgroundImage: photoUrl != null
+            ? CachedNetworkImageProvider(photoUrl!)
+            : null,
         child: photoUrl == null
             ? Icon(
                 Icons.person,
+                size: size * 0.6,
                 color: Theme.of(context).colorScheme.onSurface,
               )
             : null,

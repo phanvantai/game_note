@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class TableScrollableColumnHeader extends StatelessWidget {
   const TableScrollableColumnHeader({
-    Key? key,
+    super.key,
     required this.tableHeaderDecor,
     required this.tableRowHeight,
     required this.tableNameColumnWidth,
     required this.tableStatsColumnWidth,
-  }) : super(key: key);
+  });
 
   final BoxDecoration tableHeaderDecor;
   final double tableRowHeight;
@@ -16,9 +16,9 @@ class TableScrollableColumnHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-        );
+    final style = Theme.of(
+      context,
+    ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold);
 
     return Container(
       decoration: tableHeaderDecor,

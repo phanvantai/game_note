@@ -65,28 +65,36 @@ class DatabaseManager {
     createTables();
   }
 
-  close() async {
+  Future<void> close() async {
     await (await database).close();
   }
 
   Future<void> createTables() async {
     final db = await database;
     db.execute(
-        '$createTable $playerTable(${DBTableColumn.playerId} $integer $primaryAuto, ${DBTableColumn.fullname} TEXT, ${DBTableColumn.playerLevel} TEXT)');
+      '$createTable $playerTable(${DBTableColumn.playerId} $integer $primaryAuto, ${DBTableColumn.fullname} TEXT, ${DBTableColumn.playerLevel} TEXT)',
+    );
     db.execute(
-        '$createTable $twoPlayerGames(${DBTableColumn.id} $integer $primaryAuto, player1 $integer, player2 $integer, score1 $integer, score2 $integer, photoUrl TEXT)');
+      '$createTable $twoPlayerGames(${DBTableColumn.id} $integer $primaryAuto, player1 $integer, player2 $integer, score1 $integer, score2 $integer, photoUrl TEXT)',
+    );
     db.execute(
-        '$createTable $twoPlayerRounds(${DBTableColumn.id} $integer $primaryAuto, name TEXT, player1 $integer, player2 $integer, games TEXT)');
+      '$createTable $twoPlayerRounds(${DBTableColumn.id} $integer $primaryAuto, name TEXT, player1 $integer, player2 $integer, games TEXT)',
+    );
     db.execute(
-        '$createTable $leaguesTable(${DBTableColumn.leagueId} $integer $primaryAuto, ${DBTableColumn.fullname} TEXT, ${DBTableColumn.datetime} TEXT)');
+      '$createTable $leaguesTable(${DBTableColumn.leagueId} $integer $primaryAuto, ${DBTableColumn.fullname} TEXT, ${DBTableColumn.datetime} TEXT)',
+    );
     db.execute(
-        '$createTable $roundsTable(${DBTableColumn.roundId} $integer $primaryAuto, ${DBTableColumn.leagueId} $integer)');
+      '$createTable $roundsTable(${DBTableColumn.roundId} $integer $primaryAuto, ${DBTableColumn.leagueId} $integer)',
+    );
     db.execute(
-        '$createTable $matchesTable(${DBTableColumn.matchId} $integer $primaryAuto, ${DBTableColumn.roundId} $integer, ${DBTableColumn.datetime} TEXT, ${DBTableColumn.matchStatus} $integer)');
+      '$createTable $matchesTable(${DBTableColumn.matchId} $integer $primaryAuto, ${DBTableColumn.roundId} $integer, ${DBTableColumn.datetime} TEXT, ${DBTableColumn.matchStatus} $integer)',
+    );
     db.execute(
-        '$createTable $playerMatchTable(${DBTableColumn.playerMatchId} $integer $primaryAuto, ${DBTableColumn.playerId} $integer, ${DBTableColumn.matchId} $integer, ${DBTableColumn.playerMatchPlayerScore} $integer)');
+      '$createTable $playerMatchTable(${DBTableColumn.playerMatchId} $integer $primaryAuto, ${DBTableColumn.playerId} $integer, ${DBTableColumn.matchId} $integer, ${DBTableColumn.playerMatchPlayerScore} $integer)',
+    );
     db.execute(
-        '$createTable $playerLeagueTable(${DBTableColumn.playerLeagueId} $integer $primaryAuto, ${DBTableColumn.playerId} $integer, ${DBTableColumn.leagueId} $integer, ${DBTableColumn.playerLeagueTotal} $integer, ${DBTableColumn.playerLeagueWins} $integer, ${DBTableColumn.playerLeagueDraws} $integer, ${DBTableColumn.playerLeagueLosses} $integer, ${DBTableColumn.playerLeagueGD} $integer, ${DBTableColumn.playerLeaguePoints} $integer)');
+      '$createTable $playerLeagueTable(${DBTableColumn.playerLeagueId} $integer $primaryAuto, ${DBTableColumn.playerId} $integer, ${DBTableColumn.leagueId} $integer, ${DBTableColumn.playerLeagueTotal} $integer, ${DBTableColumn.playerLeagueWins} $integer, ${DBTableColumn.playerLeagueDraws} $integer, ${DBTableColumn.playerLeagueLosses} $integer, ${DBTableColumn.playerLeagueGD} $integer, ${DBTableColumn.playerLeaguePoints} $integer)',
+    );
   }
 
   Future<void> insertPlayer(PlayerModel player) async {
@@ -112,8 +120,10 @@ class DatabaseManager {
 
   Future<PlayerModel?> player(int? id) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps =
-        await db.query(playerTable, where: "${DBTableColumn.playerId} = $id");
+    final List<Map<String, dynamic>> maps = await db.query(
+      playerTable,
+      where: "${DBTableColumn.playerId} = $id",
+    );
     return maps.isEmpty
         ? null
         : PlayerModel(

@@ -25,7 +25,7 @@ class SharedPreferencesHelper {
         false;
   }
 
-  setLoggedIn(bool value) {
+  Future<bool> setLoggedIn(bool value) {
     return _sharedPreferences.setBool(SharedPreferencesHelper.loggedIn, value);
   }
 
@@ -33,44 +33,54 @@ class SharedPreferencesHelper {
     return _sharedPreferences.getBool(SharedPreferencesHelper.communityMode);
   }
 
-  setCommunityMode(bool value) {
+  Future<bool> setCommunityMode(bool value) {
     return _sharedPreferences.setBool(
-        SharedPreferencesHelper.communityMode, value);
+      SharedPreferencesHelper.communityMode,
+      value,
+    );
   }
 
   String get getLastPostUsageTime {
-    return _sharedPreferences
-            .getString(SharedPreferencesHelper.lastPostUsageTime) ??
+    return _sharedPreferences.getString(
+          SharedPreferencesHelper.lastPostUsageTime,
+        ) ??
         '';
   }
 
   Future<bool> setLastPostUsageTime(String last) {
     return _sharedPreferences.setString(
-        SharedPreferencesHelper.lastPostUsageTime, last);
+      SharedPreferencesHelper.lastPostUsageTime,
+      last,
+    );
   }
 
   // current locale code
   String get getCurrentLocale {
-    return _sharedPreferences
-            .getString(SharedPreferencesHelper.currentLocale) ??
+    return _sharedPreferences.getString(
+          SharedPreferencesHelper.currentLocale,
+        ) ??
         '';
   }
 
   Future<void> setCurrentLocale(String currentLocale) {
     return _sharedPreferences.setString(
-        SharedPreferencesHelper.currentLocale, currentLocale);
+      SharedPreferencesHelper.currentLocale,
+      currentLocale,
+    );
   }
 
   DateTime? get getLastUpdatedAccessToken {
-    var dateString = _sharedPreferences
-        .getString(SharedPreferencesHelper.lastUpdatedAccessToken);
+    var dateString = _sharedPreferences.getString(
+      SharedPreferencesHelper.lastUpdatedAccessToken,
+    );
     return dateString == null ? null : DateTime.parse(dateString);
   }
 
   Future<bool> setLastUpdatedAccessToken(DateTime dateTime) {
     return _sharedPreferences.setString(
-        SharedPreferencesHelper.lastUpdatedAccessToken,
-        dateTime.toIso8601String());
+      SharedPreferencesHelper.lastUpdatedAccessToken,
+      dateTime.toIso8601String(),
+    );
   }
 
   // fcm token
@@ -80,7 +90,9 @@ class SharedPreferencesHelper {
 
   Future<bool> setFcmToken(String fcmToken) {
     return _sharedPreferences.setString(
-        SharedPreferencesHelper.fcmToken, fcmToken);
+      SharedPreferencesHelper.fcmToken,
+      fcmToken,
+    );
   }
 
   // token
@@ -91,7 +103,9 @@ class SharedPreferencesHelper {
 
   Future<bool> setAuthToken(String authToken) {
     return _sharedPreferences.setString(
-        SharedPreferencesHelper.authToken, authToken);
+      SharedPreferencesHelper.authToken,
+      authToken,
+    );
   }
 
   // refresh token
@@ -102,6 +116,8 @@ class SharedPreferencesHelper {
 
   Future<void> setRefreshToken(String refreshToken) {
     return _sharedPreferences.setString(
-        SharedPreferencesHelper.refreshToken, refreshToken);
+      SharedPreferencesHelper.refreshToken,
+      refreshToken,
+    );
   }
 }

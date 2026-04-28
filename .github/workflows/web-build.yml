@@ -1,0 +1,46 @@
+name: Web Build (develop)
+
+# Build Flutter web khi push develop, deploy lên Firebase Hosting preview
+# channel "develop" — URL stable dạng:
+#   https://gamenoteapp--develop-<hash>.web.app
+# Channel auto-expire sau 30 ngày, mỗi push sẽ refresh.
+#
+# Mục đích:
+#   - Catch compile/build error trước khi merge main.
+#   - Có URL test thật cho QA / share team.
+#
+# Setup giống web-release.yml: secret FIREBASE_SERVICE_ACCOUNT_GAMENOTEAPP
+# tạo bằng `firebase init hosting:github` (chạy 1 lần trên main).
+
+on:
+  push:
+    branches: ["develop"]
+  workflow_dispatch:
+
+jobs:
+  build-and-preview:
+    name: Build & Deploy Preview
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.6"
+          channel: "stable"
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build web (release)
+        run: flutter build web --release
+
+      - name: Deploy to Firebase Hosting preview channel "develop"
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GAMENOTEAPP }}
+          projectId: gamenoteapp
+          channelId: develop
+          expires: 30d

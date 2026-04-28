@@ -8,7 +8,7 @@ import 'league_detail_view.dart';
 
 class LeagueDetailPage extends StatelessWidget {
   final LeagueModel model;
-  const LeagueDetailPage({Key? key, required this.model}) : super(key: key);
+  const LeagueDetailPage({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {

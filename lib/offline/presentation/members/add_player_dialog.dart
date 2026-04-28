@@ -6,7 +6,7 @@ import 'package:pes_arena/injection_container.dart';
 
 class AddPlayerDialog extends StatefulWidget {
   final VoidCallback? callback;
-  const AddPlayerDialog({Key? key, this.callback}) : super(key: key);
+  const AddPlayerDialog({super.key, this.callback});
 
   @override
   State<AddPlayerDialog> createState() => _AddPlayerDialogState();
@@ -55,11 +55,11 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
         FilledButton(
           onPressed: fullname.length > 2
               ? () {
-                  var player =
-                      PlayerModel(fullname: controller.text, level: "Noob");
-                  getIt<DatabaseManager>()
-                      .insertPlayer(player)
-                      .then((value) {
+                  var player = PlayerModel(
+                    fullname: controller.text,
+                    level: "Noob",
+                  );
+                  getIt<DatabaseManager>().insertPlayer(player).then((value) {
                     controller.text = "";
                     setState(() {
                       fullname = "";

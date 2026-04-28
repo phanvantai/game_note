@@ -15,8 +15,10 @@ class StatisticBloc extends Bloc<StatisticEvent, StatisticState> {
     on<GeneratePersonalStatisticEvent>(_onGeneratePersonalStatistic);
   }
 
-  _onGeneratePersonalStatistic(GeneratePersonalStatisticEvent event,
-      Emitter<StatisticState> emit) async {
+  Future<void> _onGeneratePersonalStatistic(
+    GeneratePersonalStatisticEvent event,
+    Emitter<StatisticState> emit,
+  ) async {
     final dm = getIt<DatabaseManager>();
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
@@ -24,8 +26,9 @@ class StatisticBloc extends Bloc<StatisticEvent, StatisticState> {
       final playModels = await dm.players();
       // get leagues
       final leagues = await dm.getLeagues();
-      List<PersonalStatistic> personalStatistics =
-          playModels.map((e) => PersonalStatistic(playerModel: e)).toList();
+      List<PersonalStatistic> personalStatistics = playModels
+          .map((e) => PersonalStatistic(playerModel: e))
+          .toList();
       for (var league in leagues) {
         if (league.id != null) {
           final realLeague = await dm.getLeague(league.id!);
@@ -36,10 +39,12 @@ class StatisticBloc extends Bloc<StatisticEvent, StatisticState> {
           }
         }
       }
-      emit(state.copyWith(
-        viewStatus: ViewStatus.success,
-        listStatistic: personalStatistics,
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.success,
+          listStatistic: personalStatistics,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(viewStatus: ViewStatus.failure));
     }

@@ -10,7 +10,7 @@ import '../../../injection_container.dart';
 
 class FeedbackItem extends StatelessWidget {
   final FeedbackModel feedback;
-  const FeedbackItem({Key? key, required this.feedback}) : super(key: key);
+  const FeedbackItem({super.key, required this.feedback});
 
   @override
   Widget build(BuildContext context) {
@@ -64,10 +64,7 @@ class FeedbackItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  feedback.title,
-                  style: textTheme.titleSmall,
-                ),
+                Text(feedback.title, style: textTheme.titleSmall),
                 const SizedBox(height: 4),
                 Text(
                   feedback.detail,

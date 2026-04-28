@@ -5,11 +5,7 @@ import '../../../../firebase/firestore/esport/group/gn_esport_group.dart';
 class GroupItem extends StatelessWidget {
   final GNEsportGroup group;
   final Function()? onTap;
-  const GroupItem({
-    Key? key,
-    required this.group,
-    this.onTap,
-  }) : super(key: key);
+  const GroupItem({super.key, required this.group, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +23,7 @@ class GroupItem extends StatelessWidget {
         ),
       ),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.asset(
@@ -43,7 +38,7 @@ class GroupItem extends StatelessWidget {
           style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          '${group.members.length} thành viên  •  ${group.location}',
+          '${group.members.length} thành viên',
           style: textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.5),
           ),

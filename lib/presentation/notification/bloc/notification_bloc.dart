@@ -15,7 +15,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final NotificationRepository _notificationRepository;
 
   NotificationBloc(this._notificationRepository)
-      : super(const NotificationState()) {
+    : super(const NotificationState()) {
     on<NotificationEventFetch>(_onFetch);
     on<NotificationEventMarkAsRead>(_onMarkAsRead);
     on<NotificationEventMarkAllAsRead>(_onMarkAllAsRead);
@@ -41,10 +41,11 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
   void _startNotificationListener() {
     _stopNotificationListener();
-    _notificationSubscription =
-        _notificationRepository.listenToNotifications().listen((notifications) {
-      add(NotificationEventFetch());
-    });
+    _notificationSubscription = _notificationRepository
+        .listenToNotifications()
+        .listen((notifications) {
+          add(NotificationEventFetch());
+        });
   }
 
   void _stopNotificationListener() {
@@ -52,16 +53,24 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     _notificationSubscription = null;
   }
 
-  _onFetch(
-      NotificationEventFetch event, Emitter<NotificationState> emit) async {
+  Future<void> _onFetch(
+    NotificationEventFetch event,
+    Emitter<NotificationState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     final notifications = await _notificationRepository.getNotifications();
-    emit(state.copyWith(
-        viewStatus: ViewStatus.success, notifications: notifications));
+    emit(
+      state.copyWith(
+        viewStatus: ViewStatus.success,
+        notifications: notifications,
+      ),
+    );
   }
 
-  _onMarkAsRead(NotificationEventMarkAsRead event,
-      Emitter<NotificationState> emit) async {
+  Future<void> _onMarkAsRead(
+    NotificationEventMarkAsRead event,
+    Emitter<NotificationState> emit,
+  ) async {
     await _notificationRepository.setNotificationAsRead(event.notificationId);
     final notifications = state.notifications.map((notification) {
       if (notification.id == event.notificationId) {
@@ -72,8 +81,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(state.copyWith(notifications: notifications));
   }
 
-  _onMarkAllAsRead(NotificationEventMarkAllAsRead event,
-      Emitter<NotificationState> emit) async {
+  Future<void> _onMarkAllAsRead(
+    NotificationEventMarkAllAsRead event,
+    Emitter<NotificationState> emit,
+  ) async {
     await _notificationRepository.markAllNotificationsAsRead();
     final notifications = state.notifications.map((notification) {
       return notification.copyWith(isRead: true);
@@ -81,18 +92,24 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(state.copyWith(notifications: notifications));
   }
 
-  _onDelete(
-      NotificationEventDelete event, Emitter<NotificationState> emit) async {
+  Future<void> _onDelete(
+    NotificationEventDelete event,
+    Emitter<NotificationState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     await _notificationRepository.deleteNotification(event.notificationId);
     final notifications = state.notifications
         .where((notification) => notification.id != event.notificationId)
         .toList();
-    emit(state.copyWith(
-        notifications: notifications, viewStatus: ViewStatus.success));
+    emit(
+      state.copyWith(
+        notifications: notifications,
+        viewStatus: ViewStatus.success,
+      ),
+    );
   }
 
-  _onClear(NotificationEventClear event, Emitter<NotificationState> emit) {
+  void _onClear(NotificationEventClear event, Emitter<NotificationState> emit) {
     emit(const NotificationState());
   }
 

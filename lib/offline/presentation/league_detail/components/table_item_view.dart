@@ -6,11 +6,11 @@ class TableItemView extends StatelessWidget {
   final bool isHeader;
   final bool isEven;
   const TableItemView({
-    Key? key,
+    super.key,
     required this.model,
     this.isHeader = false,
     this.isEven = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +26,7 @@ class TableItemView extends StatelessWidget {
     );
     final nameStyle = isHeader
         ? headerStyle
-        : textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          );
+        : textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -36,8 +34,8 @@ class TableItemView extends StatelessWidget {
         color: isHeader
             ? colorScheme.surfaceContainerHighest
             : isEven
-                ? colorScheme.surface
-                : colorScheme.surfaceContainerLow,
+            ? colorScheme.surface
+            : colorScheme.surfaceContainerLow,
         border: Border(
           bottom: BorderSide(
             color: colorScheme.outline.withValues(alpha: 0.15),
@@ -58,13 +56,7 @@ class TableItemView extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(
-            flex: 9,
-            child: Text(
-              model.name,
-              style: nameStyle,
-            ),
-          ),
+          Expanded(flex: 9, child: Text(model.name, style: nameStyle)),
           Expanded(
             flex: 2,
             child: Center(
@@ -104,12 +96,13 @@ class TableItemView extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Center(
-                child: Text(
-              model.goalsDifference == -10000
-                  ? "GD"
-                  : model.goalsDifference.toString(),
-              style: isHeader ? headerStyle : cellStyle,
-            )),
+              child: Text(
+                model.goalsDifference == -10000
+                    ? "GD"
+                    : model.goalsDifference.toString(),
+                style: isHeader ? headerStyle : cellStyle,
+              ),
+            ),
           ),
           Expanded(
             flex: 3,

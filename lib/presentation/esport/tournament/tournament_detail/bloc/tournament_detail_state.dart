@@ -8,6 +8,12 @@ class TournamentDetailState extends Equatable {
   final List<GNUser> users;
   final String errorMessage;
 
+  /// Bumped every time `GetParticipantsAndMatches` finishes (success OR
+  /// failure). Lets pull-to-refresh detect completion even when the new
+  /// data equals the old data — without it Equatable suppresses the emit
+  /// and the RefreshIndicator spins forever.
+  final int refreshTick;
+
   const TournamentDetailState({
     this.viewStatus = ViewStatus.initial,
     this.league,
@@ -15,6 +21,7 @@ class TournamentDetailState extends Equatable {
     this.matches = const [],
     this.errorMessage = '',
     this.users = const [],
+    this.refreshTick = 0,
   });
 
   TournamentDetailState copyWith({
@@ -24,6 +31,7 @@ class TournamentDetailState extends Equatable {
     List<GNEsportMatch>? matches,
     String? errorMessage,
     List<GNUser>? users,
+    int? refreshTick,
   }) {
     return TournamentDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
@@ -32,6 +40,7 @@ class TournamentDetailState extends Equatable {
       matches: matches ?? this.matches,
       errorMessage: errorMessage ?? this.errorMessage,
       users: users ?? this.users,
+      refreshTick: refreshTick ?? this.refreshTick,
     );
   }
 
@@ -43,6 +52,7 @@ class TournamentDetailState extends Equatable {
         matches,
         errorMessage,
         users,
+        refreshTick,
       ];
 
   bool get currentUserIsMember {
@@ -66,55 +76,5 @@ class TournamentDetailState extends Equatable {
 
   List<GNEsportMatch> get results {
     return matches.where((element) => element.isFinished).toList();
-  }
-
-  int countMedalOfParticipants(GNEsportLeagueStat participant) {
-    if (participants.length < 2) {
-      return 0;
-    }
-    final index = participants.indexOf(participant);
-    int count = 0;
-    if (index > 0) {
-      count = -index;
-    } else {
-      // get total of indexes of participants
-      count = sumRange(1, participants.length - 1);
-    }
-    // calculate medal of matchs of this participant
-    for (final match in matches) {
-      count += match.medalOfUser(participant.userId);
-    }
-    return count;
-  }
-
-  int countValueOfParticipants(GNEsportLeagueStat participant) {
-    return countMedalOfParticipants(participant) * (league?.valueMedal ?? 0);
-  }
-
-  int sumRange(int start, int end) {
-    int sum = 0;
-    for (int i = start; i <= end; i++) {
-      sum += i;
-    }
-    return sum;
-  }
-}
-
-extension on GNEsportMatch {
-  int medalOfUser(String userId) {
-    if (medals == null ||
-        medals == 0 ||
-        (homeTeamId != userId && awayTeamId != userId) ||
-        isFinished == false ||
-        homeScore == awayScore ||
-        homeScore == null ||
-        awayScore == null) {
-      return 0;
-    }
-    if (userId == homeTeamId) {
-      return homeScore! > awayScore! ? medals! : -medals!;
-    } else {
-      return awayScore! > homeScore! ? medals! : -medals!;
-    }
   }
 }

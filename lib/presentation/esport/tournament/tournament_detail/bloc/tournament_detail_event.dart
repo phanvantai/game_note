@@ -115,34 +115,6 @@ class SubmitLeagueStatus extends TournamentDetailEvent {}
 
 class InactiveLeague extends TournamentDetailEvent {}
 
-class UpdateStartingMedals extends TournamentDetailEvent {
-  final int medals;
-
-  const UpdateStartingMedals(this.medals);
-
-  @override
-  List<Object> get props => [medals];
-}
-
-class UpdateUnitMedals extends TournamentDetailEvent {
-  final int unitMedals;
-
-  const UpdateUnitMedals(this.unitMedals);
-
-  @override
-  List<Object> get props => [unitMedals];
-}
-
-class UpdateMatchMedals extends TournamentDetailEvent {
-  final String matchId;
-  final int medals;
-
-  const UpdateMatchMedals(this.matchId, this.medals);
-
-  @override
-  List<Object> get props => [matchId, medals];
-}
-
 class LeagueDeleted extends TournamentDetailEvent {}
 
 class UpdateLeague extends TournamentDetailEvent {
@@ -152,6 +124,21 @@ class UpdateLeague extends TournamentDetailEvent {
 
   @override
   List<Object> get props => [league];
+}
+
+class UpdateLeagueCostConfig extends TournamentDetailEvent {
+  final bool rankPayoutEnabled;
+  final List<int> rankPayouts;
+  final int defaultMatchCost;
+
+  const UpdateLeagueCostConfig({
+    required this.rankPayoutEnabled,
+    required this.rankPayouts,
+    required this.defaultMatchCost,
+  });
+
+  @override
+  List<Object> get props => [rankPayoutEnabled, rankPayouts, defaultMatchCost];
 }
 
 class UpdateMatches extends TournamentDetailEvent {
@@ -171,3 +158,7 @@ class LoadLeagueError extends TournamentDetailEvent {
   @override
   List<Object> get props => [message];
 }
+
+/// Admin-only: rebuild stats for the current league from its finished
+/// matches.
+class RecomputeStats extends TournamentDetailEvent {}

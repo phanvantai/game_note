@@ -7,11 +7,11 @@ class MatchView extends StatelessWidget {
   final Function(MatchModel)? callback;
   final Function(MatchModel)? reUpdateMatchCallback;
   const MatchView({
-    Key? key,
+    super.key,
     required this.model,
     this.callback,
     this.reUpdateMatchCallback,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

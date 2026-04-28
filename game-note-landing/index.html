@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PES Arena — Your Crew. Your Tournament.</title>
+  <meta name="description" content="Create groups, run tournaments, and compete with your crew. Football & esports community app with online and offline tournament management.">
+  <meta property="og:title" content="PES Arena — Your Crew. Your Tournament.">
+  <meta property="og:description" content="Create groups, run tournaments, and compete with your crew — online or offline.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/app-icon.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" href="assets/app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            arena: {
+              50: '#FFF7F3',
+              100: '#FFE8DC',
+              200: '#FFCFB8',
+              300: '#FFAD8A',
+              400: '#F98B62',
+              500: '#E8734A',
+              600: '#CC5C33',
+              700: '#A84521',
+              800: '#7A3018',
+              900: '#4A1A09',
+            },
+          },
+          fontFamily: {
+            heading: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            body: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .fade-up.delay-1 { transition-delay: 0.1s; }
+    .fade-up.delay-2 { transition-delay: 0.2s; }
+    .fade-up.delay-3 { transition-delay: 0.3s; }
+    .fade-up.delay-4 { transition-delay: 0.4s; }
+    .fade-up.delay-5 { transition-delay: 0.5s; }
+
+    .phone-mockup {
+      position: relative;
+      width: 280px;
+      background: linear-gradient(145deg, #2c2c2e, #1a1a1c);
+      border-radius: 44px;
+      padding: 12px;
+      box-shadow:
+        0 30px 80px rgba(0,0,0,0.2),
+        0 0 0 1px rgba(255,255,255,0.08),
+        inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .phone-mockup .screen {
+      border-radius: 34px;
+      overflow: hidden;
+      background: #1a1a1a;
+      aspect-ratio: 9/19.5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .phone-mockup .screen img {
+      width: 100%;
+      display: block;
+    }
+    .phone-mockup .dynamic-island {
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 28px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 10;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+    .phone-float { animation: float 6s ease-in-out infinite; }
+
+    .screenshots-scroll {
+      display: flex;
+      gap: 1.5rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 1rem 0;
+    }
+    .screenshots-scroll::-webkit-scrollbar { display: none; }
+    .screenshots-scroll > * {
+      scroll-snap-align: center;
+      flex-shrink: 0;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .lang-dropdown { display: none; }
+    .lang-dropdown.open { display: block; }
+
+    .mobile-menu { display: none; }
+    .mobile-menu.open { display: block; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fade-up { opacity: 1; transform: none; transition: none; }
+      .phone-float { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body class="bg-white text-arena-700 font-body overflow-x-hidden">
+
+  <!-- ============ NAVIGATION ============ -->
+  <nav class="fixed top-4 left-4 right-4 z-50 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-arena-500/5 border border-arena-100 px-4 lg:px-6 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5">
+        <img src="assets/app-icon.png" alt="PES Arena" class="w-9 h-9 rounded-xl shadow-sm">
+        <span class="font-heading font-bold text-lg text-arena-700">PES Arena</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features" class="text-sm font-medium text-arena-500 hover:text-arena-700 transition-colors cursor-pointer" data-i18n="nav.features">Features</a>
+        <a href="#screenshots" class="text-sm font-medium text-arena-500 hover:text-arena-700 transition-colors cursor-pointer" data-i18n="nav.screenshots">Screenshots</a>
+        <a href="#download" class="text-sm font-medium text-arena-500 hover:text-arena-700 transition-colors cursor-pointer" data-i18n="nav.download">Download</a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Language Switcher -->
+        <div class="relative">
+          <button id="lang-toggle" class="flex items-center gap-1.5 text-sm font-medium text-arena-500 hover:text-arena-700 px-3 py-1.5 rounded-lg hover:bg-arena-50 transition-colors cursor-pointer" aria-label="Change language">
+            <span id="lang-current-flag">🇺🇸</span>
+            <span id="lang-current-code">EN</span>
+            <svg class="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="lang-dropdown" class="lang-dropdown absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-arena-100 py-1.5 min-w-[160px]">
+            <button onclick="setLang('en')" class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-arena-700 hover:bg-arena-50 transition-colors cursor-pointer">🇺🇸 English</button>
+            <button onclick="setLang('vi')" class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-arena-700 hover:bg-arena-50 transition-colors cursor-pointer">🇻🇳 Tiếng Việt</button>
+          </div>
+        </div>
+
+        <a href="https://apps.apple.com/us/app/game-note/id6443969710" target="_blank" rel="noopener"
+           class="hidden sm:inline-flex items-center gap-2 bg-arena-600 hover:bg-arena-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          <span data-i18n="nav.cta">Get the App</span>
+        </a>
+
+        <button id="mobile-toggle" class="md:hidden p-2 text-arena-500 hover:text-arena-700 cursor-pointer" aria-label="Toggle menu">
+          <svg id="menu-icon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          <svg id="close-icon" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="mobile-menu fixed top-[72px] left-4 right-4 z-40 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-arena-100 p-5">
+    <div class="flex flex-col gap-3">
+      <a href="#features" class="text-arena-700 font-medium py-2 px-3 rounded-lg hover:bg-arena-50 transition-colors" data-i18n="nav.features" onclick="closeMobileMenu()">Features</a>
+      <a href="#screenshots" class="text-arena-700 font-medium py-2 px-3 rounded-lg hover:bg-arena-50 transition-colors" data-i18n="nav.screenshots" onclick="closeMobileMenu()">Screenshots</a>
+      <a href="#download" class="text-arena-700 font-medium py-2 px-3 rounded-lg hover:bg-arena-50 transition-colors" data-i18n="nav.download" onclick="closeMobileMenu()">Download</a>
+      <hr class="border-arena-100">
+      <a href="https://apps.apple.com/us/app/game-note/id6443969710" target="_blank" rel="noopener"
+         class="flex items-center justify-center gap-2 bg-arena-600 text-white font-semibold py-2.5 rounded-xl cursor-pointer">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        <span data-i18n="nav.cta">Get the App</span>
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ============ HERO ============ -->
+  <section id="hero" class="relative min-h-screen flex items-center pt-24 pb-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-arena-50 via-white to-arena-100/40"></div>
+    <div class="blob w-[500px] h-[500px] bg-arena-200 top-[-100px] right-[-100px]"></div>
+    <div class="blob w-[300px] h-[300px] bg-arena-300/30 bottom-[10%] left-[-80px]"></div>
+    <div class="absolute top-[20%] right-[15%] w-20 h-20 rounded-full border-2 border-arena-200/40"></div>
+    <div class="absolute bottom-[30%] left-[8%] w-10 h-10 rounded-full bg-arena-200/30"></div>
+
+    <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+        <!-- Left: Text -->
+        <div class="text-center lg:text-left">
+          <div class="fade-up inline-flex items-center gap-2 bg-arena-100 text-arena-600 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="m8 12 4-4 4 4"/></svg>
+            <span data-i18n="hero.badge">Football & Esports Community App</span>
+          </div>
+
+          <h1 class="fade-up delay-1 font-heading font-extrabold text-5xl sm:text-6xl lg:text-7xl text-arena-800 leading-[1.1] mb-6" data-i18n="hero.title">
+            Your Crew.<br>Your Tournament.
+          </h1>
+
+          <p class="fade-up delay-2 text-lg sm:text-xl text-arena-500 max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed" data-i18n="hero.subtitle">
+            Create groups, run tournaments, and compete with your crew — online with real-time updates or fully offline without internet.
+          </p>
+
+          <!-- Store Buttons -->
+          <div class="fade-up delay-3 flex flex-col sm:flex-row items-center lg:items-start gap-3 mb-10">
+            <a href="https://apps.apple.com/us/app/game-note/id6443969710" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-3 bg-arena-700 hover:bg-arena-800 text-white px-6 py-3.5 rounded-2xl transition-all duration-200 hover:shadow-lg hover:shadow-arena-700/20 cursor-pointer">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+              <div class="text-left">
+                <div class="text-[10px] font-medium opacity-80" data-i18n="hero.downloadOn">Download on the</div>
+                <div class="text-lg font-semibold leading-tight">App Store</div>
+              </div>
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.november.game_note" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-3 bg-white hover:bg-arena-50 text-arena-700 border-2 border-arena-200 hover:border-arena-300 px-6 py-3.5 rounded-2xl transition-all duration-200 hover:shadow-lg cursor-pointer">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.3.17.64.24.99.19l13.12-7.57-2.83-2.83-11.28 10.21zM.5 1.34C.19 1.67 0 2.17 0 2.82v18.36c0 .65.19 1.15.5 1.48l.08.07L10.45 12.9v-.23L.58 1.27.5 1.34zM20.49 10.5l-2.83-1.63-3.17 2.89v.46l3.17 2.9 2.84-1.64c.81-.47.81-1.52-.01-1.98zM4.17.24L17.29 7.81l-2.83 2.83L3.18.43C3.49-.02 3.87-.12 4.17.24z"/></svg>
+              <div class="text-left">
+                <div class="text-[10px] font-medium opacity-60" data-i18n="hero.getItOn">Get it on</div>
+                <div class="text-lg font-semibold leading-tight">Google Play</div>
+              </div>
+            </a>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="fade-up delay-4 flex items-center justify-center lg:justify-start gap-8">
+            <div class="text-center">
+              <div class="font-heading font-bold text-xl text-arena-600" data-i18n="hero.stat1val">iOS & Android</div>
+              <div class="text-xs text-arena-400 mt-1" data-i18n="hero.stat1">Both Platforms</div>
+            </div>
+            <div class="w-px h-8 bg-arena-200"></div>
+            <div class="text-center">
+              <div class="font-heading font-bold text-xl text-arena-600">100%</div>
+              <div class="text-xs text-arena-400 mt-1" data-i18n="hero.stat2">Offline Support</div>
+            </div>
+            <div class="w-px h-8 bg-arena-200"></div>
+            <div class="text-center">
+              <div class="font-heading font-bold text-xl text-arena-600" data-i18n="hero.stat3val">Free</div>
+              <div class="text-xs text-arena-400 mt-1" data-i18n="hero.stat3">To Play</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Phone Mockup -->
+        <div class="flex justify-center lg:justify-end">
+          <div class="phone-float">
+            <div class="phone-mockup">
+              <div class="dynamic-island"></div>
+              <div class="screen">
+                <img src="assets/screenshots/home.png" alt="PES Arena home screen" loading="eager" onerror="this.parentElement.innerHTML='<div style=\'width:100%;aspect-ratio:9/19.5;background:linear-gradient(135deg,#E8734A22,#A8452122);display:flex;align-items:center;justify-content:center\'><img src=\'assets/app-icon.png\' style=\'width:80px;opacity:0.5\'></div>'">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ FEATURES ============ -->
+  <section id="features" class="relative py-24 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <div class="fade-up inline-flex items-center gap-2 bg-arena-100 text-arena-600 text-sm font-medium px-4 py-1.5 rounded-full mb-4">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span data-i18n="features.badge">Why PES Arena</span>
+        </div>
+        <h2 class="fade-up delay-1 font-heading font-extrabold text-4xl sm:text-5xl text-arena-800 mb-4" data-i18n="features.title">Everything Your Crew Needs</h2>
+        <p class="fade-up delay-2 text-lg text-arena-400 max-w-2xl mx-auto" data-i18n="features.subtitle">Powerful tournament tools for football and esports communities</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Feature 1: Online Groups -->
+        <div class="fade-up group bg-white border border-arena-100 rounded-2xl p-6 hover:shadow-xl hover:shadow-arena-500/5 hover:border-arena-200 transition-all duration-300 cursor-default">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-arena-800 mb-2" data-i18n="features.f1.title">Online Groups</h3>
+          <p class="text-sm text-arena-400 leading-relaxed" data-i18n="features.f1.desc">Create or join esports groups with your crew. Invite members, manage roles, and keep everyone in one place.</p>
+        </div>
+
+        <!-- Feature 2: Online Tournaments -->
+        <div class="fade-up delay-1 group bg-white border border-arena-100 rounded-2xl p-6 hover:shadow-xl hover:shadow-arena-500/5 hover:border-arena-200 transition-all duration-300 cursor-default">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-arena-800 mb-2" data-i18n="features.f2.title">Online Tournaments</h3>
+          <p class="text-sm text-arena-400 leading-relaxed" data-i18n="features.f2.desc">Run real-time tournaments with live standings. Everyone sees updates instantly via Firebase sync.</p>
+        </div>
+
+        <!-- Feature 3: Offline Mode -->
+        <div class="fade-up delay-2 group bg-white border border-arena-100 rounded-2xl p-6 hover:shadow-xl hover:shadow-arena-500/5 hover:border-arena-200 transition-all duration-300 cursor-default">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke-dasharray="4 2"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-arena-800 mb-2" data-i18n="features.f3.title">Full Offline Mode</h3>
+          <p class="text-sm text-arena-400 leading-relaxed" data-i18n="features.f3.desc">Manage tournaments locally without any internet connection. All data stored on-device with SQLite.</p>
+        </div>
+
+        <!-- Feature 4: Match Management -->
+        <div class="fade-up delay-3 group bg-white border border-arena-100 rounded-2xl p-6 hover:shadow-xl hover:shadow-arena-500/5 hover:border-arena-200 transition-all duration-300 cursor-default">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-arena-800 mb-2" data-i18n="features.f4.title">Match Management</h3>
+          <p class="text-sm text-arena-400 leading-relaxed" data-i18n="features.f4.desc">Auto-generated round-robin schedules. Enter scores and watch standings update automatically in real time.</p>
+        </div>
+
+        <!-- Feature 5: Player Statistics -->
+        <div class="fade-up delay-4 group bg-white border border-arena-100 rounded-2xl p-6 hover:shadow-xl hover:shadow-arena-500/5 hover:border-arena-200 transition-all duration-300 cursor-default">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-arena-800 mb-2" data-i18n="features.f5.title">Player Statistics</h3>
+          <p class="text-sm text-arena-400 leading-relaxed" data-i18n="features.f5.desc">Track wins, draws, losses, goals scored, and goal difference for every player in your league.</p>
+        </div>
+
+        <!-- Feature 6: Group Chat -->
+        <div class="fade-up delay-5 group bg-white border border-arena-100 rounded-2xl p-6 hover:shadow-xl hover:shadow-arena-500/5 hover:border-arena-200 transition-all duration-300 cursor-default">
+          <div class="w-12 h-12 bg-gradient-to-br from-arena-400 to-arena-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-lg text-arena-800 mb-2" data-i18n="features.f6.title">Group Chat</h3>
+          <p class="text-sm text-arena-400 leading-relaxed" data-i18n="features.f6.desc">Built-in group messaging so your crew can trash talk, plan matches, and celebrate wins together.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ ONLINE vs OFFLINE ============ -->
+  <section class="relative py-24 bg-gradient-to-b from-arena-50/60 to-white overflow-hidden">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <div class="fade-up inline-flex items-center gap-2 bg-arena-100 text-arena-600 text-sm font-medium px-4 py-1.5 rounded-full mb-4">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          <span data-i18n="modes.badge">Two Modes, One App</span>
+        </div>
+        <h2 class="fade-up delay-1 font-heading font-extrabold text-4xl sm:text-5xl text-arena-800 mb-4" data-i18n="modes.title">Play Anywhere, Anytime</h2>
+        <p class="fade-up delay-2 text-lg text-arena-400 max-w-2xl mx-auto" data-i18n="modes.subtitle">Switch between online and offline mode — your data is always ready</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <!-- Online Mode -->
+        <div class="fade-up relative bg-gradient-to-br from-arena-600 to-arena-700 rounded-3xl p-8 text-white shadow-xl shadow-arena-700/20 overflow-hidden">
+          <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div class="relative">
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-6">
+              <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <h3 class="font-heading font-bold text-2xl mb-3" data-i18n="modes.online.title">Online Mode</h3>
+            <p class="text-arena-200 text-sm leading-relaxed mb-6" data-i18n="modes.online.desc">Connect with players beyond your local area. Real-time tournaments synced across all devices instantly.</p>
+            <ul class="space-y-2.5">
+              <li class="flex items-center gap-2.5 text-sm text-arena-100">
+                <svg class="w-4 h-4 text-arena-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="modes.online.f1">Firebase real-time sync</span>
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-arena-100">
+                <svg class="w-4 h-4 text-arena-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="modes.online.f2">Group creation & member management</span>
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-arena-100">
+                <svg class="w-4 h-4 text-arena-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="modes.online.f3">Push notifications for match updates</span>
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-arena-100">
+                <svg class="w-4 h-4 text-arena-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span data-i18n="modes.online.f4">Group chat & messaging</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Offline Mode -->
+        <div class="fade-up delay-1 bg-white border-2 border-arena-100 rounded-3xl p-8 hover:border-arena-200 transition-colors duration-300">
+          <div class="w-12 h-12 bg-arena-100 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-arena-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+          </div>
+          <h3 class="font-heading font-bold text-2xl text-arena-800 mb-3" data-i18n="modes.offline.title">Offline Mode</h3>
+          <p class="text-arena-400 text-sm leading-relaxed mb-6" data-i18n="modes.offline.desc">No internet? No problem. Manage a full tournament locally — perfect for LAN parties and local leagues.</p>
+          <ul class="space-y-2.5">
+            <li class="flex items-center gap-2.5 text-sm text-arena-600">
+              <svg class="w-4 h-4 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span data-i18n="modes.offline.f1">Local SQLite storage</span>
+            </li>
+            <li class="flex items-center gap-2.5 text-sm text-arena-600">
+              <svg class="w-4 h-4 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span data-i18n="modes.offline.f2">Auto round-robin schedule generation</span>
+            </li>
+            <li class="flex items-center gap-2.5 text-sm text-arena-600">
+              <svg class="w-4 h-4 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span data-i18n="modes.offline.f3">Full player stats tracking</span>
+            </li>
+            <li class="flex items-center gap-2.5 text-sm text-arena-600">
+              <svg class="w-4 h-4 text-arena-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span data-i18n="modes.offline.f4">Works without any account</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ SCREENSHOTS ============ -->
+  <section id="screenshots" class="relative py-24 bg-white overflow-hidden">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <div class="fade-up inline-flex items-center gap-2 bg-arena-100 text-arena-600 text-sm font-medium px-4 py-1.5 rounded-full mb-4">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          <span data-i18n="screenshots.badge">See It in Action</span>
+        </div>
+        <h2 class="fade-up delay-1 font-heading font-extrabold text-4xl sm:text-5xl text-arena-800 mb-4" data-i18n="screenshots.title">Built for Competitors</h2>
+        <p class="fade-up delay-2 text-lg text-arena-400 max-w-2xl mx-auto" data-i18n="screenshots.subtitle">Clean, fast, and designed for the heat of competition</p>
+      </div>
+    </div>
+
+    <!-- Full-width Carousel -->
+    <div class="fade-up delay-2 screenshots-scroll px-4 sm:px-8 lg:px-16">
+      <div class="w-4 flex-shrink-0"></div>
+      <img src="assets/screenshots/01.png" alt="PES Arena home screen" class="h-[480px] sm:h-[560px] lg:h-[640px] w-auto rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300" loading="lazy" onerror="this.style.display='none'">
+      <img src="assets/screenshots/02.png" alt="Online groups" class="h-[480px] sm:h-[560px] lg:h-[640px] w-auto rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300" loading="lazy" onerror="this.style.display='none'">
+      <img src="assets/screenshots/03.png" alt="Tournament view" class="h-[480px] sm:h-[560px] lg:h-[640px] w-auto rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300" loading="lazy" onerror="this.style.display='none'">
+      <img src="assets/screenshots/04.png" alt="Match results" class="h-[480px] sm:h-[560px] lg:h-[640px] w-auto rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300" loading="lazy" onerror="this.style.display='none'">
+      <img src="assets/screenshots/05.png" alt="Player statistics" class="h-[480px] sm:h-[560px] lg:h-[640px] w-auto rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300" loading="lazy" onerror="this.style.display='none'">
+      <div class="w-4 flex-shrink-0"></div>
+    </div>
+
+    <!-- Placeholder when no screenshots -->
+    <div id="screenshots-placeholder" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <div class="bg-arena-50 rounded-3xl p-12 text-center border-2 border-dashed border-arena-200">
+        <div class="w-16 h-16 bg-arena-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-arena-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        </div>
+        <p class="text-arena-400 font-medium" data-i18n="screenshots.coming">Screenshots coming soon</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ FINAL CTA / DOWNLOAD ============ -->
+  <section id="download" class="relative py-24 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-arena-600 via-arena-700 to-arena-800"></div>
+    <div class="blob w-[400px] h-[400px] bg-arena-400/20 top-[-100px] right-[-50px]"></div>
+    <div class="blob w-[300px] h-[300px] bg-arena-500/20 bottom-[-80px] left-[-50px]"></div>
+    <div class="absolute top-[20%] left-[15%] w-16 h-16 rounded-full border border-white/10"></div>
+    <div class="absolute bottom-[25%] right-[10%] w-8 h-8 rounded-full bg-white/5"></div>
+
+    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="fade-up font-heading font-extrabold text-4xl sm:text-5xl text-white mb-6" data-i18n="cta.title">Ready to Run<br>Your League?</h2>
+      <p class="fade-up delay-1 text-lg text-arena-200 mb-10 max-w-xl mx-auto" data-i18n="cta.subtitle">Free to download. No account needed to get started. Your first offline tournament is one tap away.</p>
+
+      <div class="fade-up delay-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="https://apps.apple.com/us/app/game-note/id6443969710" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-3 bg-white hover:bg-arena-50 text-arena-700 px-8 py-4 rounded-2xl transition-all duration-200 hover:shadow-lg font-semibold cursor-pointer">
+          <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          <div class="text-left">
+            <div class="text-[10px] font-medium opacity-60" data-i18n="hero.downloadOn">Download on the</div>
+            <div class="text-lg font-semibold leading-tight">App Store</div>
+          </div>
+        </a>
+        <a href="https://play.google.com/store/apps/details?id=com.november.game_note" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-2xl transition-all duration-200 hover:shadow-lg font-semibold cursor-pointer">
+          <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.3.17.64.24.99.19l13.12-7.57-2.83-2.83-11.28 10.21zM.5 1.34C.19 1.67 0 2.17 0 2.82v18.36c0 .65.19 1.15.5 1.48l.08.07L10.45 12.9v-.23L.58 1.27.5 1.34zM20.49 10.5l-2.83-1.63-3.17 2.89v.46l3.17 2.9 2.84-1.64c.81-.47.81-1.52-.01-1.98zM4.17.24L17.29 7.81l-2.83 2.83L3.18.43C3.49-.02 3.87-.12 4.17.24z"/></svg>
+          <div class="text-left">
+            <div class="text-[10px] font-medium opacity-60" data-i18n="hero.getItOn">Get it on</div>
+            <div class="text-lg font-semibold leading-tight">Google Play</div>
+          </div>
+        </a>
+      </div>
+
+      <p class="fade-up delay-3 text-sm text-arena-300 mt-6" data-i18n="cta.note">Free to download. Available on iOS and Android.</p>
+    </div>
+  </section>
+
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="bg-arena-900 text-arena-300 py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-3">
+          <img src="assets/app-icon.png" alt="PES Arena" class="w-8 h-8 rounded-lg">
+          <span class="font-heading font-bold text-white">PES Arena</span>
+        </div>
+
+        <div class="flex items-center gap-6 text-sm">
+          <a href="privacy.html" class="hover:text-white transition-colors cursor-pointer" data-i18n="footer.privacy">Privacy Policy</a>
+          <a href="support.html" class="hover:text-white transition-colors cursor-pointer" data-i18n="footer.support">Support</a>
+        </div>
+
+        <p class="text-sm text-arena-400">&copy; 2026 PES Arena. <span data-i18n="footer.rights">All rights reserved.</span></p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ============ SCRIPTS ============ -->
+  <script>
+    // ======== TRANSLATIONS ========
+    const T = {
+      en: {
+        'nav.features': 'Features',
+        'nav.screenshots': 'Screenshots',
+        'nav.download': 'Download',
+        'nav.cta': 'Get the App',
+        'hero.badge': 'Football & Esports Community App',
+        'hero.title': 'Your Crew.<br>Your Tournament.',
+        'hero.subtitle': 'Create groups, run tournaments, and compete with your crew — online with real-time updates or fully offline without internet.',
+        'hero.downloadOn': 'Download on the',
+        'hero.getItOn': 'Get it on',
+        'hero.stat1': 'Both Platforms',
+        'hero.stat1val': 'iOS & Android',
+        'hero.stat2': 'Offline Support',
+        'hero.stat3': 'To Play',
+        'hero.stat3val': 'Free',
+        'features.badge': 'Why PES Arena',
+        'features.title': 'Everything Your Crew Needs',
+        'features.subtitle': 'Powerful tournament tools for football and esports communities',
+        'features.f1.title': 'Online Groups',
+        'features.f1.desc': 'Create or join esports groups with your crew. Invite members, manage roles, and keep everyone in one place.',
+        'features.f2.title': 'Online Tournaments',
+        'features.f2.desc': 'Run real-time tournaments with live standings. Everyone sees updates instantly via Firebase sync.',
+        'features.f3.title': 'Full Offline Mode',
+        'features.f3.desc': 'Manage tournaments locally without any internet connection. All data stored on-device with SQLite.',
+        'features.f4.title': 'Match Management',
+        'features.f4.desc': 'Auto-generated round-robin schedules. Enter scores and watch standings update automatically in real time.',
+        'features.f5.title': 'Player Statistics',
+        'features.f5.desc': 'Track wins, draws, losses, goals scored, and goal difference for every player in your league.',
+        'features.f6.title': 'Group Chat',
+        'features.f6.desc': 'Built-in group messaging so your crew can trash talk, plan matches, and celebrate wins together.',
+        'modes.badge': 'Two Modes, One App',
+        'modes.title': 'Play Anywhere, Anytime',
+        'modes.subtitle': 'Switch between online and offline mode — your data is always ready',
+        'modes.online.title': 'Online Mode',
+        'modes.online.desc': 'Connect with players beyond your local area. Real-time tournaments synced across all devices instantly.',
+        'modes.online.f1': 'Firebase real-time sync',
+        'modes.online.f2': 'Group creation & member management',
+        'modes.online.f3': 'Push notifications for match updates',
+        'modes.online.f4': 'Group chat & messaging',
+        'modes.offline.title': 'Offline Mode',
+        'modes.offline.desc': 'No internet? No problem. Manage a full tournament locally — perfect for LAN parties and local leagues.',
+        'modes.offline.f1': 'Local SQLite storage',
+        'modes.offline.f2': 'Auto round-robin schedule generation',
+        'modes.offline.f3': 'Full player stats tracking',
+        'modes.offline.f4': 'Works without any account',
+        'screenshots.badge': 'See It in Action',
+        'screenshots.title': 'Built for Competitors',
+        'screenshots.subtitle': 'Clean, fast, and designed for the heat of competition',
+        'screenshots.coming': 'Screenshots coming soon',
+        'cta.title': 'Ready to Run<br>Your League?',
+        'cta.subtitle': 'Free to download. No account needed to get started. Your first offline tournament is one tap away.',
+        'cta.note': 'Free to download. Available on iOS and Android.',
+        'footer.privacy': 'Privacy Policy',
+        'footer.support': 'Support',
+        'footer.rights': 'All rights reserved.',
+      },
+      vi: {
+        'nav.features': 'Tính năng',
+        'nav.screenshots': 'Ảnh màn hình',
+        'nav.download': 'Tải xuống',
+        'nav.cta': 'Tải ứng dụng',
+        'hero.badge': 'App Cộng Đồng Bóng Đá & Esports',
+        'hero.title': 'Đội Của Bạn.<br>Giải Đấu Của Bạn.',
+        'hero.subtitle': 'Tạo nhóm, tổ chức giải đấu và thi đấu cùng đồng đội — trực tuyến với cập nhật thời gian thực hoặc hoàn toàn offline không cần mạng.',
+        'hero.downloadOn': 'Tải xuống trên',
+        'hero.getItOn': 'Tải trên',
+        'hero.stat1': 'Cả Hai Nền Tảng',
+        'hero.stat1val': 'iOS & Android',
+        'hero.stat2': 'Hỗ Trợ Offline',
+        'hero.stat3': 'Để Chơi',
+        'hero.stat3val': 'Miễn Phí',
+        'features.badge': 'Tại Sao Chọn PES Arena',
+        'features.title': 'Mọi Thứ Đội Của Bạn Cần',
+        'features.subtitle': 'Công cụ tổ chức giải đấu mạnh mẽ cho cộng đồng bóng đá và esports',
+        'features.f1.title': 'Nhóm Trực Tuyến',
+        'features.f1.desc': 'Tạo hoặc tham gia nhóm esports với đồng đội. Mời thành viên, quản lý vai trò, giữ mọi người trong một nơi.',
+        'features.f2.title': 'Giải Đấu Trực Tuyến',
+        'features.f2.desc': 'Tổ chức giải đấu thời gian thực với bảng xếp hạng trực tiếp. Mọi người xem cập nhật ngay lập tức qua Firebase.',
+        'features.f3.title': 'Chế Độ Offline Đầy Đủ',
+        'features.f3.desc': 'Quản lý giải đấu cục bộ không cần kết nối internet. Tất cả dữ liệu được lưu trên thiết bị với SQLite.',
+        'features.f4.title': 'Quản Lý Trận Đấu',
+        'features.f4.desc': 'Lịch thi đấu round-robin tự động. Nhập tỉ số và xem bảng xếp hạng cập nhật ngay lập tức.',
+        'features.f5.title': 'Thống Kê Cầu Thủ',
+        'features.f5.desc': 'Theo dõi thắng, hòa, thua, bàn thắng và hiệu số bàn thắng của từng cầu thủ trong giải.',
+        'features.f6.title': 'Chat Nhóm',
+        'features.f6.desc': 'Tính năng nhắn tin nhóm tích hợp để đồng đội có thể trò chuyện, lên kế hoạch trận đấu và ăn mừng chiến thắng.',
+        'modes.badge': 'Hai Chế Độ, Một Ứng Dụng',
+        'modes.title': 'Chơi Mọi Nơi, Mọi Lúc',
+        'modes.subtitle': 'Chuyển đổi giữa chế độ online và offline — dữ liệu của bạn luôn sẵn sàng',
+        'modes.online.title': 'Chế Độ Online',
+        'modes.online.desc': 'Kết nối với người chơi ngoài khu vực của bạn. Giải đấu thời gian thực được đồng bộ trên tất cả thiết bị ngay lập tức.',
+        'modes.online.f1': 'Đồng bộ Firebase thời gian thực',
+        'modes.online.f2': 'Tạo nhóm & quản lý thành viên',
+        'modes.online.f3': 'Thông báo đẩy cho cập nhật trận đấu',
+        'modes.online.f4': 'Chat nhóm & nhắn tin',
+        'modes.offline.title': 'Chế Độ Offline',
+        'modes.offline.desc': 'Không có mạng? Không vấn đề. Quản lý giải đấu cục bộ — hoàn hảo cho LAN party và giải địa phương.',
+        'modes.offline.f1': 'Lưu trữ SQLite cục bộ',
+        'modes.offline.f2': 'Tự động tạo lịch round-robin',
+        'modes.offline.f3': 'Theo dõi thống kê cầu thủ đầy đủ',
+        'modes.offline.f4': 'Hoạt động không cần tài khoản',
+        'screenshots.badge': 'Xem Thực Tế',
+        'screenshots.title': 'Được Xây Dựng Cho Người Thi Đấu',
+        'screenshots.subtitle': 'Gọn gàng, nhanh chóng và được thiết kế cho cuộc thi đấu',
+        'screenshots.coming': 'Ảnh màn hình sắp có',
+        'cta.title': 'Sẵn Sàng Tổ Chức<br>Giải Đấu Của Bạn?',
+        'cta.subtitle': 'Tải miễn phí. Không cần tài khoản để bắt đầu. Giải đấu offline đầu tiên của bạn chỉ cách một lần chạm.',
+        'cta.note': 'Tải miễn phí. Có trên iOS và Android.',
+        'footer.privacy': 'Chính Sách Bảo Mật',
+        'footer.support': 'Hỗ Trợ',
+        'footer.rights': 'Đã đăng ký bản quyền.',
+      }
+    };
+
+    const langMeta = {
+      en: { flag: '\u{1F1FA}\u{1F1F8}', code: 'EN', htmlLang: 'en' },
+      vi: { flag: '\u{1F1FB}\u{1F1F3}', code: 'VI', htmlLang: 'vi' },
+    };
+
+    let currentLang = localStorage.getItem('pa-lang') || 'en';
+
+    function setLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('pa-lang', lang);
+      document.documentElement.lang = langMeta[lang].htmlLang;
+      document.getElementById('lang-current-flag').textContent = langMeta[lang].flag;
+      document.getElementById('lang-current-code').textContent = langMeta[lang].code;
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (T[lang] && T[lang][key]) {
+          el.innerHTML = T[lang][key];
+        }
+      });
+
+      document.getElementById('lang-dropdown').classList.remove('open');
+    }
+
+    // ======== LANGUAGE DROPDOWN ========
+    document.getElementById('lang-toggle').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('lang-dropdown').classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => {
+      document.getElementById('lang-dropdown').classList.remove('open');
+    });
+
+    // ======== MOBILE MENU ========
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+    const closeIcon = document.getElementById('close-icon');
+
+    function closeMobileMenu() {
+      mobileMenu.classList.remove('open');
+      menuIcon.classList.remove('hidden');
+      closeIcon.classList.add('hidden');
+    }
+
+    mobileToggle.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('open');
+      menuIcon.classList.toggle('hidden', isOpen);
+      closeIcon.classList.toggle('hidden', !isOpen);
+    });
+
+    // ======== SCROLL REVEAL ========
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    // ======== NAVBAR SCROLL EFFECT ========
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20) {
+        nav.classList.add('shadow-xl');
+      } else {
+        nav.classList.remove('shadow-xl');
+      }
+    }, { passive: true });
+
+    // ======== SMOOTH SCROLL FOR NAV LINKS ========
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // ======== INIT ========
+    setLang(currentLang);
+  </script>
+</body>
+</html>

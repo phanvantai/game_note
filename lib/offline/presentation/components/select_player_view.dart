@@ -12,11 +12,11 @@ class SelectPlayerView extends StatefulWidget {
   final Function(List<PlayerModel>)? onSelectDone;
   final Function(List<PlayerModel>, bool)? enableSection;
   const SelectPlayerView({
-    Key? key,
+    super.key,
     this.numberOfPlayer,
     this.onSelectDone,
     this.enableSection,
-  }) : super(key: key);
+  });
 
   @override
   State<SelectPlayerView> createState() => _SelectPlayerViewState();
@@ -67,8 +67,7 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
           Expanded(
             child: ListView.separated(
               itemCount: players.length,
-              separatorBuilder: (context, index) =>
-                  const SizedBox(height: 8),
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 return PlayerView(
                   players[index],
@@ -79,14 +78,13 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
                           : selectedPlayers.remove(players[index]);
                     });
                     if (widget.enableSection != null) {
-                      widget.enableSection!(
-                          selectedPlayers, enableDoneButton);
+                      widget.enableSection!(selectedPlayers, enableDoneButton);
                     }
                   },
                 );
               },
             ),
-          )
+          ),
         ],
       ),
     );
