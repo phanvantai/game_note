@@ -89,6 +89,23 @@ class GNEsportGroup extends Equatable {
     };
   }
 
+  // Creates a minimal placeholder used when only the group ID is known
+  // (e.g. direct URL access). Real data is fetched via GetGroupDetail.
+  factory GNEsportGroup.placeholder(String id) {
+    final now = DateTime.fromMillisecondsSinceEpoch(0);
+    return GNEsportGroup(
+      id: id,
+      esportId: '',
+      groupName: '',
+      ownerId: '',
+      members: const [],
+      description: '',
+      createdAt: now,
+      updatedAt: now,
+      status: 'active',
+    );
+  }
+
   // key-value pairs of the object
   static const String esportIdKey = 'esportId';
   static const String groupNameKey = 'groupName';
