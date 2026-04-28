@@ -7,7 +7,17 @@ abstract class TournamentEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class GetTournaments extends TournamentEvent {}
+/// Initial / refresh load of the "Giải đấu của tôi" tab.
+class LoadMyLeagues extends TournamentEvent {}
+
+/// Initial load of the "Giải đấu khác" tab (resets pagination cursor).
+class LoadOtherLeagues extends TournamentEvent {}
+
+/// Append the next page to the "Giải đấu khác" tab.
+class LoadMoreOtherLeagues extends TournamentEvent {}
+
+/// Pull-to-refresh: reload both tabs in parallel and reset cursor.
+class RefreshTournaments extends TournamentEvent {}
 
 class AddTournament extends TournamentEvent {
   final String name;

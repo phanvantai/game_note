@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
@@ -60,119 +59,68 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     return leagues;
   }
 
-  // - update a league stats
-  Future<void> updateLeagueStatWithMatch(GNEsportMatch match) async {
-    final home = match.homeScore;
-    final away = match.awayScore;
-    if (!match.isFinished || home == null || away == null) {
-      return;
-    }
-    final homeTeamStats =
-        await getStatsWithUserId(match.leagueId, match.homeTeamId);
-    final awayTeamStats =
-        await getStatsWithUserId(match.leagueId, match.awayTeamId);
-
-    // calculate new stats
-    final homeWin = home > away;
-    final awayWin = away > home;
-    final draw = home == away;
-
-    // update home team stats
-    final updatedHomeStats = homeTeamStats.copyWith(
-      matchesPlayed: homeTeamStats.matchesPlayed + 1,
-      goals: homeTeamStats.goals + home,
-      goalsConceded: homeTeamStats.goalsConceded + away,
-      wins: homeTeamStats.wins + (homeWin ? 1 : 0),
-      draws: homeTeamStats.draws + (draw ? 1 : 0),
-      losses: homeTeamStats.losses + (awayWin ? 1 : 0),
-    );
-
-    // update away team stats
-    final updatedAwayStats = awayTeamStats.copyWith(
-      matchesPlayed: awayTeamStats.matchesPlayed + 1,
-      goals: awayTeamStats.goals + away,
-      goalsConceded: awayTeamStats.goalsConceded + home,
-      wins: awayTeamStats.wins + (awayWin ? 1 : 0),
-      draws: awayTeamStats.draws + (draw ? 1 : 0),
-      losses: awayTeamStats.losses + (homeWin ? 1 : 0),
-    );
-
-    // update stats in firestore
-    await updateLeagueStat(updatedHomeStats);
-    await updateLeagueStat(updatedAwayStats);
-  }
-
-  Future<void> updateLeagueStat(GNEsportLeagueStat stats) async {
-    final leagueStatCollection = firestore
-        .collection(GNEsportLeague.collectionName)
-        .doc(stats.leagueId)
-        .collection(GNEsportLeagueStat.collectionName);
-
-    await leagueStatCollection
-        .doc(stats.id)
-        .set(stats.toMap(), SetOptions(merge: true));
-  }
-
-  Future<GNEsportLeagueStat> getStatsWithUserId(
-      String leagueId, String userId) async {
-    final snapshot = await firestore
+  /// Recompute all stat docs for a league from its finished matches and
+  /// overwrite the stored values. Admin-only escape hatch for cases where
+  /// stats drifted from reality (e.g. legacy non-transactional update bugs,
+  /// manually deleted matches in console). Idempotent — safe to re-run.
+  ///
+  /// Uses a single batched write rather than a transaction: queries (which
+  /// we need for the stats + matches collections) aren't allowed inside
+  /// Firestore transactions, and reconcile is a manual admin action with
+  /// no concurrent contention to worry about. If an admin races a normal
+  /// match update against a reconcile, just re-run reconcile after.
+  Future<void> recomputeLeagueStats(String leagueId) async {
+    final statsCollection = firestore
         .collection(GNEsportLeague.collectionName)
         .doc(leagueId)
-        .collection(GNEsportLeagueStat.collectionName)
-        .where(GNEsportLeagueStat.fieldUserId, isEqualTo: userId)
-        .get();
+        .collection(GNEsportLeagueStat.collectionName);
+    final matchesCollection = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .collection(GNEsportMatch.collectionName);
 
-    if (snapshot.docs.isNotEmpty) {
-      final doc = snapshot.docs.first;
-      final stats = GNEsportLeagueStat.fromFirestore(doc);
-      // get user of the stat
-      final user = await getUserById(stats.userId);
-      return stats.copyWith(user: user);
-    } else {
-      throw Exception('No stats found for user with id $userId');
+    final results = await Future.wait([
+      statsCollection.get(),
+      matchesCollection
+          .where(GNEsportMatch.fieldIsFinished, isEqualTo: true)
+          .get(),
+    ]);
+    final statSnaps = results[0].docs;
+    final matchSnaps = results[1].docs;
+
+    // Initialise totals at zero for every existing stat doc — players with
+    // no finished matches still need their docs reset (in case they were
+    // stale).
+    final totals = <String, _ReconcileTotals>{
+      for (final s in statSnaps)
+        GNEsportLeagueStat.fromFirestore(s).userId: _ReconcileTotals(),
+    };
+
+    for (final m in matchSnaps) {
+      final match = GNEsportMatch.fromFirestore(m);
+      final h = match.homeScore;
+      final a = match.awayScore;
+      if (h == null || a == null) continue;
+      // Silently ignore matches whose players don't have a stat doc — the
+      // audit log will already have flagged them as orphans.
+      totals[match.homeTeamId]?.apply(scoredFor: h, scoredAgainst: a);
+      totals[match.awayTeamId]?.apply(scoredFor: a, scoredAgainst: h);
     }
-  }
 
-  // revert stats for a match
-  Future<void> reverseStateWithMatch(GNEsportMatch math) async {
-    final home = math.homeScore;
-    final away = math.awayScore;
-    if (home == null || away == null) {
-      return;
+    final batch = firestore.batch();
+    for (final s in statSnaps) {
+      final userId = GNEsportLeagueStat.fromFirestore(s).userId;
+      final t = totals[userId]!;
+      batch.update(s.reference, {
+        GNEsportLeagueStat.fieldMatchesPlayed: t.mp,
+        GNEsportLeagueStat.fieldGoals: t.gf,
+        GNEsportLeagueStat.fieldGoalsConceded: t.ga,
+        GNEsportLeagueStat.fieldWins: t.w,
+        GNEsportLeagueStat.fieldDraws: t.d,
+        GNEsportLeagueStat.fieldLosses: t.l,
+      });
     }
-    final homeTeamStats =
-        await getStatsWithUserId(math.leagueId, math.homeTeamId);
-    final awayTeamStats =
-        await getStatsWithUserId(math.leagueId, math.awayTeamId);
-
-    // calculate new stats
-    final homeWin = home > away;
-    final awayWin = away > home;
-    final draw = home == away;
-
-    // update home team stats
-    final updatedHomeStats = homeTeamStats.copyWith(
-      matchesPlayed: homeTeamStats.matchesPlayed - 1,
-      goals: homeTeamStats.goals - home,
-      goalsConceded: homeTeamStats.goalsConceded - away,
-      wins: homeTeamStats.wins - (homeWin ? 1 : 0),
-      draws: homeTeamStats.draws - (draw ? 1 : 0),
-      losses: homeTeamStats.losses - (awayWin ? 1 : 0),
-    );
-
-    // update away team stats
-    final updatedAwayStats = awayTeamStats.copyWith(
-      matchesPlayed: awayTeamStats.matchesPlayed - 1,
-      goals: awayTeamStats.goals - away,
-      goalsConceded: awayTeamStats.goalsConceded - home,
-      wins: awayTeamStats.wins - (awayWin ? 1 : 0),
-      draws: awayTeamStats.draws - (draw ? 1 : 0),
-      losses: awayTeamStats.losses - (homeWin ? 1 : 0),
-    );
-
-    // update stats in firestore
-    await updateLeagueStat(updatedHomeStats);
-    await updateLeagueStat(updatedAwayStats);
+    await batch.commit();
   }
 
   // listen to updates of a league stat
@@ -187,5 +135,29 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
           .map((doc) => GNEsportLeagueStat.fromFirestore(doc))
           .toList();
     });
+  }
+}
+
+/// Mutable accumulator used by `recomputeLeagueStats` to fold finished
+/// matches into per-player totals.
+class _ReconcileTotals {
+  int mp = 0;
+  int gf = 0;
+  int ga = 0;
+  int w = 0;
+  int d = 0;
+  int l = 0;
+
+  void apply({required int scoredFor, required int scoredAgainst}) {
+    mp++;
+    gf += scoredFor;
+    ga += scoredAgainst;
+    if (scoredFor > scoredAgainst) {
+      w++;
+    } else if (scoredFor == scoredAgainst) {
+      d++;
+    } else {
+      l++;
+    }
   }
 }

@@ -158,3 +158,7 @@ class LoadLeagueError extends TournamentDetailEvent {
   @override
   List<Object> get props => [message];
 }
+
+/// Admin-only: rebuild stats for the current league from its finished
+/// matches.
+class RecomputeStats extends TournamentDetailEvent {}

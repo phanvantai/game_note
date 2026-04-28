@@ -8,6 +8,12 @@ class TournamentDetailState extends Equatable {
   final List<GNUser> users;
   final String errorMessage;
 
+  /// Bumped every time `GetParticipantsAndMatches` finishes (success OR
+  /// failure). Lets pull-to-refresh detect completion even when the new
+  /// data equals the old data — without it Equatable suppresses the emit
+  /// and the RefreshIndicator spins forever.
+  final int refreshTick;
+
   const TournamentDetailState({
     this.viewStatus = ViewStatus.initial,
     this.league,
@@ -15,6 +21,7 @@ class TournamentDetailState extends Equatable {
     this.matches = const [],
     this.errorMessage = '',
     this.users = const [],
+    this.refreshTick = 0,
   });
 
   TournamentDetailState copyWith({
@@ -24,6 +31,7 @@ class TournamentDetailState extends Equatable {
     List<GNEsportMatch>? matches,
     String? errorMessage,
     List<GNUser>? users,
+    int? refreshTick,
   }) {
     return TournamentDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
@@ -32,6 +40,7 @@ class TournamentDetailState extends Equatable {
       matches: matches ?? this.matches,
       errorMessage: errorMessage ?? this.errorMessage,
       users: users ?? this.users,
+      refreshTick: refreshTick ?? this.refreshTick,
     );
   }
 
@@ -43,6 +52,7 @@ class TournamentDetailState extends Equatable {
         matches,
         errorMessage,
         users,
+        refreshTick,
       ];
 
   bool get currentUserIsMember {

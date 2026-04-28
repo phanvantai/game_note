@@ -147,30 +147,48 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
     }).toList();
   }
 
+  Future<void> _refresh(BuildContext context) async {
+    final bloc = context.read<TournamentDetailBloc>();
+    final leagueId = bloc.state.league?.id;
+    if (leagueId == null) return;
+    final tickBefore = bloc.state.refreshTick;
+    bloc.add(GetParticipantsAndMatches(leagueId));
+    await bloc.stream.firstWhere((s) => s.refreshTick > tickBefore);
+  }
+
   Widget _buildMatchList(
     BuildContext context,
     List<GNEsportMatch> matches,
     TournamentDetailState state,
   ) {
     if (matches.isEmpty) {
-      if (!isFixtures && _searchQuery.isNotEmpty) {
-        return const AppEmptyState(
-          icon: Icons.search_off,
-          title: 'Không tìm thấy trận nào',
-        );
-      }
-      return AppEmptyState(
-        icon: isFixtures
-            ? Icons.calendar_today_outlined
-            : Icons.scoreboard_outlined,
-        title: isFixtures ? 'Chưa có lịch thi đấu' : 'Chưa có kết quả',
+      final empty = !isFixtures && _searchQuery.isNotEmpty
+          ? const AppEmptyState(
+              icon: Icons.search_off,
+              title: 'Không tìm thấy trận nào',
+            )
+          : AppEmptyState(
+              icon: isFixtures
+                  ? Icons.calendar_today_outlined
+                  : Icons.scoreboard_outlined,
+              title: isFixtures ? 'Chưa có lịch thi đấu' : 'Chưa có kết quả',
+            );
+      return RefreshIndicator(
+        onRefresh: () => _refresh(context),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [SizedBox(height: 400, child: empty)],
+        ),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: ListView.separated(
-        itemBuilder: (context, index) {
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
           final match = matches[index];
           return Slidable(
             endActionPane: ActionPane(
@@ -200,9 +218,10 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
             ),
           );
         },
-        separatorBuilder: (context, index) => const SizedBox(height: 8),
-        itemCount: matches.length,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          itemCount: matches.length,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+        ),
       ),
     );
   }

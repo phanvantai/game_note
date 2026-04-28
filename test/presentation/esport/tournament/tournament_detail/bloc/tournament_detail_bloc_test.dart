@@ -210,6 +210,9 @@ void main() {
       build: () {
         when(() => repo.getLeague('L1'))
             .thenAnswer((_) async => _league(id: 'L1'));
+        when(() => repo.getParticipantsAndMatches('L1')).thenAnswer(
+          (_) async => const LeagueDetailData(participants: [], matches: []),
+        );
         return build();
       },
       act: (bloc) => bloc.add(const GetLeague('L1')),
@@ -225,6 +228,9 @@ void main() {
       'không tìm thấy league: emit failure',
       build: () {
         when(() => repo.getLeague(any())).thenAnswer((_) async => null);
+        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
+          (_) async => const LeagueDetailData(participants: [], matches: []),
+        );
         return build();
       },
       act: (bloc) => bloc.add(const GetLeague('missing')),
@@ -241,6 +247,9 @@ void main() {
       'repo throw: emit failure',
       build: () {
         when(() => repo.getLeague(any())).thenThrow(Exception('net'));
+        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
+          (_) async => const LeagueDetailData(participants: [], matches: []),
+        );
         return build();
       },
       act: (bloc) => bloc.add(const GetLeague('L1')),

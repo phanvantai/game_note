@@ -27,9 +27,31 @@ class TournamentDetailView extends StatefulWidget {
 }
 
 class _TournamentDetailViewState extends State<TournamentDetailView>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Firestore listeners can be paused while the app is backgrounded
+    // (Doze mode on Android, suspended on iOS) and don't always re-fire
+    // immediately on resume. Force a refresh so the user sees changes
+    // made by other members while the app was off-screen.
+    if (state == AppLifecycleState.resumed && mounted) {
+      final bloc = context.read<TournamentDetailBloc>();
+      final leagueId = bloc.state.league?.id;
+      if (leagueId != null) {
+        bloc.add(GetParticipantsAndMatches(leagueId));
+      }
+    }
+  }
 
   /// Key used to capture the off-screen share card (no horizontal scroll).
   final GlobalKey _shareCardKey = GlobalKey();
@@ -99,6 +121,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   case 'edit_cost':
                     _editCostConfig(context, state);
                     break;
+                  case 'recompute_stats':
+                    _recomputeStats(context);
+                    break;
                   case 'delete':
                     _deleteLeague(context);
                     break;
@@ -129,6 +154,15 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                     child: ListTile(
                       leading: Icon(Icons.payments_outlined),
                       title: Text('Sửa chi phí'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (state.currentUserIsLeagueAdmin)
+                  const PopupMenuItem(
+                    value: 'recompute_stats',
+                    child: ListTile(
+                      leading: Icon(Icons.refresh),
+                      title: Text('Đồng bộ điểm số'),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -320,6 +354,21 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     );
   }
 
+  void _recomputeStats(BuildContext context) async {
+    final bloc = BlocProvider.of<TournamentDetailBloc>(context);
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: 'Đồng bộ điểm số',
+      message:
+          'Tính lại toàn bộ điểm số từ kết quả các trận đã đấu? '
+          'Dùng khi điểm bị lệch do dữ liệu cũ.',
+      confirmText: 'Đồng bộ',
+    );
+    if (confirmed == true) {
+      bloc.add(RecomputeStats());
+    }
+  }
+
   void _deleteLeague(BuildContext context) async {
     final bloc = BlocProvider.of<TournamentDetailBloc>(context);
     final confirmed = await showAppConfirmDialog(
@@ -339,6 +388,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _bannerAd?.dispose();
     super.dispose();
   }

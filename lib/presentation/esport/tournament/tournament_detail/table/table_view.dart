@@ -44,53 +44,76 @@ class EsportTableView extends StatelessWidget {
     ),
   );
 
+  Future<void> _refresh(BuildContext context) async {
+    final bloc = context.read<TournamentDetailBloc>();
+    final leagueId = bloc.state.league?.id;
+    if (leagueId == null) return;
+    final tickBefore = bloc.state.refreshTick;
+    bloc.add(GetParticipantsAndMatches(leagueId));
+    // Wait until the bloc bumps the refresh tick. We can't watch viewStatus
+    // because reactive refreshes don't toggle it, and we can't watch list
+    // contents because Equatable suppresses emits when nothing changed.
+    await bloc.stream.firstWhere((s) => s.refreshTick > tickBefore);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
       builder: (context, state) {
-        if (state.participants.isEmpty) {
-          return const AppEmptyState(
-            icon: Icons.people_outline,
-            title: 'Chưa có người chơi nào',
-            subtitle: 'Thêm người chơi để bắt đầu giải đấu',
-          );
-        }
         final league = state.league;
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(top: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: _buildFixColumns(context, state.participants),
-                  ),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const ClampingScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: _buildScrollableColumns(
-                          context,
-                          state.participants,
-                        ),
+        return RefreshIndicator(
+          onRefresh: () => _refresh(context),
+          child: state.participants.isEmpty
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(
+                      height: 400,
+                      child: AppEmptyState(
+                        icon: Icons.people_outline,
+                        title: 'Chưa có người chơi nào',
+                        subtitle: 'Thêm người chơi để bắt đầu giải đấu',
                       ),
                     ),
+                  ],
+                )
+              : SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: _buildFixColumns(context, state.participants),
+                          ),
+                          Flexible(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const ClampingScrollPhysics(),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: _buildScrollableColumns(
+                                  context,
+                                  state.participants,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (league != null)
+                        CostSummaryPanel(
+                          league: league,
+                          sortedStats: state.participants,
+                          matches: state.matches,
+                        ),
+                    ],
                   ),
-                ],
-              ),
-              if (league != null)
-                CostSummaryPanel(
-                  league: league,
-                  sortedStats: state.participants,
-                  matches: state.matches,
                 ),
-            ],
-          ),
         );
       },
     );

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_firestore_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
@@ -39,8 +40,19 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<List<GNEsportLeague>> getLeagues() {
-    return getIt<GNFirestore>().getLeagues();
+  Future<List<GNEsportLeague>> getMyLeagues() {
+    return getIt<GNFirestore>().getMyLeagues();
+  }
+
+  @override
+  Future<LeaguesPage> getOtherLeagues({
+    Object? startAfter,
+    int limit = 20,
+  }) {
+    return getIt<GNFirestore>().getOtherLeagues(
+      startAfter: startAfter is DocumentSnapshot ? startAfter : null,
+      limit: limit,
+    );
   }
 
   @override
@@ -74,12 +86,16 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
 
   @override
   Future<void> updateMatch(GNEsportMatch match) {
+    // The match instance the UI is submitting still carries the `updatedAt`
+    // it had when the dialog opened — pass it down for the optimistic-lock
+    // check inside the transaction.
     return getIt<GNFirestore>().updateMatch(
       matchId: match.id,
       leagueId: match.leagueId,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
       matchCost: match.matchCost,
+      expectedUpdatedAt: match.updatedAt,
     );
   }
 
@@ -101,6 +117,11 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   @override
   Future<void> createCustomMatch(GNEsportMatch match) {
     return getIt<GNFirestore>().createCustomMatch(match);
+  }
+
+  @override
+  Future<void> recomputeLeagueStats(String leagueId) {
+    return getIt<GNFirestore>().recomputeLeagueStats(leagueId);
   }
 
   @override
@@ -132,8 +153,4 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
     return getIt<GNFirestore>().listenForLeagueStats(leagueId);
   }
 
-  @override
-  Stream<List<GNEsportLeague>> listenForLeagues() {
-    return getIt<GNFirestore>().listenForLeaguesUpdated();
-  }
 }

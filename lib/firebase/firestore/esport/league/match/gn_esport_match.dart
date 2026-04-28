@@ -17,6 +17,12 @@ class GNEsportMatch extends Equatable {
   // 0 ⇒ trận này không tính tiền.
   final int? matchCost;
 
+  /// Server-assigned timestamp of the last write. Used as an optimistic-lock
+  /// version for concurrent score updates: the UI captures this when the
+  /// edit dialog opens and the transaction rejects the write if it doesn't
+  /// match anymore. Null on legacy docs that pre-date this field.
+  final Timestamp? updatedAt;
+
   final GNUser? homeTeam;
   final GNUser? awayTeam;
 
@@ -33,6 +39,7 @@ class GNEsportMatch extends Equatable {
   static const String fieldIsFinished = 'isFinished';
   static const String fieldLeagueId = 'leagueId';
   static const String fieldMatchCost = 'matchCost';
+  static const String fieldUpdatedAt = 'updatedAt';
 
   const GNEsportMatch({
     required this.id,
@@ -46,6 +53,7 @@ class GNEsportMatch extends Equatable {
     this.homeTeam,
     this.awayTeam,
     this.matchCost,
+    this.updatedAt,
   });
 
   @override
@@ -59,6 +67,7 @@ class GNEsportMatch extends Equatable {
         isFinished,
         leagueId,
         matchCost,
+        updatedAt,
       ];
 
   GNEsportMatch copyWith({
@@ -73,6 +82,7 @@ class GNEsportMatch extends Equatable {
     GNUser? homeTeam,
     GNUser? awayTeam,
     int? matchCost,
+    Timestamp? updatedAt,
   }) {
     return GNEsportMatch(
       id: id ?? this.id,
@@ -86,6 +96,7 @@ class GNEsportMatch extends Equatable {
       homeTeam: homeTeam ?? this.homeTeam,
       awayTeam: awayTeam ?? this.awayTeam,
       matchCost: matchCost ?? this.matchCost,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -124,6 +135,9 @@ class GNEsportMatch extends Equatable {
       isFinished: data[fieldIsFinished],
       leagueId: data[fieldLeagueId],
       matchCost: (data[fieldMatchCost] as num?)?.toInt(),
+      updatedAt: data[fieldUpdatedAt] is Timestamp
+          ? data[fieldUpdatedAt] as Timestamp
+          : null,
     );
   }
 }

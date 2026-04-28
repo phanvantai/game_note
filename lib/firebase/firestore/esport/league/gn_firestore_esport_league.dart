@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_firestore_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
@@ -5,32 +6,136 @@ import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_league.dart';
 
+/// Paginated page of leagues with cursor info for infinite scroll.
+class LeaguesPage {
+  final List<GNEsportLeague> items;
+  final DocumentSnapshot? lastDoc;
+  final bool hasMore;
+
+  const LeaguesPage({
+    required this.items,
+    required this.lastDoc,
+    required this.hasMore,
+  });
+
+  static const empty = LeaguesPage(items: [], lastDoc: null, hasMore: false);
+}
+
 extension GNFirestoreEsportLeague on GNFirestore {
-  Future<List<GNEsportLeague>> getLeagues() async {
-    final snapshot = await firestore
-        .collection(GNEsportLeague.collectionName)
+  /// Fetch leagues the current user owns OR participates in.
+  ///
+  /// Server-side filtered via two parallel queries (Firestore can't OR across
+  /// different fields with a single query). Results are merged + deduped by
+  /// id, then sorted by startDate desc.
+  ///
+  /// No pagination: a single user typically participates in tens of leagues
+  /// at most, and pagination across two merged cursors gets messy. Revisit
+  /// if a user reports slowness here.
+  Future<List<GNEsportLeague>> getMyLeagues() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return [];
+
+    final col = firestore.collection(GNEsportLeague.collectionName);
+    final ownedQuery = col
         .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
-        .get();
+        .where(GNEsportLeague.fieldOwnerId, isEqualTo: uid)
+        .orderBy(GNEsportLeague.fieldStartDate, descending: true);
+    final joinedQuery = col
+        .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
+        .where(GNEsportLeague.fieldParticipants, arrayContains: uid)
+        .orderBy(GNEsportLeague.fieldStartDate, descending: true);
 
-    // Extract leagues first
-    final leagues =
-        snapshot.docs.map((doc) => GNEsportLeague.fromFirestore(doc)).toList();
+    final snapshots = await Future.wait([ownedQuery.get(), joinedQuery.get()]);
 
-    if (leagues.isEmpty) {
-      return leagues;
+    // Dedupe by id — a user can both own and participate in a league.
+    final byId = <String, GNEsportLeague>{};
+    for (final snap in snapshots) {
+      for (final doc in snap.docs) {
+        byId[doc.id] = GNEsportLeague.fromFirestore(doc);
+      }
     }
 
-    // Batch load all groups to avoid N+1 query problem
-    final groupIds = leagues.map((league) => league.groupId).toList();
+    final leagues = byId.values.toList()
+      ..sort((a, b) => b.startDate.compareTo(a.startDate));
+
+    return _attachGroups(leagues);
+  }
+
+  /// Fetch leagues the current user does NOT participate in. Paginated.
+  ///
+  /// Firestore can't express "NOT participants array-contains uid" in a
+  /// single query, so we over-fetch and exclude client-side. To handle the
+  /// case where most recent leagues belong to the user (filtered out, leaving
+  /// the page near-empty), we loop internally fetching extra batches until
+  /// we either reach `limit` items or run out of data. Bounded iterations
+  /// to avoid pathological scans.
+  Future<LeaguesPage> getOtherLeagues({
+    DocumentSnapshot? startAfter,
+    int limit = 20,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    const int batchSize = 25;
+    const int maxIterations = 6; // hard cap: scan at most ~150 docs per page
+
+    DocumentSnapshot? cursor = startAfter;
+    final collected = <GNEsportLeague>[];
+    bool sawEndOfCollection = false;
+
+    for (int i = 0; i < maxIterations; i++) {
+      Query<Map<String, dynamic>> query = firestore
+          .collection(GNEsportLeague.collectionName)
+          .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
+          .orderBy(GNEsportLeague.fieldStartDate, descending: true);
+      if (cursor != null) {
+        query = query.startAfterDocument(cursor);
+      }
+      final snapshot = await query.limit(batchSize).get();
+
+      if (snapshot.docs.isEmpty) {
+        sawEndOfCollection = true;
+        break;
+      }
+
+      cursor = snapshot.docs.last;
+
+      for (final doc in snapshot.docs) {
+        final league = GNEsportLeague.fromFirestore(doc);
+        if (uid != null &&
+            (league.ownerId == uid || league.participants.contains(uid))) {
+          continue;
+        }
+        collected.add(league);
+      }
+
+      if (collected.length >= limit) break;
+      // Less than a full batch → no more docs after this.
+      if (snapshot.docs.length < batchSize) {
+        sawEndOfCollection = true;
+        break;
+      }
+    }
+
+    if (collected.isEmpty && cursor == null) {
+      return LeaguesPage.empty;
+    }
+
+    final withGroups = await _attachGroups(collected);
+    return LeaguesPage(
+      items: withGroups,
+      lastDoc: cursor,
+      hasMore: !sawEndOfCollection,
+    );
+  }
+
+  Future<List<GNEsportLeague>> _attachGroups(
+    List<GNEsportLeague> leagues,
+  ) async {
+    if (leagues.isEmpty) return leagues;
+    final groupIds = leagues.map((l) => l.groupId).toSet().toList();
     final groupsMap = await getGroupsById(groupIds);
-
-    // Combine leagues with their groups
-    final leaguesWithGroups = leagues
-        .map((league) => league.copyWith(group: groupsMap[league.groupId]))
+    return leagues
+        .map((l) => l.copyWith(group: groupsMap[l.groupId]))
         .toList();
-
-    leaguesWithGroups.sort((a, b) => b.startDate.compareTo(a.startDate));
-    return leaguesWithGroups;
   }
 
   Future<GNEsportLeague?> getLeague(String leagueId) async {
@@ -165,15 +270,4 @@ extension GNFirestoreEsportLeague on GNFirestore {
         .map((snapshot) => GNEsportLeague.fromFirestore(snapshot));
   }
 
-  // listen for leagues updated
-  Stream<List<GNEsportLeague>> listenForLeaguesUpdated() {
-    return firestore
-        .collection(GNEsportLeague.collectionName)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => GNEsportLeague.fromFirestore(doc))
-          .toList();
-    });
-  }
 }
