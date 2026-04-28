@@ -1,16 +1,12 @@
-name: Web Build (develop)
+name: Web Deploy (develop)
 
-# Build Flutter web khi push develop, deploy lên Firebase Hosting preview
-# channel "develop" — URL stable dạng:
-#   https://gamenoteapp--develop-<hash>.web.app
-# Channel auto-expire sau 30 ngày, mỗi push sẽ refresh.
+# Build Flutter web + deploy lên Firebase Hosting live channel khi push develop.
 #
-# Mục đích:
-#   - Catch compile/build error trước khi merge main.
-#   - Có URL test thật cho QA / share team.
-#
-# Setup giống web-release.yml: secret FIREBASE_SERVICE_ACCOUNT_GAMENOTEAPP
-# tạo bằng `firebase init hosting:github` (chạy 1 lần trên main).
+# Setup lần đầu (chạy local 1 lần):
+#   firebase init hosting:github
+# Lệnh này sẽ tự tạo Google Service Account và lưu key vào GitHub Secret
+# FIREBASE_SERVICE_ACCOUNT_GAMENOTEAPP. Sau đó workflow này chạy tự động
+# mỗi khi push vào develop, hoặc bấm "Run workflow" trong tab Actions.
 
 on:
   push:
@@ -18,8 +14,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-preview:
-    name: Build & Deploy Preview
+  build-and-deploy:
+    name: Build & Deploy Web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,11 +32,10 @@ jobs:
       - name: Build web (release)
         run: flutter build web --release
 
-      - name: Deploy to Firebase Hosting preview channel "develop"
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GAMENOTEAPP }}
           projectId: gamenoteapp
-          channelId: develop
-          expires: 30d
+          channelId: live
