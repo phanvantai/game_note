@@ -1,0 +1,15 @@
+name: Android Build
+
+# Build verification cho develop: chạy đúng cùng pipeline build như release
+# (gọi _android-build.yml) nhưng KHÔNG deploy. Mục đích là bắt sớm signing,
+# Gradle, hoặc lỗi build trước khi merge sang main.
+
+on:
+  push:
+    branches: ["develop"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: ./.github/workflows/_android-build.yml
+    secrets: inherit

@@ -1,4 +1,5 @@
 name: Android Release
+
 on:
   push:
     branches: ["main"]
@@ -6,73 +7,15 @@ on:
   # allow manual trigger on actions tab
   workflow_dispatch:
 
-# 4
 jobs:
-  # build & export artifact
+  # build qua reusable workflow để đảm bảo identical với build trên develop
   build:
-    name: Create Android Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # Set up environment variables for Gradle to match local environment
-      - name: Set up Gradle properties and environment
-        run: |
-          mkdir -p ~/.gradle
-          echo "org.gradle.jvmargs=-Xmx4096M -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError" > ~/.gradle/gradle.properties
-          echo "android.useAndroidX=true" >> ~/.gradle/gradle.properties
-          echo "android.enableJetifier=true" >> ~/.gradle/gradle.properties
-          echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
-          echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
-          echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties
-        env:
-          GRADLE_OPTS: "-Xmx4096m -XX:MaxMetaspaceSize=1024m"
-
-      - name: Download Android keystore
-        id: android_keystore
-        uses: timheuer/base64-to-file@v1.0.3
-        with:
-          fileName: november-keystore.jks
-          encodedString: ${{ secrets.KEYSTORE_BASE64 }}
-      - name: Create key.properties
-        run: |
-          echo "storeFile=${{ steps.android_keystore.outputs.filePath }}" > android/key.properties
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: "21.x"
-          cache: "gradle"
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.41.6"
-          channel: "stable"
-          cache: true
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Flutter clean
-        run: flutter clean
-
-      - name: Start release build
-        run: |
-          flutter build appbundle --release
-        env:
-          GRADLE_OPTS: "-Xmx4096m -XX:MaxMetaspaceSize=1024m"
-      # 8
-      - name: Upload Android Release
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release
-          path: build/app/outputs/bundle/release/app-release.aab
+    uses: ./.github/workflows/_android-build.yml
+    secrets: inherit
 
   # deploy to play store
   deploy:
     name: Deploy Android Build
-    # required job build
     needs: build
     runs-on: ubuntu-latest
 
