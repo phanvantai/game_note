@@ -13,17 +13,15 @@ class CreateEsportGroup extends GroupEvent {
   final String groupName;
   final String esportId;
   final String description;
-  final String location;
 
   const CreateEsportGroup({
     required this.groupName,
     required this.esportId,
     required this.description,
-    required this.location,
   });
 
   @override
-  List<Object> get props => [groupName, esportId, description, location];
+  List<Object> get props => [groupName, esportId, description];
 }
 
 class AddMemberToGroup extends GroupEvent {

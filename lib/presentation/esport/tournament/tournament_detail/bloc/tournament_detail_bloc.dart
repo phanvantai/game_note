@@ -39,11 +39,6 @@ class TournamentDetailBloc
     on<DeleteEsportMatch>(_onDeleteMatch);
     on<CreateCustomMatch>(_onCreateCustomMatch);
 
-    on<UpdateStartingMedals>(_onUpdateStartingMedals);
-    on<UpdateUnitMedals>(_onUpdateUnitMedals);
-
-    on<UpdateMatchMedals>(_onUpdateMatchMedals);
-
     on<UpdateLeague>(_onUpdateLeague);
     on<UpdateLeagueCostConfig>(_onUpdateLeagueCostConfig);
     on<UpdateMatches>(_onUpdateMatches);
@@ -175,81 +170,6 @@ class TournamentDetailBloc
             .toList(),
       ),
     );
-  }
-
-  void _onUpdateMatchMedals(
-    UpdateMatchMedals event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
-    try {
-      await _esportLeagueRepository.updateMatchMedals(
-        event.matchId,
-        leagueId,
-        event.medals,
-      );
-      add(GetMatches(leagueId));
-    } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  void _onUpdateStartingMedals(
-    UpdateStartingMedals event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
-    try {
-      await _esportLeagueRepository.updateLeagueStartingMedals(
-        leagueId,
-        event.medals,
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  void _onUpdateUnitMedals(
-    UpdateUnitMedals event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
-    try {
-      await _esportLeagueRepository.updateLeagueUnitMedals(
-        leagueId,
-        event.unitMedals,
-      );
-      emit(state.copyWith(viewStatus: ViewStatus.success));
-    } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
   }
 
   void _onCreateCustomMatch(

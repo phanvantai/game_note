@@ -99,33 +99,12 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     return matches;
   }
 
-  // update medal of a match
-  Future<void> updateMatchMedal({
-    required String matchId,
-    required String leagueId,
-    int? medals,
-  }) async {
-    // Get the match document reference
-    final matchRef = await firestore
-        .collection(GNEsportLeague.collectionName)
-        .doc(leagueId)
-        .collection(GNEsportMatch.collectionName)
-        .doc(matchId)
-        .get();
-    if (!matchRef.exists) {
-      throw Exception('Match not found');
-    }
-
-    await matchRef.reference.update({GNEsportMatch.fieldMedals: medals});
-  }
-
   // update a match
   Future<void> updateMatch({
     required String matchId,
     required String leagueId,
     int? homeScore,
     int? awayScore,
-    int? medals,
     int? matchCost,
   }) async {
     // Get the match document reference
@@ -154,7 +133,6 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       homeScore: homeScore,
       awayScore: awayScore,
       isFinished: homeScore != null && awayScore != null,
-      medals: medals,
       matchCost: matchCost ?? match.matchCost,
     );
 

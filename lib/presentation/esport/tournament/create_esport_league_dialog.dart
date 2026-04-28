@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/presentation/esport/tournament/cost/cost_config_form.dart';
 
 import '../../../firebase/firestore/esport/group/gn_esport_group.dart';
 
@@ -35,31 +36,14 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
   DateTime? endDate;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-
-  bool rankPayoutEnabled = false;
-  final TextEditingController rankPayoutsController = TextEditingController(
-    text: '50000, 100000, 150000',
-  );
-  final TextEditingController defaultMatchCostController =
-      TextEditingController(text: '50000');
+  final GlobalKey<CostConfigFormState> _costFormKey =
+      GlobalKey<CostConfigFormState>();
 
   @override
   void dispose() {
     nameController.dispose();
     descriptionController.dispose();
-    rankPayoutsController.dispose();
-    defaultMatchCostController.dispose();
     super.dispose();
-  }
-
-  List<int> _parseRankPayouts(String raw) {
-    return raw
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .map((e) => int.tryParse(e) ?? 0)
-        .where((v) => v > 0)
-        .toList();
   }
 
   @override
@@ -227,51 +211,7 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
                 childrenPadding: const EdgeInsets.only(bottom: 8),
                 title: const Text('Chi phí (tuỳ chọn)'),
                 leading: const Icon(Icons.payments_outlined),
-                children: [
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    title: const Text('Tính tiền theo thứ hạng'),
-                    subtitle: const Text(
-                      'Hạng dưới góp tiền cho hạng nhất theo cấu hình',
-                      style: TextStyle(fontSize: 11),
-                    ),
-                    value: rankPayoutEnabled,
-                    onChanged: (v) => setState(() => rankPayoutEnabled = v),
-                  ),
-                  if (rankPayoutEnabled) ...[
-                    const SizedBox(height: 4),
-                    TextField(
-                      controller: rankPayoutsController,
-                      keyboardType: TextInputType.number,
-                      decoration: appInputDecoration(
-                        context: context,
-                        hintText: 'VD: 50000, 100000, 150000',
-                        prefixIcon: Icons.format_list_numbered,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Lần lượt: hạng 2, hạng 3, hạng 4… đóng cho hạng 1.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: defaultMatchCostController,
-                    keyboardType: TextInputType.number,
-                    decoration: appInputDecoration(
-                      context: context,
-                      hintText: 'Tiền mặc định mỗi trận (VND)',
-                      prefixIcon: Icons.attach_money,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Số này sẽ được điền sẵn khi bật cost cho từng trận lúc nhập kết quả.',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
+                children: [CostConfigForm(key: _costFormKey)],
               ),
             ),
           ],
@@ -288,24 +228,17 @@ class _CreateEsportLeagueDialogState extends State<CreateEsportLeagueDialog> {
               showToast('Bạn cần chọn nhóm');
               return;
             }
-            final parsedRankPayouts = rankPayoutEnabled
-                ? _parseRankPayouts(rankPayoutsController.text)
-                : <int>[];
-            if (rankPayoutEnabled && parsedRankPayouts.isEmpty) {
-              showToast('Nhập số tiền theo thứ hạng (VD: 50000, 100000)');
-              return;
-            }
-            final defaultMatchCost =
-                int.tryParse(defaultMatchCostController.text.trim()) ?? 50000;
+            final cost = _costFormKey.currentState?.validateAndCollect();
+            if (cost == null) return;
             widget.onAddLeague(
               nameController.text,
               selectedGroup!.id,
               startDate,
               endDate,
               descriptionController.text,
-              rankPayoutEnabled,
-              parsedRankPayouts,
-              defaultMatchCost,
+              cost.rankPayoutEnabled,
+              cost.rankPayouts,
+              cost.defaultMatchCost,
             );
           },
           child: const Text('Tạo'),

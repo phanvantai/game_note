@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:pes_arena/core/databases/province.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';
@@ -19,10 +18,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     emit(state.copyWith(enableFootballFeature: event.enableFootballFeature));
   }
 
-  void _onInitApp(InitApp event, Emitter<AppState> emit) {
-    // Do something
-    getProvinces();
-  }
+  void _onInitApp(InitApp event, Emitter<AppState> emit) {}
 
   void _onAuthStatusChanged(AuthStatusChanged event, Emitter<AppState> emit) {
     emit(state.copyWith(status: event.status));

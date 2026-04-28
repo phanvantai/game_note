@@ -74,24 +74,6 @@ class _GroupDetailViewState extends State<GroupDetailView> {
               ),
               const SizedBox(height: 20),
             ],
-            // Location card
-            _buildSectionLabel(context, 'Khu vực'),
-            const SizedBox(height: 8),
-            AppCard(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    size: 20,
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(state.group.location, style: textTheme.bodyMedium),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
             // Members card
             _buildSectionLabel(context, 'Thành viên (${state.members.length})'),
             const SizedBox(height: 8),

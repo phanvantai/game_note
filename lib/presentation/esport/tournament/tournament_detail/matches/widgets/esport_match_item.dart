@@ -19,7 +19,6 @@ class EsportMatchItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final hasMedals = match.medals != null && match.medals! > 0;
 
     return InkWell(
       onTap: onTap,
@@ -31,10 +30,8 @@ class EsportMatchItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           color: colorScheme.surface,
           border: Border.all(
-            color: hasMedals
-                ? colorScheme.secondary.withValues(alpha: 0.4)
-                : colorScheme.outline.withValues(alpha: 0.2),
-            width: hasMedals ? 1.5 : 0.5,
+            color: colorScheme.outline.withValues(alpha: 0.2),
+            width: 0.5,
           ),
         ),
         child: Padding(

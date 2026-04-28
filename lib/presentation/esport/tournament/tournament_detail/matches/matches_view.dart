@@ -187,13 +187,6 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                       );
                     },
                   ),
-                if (state.currentUserIsMember)
-                  SlidableAction(
-                    borderRadius: BorderRadius.circular(12),
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    icon: Icons.monetization_on_outlined,
-                    onPressed: (ctx) => _showMedalDialog(context, match),
-                  ),
               ],
             ),
             child: EsportMatchItem(
@@ -214,56 +207,21 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
     );
   }
 
-  void _showMedalDialog(BuildContext context, GNEsportMatch match) {
-    final medalController = TextEditingController()
-      ..text = match.medals.toString();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Số lượng medal'),
-        content: TextField(
-          controller: medalController,
-          keyboardType: TextInputType.number,
-          decoration: appInputDecoration(
-            context: context,
-            hintText: 'Nhập số lượng',
-            prefixIcon: Icons.monetization_on_outlined,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () {
-              FocusScope.of(context).unfocus();
-              final medal = int.tryParse(medalController.text);
-              if (medal == null) {
-                showToast('Nhập số lượng medal', gravity: ToastGravity.TOP);
-                return;
-              }
-              context.read<TournamentDetailBloc>().add(
-                UpdateMatchMedals(match.id, medal),
-              );
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cập nhật'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _updateMatchDialog(BuildContext context, GNEsportMatch match) {
-    final homeScoreController = TextEditingController();
-    final awayScoreController = TextEditingController();
+    final homeScoreController = TextEditingController(
+      text: match.isFinished ? (match.homeScore?.toString() ?? '') : '',
+    );
+    final awayScoreController = TextEditingController(
+      text: match.isFinished ? (match.awayScore?.toString() ?? '') : '',
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final league = context.read<TournamentDetailBloc>().state.league;
-    final defaultPrefill = league?.defaultMatchCost ?? 50000;
+    final defaultPrefillK = (league?.defaultMatchCost ?? 50000) ~/ 1000;
     bool costEnabled = (match.matchCost ?? 0) > 0;
     final matchCostController = TextEditingController(
-      text: ((match.matchCost ?? 0) > 0 ? match.matchCost! : defaultPrefill)
+      text: ((match.matchCost ?? 0) > 0
+              ? (match.matchCost! ~/ 1000)
+              : defaultPrefillK)
           .toString(),
     );
 
@@ -344,7 +302,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     isDense: true,
-                    labelText: 'Số tiền (VND)',
+                    labelText: 'Số tiền (k VND)',
                     prefixIcon: const Icon(Icons.attach_money, size: 20),
                     filled: true,
                     fillColor: colorScheme.surfaceContainerHighest,
@@ -373,7 +331,8 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                 final awayScore = int.parse(awayScoreController.text);
                 final matchCost = costEnabled
                     ? (int.tryParse(matchCostController.text.trim()) ??
-                        defaultPrefill)
+                            defaultPrefillK) *
+                        1000
                     : 0;
                 context.read<TournamentDetailBloc>().add(
                   UpdateEsportMatch(

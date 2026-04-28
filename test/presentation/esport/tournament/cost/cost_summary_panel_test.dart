@@ -121,12 +121,12 @@ void main() {
 
       expect(find.text('Chi phí'), findsOneWidget);
       // 2 transfer (B → A: 50k, C → A: 100k)
-      expect(find.text('50.000đ'), findsOneWidget);
-      expect(find.text('100.000đ'), findsOneWidget);
+      expect(find.text('50k'), findsOneWidget);
+      expect(find.text('100k'), findsOneWidget);
       // Net section
       expect(find.text('Tổng ròng'), findsOneWidget);
       // Alice nhận tổng 150k
-      expect(find.text('+150.000đ'), findsOneWidget);
+      expect(find.text('+150k'), findsOneWidget);
     },
   );
 
@@ -143,9 +143,9 @@ void main() {
       )));
 
       expect(find.text('Chi phí'), findsOneWidget);
-      expect(find.text('50.000đ'), findsOneWidget);
-      expect(find.text('+50.000đ'), findsOneWidget);
-      expect(find.text('-50.000đ'), findsOneWidget);
+      expect(find.text('50k'), findsOneWidget);
+      expect(find.text('+50k'), findsOneWidget);
+      expect(find.text('-50k'), findsOneWidget);
     },
   );
 
@@ -242,8 +242,8 @@ void main() {
         ],
       )));
 
-      expect(find.text('+20.000đ'), findsOneWidget);
-      expect(find.text('-20.000đ'), findsOneWidget);
+      expect(find.text('+20k'), findsOneWidget);
+      expect(find.text('-20k'), findsOneWidget);
     },
   );
 

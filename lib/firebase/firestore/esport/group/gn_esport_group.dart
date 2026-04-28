@@ -11,7 +11,6 @@ class GNEsportGroup extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String status; // active or inactive
-  final String location;
 
   const GNEsportGroup({
     required this.id,
@@ -23,7 +22,6 @@ class GNEsportGroup extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     required this.status,
-    required this.location,
   });
 
   GNEsportGroup copyWith({
@@ -34,7 +32,6 @@ class GNEsportGroup extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? status,
-    String? location,
   }) {
     return GNEsportGroup(
       id: id,
@@ -46,7 +43,6 @@ class GNEsportGroup extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       status: status ?? this.status,
-      location: location ?? this.location,
     );
   }
 
@@ -61,7 +57,6 @@ class GNEsportGroup extends Equatable {
         // createdAt,
         // updatedAt,
         status,
-        location,
       ];
 
   // Factory method to convert Firestore document into GNEsportGroup object
@@ -77,7 +72,6 @@ class GNEsportGroup extends Equatable {
       createdAt: (data[createdAtKey] as Timestamp).toDate(),
       updatedAt: (data[updatedAtKey] as Timestamp).toDate(),
       status: data[statusKey] ?? 'active',
-      location: data[locationKey] ?? '',
     );
   }
 
@@ -92,7 +86,6 @@ class GNEsportGroup extends Equatable {
       createdAtKey: Timestamp.fromDate(createdAt),
       updatedAtKey: Timestamp.fromDate(updatedAt),
       statusKey: status,
-      locationKey: location,
     };
   }
 
@@ -105,7 +98,6 @@ class GNEsportGroup extends Equatable {
   static const String createdAtKey = 'createdAt';
   static const String updatedAtKey = 'updatedAt';
   static const String statusKey = 'status';
-  static const String locationKey = 'location';
 
   static const String collectionName = 'esports_groups';
 }

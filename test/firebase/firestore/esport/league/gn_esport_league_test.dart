@@ -18,8 +18,6 @@ GNEsportLeague _league({
     description: 'desc',
     participants: const ['u1', 'u2'],
     status: 'ongoing',
-    startingMedals: 0,
-    valueMedal: 0,
     rankPayoutEnabled: rankPayoutEnabled,
     rankPayouts: rankPayouts,
     defaultMatchCost: defaultMatchCost,
@@ -157,8 +155,6 @@ void main() {
         description: 'new',
         participants: const ['x'],
         status: 'finished',
-        startingMedals: 100,
-        valueMedal: 5,
         rankPayoutEnabled: true,
         rankPayouts: const [50000],
         defaultMatchCost: 99000,
@@ -173,8 +169,6 @@ void main() {
       expect(copy.description, 'new');
       expect(copy.participants, ['x']);
       expect(copy.status, 'finished');
-      expect(copy.startingMedals, 100);
-      expect(copy.valueMedal, 5);
       expect(copy.rankPayoutEnabled, true);
       expect(copy.rankPayouts, [50000]);
       expect(copy.defaultMatchCost, 99000);

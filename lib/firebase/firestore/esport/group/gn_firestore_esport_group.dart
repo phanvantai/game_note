@@ -20,7 +20,6 @@ extension GNFirestoreEsportGroup on GNFirestore {
     required String groupName,
     required String esportId,
     String description = '',
-    required String location,
   }) async {
     final createdAt = DateTime.now();
     final updatedAt = createdAt;
@@ -33,7 +32,6 @@ extension GNFirestoreEsportGroup on GNFirestore {
       GNEsportGroup.createdAtKey: Timestamp.fromDate(createdAt),
       GNEsportGroup.updatedAtKey: Timestamp.fromDate(updatedAt),
       GNEsportGroup.statusKey: 'active',
-      GNEsportGroup.locationKey: location,
     };
     final docRef =
         await firestore.collection(GNEsportGroup.collectionName).add(data);

@@ -38,7 +38,7 @@ class GroupItem extends StatelessWidget {
           style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          '${group.members.length} thành viên  •  ${group.location}',
+          '${group.members.length} thành viên',
           style: textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.5),
           ),

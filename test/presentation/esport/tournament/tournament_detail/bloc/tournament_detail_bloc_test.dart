@@ -543,12 +543,6 @@ void main() {
       ]);
       expect(s.results.map((e) => e.id), ['m2']);
     });
-
-    test('sumRange tính tổng đúng', () {
-      const state = TournamentDetailState();
-      expect(state.sumRange(1, 3), 6); // 1+2+3
-      expect(state.sumRange(2, 5), 14); // 2+3+4+5
-    });
   });
 
   // ---------- handlers còn lại ----------
@@ -577,123 +571,6 @@ void main() {
       verify: (_) {
         verifyNever(() => repo.getParticipantsAndMatches(any()));
       },
-    );
-  });
-
-  group('UpdateMatchMedals', () {
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'không league ⇒ no-op',
-      build: build,
-      act: (bloc) => bloc.add(const UpdateMatchMedals('M1', 5)),
-      expect: () => const <TournamentDetailState>[],
-    );
-
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'success: gọi repo + add GetMatches',
-      build: () {
-        when(() => repo.updateMatchMedals(any(), any(), any()))
-            .thenAnswer((_) async {});
-        when(() => repo.getMatches(any())).thenAnswer((_) async => []);
-        return buildWithLeague(_league());
-      },
-      act: (bloc) => bloc.add(const UpdateMatchMedals('M1', 5)),
-      verify: (_) {
-        verify(() => repo.updateMatchMedals('M1', 'L1', 5)).called(1);
-      },
-    );
-
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'failure: emit failure',
-      build: () {
-        when(() => repo.updateMatchMedals(any(), any(), any()))
-            .thenThrow(Exception('x'));
-        return buildWithLeague(_league());
-      },
-      act: (bloc) => bloc.add(const UpdateMatchMedals('M1', 5)),
-      expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
-      ],
-    );
-  });
-
-  group('UpdateStartingMedals', () {
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'không league ⇒ no-op',
-      build: build,
-      act: (bloc) => bloc.add(const UpdateStartingMedals(10)),
-      expect: () => const <TournamentDetailState>[],
-    );
-
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'success',
-      build: () {
-        when(() => repo.updateLeagueStartingMedals(any(), any()))
-            .thenAnswer((_) async {});
-        return buildWithLeague(_league());
-      },
-      act: (bloc) => bloc.add(const UpdateStartingMedals(10)),
-      verify: (_) =>
-          verify(() => repo.updateLeagueStartingMedals('L1', 10)).called(1),
-    );
-
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'failure: emit failure',
-      build: () {
-        when(() => repo.updateLeagueStartingMedals(any(), any()))
-            .thenThrow(Exception('x'));
-        return buildWithLeague(_league());
-      },
-      act: (bloc) => bloc.add(const UpdateStartingMedals(10)),
-      expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
-      ],
-    );
-  });
-
-  group('UpdateUnitMedals', () {
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'không league ⇒ no-op',
-      build: build,
-      act: (bloc) => bloc.add(const UpdateUnitMedals(2)),
-      expect: () => const <TournamentDetailState>[],
-    );
-
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'success: emit success',
-      build: () {
-        when(() => repo.updateLeagueUnitMedals(any(), any()))
-            .thenAnswer((_) async {});
-        return buildWithLeague(_league());
-      },
-      act: (bloc) => bloc.add(const UpdateUnitMedals(2)),
-      expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'success', ViewStatus.success),
-      ],
-    );
-
-    blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'failure: emit failure',
-      build: () {
-        when(() => repo.updateLeagueUnitMedals(any(), any()))
-            .thenThrow(Exception('x'));
-        return buildWithLeague(_league());
-      },
-      act: (bloc) => bloc.add(const UpdateUnitMedals(2)),
-      expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
-      ],
     );
   });
 

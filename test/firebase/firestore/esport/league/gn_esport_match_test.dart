@@ -11,7 +11,6 @@ GNEsportMatch _match({int? matchCost}) {
     date: DateTime(2026, 1, 1),
     isFinished: true,
     leagueId: 'L1',
-    medals: 0,
     matchCost: matchCost,
   );
 }
@@ -83,7 +82,6 @@ void main() {
         date: DateTime(2027, 1, 1),
         isFinished: false,
         leagueId: 'L9',
-        medals: 7,
         matchCost: 99,
       );
       expect(m.id, 'X');
@@ -94,7 +92,6 @@ void main() {
       expect(m.date, DateTime(2027, 1, 1));
       expect(m.isFinished, false);
       expect(m.leagueId, 'L9');
-      expect(m.medals, 7);
       expect(m.matchCost, 99);
     });
 

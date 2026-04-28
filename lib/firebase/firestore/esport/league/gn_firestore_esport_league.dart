@@ -156,21 +156,6 @@ extension GNFirestoreEsportLeague on GNFirestore {
     await leagueRef.update({GNEsportLeague.fieldIsActive: false});
   }
 
-  // Update starting medals for a league
-  Future<void> updateStartingMedals(String leagueId, int startingMedals) async {
-    final leagueRef =
-        firestore.collection(GNEsportLeague.collectionName).doc(leagueId);
-    await leagueRef
-        .update({GNEsportLeague.fieldStartingMedals: startingMedals});
-  }
-
-  // Update unit medals for a league
-  Future<void> updateUnitMedals(String leagueId, int valueMedal) async {
-    final leagueRef =
-        firestore.collection(GNEsportLeague.collectionName).doc(leagueId);
-    await leagueRef.update({GNEsportLeague.fieldValueMedal: valueMedal});
-  }
-
   // listen for league updated
   Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId) {
     return firestore

@@ -18,13 +18,11 @@ class EsportGroupRepositoryImpl implements EsportGroupRepository {
     required String groupName,
     required String esportId,
     String description = '',
-    required String location,
   }) {
     return getIt<GNFirestore>().createEsportGroup(
       groupName: groupName,
       esportId: esportId,
       description: description,
-      location: location,
     );
   }
 

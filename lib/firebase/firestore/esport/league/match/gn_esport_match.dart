@@ -13,7 +13,6 @@ class GNEsportMatch extends Equatable {
   final DateTime date; // match date
   final bool isFinished; // match is finished
   final String leagueId; // league id
-  final int? medals; // medals for the winner
   // Override tiền cho riêng trận này (VND). null ⇒ dùng league.defaultMatchCost.
   // 0 ⇒ trận này không tính tiền.
   final int? matchCost;
@@ -33,7 +32,6 @@ class GNEsportMatch extends Equatable {
   static const String fieldDate = 'date';
   static const String fieldIsFinished = 'isFinished';
   static const String fieldLeagueId = 'leagueId';
-  static const String fieldMedals = 'medals';
   static const String fieldMatchCost = 'matchCost';
 
   const GNEsportMatch({
@@ -47,14 +45,12 @@ class GNEsportMatch extends Equatable {
     required this.leagueId,
     this.homeTeam,
     this.awayTeam,
-    this.medals,
     this.matchCost,
   });
 
   @override
   List<Object?> get props => [
         id,
-        medals,
         homeTeamId,
         awayTeamId,
         homeScore,
@@ -76,7 +72,6 @@ class GNEsportMatch extends Equatable {
     String? leagueId,
     GNUser? homeTeam,
     GNUser? awayTeam,
-    int? medals,
     int? matchCost,
   }) {
     return GNEsportMatch(
@@ -90,7 +85,6 @@ class GNEsportMatch extends Equatable {
       leagueId: leagueId ?? this.leagueId,
       homeTeam: homeTeam ?? this.homeTeam,
       awayTeam: awayTeam ?? this.awayTeam,
-      medals: medals ?? this.medals,
       matchCost: matchCost ?? this.matchCost,
     );
   }
@@ -104,7 +98,6 @@ class GNEsportMatch extends Equatable {
       fieldDate: Timestamp.fromDate(date),
       fieldIsFinished: isFinished,
       fieldLeagueId: leagueId,
-      fieldMedals: medals,
       fieldMatchCost: matchCost,
     };
   }
@@ -130,7 +123,6 @@ class GNEsportMatch extends Equatable {
       date: toDate(data[fieldDate]),
       isFinished: data[fieldIsFinished],
       leagueId: data[fieldLeagueId],
-      medals: data[fieldMedals] ?? 0,
       matchCost: (data[fieldMatchCost] as num?)?.toInt(),
     );
   }

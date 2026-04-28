@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
@@ -20,10 +19,9 @@ class CostSummaryPanel extends StatelessWidget {
     required this.matches,
   });
 
-  static final NumberFormat _vnd = NumberFormat.decimalPattern('vi_VN');
-
-  String _fmt(int amount) => '${_fmtAbs(amount.abs())}đ';
-  String _fmtAbs(int amount) => _vnd.format(amount);
+  /// Hiển thị `12k` (làm tròn xuống nghìn). Tham khảo input cũng dùng đơn vị k.
+  String _fmtAbs(int amount) => '${amount.abs() ~/ 1000}k';
+  String _fmt(int amount) => _fmtAbs(amount);
 
   static const String _fallbackName = 'Người chơi';
 
@@ -206,7 +204,7 @@ class CostSummaryPanel extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      '${isReceiver ? '+' : '-'}${_fmtAbs(e.value.abs())}đ',
+                      '${isReceiver ? '+' : '-'}${_fmtAbs(e.value.abs())}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: isReceiver
