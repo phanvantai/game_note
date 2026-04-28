@@ -7,13 +7,11 @@ import 'package:pes_arena/presentation/profile/update/update_profile_view.dart';
 import '../../../firebase/firestore/user/gn_user.dart';
 
 class UpdateProfilePage extends StatelessWidget {
-  const UpdateProfilePage({super.key});
+  final GNUser? user;
+  const UpdateProfilePage({super.key, this.user});
 
   @override
   Widget build(BuildContext context) {
-    // get user from arguments
-    final user = ModalRoute.of(context)!.settings.arguments as GNUser?;
-
     return BlocProvider(
       create: (_) => UpdateProfileBloc(getIt(), user),
       child: const UpdateProfileView(),

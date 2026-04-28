@@ -7,12 +7,11 @@ import 'bloc/tournament_detail_bloc.dart';
 import 'tournament_detail_view.dart';
 
 class TournamentDetailPage extends StatelessWidget {
-  const TournamentDetailPage({super.key});
+  final String leagueId;
+  const TournamentDetailPage({super.key, required this.leagueId});
 
   @override
   Widget build(BuildContext context) {
-    final String leagueId =
-        ModalRoute.of(context)!.settings.arguments as String;
     return BlocProvider(
       create: (_) => TournamentDetailBloc(getIt())..add(GetLeague(leagueId)),
       child: BlocListener<TournamentDetailBloc, TournamentDetailState>(

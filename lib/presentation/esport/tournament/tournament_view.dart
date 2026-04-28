@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
@@ -67,8 +68,7 @@ class TournamentView extends StatelessWidget {
                         ),
                     ],
                   ),
-                  onPressed: () =>
-                      Navigator.pushNamed(context, Routing.notification),
+                  onPressed: () => context.push(Routing.notification),
                 ),
               ),
             ],
@@ -187,9 +187,9 @@ class _MyLeaguesTab extends StatelessWidget {
     return TournamentItem(
       league: league,
       onTap: () async {
-        await Navigator.of(context).pushNamed(
+        await context.push(
           Routing.tournamentDetail,
-          arguments: league.id,
+          extra: league.id,
         );
         // Returning from the detail page may have changed the league
         // (status, name, participants) — refresh the "my" list silently.
@@ -285,9 +285,9 @@ class _OtherLeaguesTabState extends State<_OtherLeaguesTab> {
                 }
                 return TournamentItem(
                   league: state.otherLeagues[index],
-                  onTap: () => Navigator.of(context).pushNamed(
+                  onTap: () => context.push(
                     Routing.tournamentDetail,
-                    arguments: state.otherLeagues[index].id,
+                    extra: state.otherLeagues[index].id,
                   ),
                 );
               },

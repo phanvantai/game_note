@@ -1,15 +1,21 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:pes_arena/offline/presentation/offline_view.dart';
-import 'package:pes_arena/presentation/app/app_view.dart';
-import 'package:pes_arena/presentation/auth/verify/verify_page.dart';
-import 'package:pes_arena/presentation/profile/change_password/change_password_page.dart';
+import 'package:go_router/go_router.dart';
 
+import 'firebase/firestore/esport/group/gn_esport_group.dart';
+import 'firebase/firestore/user/gn_user.dart';
+import 'offline/presentation/offline_view.dart';
+import 'presentation/app/app_view.dart';
+import 'presentation/auth/verify/verify_page.dart';
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
 import 'presentation/notification/notification_page.dart';
+import 'presentation/profile/bloc/profile_bloc.dart';
+import 'presentation/profile/change_password/change_password_page.dart';
+import 'presentation/profile/feedback/feedback_view.dart';
 import 'presentation/profile/setting/setting_page.dart';
 import 'presentation/profile/update/update_profile_page.dart';
+import 'presentation/web_shell/web_shell.dart';
 
 class Routing {
   static const String app = '/';
@@ -29,63 +35,139 @@ class Routing {
   static const String updateProfile = '/update-profile';
   static const String setting = '/setting';
   static const String changePassword = '/change-password';
+  static const String feedback = '/feedback';
 
   // notification
   static const String notification = '/notification';
-
-  static Route<dynamic> generateRoute(RouteSettings settings) {
-    return fadeThrough(settings, (context) {
-      switch (settings.name) {
-        case Routing.app:
-          return const AppView();
-        case Routing.offline:
-        case Routing.offlineLeague:
-          if (kIsWeb) return const AppView();
-          return const OfflineView();
-        case Routing.verify:
-          return const VerifyPage();
-        // esport
-        case Routing.groupDetail:
-          return const GroupDetailPage();
-        case Routing.tournamentDetail:
-          return const TournamentDetailPage();
-
-        // profile
-        case Routing.updateProfile:
-          return const UpdateProfilePage();
-        case Routing.setting:
-          return const SettingPage();
-        case Routing.changePassword:
-          return const ChangePasswordPage();
-
-        // notification
-        case Routing.notification:
-          return const NotificationPage();
-        default:
-          return const AppView();
-      }
-    });
-  }
-
-  static Route<T> fadeThrough<T>(RouteSettings settings, WidgetBuilder page,
-      {int duration = 200}) {
-    return PageRouteBuilder<T>(
-      settings: settings,
-      transitionDuration: Duration(milliseconds: duration),
-      pageBuilder: (context, animation, secondaryAnimation) => page(context),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
-        const end = Offset.zero;
-        final tween = Tween(begin: begin, end: end);
-        final offsetAnimation = animation.drive(tween);
-
-        return SlideTransition(position: offsetAnimation, child: child);
-
-        // return FadeTransition(
-        //   opacity: animation,
-        //   child: child,
-        // );
-      },
-    );
-  }
 }
+
+CustomTransitionPage<T> _slide<T>({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+  int duration = 200,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: Duration(milliseconds: duration),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(1.0, 0.0);
+      const end = Offset.zero;
+      return SlideTransition(
+        position: animation.drive(Tween(begin: begin, end: end)),
+        child: child,
+      );
+    },
+  );
+}
+
+final GoRouter appRouter = GoRouter(
+  initialLocation: Routing.app,
+  redirect: (context, state) {
+    if (kIsWeb) {
+      final loc = state.matchedLocation;
+      if (loc == Routing.offline || loc == Routing.offlineLeague) {
+        return Routing.app;
+      }
+    }
+    return null;
+  },
+  routes: [
+    ShellRoute(
+      builder: (context, state, child) => WebShell(child: child),
+      routes: [
+        GoRoute(
+          path: Routing.app,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: const AppView(),
+          ),
+        ),
+        GoRoute(
+          path: Routing.offline,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: const OfflineView(),
+          ),
+          routes: [
+            GoRoute(
+              path: 'league',
+              pageBuilder: (context, state) => _slide(
+                context: context,
+                state: state,
+                child: const OfflineView(),
+              ),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: Routing.verify,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: const VerifyPage(),
+          ),
+        ),
+        GoRoute(
+          path: Routing.groupDetail,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: GroupDetailPage(group: state.extra! as GNEsportGroup),
+          ),
+        ),
+        GoRoute(
+          path: Routing.tournamentDetail,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: TournamentDetailPage(leagueId: state.extra! as String),
+          ),
+        ),
+        GoRoute(
+          path: Routing.updateProfile,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: UpdateProfilePage(user: state.extra as GNUser?),
+          ),
+        ),
+        GoRoute(
+          path: Routing.setting,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: SettingPage(profileBloc: state.extra! as ProfileBloc),
+          ),
+        ),
+        GoRoute(
+          path: Routing.changePassword,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: const ChangePasswordPage(),
+          ),
+        ),
+        GoRoute(
+          path: Routing.notification,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: const NotificationPage(),
+          ),
+        ),
+        GoRoute(
+          path: Routing.feedback,
+          pageBuilder: (context, state) => _slide(
+            context: context,
+            state: state,
+            child: const FeedbackView(),
+          ),
+        ),
+      ],
+    ),
+  ],
+);

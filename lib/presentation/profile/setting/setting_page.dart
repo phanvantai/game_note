@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/routing.dart';
-import 'package:provider/provider.dart';
 import 'package:pes_arena/core/theme/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../../../firebase/auth/gn_auth.dart';
 import '../bloc/profile_bloc.dart';
 
 class SettingPage extends StatelessWidget {
-  const SettingPage({super.key});
+  final ProfileBloc profileBloc;
+  const SettingPage({super.key, required this.profileBloc});
 
   @override
   Widget build(BuildContext context) {
-    // get arguments
-    final profileBloc =
-        ModalRoute.of(context)!.settings.arguments as ProfileBloc;
     final auth = getIt<GNAuth>();
     return Scaffold(
       appBar: AppBar(title: const Text('Tuỳ chọn khác')),
@@ -25,7 +24,7 @@ class SettingPage extends StatelessWidget {
               leading: const Icon(Icons.lock),
               title: const Text('Đổi mật khẩu'),
               onTap: () {
-                Navigator.of(context).pushNamed(Routing.changePassword);
+                context.push(Routing.changePassword);
               },
             ),
           Builder(
