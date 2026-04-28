@@ -144,17 +144,34 @@ class GNAuth {
       }
       return result;
     } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) {
-        if (kDebugMode) {
-          print('🚫 GNAuth: Google Sign-In cancelled by user');
-        }
-        throw FirebaseAuthException(
-          code: 'ERROR_ABORTED_BY_USER',
-          message: 'Sign in aborted by user',
-        );
-      }
+      // v7's Android plugin maps several Credential Manager errors
+      // (NoCredentialException, GetCredentialUnknownException, ...) to
+      // `canceled`. Always log the full description so config issues
+      // (SHA-1, serverClientId, OAuth consent screen) don't hide as
+      // "user cancelled".
       if (kDebugMode) {
-        print('❌ GNAuth: Google Sign-In exception: $e');
+        print('❌ GNAuth: GoogleSignInException');
+        print('   - Code: ${e.code}');
+        print('   - Description: ${e.description}');
+        print('   - Details: ${e.details}');
+      }
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        // Heuristic: a real cancellation has no description. Anything else
+        // is a config/runtime error misreported as cancellation.
+        final desc = e.description?.trim() ?? '';
+        if (desc.isEmpty) {
+          if (kDebugMode) {
+            print('🚫 GNAuth: Google Sign-In cancelled by user');
+          }
+          throw FirebaseAuthException(
+            code: 'ERROR_ABORTED_BY_USER',
+            message: 'Sign in aborted by user',
+          );
+        }
+        if (kDebugMode) {
+          print(
+              '⚠️ GNAuth: code=canceled but has description → likely config error, not real cancel');
+        }
       }
       rethrow;
     } on FirebaseAuthException catch (e) {
