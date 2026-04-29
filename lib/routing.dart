@@ -10,7 +10,6 @@ import 'presentation/auth/verify/verify_page.dart';
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
 import 'presentation/notification/notification_page.dart';
-import 'presentation/profile/bloc/profile_bloc.dart';
 import 'presentation/profile/change_password/change_password_page.dart';
 import 'presentation/profile/feedback/feedback_view.dart';
 import 'presentation/profile/setting/setting_page.dart';
@@ -52,8 +51,11 @@ CustomTransitionPage<T> _slide<T>({
   return CustomTransitionPage<T>(
     key: state.pageKey,
     child: child,
-    transitionDuration: Duration(milliseconds: duration),
+    transitionDuration: Duration(milliseconds: kIsWeb ? 120 : duration),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      if (kIsWeb) {
+        return FadeTransition(opacity: animation, child: child);
+      }
       const begin = Offset(1.0, 0.0);
       const end = Offset.zero;
       return SlideTransition(
@@ -62,6 +64,30 @@ CustomTransitionPage<T> _slide<T>({
       );
     },
   );
+}
+
+class _NotFoundPage extends StatelessWidget {
+  const _NotFoundPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Không tìm thấy trang'),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: () => GoRouter.of(context).go(Routing.app),
+              child: const Text('Về trang chủ'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 final GoRouter appRouter = GoRouter(
@@ -75,6 +101,7 @@ final GoRouter appRouter = GoRouter(
     }
     return null;
   },
+  errorBuilder: (context, state) => const _NotFoundPage(),
   routes: [
     GoRoute(
       path: Routing.app,
@@ -144,7 +171,7 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => _slide(
         context: context,
         state: state,
-        child: SettingPage(profileBloc: state.extra! as ProfileBloc),
+        child: const SettingPage(),
       ),
     ),
     GoRoute(

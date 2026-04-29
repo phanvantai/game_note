@@ -213,10 +213,7 @@ class _ProfileViewState extends State<ProfileView>
                       context,
                       icon: Icons.settings_outlined,
                       title: 'Tuỳ chọn khác',
-                      onTap: () => context.push(
-                        Routing.setting,
-                        extra: context.read<ProfileBloc>(),
-                      ),
+                      onTap: () => context.push(Routing.setting),
                     ),
                   ],
                 ),

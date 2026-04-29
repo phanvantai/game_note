@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/routing.dart';
 import 'package:pes_arena/core/theme/theme_provider.dart';
-import 'package:provider/provider.dart';
 
 import '../../../firebase/auth/gn_auth.dart';
 import '../bloc/profile_bloc.dart';
 
 class SettingPage extends StatelessWidget {
-  final ProfileBloc profileBloc;
-  const SettingPage({super.key, required this.profileBloc});
+  const SettingPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<ProfileBloc>(
+      create: (_) => getIt<ProfileBloc>(),
+      child: const _SettingView(),
+    );
+  }
+}
+
+class _SettingView extends StatelessWidget {
+  const _SettingView();
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +63,7 @@ class SettingPage extends StatelessWidget {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             onTap: () {
-              _deleteAccount(context, profileBloc);
+              _deleteAccount(context, context.read<ProfileBloc>());
             },
           ),
         ],
