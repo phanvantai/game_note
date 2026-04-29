@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,10 +20,65 @@ class App extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeNotifier.themeMode,
-          builder: (context, child) =>
-              WebShell(child: child ?? const SizedBox.shrink()),
+          builder: (context, child) {
+            final shell = WebShell(child: child ?? const SizedBox.shrink());
+            if (!kIsWeb) return shell;
+            return Stack(
+              children: [
+                shell,
+                const Positioned(top: 0, left: 0, right: 0, child: _RouterUriBanner()),
+              ],
+            );
+          },
         );
       },
+    );
+  }
+}
+
+class _RouterUriBanner extends StatefulWidget {
+  const _RouterUriBanner();
+
+  @override
+  State<_RouterUriBanner> createState() => _RouterUriBannerState();
+}
+
+class _RouterUriBannerState extends State<_RouterUriBanner> {
+  String _uri = '';
+
+  @override
+  void initState() {
+    super.initState();
+    appRouter.routerDelegate.addListener(_update);
+    _update();
+  }
+
+  @override
+  void dispose() {
+    appRouter.routerDelegate.removeListener(_update);
+    super.dispose();
+  }
+
+  void _update() {
+    final next = appRouter.routerDelegate.currentConfiguration.uri.toString();
+    if (next == _uri) return;
+    debugPrint('[router] uri = $next');
+    if (mounted) setState(() => _uri = next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Material(
+        color: Colors.black87,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          child: Text(
+            'router: $_uri',
+            style: const TextStyle(color: Colors.greenAccent, fontSize: 11),
+          ),
+        ),
+      ),
     );
   }
 }
