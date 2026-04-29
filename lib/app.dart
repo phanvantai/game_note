@@ -45,6 +45,7 @@ class _RouterUriBanner extends StatefulWidget {
 
 class _RouterUriBannerState extends State<_RouterUriBanner> {
   String _uri = '';
+  int _delegateTicks = 0;
 
   @override
   void initState() {
@@ -60,9 +61,9 @@ class _RouterUriBannerState extends State<_RouterUriBanner> {
   }
 
   void _update() {
+    _delegateTicks++;
     final next = appRouter.routerDelegate.currentConfiguration.uri.toString();
-    if (next == _uri) return;
-    debugPrint('[router] uri = $next');
+    debugPrint('[router] tick=$_delegateTicks uri=$next');
     if (mounted) setState(() => _uri = next);
   }
 
@@ -73,9 +74,20 @@ class _RouterUriBannerState extends State<_RouterUriBanner> {
         color: Colors.black87,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          child: Text(
-            'router: $_uri',
-            style: const TextStyle(color: Colors.greenAccent, fontSize: 11),
+          child: ValueListenableBuilder<int>(
+            valueListenable: rootPushCount,
+            builder: (_, navPushes, _) {
+              return ValueListenableBuilder<String>(
+                valueListenable: lastRootRouteName,
+                builder: (_, lastName, _) {
+                  return Text(
+                    'router: $_uri  (delegateTicks=$_delegateTicks navPushes=$navPushes last=$lastName)',
+                    style: const TextStyle(
+                        color: Colors.greenAccent, fontSize: 11),
+                  );
+                },
+              );
+            },
           ),
         ),
       ),
