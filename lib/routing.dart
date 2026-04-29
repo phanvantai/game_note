@@ -15,7 +15,6 @@ import 'presentation/profile/change_password/change_password_page.dart';
 import 'presentation/profile/feedback/feedback_view.dart';
 import 'presentation/profile/setting/setting_page.dart';
 import 'presentation/profile/update/update_profile_page.dart';
-import 'presentation/web_shell/web_shell.dart';
 
 class Routing {
   static const String app = '/';
@@ -77,105 +76,100 @@ final GoRouter appRouter = GoRouter(
     return null;
   },
   routes: [
-    ShellRoute(
-      builder: (context, state, child) => WebShell(child: child),
+    GoRoute(
+      path: Routing.app,
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: const AppView(),
+      ),
+    ),
+    GoRoute(
+      path: Routing.offline,
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: const OfflineView(),
+      ),
       routes: [
         GoRoute(
-          path: Routing.app,
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: const AppView(),
-          ),
-        ),
-        GoRoute(
-          path: Routing.offline,
+          path: 'league',
           pageBuilder: (context, state) => _slide(
             context: context,
             state: state,
             child: const OfflineView(),
           ),
-          routes: [
-            GoRoute(
-              path: 'league',
-              pageBuilder: (context, state) => _slide(
-                context: context,
-                state: state,
-                child: const OfflineView(),
-              ),
-            ),
-          ],
-        ),
-        GoRoute(
-          path: Routing.verify,
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: const VerifyPage(),
-          ),
-        ),
-        GoRoute(
-          path: '/group/:groupId',
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: GroupDetailPage(
-              groupId: state.pathParameters['groupId']!,
-              initialGroup: state.extra as GNEsportGroup?,
-            ),
-          ),
-        ),
-        GoRoute(
-          path: '/tournament/:leagueId',
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: TournamentDetailPage(
-              leagueId: state.pathParameters['leagueId']!,
-            ),
-          ),
-        ),
-        GoRoute(
-          path: Routing.updateProfile,
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: UpdateProfilePage(user: state.extra as GNUser?),
-          ),
-        ),
-        GoRoute(
-          path: Routing.setting,
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: SettingPage(profileBloc: state.extra! as ProfileBloc),
-          ),
-        ),
-        GoRoute(
-          path: Routing.changePassword,
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: const ChangePasswordPage(),
-          ),
-        ),
-        GoRoute(
-          path: Routing.notification,
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: const NotificationPage(),
-          ),
-        ),
-        GoRoute(
-          path: Routing.feedback,
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: const FeedbackView(),
-          ),
         ),
       ],
+    ),
+    GoRoute(
+      path: Routing.verify,
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: const VerifyPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/group/:groupId',
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: GroupDetailPage(
+          groupId: state.pathParameters['groupId']!,
+          initialGroup: state.extra as GNEsportGroup?,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/tournament/:leagueId',
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: TournamentDetailPage(
+          leagueId: state.pathParameters['leagueId']!,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: Routing.updateProfile,
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: UpdateProfilePage(user: state.extra as GNUser?),
+      ),
+    ),
+    GoRoute(
+      path: Routing.setting,
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: SettingPage(profileBloc: state.extra! as ProfileBloc),
+      ),
+    ),
+    GoRoute(
+      path: Routing.changePassword,
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: const ChangePasswordPage(),
+      ),
+    ),
+    GoRoute(
+      path: Routing.notification,
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: const NotificationPage(),
+      ),
+    ),
+    GoRoute(
+      path: Routing.feedback,
+      pageBuilder: (context, state) => _slide(
+        context: context,
+        state: state,
+        child: const FeedbackView(),
+      ),
     ),
   ],
 );

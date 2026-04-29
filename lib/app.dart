@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'presentation/web_shell/web_shell.dart';
 import 'routing.dart';
 
 class App extends StatelessWidget {
@@ -18,6 +19,8 @@ class App extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeNotifier.themeMode,
+          builder: (context, child) =>
+              WebShell(child: child ?? const SizedBox.shrink()),
         );
       },
     );
