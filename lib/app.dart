@@ -62,8 +62,15 @@ class _RouterUriBannerState extends State<_RouterUriBanner> {
 
   void _update() {
     _delegateTicks++;
-    final next = appRouter.routerDelegate.currentConfiguration.uri.toString();
-    debugPrint('[router] tick=$_delegateTicks uri=$next');
+    final config = appRouter.routerDelegate.currentConfiguration;
+    final uri = config.uri.toString();
+    final matchCount = config.matches.length;
+    final lastMatched = config.matches.isEmpty
+        ? '<empty>'
+        : config.matches.last.matchedLocation;
+    final infoUri = appRouter.routeInformationProvider.value.uri.toString();
+    final next = '$uri  matches=$matchCount  last=$lastMatched  info=$infoUri';
+    debugPrint('[router] tick=$_delegateTicks $next');
     if (mounted) setState(() => _uri = next);
   }
 
