@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/web/url_sync.dart';
 import 'firebase/firestore/esport/group/gn_esport_group.dart';
 import 'firebase/firestore/user/gn_user.dart';
 import 'offline/presentation/offline_view.dart';
@@ -103,114 +104,128 @@ class _RootNavigatorLogger extends NavigatorObserver {
   }
 }
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: Routing.app,
-  observers: [_RootNavigatorLogger()],
-  redirect: (context, state) {
-    if (kIsWeb) {
-      final loc = state.matchedLocation;
-      if (loc == Routing.offline || loc == Routing.offlineLeague) {
-        return Routing.app;
-      }
+final GoRouter appRouter = _buildAppRouter();
+
+GoRouter _buildAppRouter() {
+  final router = GoRouter(
+    initialLocation: Routing.app,
+    observers: [_RootNavigatorLogger()],
+    redirect: _appRedirect,
+    errorBuilder: (context, state) => const _NotFoundPage(),
+    routes: _appRoutes,
+  );
+  if (kIsWeb) {
+    router.routerDelegate.addListener(() {
+      UrlSync.pushIfDifferent(router.routerDelegate.currentConfiguration.uri);
+    });
+  }
+  return router;
+}
+
+String? _appRedirect(BuildContext context, GoRouterState state) {
+  if (kIsWeb) {
+    final loc = state.matchedLocation;
+    if (loc == Routing.offline || loc == Routing.offlineLeague) {
+      return Routing.app;
     }
-    return null;
-  },
-  errorBuilder: (context, state) => const _NotFoundPage(),
-  routes: [
-    GoRoute(
-      path: Routing.app,
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: const AppView(),
-      ),
+  }
+  return null;
+}
+
+final List<RouteBase> _appRoutes = [
+  GoRoute(
+    path: Routing.app,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const AppView(),
     ),
-    GoRoute(
-      path: Routing.offline,
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: const OfflineView(),
-      ),
-      routes: [
-        GoRoute(
-          path: 'league',
-          pageBuilder: (context, state) => _slide(
-            context: context,
-            state: state,
-            child: const OfflineView(),
-          ),
-        ),
-      ],
+  ),
+  GoRoute(
+    path: Routing.offline,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const OfflineView(),
     ),
-    GoRoute(
-      path: Routing.verify,
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: const VerifyPage(),
-      ),
-    ),
-    GoRoute(
-      path: '/group/:groupId',
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: GroupDetailPage(
-          groupId: state.pathParameters['groupId']!,
-          initialGroup: state.extra as GNEsportGroup?,
+    routes: [
+      GoRoute(
+        path: 'league',
+        pageBuilder: (context, state) => _slide(
+          context: context,
+          state: state,
+          child: const OfflineView(),
         ),
       ),
+    ],
+  ),
+  GoRoute(
+    path: Routing.verify,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const VerifyPage(),
     ),
-    GoRoute(
-      path: '/tournament/:leagueId',
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: TournamentDetailPage(
-          leagueId: state.pathParameters['leagueId']!,
-        ),
+  ),
+  GoRoute(
+    path: '/group/:groupId',
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: GroupDetailPage(
+        groupId: state.pathParameters['groupId']!,
+        initialGroup: state.extra as GNEsportGroup?,
       ),
     ),
-    GoRoute(
-      path: Routing.updateProfile,
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: UpdateProfilePage(user: state.extra as GNUser?),
+  ),
+  GoRoute(
+    path: '/tournament/:leagueId',
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: TournamentDetailPage(
+        leagueId: state.pathParameters['leagueId']!,
       ),
     ),
-    GoRoute(
-      path: Routing.setting,
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: const SettingPage(),
-      ),
+  ),
+  GoRoute(
+    path: Routing.updateProfile,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: UpdateProfilePage(user: state.extra as GNUser?),
     ),
-    GoRoute(
-      path: Routing.changePassword,
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: const ChangePasswordPage(),
-      ),
+  ),
+  GoRoute(
+    path: Routing.setting,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const SettingPage(),
     ),
-    GoRoute(
-      path: Routing.notification,
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: const NotificationPage(),
-      ),
+  ),
+  GoRoute(
+    path: Routing.changePassword,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const ChangePasswordPage(),
     ),
-    GoRoute(
-      path: Routing.feedback,
-      pageBuilder: (context, state) => _slide(
-        context: context,
-        state: state,
-        child: const FeedbackView(),
-      ),
+  ),
+  GoRoute(
+    path: Routing.notification,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const NotificationPage(),
     ),
-  ],
-);
+  ),
+  GoRoute(
+    path: Routing.feedback,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const FeedbackView(),
+    ),
+  ),
+];
