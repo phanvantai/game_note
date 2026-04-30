@@ -90,22 +90,8 @@ class _NotFoundPage extends StatelessWidget {
   }
 }
 
-final ValueNotifier<int> rootPushCount = ValueNotifier<int>(0);
-final ValueNotifier<String> lastRootRouteName = ValueNotifier<String>('');
-
-class _RootNavigatorLogger extends NavigatorObserver {
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    rootPushCount.value++;
-    lastRootRouteName.value =
-        route.settings.name ?? route.settings.runtimeType.toString();
-    debugPrint('[nav] push -> ${lastRootRouteName.value}');
-  }
-}
-
 final GoRouter appRouter = GoRouter(
   initialLocation: Routing.app,
-  observers: [_RootNavigatorLogger()],
   redirect: _appRedirect,
   errorBuilder: (context, state) => const _NotFoundPage(),
   routes: _appRoutes,
