@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'core/web/url_sync.dart';
 import 'firebase/firestore/esport/group/gn_esport_group.dart';
 import 'firebase/firestore/user/gn_user.dart';
 import 'offline/presentation/offline_view.dart';
@@ -104,23 +103,13 @@ class _RootNavigatorLogger extends NavigatorObserver {
   }
 }
 
-final GoRouter appRouter = _buildAppRouter();
-
-GoRouter _buildAppRouter() {
-  final router = GoRouter(
-    initialLocation: Routing.app,
-    observers: [_RootNavigatorLogger()],
-    redirect: _appRedirect,
-    errorBuilder: (context, state) => const _NotFoundPage(),
-    routes: _appRoutes,
-  );
-  if (kIsWeb) {
-    router.routerDelegate.addListener(() {
-      UrlSync.pushIfDifferent(router.routerDelegate.currentConfiguration.uri);
-    });
-  }
-  return router;
-}
+final GoRouter appRouter = GoRouter(
+  initialLocation: Routing.app,
+  observers: [_RootNavigatorLogger()],
+  redirect: _appRedirect,
+  errorBuilder: (context, state) => const _NotFoundPage(),
+  routes: _appRoutes,
+);
 
 String? _appRedirect(BuildContext context, GoRouterState state) {
   if (kIsWeb) {

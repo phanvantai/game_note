@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:pes_arena/app.dart';
 import 'package:pes_arena/injection_container.dart' as di;
@@ -21,6 +22,7 @@ var dataFile = '';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   usePathUrlStrategy();
+  GoRouter.optionURLReflectsImperativeAPIs = true;
   if (!kIsWeb) {
     MobileAds.instance.initialize();
   }
