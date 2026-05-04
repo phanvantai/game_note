@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'package:pes_arena/offline/data/database/database_manager.dart';
 import 'package:pes_arena/offline/data/datasources/league_local_datasource.dart';
 import 'package:pes_arena/offline/data/repositories/league_repository_impl.dart';
@@ -39,6 +41,7 @@ import 'offline/presentation/league_detail/bloc/league_detail_bloc.dart';
 import 'firebase/auth/gn_auth.dart';
 import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
+import 'presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'presentation/notification/bloc/notification_bloc.dart';
 import 'presentation/profile/bloc/profile_bloc.dart';
 import 'presentation/sync/bloc/sync_bloc.dart';
@@ -123,6 +126,9 @@ Future<void> init() async {
 
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
   getIt.registerFactory<TournamentBloc>(() => TournamentBloc(getIt()));
+  getIt.registerFactory<DashboardBloc>(
+    () => DashboardBloc(leagueRepository: getIt(), auth: getIt()),
+  );
 
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
   getIt.registerSingleton<NotificationBloc>(NotificationBloc(getIt()));

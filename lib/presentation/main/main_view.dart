@@ -8,8 +8,8 @@ import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../esport/groups/groups_view.dart';
 import '../esport/tournament/tournament_view.dart';
+import '../home/home_page.dart';
 import '../profile/profile_view.dart';
 
 class MainView extends StatefulWidget {
@@ -32,15 +32,15 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
 
     tabs = {
       const BottomNavigationBarItem(
+        icon: Icon(Icons.home_outlined),
+        activeIcon: Icon(Icons.home),
+        label: 'Trang chủ',
+      ): const HomePage(),
+      const BottomNavigationBarItem(
         icon: Icon(Icons.emoji_events_outlined),
         activeIcon: Icon(Icons.emoji_events),
         label: 'Giải đấu',
       ): const TournamentView(),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.group_outlined),
-        activeIcon: Icon(Icons.group),
-        label: 'Nhóm',
-      ): const GroupsView(),
       const BottomNavigationBarItem(
         icon: Icon(Icons.person_outline),
         activeIcon: Icon(Icons.person),
@@ -68,12 +68,14 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // coverage:ignore-start
           if (!kIsWeb && _bannerAd != null)
             SizedBox(
               width: _bannerAd!.size.width.toDouble(),
               height: _bannerAd!.size.height.toDouble(),
               child: AdWidget(ad: _bannerAd!),
             ),
+          // coverage:ignore-end
           BottomNavigationBar(
             items: tabs.keys.toList(),
             currentIndex: _tabController.index,
@@ -107,6 +109,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
     if (kIsWeb || isAdsLoaded || !getIt<GNRemoteConfig>().adsEnabled) {
       return;
     }
+    // coverage:ignore-start
     final AnchoredAdaptiveBannerAdSize? size =
         await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
           MediaQuery.of(context).size.width.truncate(),
@@ -137,5 +140,6 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
         },
       ),
     )..load();
+    // coverage:ignore-end
   }
 }

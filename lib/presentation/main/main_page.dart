@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../injection_container.dart';
 import '../esport/groups/bloc/group_bloc.dart';
+import '../home/dashboard/bloc/dashboard_bloc.dart';
 import '../profile/bloc/profile_bloc.dart';
 import 'main_view.dart';
 
@@ -19,6 +20,7 @@ class MainPage extends StatelessWidget {
         BlocProvider(create: (_) => getIt<ProfileBloc>()),
         BlocProvider(create: (_) => getIt<GroupBloc>()),
         BlocProvider(create: (_) => getIt<TournamentBloc>()),
+        BlocProvider(create: (_) => getIt<DashboardBloc>()),
         BlocProvider<NotificationBloc>.value(
           value: getIt<NotificationBloc>()..add(NotificationEventFetch()),
         ),

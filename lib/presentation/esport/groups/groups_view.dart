@@ -6,12 +6,15 @@ import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart'
 
 import '../../../core/common/view_status.dart';
 import '../../../core/ultils.dart';
+import '../../../firebase/firestore/esport/group/gn_esport_group.dart';
 import '../../../routing.dart';
 import 'bloc/group_bloc.dart';
 import 'widgets/group_item.dart';
 
 class GroupsView extends StatelessWidget {
-  const GroupsView({super.key});
+  final bool embedded;
+
+  const GroupsView({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -22,127 +25,8 @@ class GroupsView extends StatelessWidget {
         return DefaultTabController(
           length: 2,
           child: Scaffold(
-            appBar: AppBar(
-              centerTitle: false,
-              title: Row(
-                spacing: 4,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Image.asset('assets/images/pes.jpg', height: 32),
-                  ),
-                  Expanded(
-                    child: TabBar(
-                      padding: EdgeInsets.zero,
-                      dividerColor: Colors.transparent,
-                      tabAlignment: TabAlignment.start,
-                      isScrollable: true,
-                      tabs: const [
-                        Tab(text: 'Nhóm của tôi'),
-                        Tab(text: 'Nhóm khác'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                BlocBuilder<NotificationBloc, NotificationState>(
-                  builder: (context, state) => IconButton(
-                    icon: Stack(
-                      children: [
-                        const Icon(Icons.notifications_outlined),
-                        if (state.unreadNotificationsCount > 0)
-                          Positioned(
-                            right: 4,
-                            top: 4,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.error,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              width: 8,
-                              height: 8,
-                            ),
-                          ),
-                      ],
-                    ),
-                    onPressed: () {
-                      context.push(Routing.notification);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            body: Column(
-              children: [
-                if (state.viewStatus == ViewStatus.loading)
-                  const LinearProgressIndicator(),
-                Expanded(
-                  child: TabBarView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      state.userGroups.isEmpty
-                          ? const AppEmptyState(
-                              icon: Icons.group_outlined,
-                              title: 'Không có nhóm nào',
-                              subtitle: 'Tạo nhóm mới để bắt đầu',
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(
-                                top: 8,
-                                bottom: 80,
-                              ),
-                              itemBuilder: (context, index) => GroupItem(
-                                group: state.userGroups[index],
-                                onTap: () async {
-                                  await context.push(
-                                    Routing.groupDetailPath(
-                                      state.userGroups[index].id,
-                                    ),
-                                    extra: state.userGroups[index],
-                                  );
-                                  if (context.mounted) {
-                                    BlocProvider.of<GroupBloc>(
-                                      context,
-                                    ).add(GetEsportGroups());
-                                  }
-                                },
-                              ),
-                              itemCount: state.userGroups.length,
-                            ),
-                      state.otherGroups.isEmpty
-                          ? const AppEmptyState(
-                              icon: Icons.group_outlined,
-                              title: 'Không có nhóm nào',
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(
-                                top: 8,
-                                bottom: 80,
-                              ),
-                              itemBuilder: (context, index) => GroupItem(
-                                group: state.otherGroups[index],
-                                onTap: () async {
-                                  await context.push(
-                                    Routing.groupDetailPath(
-                                      state.otherGroups[index].id,
-                                    ),
-                                    extra: state.otherGroups[index],
-                                  );
-                                  if (context.mounted) {
-                                    BlocProvider.of<GroupBloc>(
-                                      context,
-                                    ).add(GetEsportGroups());
-                                  }
-                                },
-                              ),
-                              itemCount: state.otherGroups.length,
-                            ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            appBar: embedded ? null : _GroupsAppBar(colorScheme: colorScheme),
+            body: _GroupsBody(state: state, embedded: embedded),
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () => _showCreateGroupDialog(context),
               label: const Text('Tạo nhóm'),
@@ -212,6 +96,141 @@ class GroupsView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _GroupsAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final ColorScheme colorScheme;
+
+  const _GroupsAppBar({required this.colorScheme});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      centerTitle: false,
+      title: Row(
+        spacing: 4,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Image.asset('assets/images/pes.jpg', height: 32),
+          ),
+          const Expanded(child: _GroupsTabBar()),
+        ],
+      ),
+      actions: [
+        BlocBuilder<NotificationBloc, NotificationState>(
+          builder: (context, state) => IconButton(
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications_outlined),
+                if (state.unreadNotificationsCount > 0)
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.error,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      width: 8,
+                      height: 8,
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () {
+              context.push(Routing.notification);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupsBody extends StatelessWidget {
+  final GroupState state;
+  final bool embedded;
+
+  const _GroupsBody({required this.state, required this.embedded});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (embedded) const _GroupsTabBar(),
+        if (state.viewStatus == ViewStatus.loading)
+          const LinearProgressIndicator(),
+        Expanded(
+          child: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              state.userGroups.isEmpty
+                  ? const AppEmptyState(
+                      icon: Icons.group_outlined,
+                      title: 'Không có nhóm nào',
+                      subtitle: 'Tạo nhóm mới để bắt đầu',
+                    )
+                  : _GroupsList(groups: state.userGroups),
+              state.otherGroups.isEmpty
+                  ? const AppEmptyState(
+                      icon: Icons.group_outlined,
+                      title: 'Không có nhóm nào',
+                    )
+                  : _GroupsList(groups: state.otherGroups),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupsTabBar extends StatelessWidget {
+  const _GroupsTabBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return const TabBar(
+      padding: EdgeInsets.zero,
+      dividerColor: Colors.transparent,
+      tabAlignment: TabAlignment.start,
+      isScrollable: true,
+      tabs: [
+        Tab(text: 'Nhóm của tôi'),
+        Tab(text: 'Nhóm khác'),
+      ],
+    );
+  }
+}
+
+class _GroupsList extends StatelessWidget {
+  final List<GNEsportGroup> groups;
+
+  const _GroupsList({required this.groups});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8, bottom: 80),
+      itemBuilder: (context, index) => GroupItem(
+        group: groups[index],
+        onTap: () async {
+          await context.push(
+            Routing.groupDetailPath(groups[index].id),
+            extra: groups[index],
+          );
+          if (context.mounted) {
+            BlocProvider.of<GroupBloc>(context).add(GetEsportGroups());
+          }
+        },
+      ),
+      itemCount: groups.length,
     );
   }
 }
