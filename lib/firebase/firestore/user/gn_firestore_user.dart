@@ -127,6 +127,30 @@ extension GNFirestoreUser on GNFirestore {
     });
   }
 
+  /// Tạo user "placeholder" cho người chơi offline chưa có account online.
+  /// id có prefix `placeholder_` để Firestore rules có thể nhận diện
+  /// và cho phép tạo (rule cần allow create khi id startsWith 'placeholder_').
+  Future<GNUser> createPlaceholderUser({required String displayName}) async {
+    final col = firestore.collection(GNUser.collectionName);
+    final id = 'placeholder_${col.doc().id}';
+    final user = GNUser(
+      id: id,
+      displayName: displayName,
+      phoneNumber: null,
+      email: null,
+      photoUrl: null,
+      role: UserRole.user.name,
+      fcmToken: '',
+      isPlaceholder: true,
+    );
+    await col.doc(id).set({
+      ...user.toMap(),
+      GNCommonFields.createdAt: FieldValue.serverTimestamp(),
+      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
+    });
+    return user;
+  }
+
   // search user by displayName or email or phoneNumber
   Future<List<GNUser>> searchUser(String query) async {
     final user = getIt<GNAuth>().currentUser;

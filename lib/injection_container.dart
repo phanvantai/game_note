@@ -16,6 +16,9 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/helpers/shared_preferences_helper.dart';
+import 'data/sync/offline_to_online_migrator.dart';
+import 'data/sync/sync_remote_gateway.dart';
+import 'data/sync/sync_remote_gateway_impl.dart';
 import 'data/repositories/esport/esport_group_repository_impl.dart';
 import 'data/repositories/esport/esport_league_repository_impl.dart';
 import 'data/repositories/notification_repository_impl.dart';
@@ -39,6 +42,7 @@ import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'presentation/notification/bloc/notification_bloc.dart';
 import 'presentation/profile/bloc/profile_bloc.dart';
+import 'presentation/sync/bloc/sync_bloc.dart';
 import 'presentation/users/bloc/user_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -120,4 +124,18 @@ Future<void> init() async {
   getIt.registerSingleton<NotificationBloc>(NotificationBloc(getIt()));
 
   getIt.registerFactory<ChangePasswordBloc>(() => ChangePasswordBloc(getIt()));
+
+  // Offline → Online sync feature. SyncBloc requires LeagueRepository which
+  // is only registered when !kIsWeb, so guard registration accordingly.
+  getIt.registerLazySingleton<SyncRemoteGateway>(
+      () => SyncRemoteGatewayImpl(getIt()));
+  getIt.registerLazySingleton<OfflineToOnlineMigrator>(
+      () => OfflineToOnlineMigrator(getIt()));
+  if (!kIsWeb) {
+    getIt.registerFactory<SyncBloc>(() => SyncBloc(
+          offlineLeagueRepository: getIt(),
+          gateway: getIt(),
+          migrator: getIt(),
+        ));
+  }
 }

@@ -208,6 +208,17 @@ class _ProfileViewState extends State<ProfileView>
                         indent: 56,
                         color: colorScheme.outline.withValues(alpha: 0.2),
                       ),
+                      _buildMenuItem(
+                        context,
+                        icon: Icons.sync_outlined,
+                        title: 'Đồng bộ dữ liệu offline',
+                        onTap: () => context.push(Routing.syncOfflineData),
+                      ),
+                      Divider(
+                        height: 0.5,
+                        indent: 56,
+                        color: colorScheme.outline.withValues(alpha: 0.2),
+                      ),
                     ],
                     _buildMenuItem(
                       context,

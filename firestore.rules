@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function groupPath(groupId) {
+      return /databases/$(database)/documents/esports_groups/$(groupId);
+    }
+
+    function leaguePath(leagueId) {
+      return /databases/$(database)/documents/esports_leagues/$(leagueId);
+    }
+
+    function isGroupMember(groupId) {
+      return signedIn()
+          && exists(groupPath(groupId))
+          && request.auth.uid in get(groupPath(groupId)).data.members;
+    }
+
+    function isGroupMemberAfter(groupId) {
+      return signedIn()
+          && existsAfter(groupPath(groupId))
+          && request.auth.uid in getAfter(groupPath(groupId)).data.members;
+    }
+
+    function isLeagueGroupMember(leagueId) {
+      return signedIn()
+          && exists(leaguePath(leagueId))
+          && isGroupMember(get(leaguePath(leagueId)).data.groupId);
+    }
+
+    function isLeagueGroupMemberAfter(leagueId) {
+      return signedIn()
+          && existsAfter(leaguePath(leagueId))
+          && isGroupMemberAfter(getAfter(leaguePath(leagueId)).data.groupId);
+    }
+
+    match /feedbacks/{feedbackId} {
+      allow create: if signedIn() && request.resource.data.status in [0, 1, 2];
+      allow read: if signedIn();
+      allow update, delete: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn()
+          && userId.matches('^placeholder_.*')
+          && request.resource.data.isPlaceholder == true;
+    }
+
+    match /users/{userId}/notifications/{notificationId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow delete: if signedIn() && request.auth.uid == userId;
+      allow update: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasAll(['isRead'])
+          && request.resource.data.isRead is bool;
+    }
+
+    match /teams/{teamId} {
+      allow read: if true;
+    }
+
+    match /esports/{esportId} {
+      allow read: if true;
+    }
+
+    match /esports_messages/{messageId} {
+      allow read, write: if signedIn();
+    }
+
+    match /esports_groups/{groupId} {
+      allow read, write: if signedIn();
+      allow update, delete: if signedIn() && request.auth.uid == resource.data.ownerId;
+    }
+
+    match /esports_leagues/{leagueId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update, delete: if isLeagueGroupMember(leagueId);
+
+      match /leagues_stats/{statId} {
+        allow read: if signedIn();
+        allow create, update, delete: if isLeagueGroupMemberAfter(leagueId);
+      }
+
+      match /leagues_matches/{matchId} {
+        allow read: if signedIn();
+        allow create, update, delete: if isLeagueGroupMemberAfter(leagueId);
+      }
+    }
+  }
+}

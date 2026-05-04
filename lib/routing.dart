@@ -14,6 +14,7 @@ import 'presentation/profile/change_password/change_password_page.dart';
 import 'presentation/profile/feedback/feedback_view.dart';
 import 'presentation/profile/setting/setting_page.dart';
 import 'presentation/profile/update/update_profile_page.dart';
+import 'presentation/sync/sync_page.dart';
 
 class Routing {
   static const String app = '/';
@@ -40,6 +41,9 @@ class Routing {
 
   // notification
   static const String notification = '/notification';
+
+  // sync offline → online
+  static const String syncOfflineData = '/sync-offline-data';
 }
 
 CustomTransitionPage<T> _slide<T>({
@@ -100,7 +104,9 @@ final GoRouter appRouter = GoRouter(
 String? _appRedirect(BuildContext context, GoRouterState state) {
   if (kIsWeb) {
     final loc = state.matchedLocation;
-    if (loc == Routing.offline || loc == Routing.offlineLeague) {
+    if (loc == Routing.offline ||
+        loc == Routing.offlineLeague ||
+        loc == Routing.syncOfflineData) {
       return Routing.app;
     }
   }
@@ -201,6 +207,14 @@ final List<RouteBase> _appRoutes = [
       context: context,
       state: state,
       child: const FeedbackView(),
+    ),
+  ),
+  GoRoute(
+    path: Routing.syncOfflineData,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const SyncPage(),
     ),
   ),
 ];

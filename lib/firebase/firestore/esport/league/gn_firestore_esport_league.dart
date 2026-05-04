@@ -166,7 +166,9 @@ extension GNFirestoreEsportLeague on GNFirestore {
     return league.copyWith(group: group);
   }
 
-  Future<void> addLeague({
+  /// Returns the id of the newly-created league. Older callers that ignored
+  /// the result still work — Dart silently drops the return value.
+  Future<String> addLeague({
     required String name,
     required String groupId,
     DateTime? startDate,
@@ -175,6 +177,7 @@ extension GNFirestoreEsportLeague on GNFirestore {
     bool rankPayoutEnabled = false,
     List<int> rankPayouts = const [],
     int defaultMatchCost = 50000,
+    String? status,
   }) async {
     // Reference to the Firestore collection
     final leaguesCollection =
@@ -194,10 +197,12 @@ extension GNFirestoreEsportLeague on GNFirestore {
       rankPayoutEnabled: rankPayoutEnabled,
       rankPayouts: rankPayouts,
       defaultMatchCost: defaultMatchCost,
+      status: status,
     );
 
     // Add the new league to Firestore
     await leaguesCollection.doc(newLeague.id).set(newLeague.toMap());
+    return newLeague.id;
   }
 
   Future<void> addParticipantToLeague(

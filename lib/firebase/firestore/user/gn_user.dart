@@ -10,6 +10,7 @@ class GNUser extends Equatable {
   final String? photoUrl;
   final String role;
   final String fcmToken;
+  final bool isPlaceholder;
 
   static const String collectionName = 'users';
 
@@ -20,6 +21,7 @@ class GNUser extends Equatable {
   static const String emailKey = 'email';
   static const String photoUrlKey = 'photoUrl';
   static const String fcmTokenKey = 'fcmToken';
+  static const String isPlaceholderKey = 'isPlaceholder';
 
   const GNUser({
     required this.id,
@@ -29,6 +31,7 @@ class GNUser extends Equatable {
     required this.photoUrl,
     required this.role,
     required this.fcmToken,
+    this.isPlaceholder = false,
   });
 
   GNUser copyWith({
@@ -38,6 +41,7 @@ class GNUser extends Equatable {
     String? photoUrl,
     String? role,
     String? fcmToken,
+    bool? isPlaceholder,
   }) {
     return GNUser(
       id: id,
@@ -47,6 +51,7 @@ class GNUser extends Equatable {
       photoUrl: photoUrl ?? this.photoUrl,
       role: role ?? this.role,
       fcmToken: fcmToken ?? this.fcmToken,
+      isPlaceholder: isPlaceholder ?? this.isPlaceholder,
     );
   }
 
@@ -58,6 +63,7 @@ class GNUser extends Equatable {
       photoUrlKey: photoUrl,
       roleKey: role,
       fcmTokenKey: fcmToken,
+      isPlaceholderKey: isPlaceholder,
     };
   }
 
@@ -71,6 +77,7 @@ class GNUser extends Equatable {
       photoUrl: data[photoUrlKey],
       role: data[roleKey] ?? 'user',
       fcmToken: data[fcmTokenKey] ?? '',
+      isPlaceholder: data[isPlaceholderKey] ?? false,
     );
   }
 
@@ -83,6 +90,7 @@ class GNUser extends Equatable {
         photoUrl,
         role,
         fcmToken,
+        isPlaceholder,
       ];
 
   bool get isAdmin => role == 'admin';
