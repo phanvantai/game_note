@@ -40,6 +40,13 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
+  Future<List<GNEsportLeague>> getActiveLeaguesByGroupIds(
+    List<String> groupIds,
+  ) {
+    return getIt<GNFirestore>().getActiveLeaguesByGroupIds(groupIds);
+  }
+
+  @override
   Future<List<GNEsportLeague>> getMyLeagues() {
     return getIt<GNFirestore>().getMyLeagues();
   }

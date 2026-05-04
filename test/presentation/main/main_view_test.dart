@@ -12,6 +12,7 @@ import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/models/dashboard_stats.dart';
+import 'package:pes_arena/presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
 import 'package:pes_arena/presentation/main/main_view.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:pes_arena/presentation/profile/bloc/profile_bloc.dart';
@@ -28,6 +29,10 @@ class _MockProfileBloc extends MockBloc<ProfileEvent, ProfileState>
 class _MockDashboardBloc extends MockBloc<DashboardEvent, DashboardState>
     implements DashboardBloc {}
 
+class _MockOngoingBloc
+    extends MockBloc<OngoingTournamentsEvent, OngoingTournamentsState>
+    implements OngoingTournamentsBloc {}
+
 class _MockNotificationBloc
     extends MockBloc<NotificationEvent, NotificationState>
     implements NotificationBloc {}
@@ -41,6 +46,7 @@ Widget _wrap({
   required TournamentBloc tournamentBloc,
   required ProfileBloc profileBloc,
   required DashboardBloc dashboardBloc,
+  required OngoingTournamentsBloc ongoingBloc,
   required NotificationBloc notificationBloc,
 }) {
   return MultiBlocProvider(
@@ -50,6 +56,7 @@ Widget _wrap({
       BlocProvider<TournamentBloc>.value(value: tournamentBloc),
       BlocProvider<ProfileBloc>.value(value: profileBloc),
       BlocProvider<DashboardBloc>.value(value: dashboardBloc),
+      BlocProvider<OngoingTournamentsBloc>.value(value: ongoingBloc),
       BlocProvider<NotificationBloc>.value(value: notificationBloc),
     ],
     child: const MaterialApp(home: MainView()),
@@ -74,13 +81,15 @@ void main() {
 
   tearDown(() => getIt.reset());
 
-  testWidgets('MainView render 3 tab và chuyển tab', (tester) async {
+  testWidgets('MainView render 5 tab và chuyển tab', (tester) async {
     final groupBloc = _MockGroupBloc();
     final tournamentBloc = _MockTournamentBloc();
     final profileBloc = _MockProfileBloc();
     final dashboardBloc = _MockDashboardBloc();
+    final ongoingBloc = _MockOngoingBloc();
     final notificationBloc = _MockNotificationBloc();
     when(() => groupBloc.state).thenReturn(const GroupState());
+    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
     when(() => tournamentBloc.state).thenReturn(const TournamentState());
     when(() => profileBloc.state).thenReturn(const ProfileState());
     when(() => dashboardBloc.state).thenReturn(
@@ -104,12 +113,15 @@ void main() {
         tournamentBloc: tournamentBloc,
         profileBloc: profileBloc,
         dashboardBloc: dashboardBloc,
+        ongoingBloc: ongoingBloc,
         notificationBloc: notificationBloc,
       ),
     );
 
     expect(find.text('Trang chủ'), findsWidgets);
+    expect(find.text('Nhóm'), findsWidgets);
     expect(find.text('Giải đấu'), findsOneWidget);
+    expect(find.text('Thông báo'), findsWidgets);
     expect(find.text('Cá nhân'), findsOneWidget);
     verify(() => groupBloc.add(any(that: isA<GetEsportGroups>()))).called(1);
 
@@ -117,6 +129,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Giải đấu của tôi'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.group_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nhóm của tôi'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.notifications_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Thông báo'), findsWidgets);
 
     await tester.tap(find.text('Cá nhân'));
     await tester.pumpAndSettle();

@@ -42,6 +42,7 @@ import 'firebase/auth/gn_auth.dart';
 import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'presentation/home/dashboard/bloc/dashboard_bloc.dart';
+import 'presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
 import 'presentation/notification/bloc/notification_bloc.dart';
 import 'presentation/profile/bloc/profile_bloc.dart';
 import 'presentation/sync/bloc/sync_bloc.dart';
@@ -128,6 +129,9 @@ Future<void> init() async {
   getIt.registerFactory<TournamentBloc>(() => TournamentBloc(getIt()));
   getIt.registerFactory<DashboardBloc>(
     () => DashboardBloc(leagueRepository: getIt(), auth: getIt()),
+  );
+  getIt.registerFactory<OngoingTournamentsBloc>(
+    () => OngoingTournamentsBloc(getIt()),
   );
 
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));

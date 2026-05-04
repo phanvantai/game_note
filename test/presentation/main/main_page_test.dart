@@ -10,6 +10,7 @@ import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/models/dashboard_stats.dart';
+import 'package:pes_arena/presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
 import 'package:pes_arena/presentation/main/main_page.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:pes_arena/presentation/profile/bloc/profile_bloc.dart';
@@ -25,6 +26,10 @@ class _MockProfileBloc extends MockBloc<ProfileEvent, ProfileState>
 
 class _MockDashboardBloc extends MockBloc<DashboardEvent, DashboardState>
     implements DashboardBloc {}
+
+class _MockOngoingBloc
+    extends MockBloc<OngoingTournamentsEvent, OngoingTournamentsState>
+    implements OngoingTournamentsBloc {}
 
 class _MockNotificationBloc
     extends MockBloc<NotificationEvent, NotificationState>
@@ -46,6 +51,7 @@ void main() {
     final tournamentBloc = _MockTournamentBloc();
     final profileBloc = _MockProfileBloc();
     final dashboardBloc = _MockDashboardBloc();
+    final ongoingBloc = _MockOngoingBloc();
     final notificationBloc = _MockNotificationBloc();
     final messaging = _MockMessaging();
     final remoteConfig = _MockRemoteConfig();
@@ -66,6 +72,7 @@ void main() {
         ),
       ),
     );
+    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
     when(() => notificationBloc.state).thenReturn(const NotificationState());
     when(() => messaging.initialize()).thenAnswer((_) async {});
     when(() => remoteConfig.adsEnabled).thenReturn(false);
@@ -74,6 +81,7 @@ void main() {
     getIt.registerFactory<GroupBloc>(() => groupBloc);
     getIt.registerFactory<TournamentBloc>(() => tournamentBloc);
     getIt.registerFactory<DashboardBloc>(() => dashboardBloc);
+    getIt.registerFactory<OngoingTournamentsBloc>(() => ongoingBloc);
     getIt.registerSingleton<NotificationBloc>(notificationBloc);
     getIt.registerSingleton<GNFirebaseMessaging>(messaging);
     getIt.registerSingleton<GNRemoteConfig>(remoteConfig);

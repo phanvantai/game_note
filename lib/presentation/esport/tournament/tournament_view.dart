@@ -7,7 +7,6 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_item.dart';
-import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
 import '../../../routing.dart';
 import '../groups/bloc/group_bloc.dart';
@@ -18,60 +17,22 @@ class TournamentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return BlocConsumer<TournamentBloc, TournamentState>(
       builder: (context, state) => DefaultTabController(
         length: 2,
         child: Scaffold(
           appBar: AppBar(
             centerTitle: false,
-            title: Row(
-              spacing: 4,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.asset('assets/images/pes.jpg', height: 32),
-                ),
-                Expanded(
-                  child: TabBar(
-                    padding: EdgeInsets.zero,
-                    dividerColor: Colors.transparent,
-                    tabAlignment: TabAlignment.start,
-                    isScrollable: true,
-                    tabs: const [
-                      Tab(text: 'Giải đấu của tôi'),
-                      Tab(text: 'Giải đấu khác'),
-                    ],
-                  ),
-                ),
+            title: const TabBar(
+              padding: EdgeInsets.zero,
+              dividerColor: Colors.transparent,
+              tabAlignment: TabAlignment.start,
+              isScrollable: true,
+              tabs: [
+                Tab(text: 'Giải đấu của tôi'),
+                Tab(text: 'Giải đấu khác'),
               ],
             ),
-            actions: [
-              BlocBuilder<NotificationBloc, NotificationState>(
-                builder: (context, state) => IconButton(
-                  icon: Stack(
-                    children: [
-                      const Icon(Icons.notifications_outlined),
-                      if (state.unreadNotificationsCount > 0)
-                        Positioned(
-                          right: 4,
-                          top: 4,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.error,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            width: 8,
-                            height: 8,
-                          ),
-                        ),
-                    ],
-                  ),
-                  onPressed: () => context.push(Routing.notification),
-                ),
-              ),
-            ],
           ),
           body: TabBarView(
             physics: const NeverScrollableScrollPhysics(),
@@ -81,7 +42,7 @@ class TournamentView extends StatelessWidget {
             ],
           ),
           floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _onCreateTournamentPressed(context),
+            onPressed: () => openCreateTournament(context),
             label: const Text('Tạo giải đấu'),
             icon: const Icon(Icons.add),
           ),
@@ -95,45 +56,46 @@ class TournamentView extends StatelessWidget {
     );
   }
 
-  void _onCreateTournamentPressed(BuildContext context) {
-    final groups = context.read<GroupBloc>().state.userGroups;
-    if (groups.isEmpty) {
-      showToast('Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước');
-      return;
-    }
-    final tournamentBloc = context.read<TournamentBloc>();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => CreateEsportLeaguePage(
-          groups: groups,
-          onAddLeague: (
-            name,
-            groupId,
-            startDate,
-            endDate,
-            description,
-            rankPayoutEnabled,
-            rankPayouts,
-            defaultMatchCost,
-          ) {
-            tournamentBloc.add(
-              AddTournament(
-                name: name,
-                groupId: groupId,
-                startDate: startDate,
-                endDate: endDate,
-                description: description,
-                rankPayoutEnabled: rankPayoutEnabled,
-                rankPayouts: rankPayouts,
-                defaultMatchCost: defaultMatchCost,
-              ),
-            );
-            Navigator.of(ctx).pop();
-          },
-        ),
-      ),
-    );
+}
+
+void openCreateTournament(BuildContext context) {
+  final groups = context.read<GroupBloc>().state.userGroups;
+  if (groups.isEmpty) {
+    showToast('Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước');
+    return;
   }
+  final tournamentBloc = context.read<TournamentBloc>();
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (ctx) => CreateEsportLeaguePage(
+        groups: groups,
+        onAddLeague: (
+          name,
+          groupId,
+          startDate,
+          endDate,
+          description,
+          rankPayoutEnabled,
+          rankPayouts,
+          defaultMatchCost,
+        ) {
+          tournamentBloc.add(
+            AddTournament(
+              name: name,
+              groupId: groupId,
+              startDate: startDate,
+              endDate: endDate,
+              description: description,
+              rankPayoutEnabled: rankPayoutEnabled,
+              rankPayouts: rankPayouts,
+              defaultMatchCost: defaultMatchCost,
+            ),
+          );
+          Navigator.of(ctx).pop();
+        },
+      ),
+    ),
+  );
 }
 
 class _MyLeaguesTab extends StatelessWidget {

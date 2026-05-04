@@ -127,6 +127,46 @@ extension GNFirestoreEsportLeague on GNFirestore {
     );
   }
 
+  /// Fetch active leagues whose `groupId` is in the given list.
+  ///
+  /// Used by the home banner to surface ongoing tournaments from any group
+  /// the user has joined — independent of whether they are a participant.
+  /// Chunks `whereIn` queries (Firestore caps at 30 values per query) and
+  /// dedupes by id.
+  Future<List<GNEsportLeague>> getActiveLeaguesByGroupIds(
+    List<String> groupIds,
+  ) async {
+    if (groupIds.isEmpty) return [];
+
+    const chunkSize = 30;
+    final col = firestore.collection(GNEsportLeague.collectionName);
+    final futures = <Future<QuerySnapshot>>[];
+    for (var i = 0; i < groupIds.length; i += chunkSize) {
+      final chunk = groupIds.sublist(
+        i,
+        i + chunkSize > groupIds.length ? groupIds.length : i + chunkSize,
+      );
+      futures.add(
+        col
+            .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
+            .where(GNEsportLeague.fieldGroupId, whereIn: chunk)
+            .get(),
+      );
+    }
+
+    final snapshots = await Future.wait(futures);
+    final byId = <String, GNEsportLeague>{};
+    for (final snap in snapshots) {
+      for (final doc in snap.docs) {
+        byId[doc.id] = GNEsportLeague.fromFirestore(doc);
+      }
+    }
+
+    final leagues = byId.values.toList()
+      ..sort((a, b) => b.startDate.compareTo(a.startDate));
+    return _attachGroups(leagues);
+  }
+
   Future<List<GNEsportLeague>> _attachGroups(
     List<GNEsportLeague> leagues,
   ) async {

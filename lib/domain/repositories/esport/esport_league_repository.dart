@@ -30,6 +30,12 @@ abstract class EsportLeagueRepository {
     int limit,
   });
 
+  /// Active leagues whose `groupId` is in [groupIds]. Used by the home
+  /// banner to surface ongoing tournaments from groups the user has joined.
+  Future<List<GNEsportLeague>> getActiveLeaguesByGroupIds(
+    List<String> groupIds,
+  );
+
   Future<GNEsportLeague?> getLeague(String leagueId);
 
   Future<void> addLeague({

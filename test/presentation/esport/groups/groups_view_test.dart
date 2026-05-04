@@ -8,7 +8,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
-import 'package:pes_arena/firebase/firestore/notification/gn_notification.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/groups_view.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
@@ -35,20 +34,9 @@ GNEsportGroup _group(String id, String name) {
   );
 }
 
-GNNotification _notification({required bool isRead}) => GNNotification(
-  id: 'n1',
-  userId: 'u1',
-  title: 'Title',
-  message: 'Message',
-  type: GNNotificationType.unknown.value,
-  timestamp: DateTime(2026, 1, 1),
-  isRead: isRead,
-);
-
 Widget _wrap({
   required GroupBloc groupBloc,
   required NotificationBloc notificationBloc,
-  bool embedded = false,
 }) {
   return MultiBlocProvider(
     providers: [
@@ -60,7 +48,7 @@ Widget _wrap({
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => GroupsView(embedded: embedded),
+            builder: (context, state) => const GroupsView(),
           ),
           GoRoute(
             path: '/notification',
@@ -103,16 +91,12 @@ void main() {
 
   tearDown(resetShowToast);
 
-  testWidgets('standalone render appbar, badge và notification navigation', (
-    tester,
-  ) async {
+  testWidgets('standalone render appbar và tabs', (tester) async {
     final groupBloc = _MockGroupBloc();
     final notificationBloc = _MockNotificationBloc();
     final state = _state();
     when(() => groupBloc.state).thenReturn(state);
-    when(() => notificationBloc.state).thenReturn(
-      NotificationState(notifications: [_notification(isRead: false)]),
-    );
+    when(() => notificationBloc.state).thenReturn(const NotificationState());
 
     await tester.pumpWidget(
       _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
@@ -120,16 +104,10 @@ void main() {
 
     expect(find.byType(AppBar), findsOneWidget);
     expect(find.text('Nhóm của tôi'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.notifications_outlined));
-    await tester.pumpAndSettle();
-
-    expect(find.text('notification page'), findsOneWidget);
+    expect(find.byIcon(Icons.notifications_outlined), findsNothing);
   });
 
-  testWidgets('embedded render tabbar, loading và empty states', (
-    tester,
-  ) async {
+  testWidgets('loading và empty states', (tester) async {
     final groupBloc = _MockGroupBloc();
     final notificationBloc = _MockNotificationBloc();
     final state = _state(status: ViewStatus.loading);
@@ -137,14 +115,9 @@ void main() {
     when(() => notificationBloc.state).thenReturn(const NotificationState());
 
     await tester.pumpWidget(
-      _wrap(
-        groupBloc: groupBloc,
-        notificationBloc: notificationBloc,
-        embedded: true,
-      ),
+      _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
     );
 
-    expect(find.byType(AppBar), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(find.text('Không có nhóm nào'), findsOneWidget);
     await tester.tap(find.text('Nhóm khác'));
@@ -163,7 +136,7 @@ void main() {
       _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
     );
 
-    await tester.tap(find.text('Tạo nhóm'));
+    await tester.tap(find.byTooltip('Tạo nhóm'));
     await tester.pumpAndSettle();
 
     expect(find.text('Tạo nhóm mới'), findsOneWidget);
@@ -197,13 +170,13 @@ void main() {
       _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
     );
 
-    await tester.tap(find.text('Tạo nhóm'));
+    await tester.tap(find.byTooltip('Tạo nhóm'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Huỷ'));
     await tester.pumpAndSettle();
     expect(find.text('Tạo nhóm mới'), findsNothing);
 
-    await tester.tap(find.text('Tạo nhóm'));
+    await tester.tap(find.byTooltip('Tạo nhóm'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Tạo nhóm'));
     await tester.pump();

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
-import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
 import '../../../core/common/view_status.dart';
 import '../../../core/ultils.dart';
@@ -12,26 +11,19 @@ import 'bloc/group_bloc.dart';
 import 'widgets/group_item.dart';
 
 class GroupsView extends StatelessWidget {
-  final bool embedded;
-
-  const GroupsView({super.key, this.embedded = false});
+  const GroupsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return BlocBuilder<GroupBloc, GroupState>(
       builder: (context, state) {
         return DefaultTabController(
           length: 2,
           child: Scaffold(
-            appBar: embedded ? null : _GroupsAppBar(colorScheme: colorScheme),
-            body: _GroupsBody(state: state, embedded: embedded),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => _showCreateGroupDialog(context),
-              label: const Text('Tạo nhóm'),
-              icon: const Icon(Icons.add),
+            appBar: _GroupsAppBar(
+              onCreatePressed: () => _showCreateGroupDialog(context),
             ),
+            body: _GroupsBody(state: state),
           ),
         );
       },
@@ -101,9 +93,9 @@ class GroupsView extends StatelessWidget {
 }
 
 class _GroupsAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final ColorScheme colorScheme;
+  final VoidCallback onCreatePressed;
 
-  const _GroupsAppBar({required this.colorScheme});
+  const _GroupsAppBar({required this.onCreatePressed});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -112,41 +104,12 @@ class _GroupsAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       centerTitle: false,
-      title: Row(
-        spacing: 4,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Image.asset('assets/images/pes.jpg', height: 32),
-          ),
-          const Expanded(child: _GroupsTabBar()),
-        ],
-      ),
+      title: const _GroupsTabBar(),
       actions: [
-        BlocBuilder<NotificationBloc, NotificationState>(
-          builder: (context, state) => IconButton(
-            icon: Stack(
-              children: [
-                const Icon(Icons.notifications_outlined),
-                if (state.unreadNotificationsCount > 0)
-                  Positioned(
-                    right: 4,
-                    top: 4,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.error,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      width: 8,
-                      height: 8,
-                    ),
-                  ),
-              ],
-            ),
-            onPressed: () {
-              context.push(Routing.notification);
-            },
-          ),
+        IconButton(
+          tooltip: 'Tạo nhóm',
+          onPressed: onCreatePressed,
+          icon: const Icon(Icons.add),
         ),
       ],
     );
@@ -155,15 +118,13 @@ class _GroupsAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _GroupsBody extends StatelessWidget {
   final GroupState state;
-  final bool embedded;
 
-  const _GroupsBody({required this.state, required this.embedded});
+  const _GroupsBody({required this.state});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (embedded) const _GroupsTabBar(),
         if (state.viewStatus == ViewStatus.loading)
           const LinearProgressIndicator(),
         Expanded(
