@@ -1,9 +1,17 @@
 # Plan: Tab Home với Dashboard cá nhân + Nhóm
 
 **Ngày:** 2026-05-04
-**Trạng thái:** Chưa triển khai
-**Phụ thuộc:** Plan `2026-05-04-remove-esport-game-selection.md` (nên xong trước, không bắt buộc).
-**Người thực hiện dự kiến:** codex / deepseek / sonnet agent
+**Trạng thái:** ✅ Đã triển khai (commit `ab82124`, develop)
+**Phụ thuộc:** Plan `2026-05-04-remove-esport-game-selection.md` (đã xong trước ở `d11da22`).
+**Người thực hiện:** codex agent
+
+## Sai lệch vs plan khi implement (đã review, chấp nhận)
+
+- `lastChampionAt` fallback dùng `endDate ?? startDate` thay vì `endDate ?? updatedAt` (vì `GNEsportLeague` không có field `updatedAt`).
+- `opponentDisplayName` lấy thẳng từ `match.homeTeam/awayTeam` (đã được `getMatches` hydrate sẵn) thay vì batch `getUsersById` riêng — tương đương kết quả.
+- Thêm `coverage:ignore-file` cho `injection_container.dart` và `coverage:ignore-start` quanh block ad-loading trong `main_view.dart` — phù hợp danh sách exclusion ở CLAUDE.md.
+
+Coverage `lib/presentation/home/**` = 100% (259/259 dòng).
 
 ---
 

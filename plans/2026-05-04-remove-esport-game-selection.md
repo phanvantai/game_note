@@ -1,8 +1,8 @@
 # Plan: Xoá hoàn toàn khái niệm "chọn môn esport"
 
 **Ngày:** 2026-05-04
-**Trạng thái:** Chưa triển khai
-**Người thực hiện dự kiến:** codex / deepseek / sonnet agent
+**Trạng thái:** ✅ Đã triển khai (commit `d11da22`, develop)
+**Người thực hiện:** codex agent
 
 ---
 
