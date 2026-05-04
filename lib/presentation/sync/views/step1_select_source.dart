@@ -22,9 +22,9 @@ class Step1SelectSource extends StatelessWidget {
               nextLabel: 'Tiếp tục',
               onPrevious: () => context.pop(),
               onNext: state.canGoToMapping
-                  ? () => context
-                      .read<SyncBloc>()
-                      .add(const SyncGoToStep(SyncStep.mapPlayers))
+                  ? () => context.read<SyncBloc>().add(
+                      const SyncGoToStep(SyncStep.mapPlayers),
+                    )
                   : null,
             ),
           ],
@@ -49,19 +49,25 @@ class Step1SelectSource extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         const _SectionHeader('League offline'),
-        for (final l in state.offlineLeagues)
-          RadioListTile<int>(
-            key: ValueKey('offline-${l.id}'),
-            title: Text(l.name),
-            subtitle: Text(_describeLeague(l)),
-            value: l.id!,
-            groupValue: state.selectedLeague?.id,
-            onChanged: (v) {
-              if (v != null) {
-                context.read<SyncBloc>().add(SyncSelectOfflineLeague(v));
-              }
-            },
+        RadioGroup<int>(
+          groupValue: state.selectedLeague?.id,
+          onChanged: (v) {
+            if (v != null) {
+              context.read<SyncBloc>().add(SyncSelectOfflineLeague(v));
+            }
+          },
+          child: Column(
+            children: [
+              for (final l in state.offlineLeagues)
+                RadioListTile<int>(
+                  key: ValueKey('offline-${l.id}'),
+                  title: Text(l.name),
+                  subtitle: Text(_describeLeague(l)),
+                  value: l.id!,
+                ),
+            ],
           ),
+        ),
         const SizedBox(height: 16),
         const _SectionHeader('Group online'),
         if (state.myGroups.isEmpty)
@@ -69,18 +75,24 @@ class Step1SelectSource extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Text('Bạn chưa tham gia group nào'),
           ),
-        for (final g in state.myGroups)
-          RadioListTile<String>(
-            key: ValueKey('group-${g.id}'),
-            title: Text(g.groupName),
-            value: g.id,
-            groupValue: state.selectedGroup?.id,
-            onChanged: (v) {
-              if (v != null) {
-                context.read<SyncBloc>().add(SyncSelectGroup(v));
-              }
-            },
+        RadioGroup<String>(
+          groupValue: state.selectedGroup?.id,
+          onChanged: (v) {
+            if (v != null) {
+              context.read<SyncBloc>().add(SyncSelectGroup(v));
+            }
+          },
+          child: Column(
+            children: [
+              for (final g in state.myGroups)
+                RadioListTile<String>(
+                  key: ValueKey('group-${g.id}'),
+                  title: Text(g.groupName),
+                  value: g.id,
+                ),
+            ],
           ),
+        ),
       ],
     );
   }

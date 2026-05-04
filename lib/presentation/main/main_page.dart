@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pes_arena/presentation/esport/bloc/esport_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +17,6 @@ class MainPage extends StatelessWidget {
     return MultiProvider(
       providers: [
         BlocProvider(create: (_) => getIt<ProfileBloc>()),
-        BlocProvider(create: (_) => getIt<EsportBloc>()..add(InitEsport())),
         BlocProvider(create: (_) => getIt<GroupBloc>()),
         BlocProvider(create: (_) => getIt<TournamentBloc>()),
         BlocProvider<NotificationBloc>.value(

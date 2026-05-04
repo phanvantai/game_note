@@ -7,7 +7,6 @@ import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart'
 import '../../../core/common/view_status.dart';
 import '../../../core/ultils.dart';
 import '../../../routing.dart';
-import '../bloc/esport_bloc.dart';
 import 'bloc/group_bloc.dart';
 import 'widgets/group_item.dart';
 
@@ -30,10 +29,7 @@ class GroupsView extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: Image.asset(
-                      'assets/images/pes.jpg',
-                      height: 32,
-                    ),
+                    child: Image.asset('assets/images/pes.jpg', height: 32),
                   ),
                   Expanded(
                     child: TabBar(
@@ -100,7 +96,9 @@ class GroupsView extends StatelessWidget {
                                 group: state.userGroups[index],
                                 onTap: () async {
                                   await context.push(
-                                    Routing.groupDetailPath(state.userGroups[index].id),
+                                    Routing.groupDetailPath(
+                                      state.userGroups[index].id,
+                                    ),
                                     extra: state.userGroups[index],
                                   );
                                   if (context.mounted) {
@@ -126,7 +124,9 @@ class GroupsView extends StatelessWidget {
                                 group: state.otherGroups[index],
                                 onTap: () async {
                                   await context.push(
-                                    Routing.groupDetailPath(state.otherGroups[index].id),
+                                    Routing.groupDetailPath(
+                                      state.otherGroups[index].id,
+                                    ),
                                     extra: state.otherGroups[index],
                                   );
                                   if (context.mounted) {
@@ -155,12 +155,6 @@ class GroupsView extends StatelessWidget {
   }
 
   void _showCreateGroupDialog(BuildContext context) {
-    final esportModel = context.read<EsportBloc>().state.esportModel;
-    if (esportModel == null) {
-      showToast('Chưa chọn một môn thể thao điện tử');
-      return;
-    }
-
     String groupName = '';
     String groupDescription = '';
 
@@ -208,7 +202,6 @@ class GroupsView extends StatelessWidget {
                 BlocProvider.of<GroupBloc>(context).add(
                   CreateEsportGroup(
                     groupName: groupName,
-                    esportId: esportModel.id,
                     description: groupDescription,
                   ),
                 );

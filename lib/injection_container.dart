@@ -37,7 +37,6 @@ import 'presentation/auth/third_party/bloc/third_party_bloc.dart';
 import 'offline/data/models/league_manager.dart';
 import 'offline/presentation/league_detail/bloc/league_detail_bloc.dart';
 import 'firebase/auth/gn_auth.dart';
-import 'presentation/esport/bloc/esport_bloc.dart';
 import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'presentation/notification/bloc/notification_bloc.dart';
@@ -49,9 +48,11 @@ final getIt = GetIt.instance;
 
 Future<void> init() async {
   getIt.registerSingletonAsync<SharedPreferences>(
-      () => SharedPreferences.getInstance());
+    () => SharedPreferences.getInstance(),
+  );
   getIt.registerSingleton(
-      SharedPreferencesHelper(await getIt.getAsync<SharedPreferences>()));
+    SharedPreferencesHelper(await getIt.getAsync<SharedPreferences>()),
+  );
 
   getIt.registerSingleton(PermissionUtil());
 
@@ -64,7 +65,8 @@ Future<void> init() async {
 
     // datasources
     getIt.registerSingleton<LeagueLocalDatasource>(
-        LeagueLocalDatasourceImpl(getIt()));
+      LeagueLocalDatasourceImpl(getIt()),
+    );
 
     // repositories
     getIt.registerSingleton<LeagueRepository>(LeagueRepositoryImpl(getIt()));
@@ -105,18 +107,20 @@ Future<void> init() async {
   // repositories
   getIt.registerFactory<UserRepository>(() => UserRepositoryImpl());
   getIt.registerFactory<EsportGroupRepository>(
-      () => EsportGroupRepositoryImpl());
+    () => EsportGroupRepositoryImpl(),
+  );
   getIt.registerFactory<EsportLeagueRepository>(
-      () => EsportLeagueRepositoryImpl());
+    () => EsportLeagueRepositoryImpl(),
+  );
 
   getIt.registerFactory<NotificationRepository>(
-      () => NotificationRepositoryImpl());
+    () => NotificationRepositoryImpl(),
+  );
   // blocs
   getIt.registerFactory(() => SignInBloc());
   getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
   getIt.registerFactory<ProfileBloc>(() => ProfileBloc(getIt()));
 
-  getIt.registerFactory<EsportBloc>(() => EsportBloc());
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
   getIt.registerFactory<TournamentBloc>(() => TournamentBloc(getIt()));
 
@@ -128,14 +132,18 @@ Future<void> init() async {
   // Offline → Online sync feature. SyncBloc requires LeagueRepository which
   // is only registered when !kIsWeb, so guard registration accordingly.
   getIt.registerLazySingleton<SyncRemoteGateway>(
-      () => SyncRemoteGatewayImpl(getIt()));
+    () => SyncRemoteGatewayImpl(getIt()),
+  );
   getIt.registerLazySingleton<OfflineToOnlineMigrator>(
-      () => OfflineToOnlineMigrator(getIt()));
+    () => OfflineToOnlineMigrator(getIt()),
+  );
   if (!kIsWeb) {
-    getIt.registerFactory<SyncBloc>(() => SyncBloc(
-          offlineLeagueRepository: getIt(),
-          gateway: getIt(),
-          migrator: getIt(),
-        ));
+    getIt.registerFactory<SyncBloc>(
+      () => SyncBloc(
+        offlineLeagueRepository: getIt(),
+        gateway: getIt(),
+        migrator: getIt(),
+      ),
+    );
   }
 }

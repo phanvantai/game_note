@@ -7,7 +7,6 @@ abstract class EsportGroupRepository {
 
   Future<GNEsportGroup> createEsportGroup({
     required String groupName,
-    required String esportId,
     String description = '',
   });
 

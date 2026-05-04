@@ -18,13 +18,11 @@ extension GNFirestoreEsportGroup on GNFirestore {
 
   Future<GNEsportGroup> createEsportGroup({
     required String groupName,
-    required String esportId,
     String description = '',
   }) async {
     final createdAt = DateTime.now();
     final updatedAt = createdAt;
     final data = {
-      GNEsportGroup.esportIdKey: esportId,
       GNEsportGroup.groupNameKey: groupName,
       GNEsportGroup.ownerIdKey: currentUser.uid,
       GNEsportGroup.membersKey: [currentUser.uid],
@@ -33,17 +31,21 @@ extension GNFirestoreEsportGroup on GNFirestore {
       GNEsportGroup.updatedAtKey: Timestamp.fromDate(updatedAt),
       GNEsportGroup.statusKey: 'active',
     };
-    final docRef =
-        await firestore.collection(GNEsportGroup.collectionName).add(data);
+    final docRef = await firestore
+        .collection(GNEsportGroup.collectionName)
+        .add(data);
     // Fetch the newly created group from Firestore
     DocumentSnapshot groupSnapshot = await docRef.get();
     return GNEsportGroup.fromFirestore(groupSnapshot);
   }
 
-  Future<void> addMemberToGroup(
-      {required String groupId, required String memberId}) async {
-    final groupRef =
-        firestore.collection(GNEsportGroup.collectionName).doc(groupId);
+  Future<void> addMemberToGroup({
+    required String groupId,
+    required String memberId,
+  }) async {
+    final groupRef = firestore
+        .collection(GNEsportGroup.collectionName)
+        .doc(groupId);
     final groupSnapshot = await groupRef.get();
     if (!groupSnapshot.exists) {
       throw Exception('Group not found');
@@ -54,10 +56,13 @@ extension GNFirestoreEsportGroup on GNFirestore {
     });
   }
 
-  Future<void> removeMemberFromGroup(
-      {required String groupId, required String memberId}) async {
-    final groupRef =
-        firestore.collection(GNEsportGroup.collectionName).doc(groupId);
+  Future<void> removeMemberFromGroup({
+    required String groupId,
+    required String memberId,
+  }) async {
+    final groupRef = firestore
+        .collection(GNEsportGroup.collectionName)
+        .doc(groupId);
     final groupSnapshot = await groupRef.get();
     if (!groupSnapshot.exists) {
       throw Exception('Group not found');
@@ -83,7 +88,8 @@ extension GNFirestoreEsportGroup on GNFirestore {
 
   // Batch load multiple groups to avoid N+1 query problem
   Future<Map<String, GNEsportGroup>> getGroupsById(
-      List<String> groupIds) async {
+    List<String> groupIds,
+  ) async {
     if (groupIds.isEmpty) return {};
 
     // Remove duplicates
@@ -123,10 +129,10 @@ extension GNFirestoreEsportGroup on GNFirestore {
         .collection(GNEsportGroup.collectionName)
         .doc(groupId)
         .update({
-      GNEsportGroup.statusKey: 'inactive',
-      GNEsportGroup.updatedAtKey:
-          Timestamp.now(), // Update the last modified timestamp
-    });
+          GNEsportGroup.statusKey: 'inactive',
+          GNEsportGroup.updatedAtKey:
+              Timestamp.now(), // Update the last modified timestamp
+        });
   }
 
   // Activate a group (set status to 'active')
@@ -135,15 +141,16 @@ extension GNFirestoreEsportGroup on GNFirestore {
         .collection(GNEsportGroup.collectionName)
         .doc(groupId)
         .update({
-      GNEsportGroup.statusKey: 'active',
-      GNEsportGroup.updatedAtKey: Timestamp.now(),
-    });
+          GNEsportGroup.statusKey: 'active',
+          GNEsportGroup.updatedAtKey: Timestamp.now(),
+        });
   }
 
   // Fetch all members of a group
   Future<List<GNUser>> getMembersOfGroup(String groupId) async {
-    final groupRef =
-        firestore.collection(GNEsportGroup.collectionName).doc(groupId);
+    final groupRef = firestore
+        .collection(GNEsportGroup.collectionName)
+        .doc(groupId);
     final groupSnapshot = await groupRef.get();
     if (!groupSnapshot.exists) {
       throw Exception('Group not found');

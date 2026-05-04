@@ -31,16 +31,8 @@ MatchModel offlineMatch({
     roundId: roundId,
     status: finished,
     created: created,
-    home: ResultModel(
-      matchId: matchId,
-      playerModel: home,
-      score: homeScore,
-    ),
-    away: ResultModel(
-      matchId: matchId,
-      playerModel: away,
-      score: awayScore,
-    ),
+    home: ResultModel(matchId: matchId, playerModel: home, score: homeScore),
+    away: ResultModel(matchId: matchId, playerModel: away, score: awayScore),
   );
 }
 
@@ -52,8 +44,7 @@ LeagueModel offlineLeagueFixture({
   required List<List<MatchModel>> roundsMatches,
 }) {
   final stats = [
-    for (final p in players)
-      PlayerStatsModel(playerModel: p, leagueId: id),
+    for (final p in players) PlayerStatsModel(playerModel: p, leagueId: id),
   ];
   final rounds = [
     for (var i = 0; i < roundsMatches.length; i++)
@@ -68,32 +59,33 @@ LeagueModel offlineLeagueFixture({
   );
 }
 
-GNUser onlineUser(String id, {String? displayName, bool isPlaceholder = false}) =>
-    GNUser(
-      id: id,
-      displayName: displayName ?? id,
-      phoneNumber: null,
-      email: null,
-      photoUrl: null,
-      role: 'user',
-      fcmToken: '',
-      isPlaceholder: isPlaceholder,
-    );
+GNUser onlineUser(
+  String id, {
+  String? displayName,
+  bool isPlaceholder = false,
+}) => GNUser(
+  id: id,
+  displayName: displayName ?? id,
+  phoneNumber: null,
+  email: null,
+  photoUrl: null,
+  role: 'user',
+  fcmToken: '',
+  isPlaceholder: isPlaceholder,
+);
 
 GNEsportGroup onlineGroup(
   String id, {
   String groupName = 'Group',
   List<String> members = const [],
   String ownerId = 'owner',
-}) =>
-    GNEsportGroup(
-      id: id,
-      esportId: 'pes',
-      groupName: groupName,
-      ownerId: ownerId,
-      members: members,
-      description: '',
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime(2024, 1, 1),
-      status: 'active',
-    );
+}) => GNEsportGroup(
+  id: id,
+  groupName: groupName,
+  ownerId: ownerId,
+  members: members,
+  description: '',
+  createdAt: DateTime(2024, 1, 1),
+  updatedAt: DateTime(2024, 1, 1),
+  status: 'active',
+);
