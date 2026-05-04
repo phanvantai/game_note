@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/helpers/admob_helper.dart';
 import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
+import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -103,7 +104,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   }
 
   void _loadAd() async {
-    if (kIsWeb || isAdsLoaded) {
+    if (kIsWeb || isAdsLoaded || !getIt<GNRemoteConfig>().adsEnabled) {
       return;
     }
     final AnchoredAdaptiveBannerAdSize? size =

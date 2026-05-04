@@ -26,6 +26,7 @@ import 'domain/repositories/notification_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'firebase/firestore/gn_firestore.dart';
 import 'firebase/messaging/gn_firebase_messaging.dart';
+import 'firebase/remote_config/gn_remote_config.dart';
 import 'firebase/storage/gn_storage.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'presentation/auth/sign_in/bloc/sign_in_bloc.dart';
@@ -49,6 +50,8 @@ Future<void> init() async {
       SharedPreferencesHelper(await getIt.getAsync<SharedPreferences>()));
 
   getIt.registerSingleton(PermissionUtil());
+
+  getIt.registerSingleton(GNRemoteConfig());
 
   if (!kIsWeb) {
     getIt.registerSingleton(DatabaseManager());

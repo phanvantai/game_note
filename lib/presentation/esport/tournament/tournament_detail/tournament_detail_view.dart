@@ -8,6 +8,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
+import 'package:pes_arena/injection_container.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 
@@ -401,7 +403,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   }
 
   void _loadAd() async {
-    if (kIsWeb || isAdsLoaded) return;
+    if (kIsWeb || isAdsLoaded || !getIt<GNRemoteConfig>().adsEnabled) return;
     final AnchoredAdaptiveBannerAdSize? size =
         await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
           MediaQuery.of(context).size.width.truncate(),

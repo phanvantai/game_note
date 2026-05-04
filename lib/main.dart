@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/theme/theme_provider.dart';
 import 'firebase/messaging/gn_firebase_messaging.dart';
+import 'firebase/remote_config/gn_remote_config.dart';
 import 'offline/data/database/database_manager.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'firebase_options.dart';
@@ -23,14 +24,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   usePathUrlStrategy();
   GoRouter.optionURLReflectsImperativeAPIs = true;
-  if (!kIsWeb) {
-    MobileAds.instance.initialize();
-  }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (!kIsWeb) {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   }
   await di.init();
+  await di.getIt<GNRemoteConfig>().initialize();
+  if (!kIsWeb && di.getIt<GNRemoteConfig>().adsEnabled) {
+    MobileAds.instance.initialize();
+  }
   if (!kIsWeb) {
     await di.getIt<DatabaseManager>().open();
   }
