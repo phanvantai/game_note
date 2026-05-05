@@ -44,3 +44,40 @@ class RemoveMember extends GroupDetailEvent {
   @override
   List<Object?> get props => [groupId, userId];
 }
+
+class LoadGroupLeagues extends GroupDetailEvent {
+  final String groupId;
+
+  const LoadGroupLeagues(this.groupId);
+
+  @override
+  List<Object?> get props => [groupId];
+}
+
+class ReplaceLeagueParticipant extends GroupDetailEvent {
+  final String leagueId;
+  final String oldUserId;
+  final String newUserId;
+
+  const ReplaceLeagueParticipant({
+    required this.leagueId,
+    required this.oldUserId,
+    required this.newUserId,
+  });
+
+  @override
+  List<Object?> get props => [leagueId, oldUserId, newUserId];
+}
+
+class SetLeagueMergeCompleted extends GroupDetailEvent {
+  final String leagueId;
+  final bool completed;
+
+  const SetLeagueMergeCompleted({
+    required this.leagueId,
+    required this.completed,
+  });
+
+  @override
+  List<Object?> get props => [leagueId, completed];
+}

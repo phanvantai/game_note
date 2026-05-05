@@ -171,4 +171,27 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
     return getIt<GNFirestore>().listenForLeagueStats(leagueId);
   }
 
+  @override
+  Future<List<GNEsportLeague>> getLeaguesByGroupId(String groupId) {
+    return getIt<GNFirestore>().getLeaguesByGroupId(groupId);
+  }
+
+  @override
+  Future<void> replaceParticipant({
+    required String leagueId,
+    required String oldUserId,
+    required String newUserId,
+  }) {
+    return getIt<GNFirestore>().replaceParticipantInLeague(
+      leagueId: leagueId,
+      oldUserId: oldUserId,
+      newUserId: newUserId,
+    );
+  }
+
+  @override
+  Future<void> setMergeCompleted(String leagueId, {required bool completed}) {
+    return getIt<GNFirestore>().setMergeCompleted(leagueId, completed: completed);
+  }
+
 }

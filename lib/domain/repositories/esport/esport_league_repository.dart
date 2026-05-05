@@ -38,6 +38,21 @@ abstract class EsportLeagueRepository {
     List<String> groupIds,
   );
 
+  /// All leagues (including inactive/finished) belonging to [groupId].
+  /// Used by the group admin tab to manage participants.
+  Future<List<GNEsportLeague>> getLeaguesByGroupId(String groupId);
+
+  /// Atomically replace [oldUserId] with [newUserId] in [leagueId].
+  /// If [newUserId] already has stats, they are merged.
+  Future<void> replaceParticipant({
+    required String leagueId,
+    required String oldUserId,
+    required String newUserId,
+  });
+
+  /// Toggle the mergeCompleted flag on a league.
+  Future<void> setMergeCompleted(String leagueId, {required bool completed});
+
   Future<GNEsportLeague?> getLeague(String leagueId);
 
   Future<void> addLeague({

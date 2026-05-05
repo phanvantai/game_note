@@ -74,6 +74,9 @@ class GNEsportLeague extends Equatable {
   // Không phải toggle bật/tắt feature — per-match cost luôn có thể bật từng trận.
   final int defaultMatchCost;
 
+  /// Admin đã xác nhận không còn cần merge/replace user nào nữa trong giải này.
+  final bool mergeCompleted;
+
   final GNEsportGroup? group; // group this league belongs to
 
   // esport_leagues is a top-level collection
@@ -93,6 +96,7 @@ class GNEsportLeague extends Equatable {
   static const String fieldRankPayoutEnabled = 'rankPayoutEnabled';
   static const String fieldRankPayouts = 'rankPayouts';
   static const String fieldDefaultMatchCost = 'defaultMatchCost';
+  static const String fieldMergeCompleted = 'mergeCompleted';
 
   const GNEsportLeague({
     required this.id,
@@ -109,6 +113,7 @@ class GNEsportLeague extends Equatable {
     this.rankPayoutEnabled = false,
     this.rankPayouts = const [],
     this.defaultMatchCost = 50000,
+    this.mergeCompleted = false,
   });
 
   @override
@@ -127,6 +132,7 @@ class GNEsportLeague extends Equatable {
         rankPayoutEnabled,
         rankPayouts,
         defaultMatchCost,
+        mergeCompleted,
       ];
 
   GNEsportLeague copyWith({
@@ -144,6 +150,7 @@ class GNEsportLeague extends Equatable {
     bool? rankPayoutEnabled,
     List<int>? rankPayouts,
     int? defaultMatchCost,
+    bool? mergeCompleted,
   }) {
     return GNEsportLeague(
       id: id ?? this.id,
@@ -160,6 +167,7 @@ class GNEsportLeague extends Equatable {
       rankPayoutEnabled: rankPayoutEnabled ?? this.rankPayoutEnabled,
       rankPayouts: rankPayouts ?? this.rankPayouts,
       defaultMatchCost: defaultMatchCost ?? this.defaultMatchCost,
+      mergeCompleted: mergeCompleted ?? this.mergeCompleted,
     );
   }
 
@@ -177,6 +185,7 @@ class GNEsportLeague extends Equatable {
       fieldRankPayoutEnabled: rankPayoutEnabled,
       fieldRankPayouts: rankPayouts,
       fieldDefaultMatchCost: defaultMatchCost,
+      fieldMergeCompleted: mergeCompleted,
     };
   }
 
@@ -211,6 +220,7 @@ class GNEsportLeague extends Equatable {
             const [],
       ),
       defaultMatchCost: (data[fieldDefaultMatchCost] as num?)?.toInt() ?? 50000,
+      mergeCompleted: data[fieldMergeCompleted] ?? false,
     );
   }
 }

@@ -12,6 +12,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../../core/helpers/admob_helper.dart';
 import '../../../users/user_item.dart';
+import 'widgets/group_leagues_tab.dart';
 
 class GroupDetailView extends StatefulWidget {
   const GroupDetailView({super.key});
@@ -20,9 +21,36 @@ class GroupDetailView extends StatefulWidget {
   State<GroupDetailView> createState() => _GroupDetailViewState();
 }
 
-class _GroupDetailViewState extends State<GroupDetailView> {
+class _GroupDetailViewState extends State<GroupDetailView>
+    with SingleTickerProviderStateMixin {
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
+  late final TabController _tabController;
+  bool _leaguesLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (_tabController.index == 1 && !_leaguesLoaded) {
+      _leaguesLoaded = true;
+      final groupId = context.read<GroupDetailBloc>().state.group.id;
+      context.read<GroupDetailBloc>().add(LoadGroupLeagues(groupId));
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController
+      ..removeListener(_onTabChanged)
+      ..dispose();
+    _bannerAd?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +71,13 @@ class _GroupDetailViewState extends State<GroupDetailView> {
             overflow: TextOverflow.ellipsis,
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: 'Thành viên'),
+              Tab(text: 'Giải đấu'),
+            ],
+          ),
         ),
         body: Container(
           decoration: BoxDecoration(
@@ -59,82 +94,90 @@ class _GroupDetailViewState extends State<GroupDetailView> {
             ),
           ),
           child: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+            child: TabBarView(
+              controller: _tabController,
               children: [
-                if (state.viewStatus == ViewStatus.loading)
-                  const LinearProgressIndicator(minHeight: 3),
-                _GroupDetailHero(state: state),
-                if (state.group.description.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  _GroupSectionShell(
-                    title: 'Mô tả',
-                    icon: Icons.notes_outlined,
-                    child: Text(
-                      state.group.description,
-                      style: textTheme.bodyMedium?.copyWith(height: 1.45),
-                      textAlign: TextAlign.justify,
+                // Tab 1: Thành viên
+                ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                  children: [
+                    if (state.viewStatus == ViewStatus.loading)
+                      const LinearProgressIndicator(minHeight: 3),
+                    _GroupDetailHero(state: state),
+                    if (state.group.description.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _GroupSectionShell(
+                        title: 'Mô tả',
+                        icon: Icons.notes_outlined,
+                        child: Text(
+                          state.group.description,
+                          style: textTheme.bodyMedium?.copyWith(height: 1.45),
+                          textAlign: TextAlign.justify,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    _GroupSectionShell(
+                      title: 'Thành viên (${state.members.length})',
+                      icon: Icons.people_alt_outlined,
+                      trailing: state.isOwner
+                          ? _RoleChip(
+                              label: 'Owner',
+                              icon: Icons.admin_panel_settings_outlined,
+                              color: colorScheme.secondary,
+                            )
+                          : null,
+                      child: Column(
+                        children: state.members.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final user = entry.value;
+                          final isLast = index == state.members.length - 1;
+                          return Column(
+                            children: [
+                              _MemberTile(
+                                child: UserItem(
+                                  user: user,
+                                  trailing: state.isOwner
+                                      ? !user.isCurrentUser
+                                            ? IconButton(
+                                                tooltip: 'Xoá thành viên',
+                                                onPressed: () => _removeMember(
+                                                  false,
+                                                  context,
+                                                  state,
+                                                  user.id,
+                                                ),
+                                                icon: Icon(
+                                                  Icons.person_remove_outlined,
+                                                  color: colorScheme.error,
+                                                  size: 20,
+                                                ),
+                                              )
+                                            : Icon(
+                                                Icons.admin_panel_settings_outlined,
+                                                color: colorScheme.secondary,
+                                                size: 20,
+                                              )
+                                      : user.id == state.group.ownerId
+                                      ? Icon(
+                                          Icons.admin_panel_settings_outlined,
+                                          color: colorScheme.secondary,
+                                          size: 20,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                              if (!isLast) const SizedBox(height: 8),
+                            ],
+                          );
+                        }).toList(),
+                      ),
                     ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                _GroupSectionShell(
-                  title: 'Thành viên (${state.members.length})',
-                  icon: Icons.people_alt_outlined,
-                  trailing: state.isOwner
-                      ? _RoleChip(
-                          label: 'Owner',
-                          icon: Icons.admin_panel_settings_outlined,
-                          color: colorScheme.secondary,
-                        )
-                      : null,
-                  child: Column(
-                    children: state.members.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final user = entry.value;
-                      final isLast = index == state.members.length - 1;
-                      return Column(
-                        children: [
-                          _MemberTile(
-                            child: UserItem(
-                              user: user,
-                              trailing: state.isOwner
-                                  ? !user.isCurrentUser
-                                        ? IconButton(
-                                            tooltip: 'Xoá thành viên',
-                                            onPressed: () => _removeMember(
-                                              false,
-                                              context,
-                                              state,
-                                              user.id,
-                                            ),
-                                            icon: Icon(
-                                              Icons.person_remove_outlined,
-                                              color: colorScheme.error,
-                                              size: 20,
-                                            ),
-                                          )
-                                        : Icon(
-                                            Icons.admin_panel_settings_outlined,
-                                            color: colorScheme.secondary,
-                                            size: 20,
-                                          )
-                                  : user.id == state.group.ownerId
-                                  ? Icon(
-                                      Icons.admin_panel_settings_outlined,
-                                      color: colorScheme.secondary,
-                                      size: 20,
-                                    )
-                                  : null,
-                            ),
-                          ),
-                          if (!isLast) const SizedBox(height: 8),
-                        ],
-                      );
-                    }).toList(),
-                  ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
-                const SizedBox(height: 24),
+                // Tab 2: Giải đấu
+                const GroupLeaguesTab(),
               ],
             ),
           ),
@@ -154,12 +197,6 @@ class _GroupDetailViewState extends State<GroupDetailView> {
         }
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _bannerAd?.dispose();
-    super.dispose();
   }
 
   @override

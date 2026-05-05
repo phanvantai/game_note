@@ -5,6 +5,8 @@ import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_es
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_league.dart';
+import 'match/gn_esport_match.dart';
+import 'stats/gn_esport_league_stat.dart';
 
 /// Paginated page of leagues with cursor info for infinite scroll.
 class LeaguesPage {
@@ -335,4 +337,124 @@ extension GNFirestoreEsportLeague on GNFirestore {
         .map((snapshot) => GNEsportLeague.fromFirestore(snapshot));
   }
 
+  /// All leagues belonging to [groupId], including inactive/finished ones.
+  /// Used by the group admin tab to manage participants across all leagues.
+  Future<List<GNEsportLeague>> getLeaguesByGroupId(String groupId) async {
+    final snap = await firestore
+        .collection(GNEsportLeague.collectionName)
+        .where(GNEsportLeague.fieldGroupId, isEqualTo: groupId)
+        .orderBy(GNEsportLeague.fieldStartDate, descending: true)
+        .get();
+    final leagues = snap.docs.map(GNEsportLeague.fromFirestore).toList();
+    return _attachGroups(leagues);
+  }
+
+  /// Atomically replace [oldUserId] with [newUserId] inside [leagueId].
+  ///
+  /// If [newUserId] already has a stat doc in the league, their stats are
+  /// merged (summed) and [oldUserId]'s stat doc is deleted. Otherwise the
+  /// existing stat doc is reassigned to [newUserId].
+  /// All match references (homeTeamId / awayTeamId) are updated in the same
+  /// WriteBatch so the operation is atomic.
+  Future<void> replaceParticipantInLeague({
+    required String leagueId,
+    required String oldUserId,
+    required String newUserId,
+  }) async {
+    final leagueRef = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId);
+    final statsCol = leagueRef.collection(GNEsportLeagueStat.collectionName);
+    final matchesCol = leagueRef.collection(GNEsportMatch.collectionName);
+
+    // Fire all reads concurrently.
+    final leagueSnapFuture = leagueRef.get();
+    final oldStatFuture = statsCol
+        .where(GNEsportLeagueStat.fieldUserId, isEqualTo: oldUserId)
+        .limit(1)
+        .get();
+    final newStatFuture = statsCol
+        .where(GNEsportLeagueStat.fieldUserId, isEqualTo: newUserId)
+        .limit(1)
+        .get();
+    final matchesFuture = matchesCol.get();
+
+    final leagueSnap = await leagueSnapFuture;
+    if (!leagueSnap.exists) throw Exception('League not found: $leagueId');
+    final league = GNEsportLeague.fromFirestore(leagueSnap);
+
+    final oldStatQuery = await oldStatFuture;
+    if (oldStatQuery.docs.isEmpty) {
+      throw Exception('User $oldUserId not found in league $leagueId');
+    }
+    final oldStatDoc = oldStatQuery.docs.first;
+    final oldStat = GNEsportLeagueStat.fromFirestore(oldStatDoc);
+
+    final newStatQuery = await newStatFuture;
+    final newStatDoc =
+        newStatQuery.docs.isEmpty ? null : newStatQuery.docs.first;
+    final newStat =
+        newStatDoc != null ? GNEsportLeagueStat.fromFirestore(newStatDoc) : null;
+
+    final matchDocs = (await matchesFuture).docs;
+
+    // Build updated participants list.
+    final updatedParticipants = List<String>.from(league.participants)
+      ..remove(oldUserId);
+    if (!updatedParticipants.contains(newUserId)) {
+      updatedParticipants.add(newUserId);
+    }
+
+    final batch = firestore.batch();
+
+    // 1. Update participants array.
+    batch.update(leagueRef, {
+      GNEsportLeague.fieldParticipants: updatedParticipants,
+    });
+
+    // 2. Handle stat docs.
+    if (newStat == null) {
+      // New user not yet in league — reassign the existing stat doc.
+      batch.update(oldStatDoc.reference, {
+        GNEsportLeagueStat.fieldUserId: newUserId,
+      });
+    } else {
+      // New user already in league — merge totals into their doc, delete old.
+      batch.update(newStatDoc!.reference, {
+        GNEsportLeagueStat.fieldMatchesPlayed:
+            newStat.matchesPlayed + oldStat.matchesPlayed,
+        GNEsportLeagueStat.fieldGoals: newStat.goals + oldStat.goals,
+        GNEsportLeagueStat.fieldGoalsConceded:
+            newStat.goalsConceded + oldStat.goalsConceded,
+        GNEsportLeagueStat.fieldWins: newStat.wins + oldStat.wins,
+        GNEsportLeagueStat.fieldDraws: newStat.draws + oldStat.draws,
+        GNEsportLeagueStat.fieldLosses: newStat.losses + oldStat.losses,
+      });
+      batch.delete(oldStatDoc.reference);
+    }
+
+    // 3. Update matches that reference oldUserId.
+    for (final matchDoc in matchDocs) {
+      final data = matchDoc.data();
+      final updates = <String, dynamic>{};
+      if (data[GNEsportMatch.fieldHomeTeamId] == oldUserId) {
+        updates[GNEsportMatch.fieldHomeTeamId] = newUserId;
+      }
+      if (data[GNEsportMatch.fieldAwayTeamId] == oldUserId) {
+        updates[GNEsportMatch.fieldAwayTeamId] = newUserId;
+      }
+      if (updates.isNotEmpty) {
+        batch.update(matchDoc.reference, updates);
+      }
+    }
+
+    await batch.commit();
+  }
+
+  Future<void> setMergeCompleted(String leagueId, {required bool completed}) {
+    return firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .update({GNEsportLeague.fieldMergeCompleted: completed});
+  }
 }
