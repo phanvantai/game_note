@@ -147,6 +147,7 @@ Future<void> init() async {
       userStatsRepository: getIt(),
       auth: getIt(),
       cache: getIt(),
+      firestore: getIt(),
     ),
   );
   getIt.registerFactory<OngoingTournamentsBloc>(

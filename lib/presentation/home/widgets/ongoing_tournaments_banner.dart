@@ -34,7 +34,11 @@ List<GNEsportLeague> _filterOngoing(
 ) {
   final today = DateTime(now.year, now.month, now.day);
   return leagues.where((l) {
-    final start = DateTime(l.startDate.year, l.startDate.month, l.startDate.day);
+    final start = DateTime(
+      l.startDate.year,
+      l.startDate.month,
+      l.startDate.day,
+    );
     final endRaw = l.endDate ?? l.startDate;
     final end = DateTime(endRaw.year, endRaw.month, endRaw.day);
     return !today.isBefore(start) && !today.isAfter(end);
@@ -49,30 +53,54 @@ class _Banner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
+    final colorScheme = theme.colorScheme;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.secondary.withValues(alpha: 0.22),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.emoji_events,
-                  color: theme.colorScheme.secondary,
-                  size: 20,
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(width: 8),
-                Text(
+                child: Icon(
+                  Icons.emoji_events,
+                  color: colorScheme.secondary,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
                   'Giải đấu đang diễn ra',
                   style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-              ],
-            ),
+              ),
+              Text(
+                '${leagues.length}',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.secondary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
           ...leagues.map(
             (l) => TournamentItem(
               league: l,

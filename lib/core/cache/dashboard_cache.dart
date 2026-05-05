@@ -98,6 +98,7 @@ DashboardStats _statsFromJson(Map<String, dynamic> map) {
 Map<String, dynamic> _opponentToJson(OpponentStat o) => {
   'opponentId': o.opponentId,
   'opponentDisplayName': o.opponentDisplayName,
+  'opponentPhotoUrl': o.opponentPhotoUrl,
   'matchesPlayed': o.matchesPlayed,
   'wins': o.wins,
   'draws': o.draws,
@@ -107,6 +108,7 @@ Map<String, dynamic> _opponentToJson(OpponentStat o) => {
 OpponentStat _opponentFromJson(Map<String, dynamic> map) => OpponentStat(
   opponentId: map['opponentId'] as String? ?? '',
   opponentDisplayName: map['opponentDisplayName'] as String? ?? '',
+  opponentPhotoUrl: map['opponentPhotoUrl'] as String?,
   matchesPlayed: (map['matchesPlayed'] as num?)?.toInt() ?? 0,
   wins: (map['wins'] as num?)?.toInt() ?? 0,
   draws: (map['draws'] as num?)?.toInt() ?? 0,

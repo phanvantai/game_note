@@ -43,84 +43,210 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
         }
       },
       builder: (context, state) => Scaffold(
-        appBar: AppBar(title: const Text('Cập nhật thông tin')),
-        body: Column(
-          children: [
-            if (state.viewStatus == ViewStatus.loading)
-              const LinearProgressIndicator(),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  TextField(
-                    textInputAction: TextInputAction.next,
-                    controller: _displayNameController,
-                    decoration: appInputDecoration(
-                      context: context,
-                      hintText: 'Họ và tên',
-                      prefixIcon: Icons.person_outline,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _phoneNumberController,
-                    decoration: appInputDecoration(
-                      context: context,
-                      hintText: 'Số điện thoại',
-                      prefixIcon: Icons.phone_outlined,
-                    ),
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _emailController,
-                    decoration: appInputDecoration(
-                      context: context,
-                      hintText: 'Email',
-                      prefixIcon: Icons.email_outlined,
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.done,
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 48,
-                    child: FilledButton(
-                      onPressed: state.viewStatus == ViewStatus.loading
-                          ? null
-                          : () {
-                              FocusScope.of(context).unfocus();
-                              context.read<UpdateProfileBloc>().add(
-                                SubmittUpdateProfile(
-                                  userDisplayName: _displayNameController.text,
-                                  userPhoneNumber: _phoneNumberController.text,
-                                  userEmail: _emailController.text,
-                                ),
-                              );
-                            },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: colorScheme.secondary,
-                        foregroundColor: colorScheme.onSecondary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Cập nhật',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: const Text('Cập nhật thông tin'),
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.secondary.withValues(alpha: 0.16),
+                Theme.of(context).scaffoldBackgroundColor,
+                colorScheme.primary.withValues(alpha: 0.06),
+              ],
+              stops: const [0, 0.46, 1],
             ),
-          ],
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                if (state.viewStatus == ViewStatus.loading)
+                  const LinearProgressIndicator(minHeight: 3),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                    children: [
+                      _FormHero(
+                        icon: Icons.manage_accounts_outlined,
+                        eyebrow: 'Profile setup',
+                        title: 'Thông tin hiển thị',
+                        subtitle: 'Cập nhật tên, số điện thoại và email.',
+                      ),
+                      const SizedBox(height: 16),
+                      _FormCard(
+                        children: [
+                          TextField(
+                            textInputAction: TextInputAction.next,
+                            controller: _displayNameController,
+                            decoration: appInputDecoration(
+                              context: context,
+                              hintText: 'Họ và tên',
+                              prefixIcon: Icons.person_outline,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _phoneNumberController,
+                            decoration: appInputDecoration(
+                              context: context,
+                              hintText: 'Số điện thoại',
+                              prefixIcon: Icons.phone_outlined,
+                            ),
+                            keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _emailController,
+                            decoration: appInputDecoration(
+                              context: context,
+                              hintText: 'Email',
+                              prefixIcon: Icons.email_outlined,
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.done,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 48,
+                        child: FilledButton(
+                          onPressed: state.viewStatus == ViewStatus.loading
+                              ? null
+                              : () {
+                                  FocusScope.of(context).unfocus();
+                                  context.read<UpdateProfileBloc>().add(
+                                    SubmittUpdateProfile(
+                                      userDisplayName:
+                                          _displayNameController.text,
+                                      userPhoneNumber:
+                                          _phoneNumberController.text,
+                                      userEmail: _emailController.text,
+                                    ),
+                                  );
+                                },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.secondary,
+                            foregroundColor: colorScheme.onSecondary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cập nhật',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _FormHero extends StatelessWidget {
+  final IconData icon;
+  final String eyebrow;
+  final String title;
+  final String subtitle;
+
+  const _FormHero({
+    required this.icon,
+    required this.eyebrow,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.secondary.withValues(alpha: 0.24),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: colorScheme.secondary,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: colorScheme.onSecondary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  eyebrow,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colorScheme.secondary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FormCard extends StatelessWidget {
+  final List<Widget> children;
+
+  const _FormCard({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
+      ),
+      child: Column(children: children),
     );
   }
 }

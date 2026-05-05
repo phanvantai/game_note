@@ -5,6 +5,8 @@ import 'package:pes_arena/core/cache/dashboard_cache.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/domain/repositories/user_stats_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:pes_arena/firebase/firestore/user/stats/gn_user_stats_summary.dart';
 
 import '../models/dashboard_stats.dart';
@@ -26,16 +28,19 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final UserStatsRepository _repo;
   final GNAuth _auth;
   final DashboardCache _cache;
+  final GNFirestore _firestore;
   final Duration _recomputeTimeout;
 
   DashboardBloc({
     required UserStatsRepository userStatsRepository,
     required GNAuth auth,
     required DashboardCache cache,
+    required GNFirestore firestore,
     Duration recomputeTimeout = const Duration(seconds: 30),
   }) : _repo = userStatsRepository,
        _auth = auth,
        _cache = cache,
+       _firestore = firestore,
        _recomputeTimeout = recomputeTimeout,
        super(const DashboardState()) {
     on<LoadDashboard>(_onLoadDashboard);
@@ -132,7 +137,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         }
       }
 
-      final stats = _toDashboardStats(summary);
+      final stats = await _toDashboardStats(summary);
       await _cache.write(uid, stats);
       emit(
         state.copyWith(
@@ -157,7 +162,12 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     }
   }
 
-  DashboardStats _toDashboardStats(GNUserStatsSummary s) {
+  Future<DashboardStats> _toDashboardStats(GNUserStatsSummary s) async {
+    final opponentIds = s.h2hSummary.map((o) => o.opponentId).toList();
+    final usersMap = opponentIds.isEmpty
+        ? <String, dynamic>{}
+        : await _firestore.getUsersById(opponentIds);
+
     return DashboardStats(
       tournamentsJoined: s.tournamentsJoined,
       finishedTournaments: s.tournamentsFinished,
@@ -176,6 +186,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             (o) => OpponentStat(
               opponentId: o.opponentId,
               opponentDisplayName: o.opponentDisplayName,
+              opponentPhotoUrl: usersMap[o.opponentId]?.photoUrl,
               matchesPlayed: o.matchesPlayed,
               wins: o.wins,
               draws: o.draws,

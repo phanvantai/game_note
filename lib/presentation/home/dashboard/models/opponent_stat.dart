@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 class OpponentStat extends Equatable {
   final String opponentId;
   final String opponentDisplayName;
+  final String? opponentPhotoUrl;
   final int matchesPlayed;
   final int wins;
   final int draws;
@@ -11,6 +12,7 @@ class OpponentStat extends Equatable {
   const OpponentStat({
     required this.opponentId,
     required this.opponentDisplayName,
+    this.opponentPhotoUrl,
     required this.matchesPlayed,
     required this.wins,
     required this.draws,
@@ -23,6 +25,7 @@ class OpponentStat extends Equatable {
   List<Object?> get props => [
     opponentId,
     opponentDisplayName,
+    opponentPhotoUrl,
     matchesPlayed,
     wins,
     draws,

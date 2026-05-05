@@ -46,10 +46,7 @@ Widget _wrap({
     child: MaterialApp.router(
       routerConfig: GoRouter(
         routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => const GroupsView(),
-          ),
+          GoRoute(path: '/', builder: (context, state) => const GroupsView()),
           GoRoute(
             path: '/notification',
             builder: (context, state) => const Text('notification page'),
@@ -91,7 +88,7 @@ void main() {
 
   tearDown(resetShowToast);
 
-  testWidgets('standalone render appbar và tabs', (tester) async {
+  testWidgets('standalone render hero và tabs', (tester) async {
     final groupBloc = _MockGroupBloc();
     final notificationBloc = _MockNotificationBloc();
     final state = _state();
@@ -102,7 +99,8 @@ void main() {
       _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
     );
 
-    expect(find.byType(AppBar), findsOneWidget);
+    expect(find.byType(AppBar), findsNothing);
+    expect(find.text('Community hub'), findsOneWidget);
     expect(find.text('Nhóm của tôi'), findsOneWidget);
     expect(find.byIcon(Icons.notifications_outlined), findsNothing);
   });

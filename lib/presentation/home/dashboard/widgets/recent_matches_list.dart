@@ -13,6 +13,7 @@ class RecentMatchesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (matches.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -20,12 +21,36 @@ class RecentMatchesList extends StatelessWidget {
     return Column(
       children: matches
           .map(
-            (match) => Card(
+            (match) => Container(
               margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.52,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.38),
+                ),
+              ),
               child: ListTile(
                 onTap: () =>
                     context.push(Routing.tournamentDetailPath(match.leagueId)),
-                leading: Icon(match.result.icon, color: match.result.color),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                leading: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: match.result.color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    match.result.icon,
+                    color: match.result.color,
+                    size: 20,
+                  ),
+                ),
                 title: Text(
                   '${DateFormat('dd/MM').format(match.date)} · ${match.leagueName}',
                   maxLines: 1,
@@ -37,7 +62,10 @@ class RecentMatchesList extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: Icon(
+                  Icons.chevron_right,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           )

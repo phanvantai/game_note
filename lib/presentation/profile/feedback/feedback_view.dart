@@ -30,8 +30,27 @@ class _FeedbackViewState extends State<FeedbackView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Góp ý')),
-      body: _body(),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        title: const Text('Góp ý'),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.16),
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+            ],
+            stops: const [0, 0.46, 1],
+          ),
+        ),
+        child: SafeArea(child: _body()),
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_feedback',
         onPressed: _addFeedback,
@@ -131,21 +150,146 @@ class _FeedbackViewState extends State<FeedbackView> {
           );
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           final feedbackList = snapshot.data!;
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: feedbackList.length,
-            itemBuilder: (context, index) =>
-                FeedbackItem(feedback: feedbackList[index]),
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+            children: [
+              const _FeedbackHero(),
+              const SizedBox(height: 16),
+              ...feedbackList.map(
+                (feedback) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: FeedbackItem(feedback: feedback),
+                ),
+              ),
+            ],
           );
         } else {
-          return const AppEmptyState(
-            icon: Icons.chat_bubble_outline,
-            title: 'Chưa có góp ý nào',
-            subtitle: 'Nhấn nút + để thêm góp ý mới',
-          );
+          return const _FeedbackEmptyState();
         }
       },
+    );
+  }
+}
+
+class _FeedbackHero extends StatelessWidget {
+  const _FeedbackHero();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.secondary.withValues(alpha: 0.24),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: colorScheme.secondary,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              Icons.chat_bubble_outline,
+              color: colorScheme.onSecondary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Feedback board',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colorScheme.secondary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Góp ý cộng đồng',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Theo dõi và gửi phản hồi để cải thiện PES Arena.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeedbackEmptyState extends StatelessWidget {
+  const _FeedbackEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(24, 48, 24, 96),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: colorScheme.surface.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.45),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(
+                  Icons.chat_bubble_outline,
+                  color: colorScheme.secondary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Chưa có góp ý nào',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Nhấn nút + để thêm góp ý mới',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

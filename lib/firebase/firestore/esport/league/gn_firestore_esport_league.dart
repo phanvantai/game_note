@@ -22,41 +22,25 @@ class LeaguesPage {
 }
 
 extension GNFirestoreEsportLeague on GNFirestore {
-  /// Fetch leagues the current user owns OR participates in.
+  /// Fetch leagues the current user participates in as a player.
   ///
-  /// Server-side filtered via two parallel queries (Firestore can't OR across
-  /// different fields with a single query). Results are merged + deduped by
-  /// id, then sorted by startDate desc.
-  ///
-  /// No pagination: a single user typically participates in tens of leagues
-  /// at most, and pagination across two merged cursors gets messy. Revisit
-  /// if a user reports slowness here.
+  /// Intentionally excludes leagues owned but not joined — those belong in a
+  /// separate "management" flow (see profile). This keeps the count consistent
+  /// with the dashboard stat (tournamentsJoined via Cloud Function).
   Future<List<GNEsportLeague>> getMyLeagues() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return [];
 
     final col = firestore.collection(GNEsportLeague.collectionName);
-    final ownedQuery = col
-        .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
-        .where(GNEsportLeague.fieldOwnerId, isEqualTo: uid)
-        .orderBy(GNEsportLeague.fieldStartDate, descending: true);
-    final joinedQuery = col
+    final snap = await col
         .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
         .where(GNEsportLeague.fieldParticipants, arrayContains: uid)
-        .orderBy(GNEsportLeague.fieldStartDate, descending: true);
+        .orderBy(GNEsportLeague.fieldStartDate, descending: true)
+        .get();
 
-    final snapshots = await Future.wait([ownedQuery.get(), joinedQuery.get()]);
-
-    // Dedupe by id — a user can both own and participate in a league.
-    final byId = <String, GNEsportLeague>{};
-    for (final snap in snapshots) {
-      for (final doc in snap.docs) {
-        byId[doc.id] = GNEsportLeague.fromFirestore(doc);
-      }
-    }
-
-    final leagues = byId.values.toList()
-      ..sort((a, b) => b.startDate.compareTo(a.startDate));
+    final leagues = snap.docs
+        .map((doc) => GNEsportLeague.fromFirestore(doc))
+        .toList();
 
     return _attachGroups(leagues);
   }

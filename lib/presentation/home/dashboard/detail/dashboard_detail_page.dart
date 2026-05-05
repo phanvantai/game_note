@@ -8,7 +8,9 @@ import 'package:pes_arena/core/widgets/shimmer.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/routing.dart';
 
+import '../../../../../widgets/gn_circle_avatar.dart';
 import '../bloc/dashboard_bloc.dart';
+import 'h2h_detail_page.dart';
 import '../models/dashboard_stats.dart';
 import '../models/opponent_stat.dart';
 import '../models/recent_match_summary.dart';
@@ -36,8 +38,12 @@ class _DashboardDetailScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text('Bảng thống kê'),
         actions: [
           BlocBuilder<DashboardBloc, DashboardState>(
@@ -71,44 +77,217 @@ class _DashboardDetailScaffold extends StatelessWidget {
                   : state.errorMessage,
             );
           }
-          return Stack(
-            children: [
-              ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _SectionHeader('Tổng quan'),
-                  _OverviewBlock(stats: stats),
-                  const SizedBox(height: 24),
-                  _HeadToHeadSection(opponents: stats.opponents),
-                  const SizedBox(height: 24),
-                  _SectionHeader('Phong độ 5 giải gần nhất'),
-                  LeaguePerformanceChart(points: stats.leaguePerformance),
-                  const SizedBox(height: 24),
-                  _SectionHeader('Phong độ 10 trận gần nhất'),
-                  const SizedBox(height: 8),
-                  FormDotsRow(matches: stats.recentMatches),
-                  const SizedBox(height: 24),
-                  _SectionHeader('Trận gần đây'),
-                  const SizedBox(height: 8),
-                  _DetailedMatchList(matches: stats.recentMatches),
-                  if (stats.recentMatches.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text('Chưa có trận nào'),
-                    ),
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  colorScheme.secondary.withValues(alpha: 0.12),
+                  theme.scaffoldBackgroundColor,
                 ],
               ),
-              if (state.viewStatus == ViewStatus.loading)
-                const Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  child: _ShimmerBar(),
+            ),
+            child: Stack(
+              children: [
+                ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                  children: [
+                    _DetailHero(stats: stats),
+                    const SizedBox(height: 14),
+                    _SectionHeader('Tổng quan'),
+                    _OverviewBlock(stats: stats),
+                    const SizedBox(height: 16),
+                    _HeadToHeadSection(opponents: stats.opponents),
+                    const SizedBox(height: 18),
+                    _SectionShell(
+                      title: 'Phong độ 5 giải gần nhất',
+                      icon: Icons.show_chart_outlined,
+                      child: LeaguePerformanceChart(
+                        points: stats.leaguePerformance,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _SectionShell(
+                      title: 'Phong độ 10 trận gần nhất',
+                      icon: Icons.timeline_outlined,
+                      child: FormDotsRow(matches: stats.recentMatches),
+                    ),
+                    const SizedBox(height: 24),
+                    _SectionShell(
+                      title: 'Trận gần đây',
+                      icon: Icons.sports_soccer_outlined,
+                      child: _DetailedMatchList(matches: stats.recentMatches),
+                    ),
+                    if (stats.recentMatches.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text('Chưa có trận nào'),
+                      ),
+                  ],
                 ),
-            ],
+                if (state.viewStatus == ViewStatus.loading)
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    child: _ShimmerBar(),
+                  ),
+              ],
+            ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _DetailHero extends StatelessWidget {
+  final DashboardStats stats;
+
+  const _DetailHero({required this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final winRate = stats.winRate == null
+        ? 'Chưa có'
+        : '${(stats.winRate! * 100).round()}%';
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.secondary.withValues(alpha: 0.28),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.secondary.withValues(alpha: 0.12),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(
+                  Icons.dashboard_customize_outlined,
+                  color: colorScheme.onSecondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dashboard detail',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.secondary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Toàn cảnh thành tích thi đấu',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _HeroPill(
+                  label: 'Win rate',
+                  value: winRate,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeroPill(
+                  label: 'Hiệu số',
+                  value: _signed(stats.goalDifference),
+                  color: colorScheme.secondary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeroPill(
+                  label: 'Đã đấu',
+                  value: '${stats.matchesPlayed} trận',
+                  color: const Color(0xFF2563EB),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroPill extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _HeroPill({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -124,10 +303,7 @@ class _ShimmerBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Shimmer(
       period: Duration(milliseconds: 1100),
-      child: ShimmerBox(
-        height: 3,
-        borderRadius: BorderRadius.zero,
-      ),
+      child: ShimmerBox(height: 3, borderRadius: BorderRadius.zero),
     );
   }
 }
@@ -194,9 +370,63 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 18,
+            decoration: BoxDecoration(
+              color: colorScheme.secondary,
+              borderRadius: BorderRadius.circular(99),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionShell extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  const _SectionShell({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.55)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: colorScheme.secondary),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
     );
   }
 }
@@ -217,8 +447,13 @@ class _OverviewBlock extends StatelessWidget {
         '${stats.goals} / ${stats.goalsConceded} / '
         '${_signed(stats.goalDifference)}';
 
-    return Card(
-      margin: EdgeInsets.zero,
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.55)),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
@@ -285,22 +520,71 @@ class _HeadToHeadSectionState extends State<_HeadToHeadSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+        Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.48),
+            ),
+          ),
           child: Row(
             children: [
-              Text('Đối đầu', style: theme.textTheme.titleMedium),
-              const SizedBox(width: 8),
-              Text(
-                '(≥ $_minMatches trận)',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(
+                  Icons.groups_2_outlined,
+                  color: colorScheme.secondary,
+                  size: 19,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Đối đầu', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Khắc tinh và mồi ngon theo lịch sử gặp nhau',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  '(≥ $_minMatches trận)',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colorScheme.secondary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
               IconButton(
                 icon: const Icon(Icons.tune, size: 20),
                 tooltip: 'Tuỳ chỉnh ngưỡng',
@@ -309,10 +593,23 @@ class _HeadToHeadSectionState extends State<_HeadToHeadSection> {
             ],
           ),
         ),
-        _HeadToHeadBlock(
-          opponents: widget.opponents,
-          minMatches: _minMatches,
-        ),
+        _HeadToHeadBlock(opponents: widget.opponents, minMatches: _minMatches),
+        if (widget.opponents.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      H2HDetailPage(opponents: widget.opponents),
+                ),
+              ),
+              icon: const Icon(Icons.groups_2_outlined, size: 18),
+              label: const Text('Xem tất cả đối thủ'),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -350,10 +647,7 @@ class _MinMatchesSheetState extends State<_MinMatchesSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Ngưỡng số trận tối thiểu',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('Ngưỡng số trận tối thiểu', style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
           Text(
             'Đối thủ phải có ít nhất $intValue trận đối đầu mới được tính '
@@ -413,10 +707,7 @@ class _HeadToHeadBlock extends StatelessWidget {
   final List<OpponentStat> opponents;
   final int minMatches;
 
-  const _HeadToHeadBlock({
-    required this.opponents,
-    required this.minMatches,
-  });
+  const _HeadToHeadBlock({required this.opponents, required this.minMatches});
 
   @override
   Widget build(BuildContext context) {
@@ -431,35 +722,256 @@ class _HeadToHeadBlock extends StatelessWidget {
       minMatches: minMatches,
     );
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          children: [
-            _H2HRow(
-              label: 'Khắc tinh',
-              metricName: 'thua',
-              opponent: nemesis,
-              count: (o) => o.losses,
-              accent: Colors.red,
-              minMatches: minMatches,
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Expanded(
+          child: _H2HCard(
+            label: 'Khắc tinh',
+            metricName: 'thua',
+            opponent: nemesis,
+            count: (o) => o.losses,
+            accent: colorScheme.error,
+            icon: Icons.shield_outlined,
+            minMatches: minMatches,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _H2HCard(
+            label: 'Mồi ngon',
+            metricName: 'thắng',
+            opponent: prey,
+            count: (o) => o.wins,
+            accent: Colors.green,
+            icon: Icons.bolt_outlined,
+            minMatches: minMatches,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _H2HCard extends StatelessWidget {
+  final String label;
+  final String metricName;
+  final OpponentStat? opponent;
+  final int Function(OpponentStat) count;
+  final Color accent;
+  final IconData icon;
+  final int minMatches;
+
+  const _H2HCard({
+    required this.label,
+    required this.metricName,
+    required this.opponent,
+    required this.count,
+    required this.accent,
+    required this.icon,
+    required this.minMatches,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final hasOpponent = opponent != null;
+    final n = hasOpponent ? count(opponent!) : 0;
+    final pct = hasOpponent ? (opponent!.rate(n) * 100).round() : 0;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withValues(alpha: 0.28)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [accent.withValues(alpha: 0.1), colorScheme.surface],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Type badge + percentage ──────────────────────────
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: accent.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, color: accent, size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      label.toUpperCase(),
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Text(
+                hasOpponent ? '$pct%' : '—',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: hasOpponent ? accent : colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // ── Player section ───────────────────────────────────
+          if (hasOpponent) ...[
+            Center(
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: accent.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                    ),
+                    child: opponent!.opponentPhotoUrl != null
+                        ? GNCircleAvatar(
+                            size: 52,
+                            photoUrl: opponent!.opponentPhotoUrl,
+                          )
+                        : _InitialsAvatar(
+                            name: opponent!.opponentDisplayName,
+                            size: 52,
+                            accent: accent,
+                          ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    opponent!.opponentDisplayName,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$n / ${opponent!.matchesPlayed} trận $metricName',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const Divider(height: 1),
-            _H2HRow(
-              label: 'Mồi ngon',
-              metricName: 'thắng',
-              opponent: prey,
-              count: (o) => o.wins,
-              accent: Colors.green,
-              minMatches: minMatches,
+
+            const SizedBox(height: 12),
+
+            // ── W / D / L breakdown ──────────────────────────
+            Divider(height: 1, color: accent.withValues(alpha: 0.18)),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _WDLCell(
+                  label: 'Thắng',
+                  value: opponent!.wins,
+                  color: const Color(0xFF16A34A),
+                ),
+                _WDLCell(
+                  label: 'Hoà',
+                  value: opponent!.draws,
+                  color: colorScheme.secondary,
+                ),
+                _WDLCell(
+                  label: 'Thua',
+                  value: opponent!.losses,
+                  color: colorScheme.error,
+                ),
+              ],
+            ),
+          ] else ...[
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Column(
+                  children: [
+                    Icon(
+                      icon,
+                      size: 32,
+                      color: accent.withValues(alpha: 0.3),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Cần ≥ $minMatches trận\nđối đầu cùng người',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
+}
 
+class _WDLCell extends StatelessWidget {
+  final String label;
+  final int value;
+  final Color color;
+
+  const _WDLCell({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Text(
+          '$value',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// Pick the opponent with the highest `metric / matchesPlayed`. Only
@@ -487,86 +999,6 @@ OpponentStat? pickTopByRate(
   return best;
 }
 
-class _H2HRow extends StatelessWidget {
-  final String label;
-  final String metricName;
-  final OpponentStat? opponent;
-  final int Function(OpponentStat) count;
-  final Color accent;
-  final int minMatches;
-
-  const _H2HRow({
-    required this.label,
-    required this.metricName,
-    required this.opponent,
-    required this.count,
-    required this.accent,
-    required this.minMatches,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasOpponent = opponent != null;
-    final n = hasOpponent ? count(opponent!) : 0;
-    final pct = hasOpponent ? (opponent!.rate(n) * 100).round() : 0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            margin: const EdgeInsets.only(top: 6, right: 10),
-            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(label, style: theme.textTheme.bodyMedium),
-                    const Spacer(),
-                    if (hasOpponent)
-                      Text(
-                        '$pct%',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: accent,
-                        ),
-                      )
-                    else
-                      Text('—', style: theme.textTheme.titleMedium),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                if (hasOpponent)
-                  Text(
-                    '${opponent!.opponentDisplayName} · '
-                    '$n/${opponent!.matchesPlayed} trận $metricName',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  )
-                else
-                  Text(
-                    'Cần ít nhất $minMatches trận đối đầu',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _MetricRow extends StatelessWidget {
   final String label;
   final String value;
@@ -576,7 +1008,7 @@ class _MetricRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
@@ -599,13 +1031,32 @@ class _DetailedMatchList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (matches.isEmpty) return const SizedBox.shrink();
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: matches.map((m) {
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.52),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.38),
+            ),
+          ),
           child: ListTile(
             onTap: () => context.push(Routing.tournamentDetailPath(m.leagueId)),
-            leading: Icon(m.result.icon, color: m.result.color),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            leading: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: m.result.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(m.result.icon, color: m.result.color, size: 20),
+            ),
             title: Text(
               '${DateFormat('dd/MM/yyyy').format(m.date)} · ${m.leagueName}',
               maxLines: 1,
@@ -616,10 +1067,55 @@ class _DetailedMatchList extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+class _InitialsAvatar extends StatelessWidget {
+  final String name;
+  final double size;
+  final Color accent;
+
+  const _InitialsAvatar({
+    required this.name,
+    required this.size,
+    required this.accent,
+  });
+
+  String get _initials {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+    }
+    return parts[0].isNotEmpty ? parts[0][0].toUpperCase() : '?';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.14),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        _initials,
+        style: TextStyle(
+          color: accent,
+          fontSize: size * 0.33,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
+      ),
     );
   }
 }

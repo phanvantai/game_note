@@ -40,16 +40,33 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return BlocListener<GroupBloc, GroupState>(
       listenWhen: (prev, curr) => prev.userGroups != curr.userGroups,
       listener: (context, state) => _syncFromGroups(state.userGroups),
       child: Scaffold(
-        body: const SafeArea(
-          child: Column(
-            children: [
-              OngoingTournamentsBanner(),
-              Expanded(child: DashboardView()),
-            ],
+        body: Container(
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.secondary.withValues(alpha: 0.16),
+                theme.scaffoldBackgroundColor,
+                colorScheme.primary.withValues(alpha: 0.06),
+              ],
+              stops: const [0, 0.42, 1],
+            ),
+          ),
+          child: const SafeArea(
+            child: Column(
+              children: [
+                OngoingTournamentsBanner(),
+                Expanded(child: DashboardView()),
+              ],
+            ),
           ),
         ),
         floatingActionButton: FloatingActionButton.extended(
