@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/widgets/shimmer.dart';
+import 'package:pes_arena/routing.dart';
 
 import 'bloc/dashboard_bloc.dart';
 import 'widgets/form_dots_row.dart';
@@ -43,41 +46,40 @@ class _DashboardViewState extends State<DashboardView> {
         final stats = state.stats;
         if (stats == null) return const SizedBox.shrink();
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            context.read<DashboardBloc>().add(RefreshDashboard());
-          },
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (state.viewStatus == ViewStatus.loading)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
-                  child: LinearProgressIndicator(),
-                ),
-              StatCardGrid(stats: stats),
-              const SizedBox(height: 24),
-              Text(
-                'Phong độ 10 trận gần nhất',
-                style: Theme.of(context).textTheme.titleMedium,
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          children: [
+            StatCardGrid(stats: stats),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => context.push(Routing.dashboardDetail),
+                icon: const Icon(Icons.bar_chart_outlined),
+                label: const Text('Xem chi tiết'),
               ),
-              const SizedBox(height: 8),
-              FormDotsRow(matches: stats.recentMatches),
-              const SizedBox(height: 24),
-              Text(
-                'Trận gần đây',
-                style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Phong độ 10 trận gần nhất',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            FormDotsRow(matches: stats.recentMatches),
+            const SizedBox(height: 24),
+            Text(
+              'Trận gần đây',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            RecentMatchesList(matches: stats.recentMatches),
+            if (stats.recentMatches.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text('Chưa có trận nào'),
               ),
-              const SizedBox(height: 8),
-              RecentMatchesList(matches: stats.recentMatches),
-              if (stats.recentMatches.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: Text('Chưa có trận nào'),
-                ),
-            ],
-          ),
+          ],
         );
       },
     );
@@ -89,21 +91,30 @@ class _DashboardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1.45,
-          children: List.generate(4, (_) => const _SkeletonCard()),
-        ),
-        const SizedBox(height: 24),
-        const LinearProgressIndicator(),
-      ],
+    return Shimmer(
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            childAspectRatio: 1.45,
+            children: List.generate(4, (_) => const _SkeletonCard()),
+          ),
+          const SizedBox(height: 24),
+          const ShimmerBox(height: 36),
+          const SizedBox(height: 12),
+          const ShimmerBox(height: 16, width: 200),
+          const SizedBox(height: 24),
+          for (var i = 0; i < 3; i++) ...[
+            const ShimmerBox(height: 56),
+            const SizedBox(height: 8),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -113,7 +124,6 @@ class _SkeletonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.surfaceContainerHighest;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -121,10 +131,10 @@ class _SkeletonCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(width: 28, height: 28, color: color),
-            Container(width: 96, height: 14, color: color),
-            Container(width: 54, height: 28, color: color),
+          children: const [
+            ShimmerBox(width: 28, height: 28),
+            ShimmerBox(width: 96, height: 14),
+            ShimmerBox(width: 54, height: 28),
           ],
         ),
       ),

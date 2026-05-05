@@ -8,6 +8,7 @@ import 'offline/presentation/offline_view.dart';
 import 'presentation/app/app_view.dart';
 import 'presentation/auth/verify/verify_page.dart';
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
+import 'presentation/home/dashboard/detail/dashboard_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
 import 'presentation/notification/notification_page.dart';
 import 'presentation/profile/change_password/change_password_page.dart';
@@ -39,6 +40,9 @@ class Routing {
   static const String setting = '/setting';
   static const String changePassword = '/change-password';
   static const String feedback = '/feedback';
+
+  // dashboard
+  static const String dashboardDetail = '/dashboard';
 
   // notification
   static const String notification = '/notification';
@@ -175,6 +179,14 @@ final List<RouteBase> _appRoutes = [
       context: context,
       state: state,
       child: const ChangePasswordPage(),
+    ),
+  ),
+  GoRoute(
+    path: Routing.dashboardDetail,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const DashboardDetailPage(),
     ),
   ),
   GoRoute(

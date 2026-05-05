@@ -23,5 +23,7 @@ void main() {
     expect(state.copyWith(viewStatus: ViewStatus.loading).stats, stats);
     expect(state.copyWith(stats: null).stats, isNull);
     expect(state.copyWith(errorMessage: 'err').errorMessage, 'err');
+    expect(state.copyWith(isStale: true).isStale, isTrue);
+    expect(state.copyWith().isStale, isFalse);
   });
 }

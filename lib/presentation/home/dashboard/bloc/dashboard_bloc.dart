@@ -1,27 +1,42 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/core/cache/dashboard_cache.dart';
 import 'package:pes_arena/core/common/view_status.dart';
-import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
+import 'package:pes_arena/domain/repositories/user_stats_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
-import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
-import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/user/stats/gn_user_stats_summary.dart';
 
 import '../models/dashboard_stats.dart';
+import '../models/league_performance_point.dart';
+import '../models/opponent_stat.dart';
 import '../models/recent_match_summary.dart';
 
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';
 
+/// Loads the dashboard from a single Firestore doc
+/// (`users/{uid}/stats/summary`) instead of fanning out across every league
+/// the user has joined. The summary is maintained server-side by the
+/// `onLeagueMatchWritten` Cloud Function.
+///
+/// First-paint UX: if a cached snapshot exists locally, render it
+/// immediately with `isStale = true`, then refresh in the background.
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
-  final EsportLeagueRepository _leagueRepository;
+  final UserStatsRepository _repo;
   final GNAuth _auth;
+  final DashboardCache _cache;
+  final Duration _recomputeTimeout;
 
   DashboardBloc({
-    required EsportLeagueRepository leagueRepository,
+    required UserStatsRepository userStatsRepository,
     required GNAuth auth,
-  }) : _leagueRepository = leagueRepository,
+    required DashboardCache cache,
+    Duration recomputeTimeout = const Duration(seconds: 30),
+  }) : _repo = userStatsRepository,
        _auth = auth,
+       _cache = cache,
+       _recomputeTimeout = recomputeTimeout,
        super(const DashboardState()) {
     on<LoadDashboard>(_onLoadDashboard);
     on<RefreshDashboard>(_onRefreshDashboard);
@@ -32,145 +47,220 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     if (state.viewStatus == ViewStatus.loading) return;
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
-    await _load(emit);
+    await _load(emit, fromRefresh: false);
   }
 
   Future<void> _onRefreshDashboard(
     RefreshDashboard event,
     Emitter<DashboardState> emit,
   ) async {
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
-    await _load(emit);
+    // Pull-to-refresh asks the server for a fresh fold of the user's
+    // matches. This is heavier than a normal load (it re-runs the backfill
+    // function) but is the only way to recover from drift or pick up
+    // schema changes for an already-built summary doc.
+    await _load(emit, fromRefresh: true, forceRecompute: true);
   }
 
-  Future<void> _load(Emitter<DashboardState> emit) async {
-    try {
-      final uid = _auth.currentUser?.uid;
-      if (uid == null) {
-        emit(
-          state.copyWith(
-            viewStatus: ViewStatus.failure,
-            errorMessage: 'Người dùng chưa đăng nhập',
-          ),
-        );
-        return;
-      }
-
-      final leagues = (await _leagueRepository.getMyLeagues())
-          .where((league) => league.participants.contains(uid))
-          .toList();
-
-      final detailResults = await Future.wait(
-        leagues.map(
-          (league) async => _LeagueDashboardData(
-            league: league,
-            data: await _leagueRepository.getParticipantsAndMatches(league.id),
-          ),
+  Future<void> _load(
+    Emitter<DashboardState> emit, {
+    required bool fromRefresh,
+    bool forceRecompute = false,
+  }) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: 'Người dùng chưa đăng nhập',
         ),
       );
+      return;
+    }
 
-      var finishedTournaments = 0;
-      var championCount = 0;
-      var runnerUpCount = 0;
-      DateTime? lastChampionAt;
-      final summaries = <RecentMatchSummary>[];
-
-      for (final result in detailResults) {
-        final league = result.league;
-        final participants = [...result.data.participants]
-          ..sort(_compareStandings);
-        final rank = participants.indexWhere((stat) => stat.userId == uid);
-
-        if (league.status == GNEsportLeagueStatus.finished.value &&
-            rank != -1) {
-          finishedTournaments++;
-          if (rank == 0) {
-            championCount++;
-            final championAt = league.endDate ?? league.startDate;
-            if (lastChampionAt == null || championAt.isAfter(lastChampionAt)) {
-              lastChampionAt = championAt;
-            }
-          } else if (rank == 1) {
-            runnerUpCount++;
-          }
-        }
-
-        summaries.addAll(
-          result.data.matches
-              .where((match) => _isFinishedUserMatch(match, uid))
-              .map((match) => _summaryForMatch(match, league.name, uid)),
+    // First paint: hydrate from cache when available, otherwise show loading.
+    // On explicit refresh skip the cache hit and just go to loading — the
+    // user expects a refresh to actually fetch.
+    if (!fromRefresh) {
+      final cached = await _cache.read(uid);
+      if (cached != null) {
+        emit(
+          state.copyWith(
+            viewStatus: ViewStatus.success,
+            stats: cached,
+            isStale: true,
+            errorMessage: '',
+          ),
         );
+      } else {
+        emit(state.copyWith(viewStatus: ViewStatus.loading));
+      }
+    } else {
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.loading,
+          // keep prior stats so the UI doesn't blank out during a pull-to-refresh
+        ),
+      );
+    }
+
+    try {
+      GNUserStatsSummary? summary;
+      if (forceRecompute) {
+        // Trigger a server rebuild and wait for the next snapshot. We skip
+        // the first emission (the current/stale doc) and take whatever the
+        // function writes next.
+        await _repo.requestRecompute(uid);
+        summary = await _repo
+            .listenSummary(uid)
+            .skip(1)
+            .where((s) => s != null)
+            .cast<GNUserStatsSummary>()
+            .first
+            .timeout(_recomputeTimeout);
+      } else {
+        summary = await _repo.getSummary(uid);
+        // Lazy backfill: users who joined before this feature shipped
+        // won't have a summary doc. Ask the server to build one.
+        if (summary == null) {
+          await _repo.requestRecompute(uid);
+          summary = await _repo
+              .listenSummary(uid)
+              .where((s) => s != null)
+              .cast<GNUserStatsSummary>()
+              .first
+              .timeout(_recomputeTimeout);
+        }
       }
 
-      summaries.sort((a, b) => b.date.compareTo(a.date));
+      final stats = _toDashboardStats(summary);
+      await _cache.write(uid, stats);
       emit(
         state.copyWith(
           viewStatus: ViewStatus.success,
-          stats: DashboardStats(
-            tournamentsJoined: leagues.length,
-            finishedTournaments: finishedTournaments,
-            championCount: championCount,
-            runnerUpCount: runnerUpCount,
-            lastChampionAt: lastChampionAt,
-            recentMatches: summaries.take(10).toList(),
-          ),
+          stats: stats,
+          isStale: false,
           errorMessage: '',
         ),
       );
     } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
+      if (state.stats != null) {
+        // Don't blow away cached stats on transient errors.
+        emit(state.copyWith(isStale: true, errorMessage: e.toString()));
+      } else {
+        emit(
+          state.copyWith(
+            viewStatus: ViewStatus.failure,
+            errorMessage: e.toString(),
+          ),
+        );
+      }
     }
   }
 
-  int _compareStandings(GNEsportLeagueStat a, GNEsportLeagueStat b) {
-    if (a.points != b.points) return b.points.compareTo(a.points);
-    if (a.goalDifference != b.goalDifference) {
-      return b.goalDifference.compareTo(a.goalDifference);
-    }
-    return b.goals.compareTo(a.goals);
-  }
-
-  bool _isFinishedUserMatch(GNEsportMatch match, String uid) {
-    return match.isFinished &&
-        (match.homeTeamId == uid || match.awayTeamId == uid);
-  }
-
-  RecentMatchSummary _summaryForMatch(
-    GNEsportMatch match,
-    String leagueName,
-    String uid,
-  ) {
-    final isHome = match.homeTeamId == uid;
-    final userScore = isHome ? match.homeScore ?? 0 : match.awayScore ?? 0;
-    final opponentScore = isHome ? match.awayScore ?? 0 : match.homeScore ?? 0;
-    final opponent = isHome ? match.awayTeam : match.homeTeam;
-
-    return RecentMatchSummary(
-      matchId: match.id,
-      leagueId: match.leagueId,
-      leagueName: leagueName,
-      date: match.date,
-      userScore: userScore,
-      opponentScore: opponentScore,
-      opponentDisplayName: opponent?.displayName ?? 'Đối thủ',
-      result: userScore > opponentScore
-          ? MatchResult.win
-          : userScore == opponentScore
-          ? MatchResult.draw
-          : MatchResult.loss,
+  DashboardStats _toDashboardStats(GNUserStatsSummary s) {
+    return DashboardStats(
+      tournamentsJoined: s.tournamentsJoined,
+      finishedTournaments: s.tournamentsFinished,
+      championCount: s.championCount,
+      runnerUpCount: s.runnerUpCount,
+      lastChampionAt: s.lastChampionAt,
+      matchesPlayed: s.matchesPlayed,
+      wins: s.wins,
+      draws: s.draws,
+      losses: s.losses,
+      goals: s.goals,
+      goalsConceded: s.goalsConceded,
+      leaguePerformance: _toLeaguePerformance(s.leagueHistory),
+      opponents: s.h2hSummary
+          .map(
+            (o) => OpponentStat(
+              opponentId: o.opponentId,
+              opponentDisplayName: o.opponentDisplayName,
+              matchesPlayed: o.matchesPlayed,
+              wins: o.wins,
+              draws: o.draws,
+              losses: o.losses,
+            ),
+          )
+          .toList(),
+      // Function stores up to 20 most-recent-by-date matches as a buffer.
+      // We pick the top 10 by play date, then re-sort by `updatedAt` so the
+      // UI surfaces matches that were edited most recently first (handy
+      // when an admin enters a result for an older fixture).
+      recentMatches: _selectRecentMatches(s.recentMatches),
     );
   }
-}
 
-class _LeagueDashboardData {
-  final GNEsportLeague league;
-  final LeagueDetailData data;
+  /// Compare two performance entries by `lastPlayedAt` ascending. Null
+  /// dates sort to the front (treated as "oldest possible"). Exposed as
+  /// `@visibleForTesting` so the null-handling branches are directly
+  /// covered without depending on Dart's sort call patterns.
+  @visibleForTesting
+  static int compareByLastPlayed(
+    GNUserLeaguePerformance a,
+    GNUserLeaguePerformance b,
+  ) {
+    final ad = a.lastPlayedAt;
+    final bd = b.lastPlayedAt;
+    if (ad == null && bd == null) return 0;
+    if (ad == null) return -1;
+    if (bd == null) return 1;
+    return ad.compareTo(bd);
+  }
 
-  const _LeagueDashboardData({required this.league, required this.data});
+  List<LeaguePerformancePoint> _toLeaguePerformance(
+    List<GNUserLeaguePerformance> history,
+  ) {
+    final sorted = [...history]..sort(compareByLastPlayed);
+    return sorted
+        .map(
+          (e) => LeaguePerformancePoint(
+            leagueId: e.leagueId,
+            leagueName: e.leagueName,
+            lastPlayedAt: e.lastPlayedAt,
+            matchesPlayed: e.matchesPlayed,
+            wins: e.wins,
+            draws: e.draws,
+            losses: e.losses,
+            pointsPerMatch: e.pointsPerMatch,
+            goalDifferencePerMatch: e.goalDifferencePerMatch,
+          ),
+        )
+        .toList();
+  }
+
+  List<RecentMatchSummary> _selectRecentMatches(List<GNUserRecentMatch> all) {
+    final top = [...all]..sort((a, b) => b.date.compareTo(a.date));
+    final picked = top.take(10).toList()
+      ..sort((a, b) {
+        final au = a.updatedAt ?? a.date;
+        final bu = b.updatedAt ?? b.date;
+        return bu.compareTo(au);
+      });
+    return picked.map(_toRecentMatch).toList();
+  }
+
+  RecentMatchSummary _toRecentMatch(GNUserRecentMatch m) {
+    return RecentMatchSummary(
+      matchId: m.matchId,
+      leagueId: m.leagueId,
+      leagueName: m.leagueName,
+      date: m.date,
+      userScore: m.userScore,
+      opponentScore: m.opponentScore,
+      opponentDisplayName: m.opponentDisplayName,
+      result: _mapResult(m.result),
+    );
+  }
+
+  MatchResult _mapResult(GNRecentMatchResult r) {
+    switch (r) {
+      case GNRecentMatchResult.win:
+        return MatchResult.win;
+      case GNRecentMatchResult.draw:
+        return MatchResult.draw;
+      case GNRecentMatchResult.loss:
+        return MatchResult.loss;
+    }
+  }
 }

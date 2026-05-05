@@ -17,7 +17,11 @@ import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/cache/dashboard_cache.dart';
+import 'core/cache/h2h_preferences.dart';
 import 'core/helpers/shared_preferences_helper.dart';
+import 'data/repositories/user_stats_repository_impl.dart';
+import 'domain/repositories/user_stats_repository.dart';
 import 'data/sync/offline_to_online_migrator.dart';
 import 'data/sync/sync_remote_gateway.dart';
 import 'data/sync/sync_remote_gateway_impl.dart';
@@ -56,6 +60,14 @@ Future<void> init() async {
   );
   getIt.registerSingleton(
     SharedPreferencesHelper(await getIt.getAsync<SharedPreferences>()),
+  );
+
+  getIt.registerSingleton(
+    DashboardCache(await getIt.getAsync<SharedPreferences>()),
+  );
+
+  getIt.registerSingleton(
+    H2HPreferences(await getIt.getAsync<SharedPreferences>()),
   );
 
   getIt.registerSingleton(PermissionUtil());
@@ -116,6 +128,9 @@ Future<void> init() async {
   getIt.registerFactory<EsportLeagueRepository>(
     () => EsportLeagueRepositoryImpl(),
   );
+  getIt.registerFactory<UserStatsRepository>(
+    () => UserStatsRepositoryImpl(),
+  );
 
   getIt.registerFactory<NotificationRepository>(
     () => NotificationRepositoryImpl(),
@@ -128,7 +143,11 @@ Future<void> init() async {
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
   getIt.registerFactory<TournamentBloc>(() => TournamentBloc(getIt()));
   getIt.registerFactory<DashboardBloc>(
-    () => DashboardBloc(leagueRepository: getIt(), auth: getIt()),
+    () => DashboardBloc(
+      userStatsRepository: getIt(),
+      auth: getIt(),
+      cache: getIt(),
+    ),
   );
   getIt.registerFactory<OngoingTournamentsBloc>(
     () => OngoingTournamentsBloc(getIt()),
