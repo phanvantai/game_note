@@ -23,7 +23,7 @@ void main() {
     );
     expect(o.rate(o.wins), closeTo(0.75, 1e-9));
     expect(o.rate(o.losses), closeTo(0.25, 1e-9));
-    expect(o.props.length, 6);
+    expect(o.props.length, 7);
   });
 
   test('Equatable equality theo từng field', () {

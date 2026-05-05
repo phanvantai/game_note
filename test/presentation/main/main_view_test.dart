@@ -118,7 +118,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Trang chủ'), findsWidgets);
+    expect(find.text('Arena'), findsWidgets);
     expect(find.text('Nhóm'), findsWidgets);
     expect(find.text('Giải đấu'), findsOneWidget);
     expect(find.text('Thông báo'), findsWidgets);
@@ -128,7 +128,7 @@ void main() {
     await tester.tap(find.text('Giải đấu'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Giải đấu của tôi'), findsOneWidget);
+    expect(find.text('Tham gia'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.group_outlined));
     await tester.pumpAndSettle();

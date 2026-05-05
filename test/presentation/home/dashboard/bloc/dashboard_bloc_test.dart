@@ -8,6 +8,7 @@ import 'package:pes_arena/core/cache/dashboard_cache.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/domain/repositories/user_stats_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/stats/gn_user_stats_summary.dart';
 import 'package:pes_arena/presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/models/dashboard_stats.dart';
@@ -19,6 +20,8 @@ class _MockRepo extends Mock implements UserStatsRepository {}
 class _MockAuth extends Mock implements GNAuth {}
 
 class _MockUser extends Mock implements User {}
+
+class _MockFirestore extends Mock implements GNFirestore {}
 
 GNUserStatsSummary _summary({
   String userId = 'u1',
@@ -130,6 +133,7 @@ void main() {
   late _MockRepo repo;
   late _MockAuth auth;
   late _MockUser user;
+  late _MockFirestore firestore;
   late DashboardCache cache;
 
   setUp(() async {
@@ -139,14 +143,17 @@ void main() {
     repo = _MockRepo();
     auth = _MockAuth();
     user = _MockUser();
+    firestore = _MockFirestore();
     when(() => auth.currentUser).thenReturn(user);
     when(() => user.uid).thenReturn('u1');
+    when(() => firestore.getUsersById(any())).thenAnswer((_) async => {});
   });
 
   DashboardBloc build() => DashboardBloc(
     userStatsRepository: repo,
     auth: auth,
     cache: cache,
+    firestore: firestore,
     recomputeTimeout: const Duration(milliseconds: 500),
   );
 

@@ -11,6 +11,7 @@ import 'package:pes_arena/presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/models/dashboard_stats.dart';
 import 'package:pes_arena/presentation/home/home_page.dart';
 import 'package:pes_arena/presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class _MockDashboardBloc extends MockBloc<DashboardEvent, DashboardState>
     implements DashboardBloc {}
@@ -94,6 +95,8 @@ void main() {
   setUpAll(() {
     registerFallbackValue(LoadDashboard());
     registerFallbackValue(const LoadOngoingTournaments([]));
+    // Fire visibility callbacks synchronously so tests don't leave pending timers.
+    VisibilityDetectorController.instance.updateInterval = Duration.zero;
   });
 
   testWidgets('initState dispatch LoadOngoingTournaments với group ids', (
@@ -124,7 +127,7 @@ void main() {
     expect(find.byType(AppBar), findsNothing);
   });
 
-  testWidgets('không dispatch lại nếu loadedGroupIds khớp với userGroups', (
+  testWidgets('luôn dispatch khi hiện ra dù loadedGroupIds đã khớp', (
     tester,
   ) async {
     final dashboardBloc = _MockDashboardBloc();
@@ -145,9 +148,9 @@ void main() {
       ),
     );
 
-    verifyNever(
+    verify(
       () => ongoingBloc.add(any(that: isA<LoadOngoingTournaments>())),
-    );
+    ).called(1);
   });
 
   testWidgets(

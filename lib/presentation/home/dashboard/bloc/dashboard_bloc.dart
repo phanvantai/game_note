@@ -6,7 +6,6 @@ import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/domain/repositories/user_stats_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
-import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:pes_arena/firebase/firestore/user/stats/gn_user_stats_summary.dart';
 
 import '../models/dashboard_stats.dart';
@@ -163,10 +162,13 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   Future<DashboardStats> _toDashboardStats(GNUserStatsSummary s) async {
-    final opponentIds = s.h2hSummary.map((o) => o.opponentId).toList();
-    final usersMap = opponentIds.isEmpty
+    final allIds = {
+      ...s.h2hSummary.map((o) => o.opponentId),
+      ...s.recentMatches.map((m) => m.opponentId),
+    }.toList();
+    final usersMap = allIds.isEmpty
         ? <String, dynamic>{}
-        : await _firestore.getUsersById(opponentIds);
+        : await _firestore.getUsersById(allIds);
 
     return DashboardStats(
       tournamentsJoined: s.tournamentsJoined,
@@ -198,7 +200,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       // We pick the top 10 by play date, then re-sort by `updatedAt` so the
       // UI surfaces matches that were edited most recently first (handy
       // when an admin enters a result for an older fixture).
-      recentMatches: _selectRecentMatches(s.recentMatches),
+      recentMatches: _selectRecentMatches(s.recentMatches, usersMap),
     );
   }
 
@@ -240,7 +242,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         .toList();
   }
 
-  List<RecentMatchSummary> _selectRecentMatches(List<GNUserRecentMatch> all) {
+  List<RecentMatchSummary> _selectRecentMatches(
+    List<GNUserRecentMatch> all,
+    Map<String, dynamic> usersMap,
+  ) {
     final top = [...all]..sort((a, b) => b.date.compareTo(a.date));
     final picked = top.take(10).toList()
       ..sort((a, b) {
@@ -248,10 +253,13 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         final bu = b.updatedAt ?? b.date;
         return bu.compareTo(au);
       });
-    return picked.map(_toRecentMatch).toList();
+    return picked.map((m) => _toRecentMatch(m, usersMap)).toList();
   }
 
-  RecentMatchSummary _toRecentMatch(GNUserRecentMatch m) {
+  RecentMatchSummary _toRecentMatch(
+    GNUserRecentMatch m,
+    Map<String, dynamic> usersMap,
+  ) {
     return RecentMatchSummary(
       matchId: m.matchId,
       leagueId: m.leagueId,
@@ -260,6 +268,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       userScore: m.userScore,
       opponentScore: m.opponentScore,
       opponentDisplayName: m.opponentDisplayName,
+      opponentPhotoUrl: usersMap[m.opponentId]?.photoUrl,
       result: _mapResult(m.result),
     );
   }

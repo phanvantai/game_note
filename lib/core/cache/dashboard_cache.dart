@@ -150,6 +150,7 @@ Map<String, dynamic> _recentToJson(RecentMatchSummary m) => {
   'userScore': m.userScore,
   'opponentScore': m.opponentScore,
   'opponentDisplayName': m.opponentDisplayName,
+  'opponentPhotoUrl': m.opponentPhotoUrl,
   'result': m.result.name,
 };
 
@@ -164,6 +165,7 @@ RecentMatchSummary _recentFromJson(Map<String, dynamic> map) {
     userScore: (map['userScore'] as num?)?.toInt() ?? 0,
     opponentScore: (map['opponentScore'] as num?)?.toInt() ?? 0,
     opponentDisplayName: map['opponentDisplayName'] as String? ?? 'Đối thủ',
+    opponentPhotoUrl: map['opponentPhotoUrl'] as String?,
     result: MatchResult.values.firstWhere(
       (r) => r.name == map['result'],
       orElse: () => MatchResult.draw,

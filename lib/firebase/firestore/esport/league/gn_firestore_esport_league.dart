@@ -27,22 +27,58 @@ extension GNFirestoreEsportLeague on GNFirestore {
   /// Intentionally excludes leagues owned but not joined — those belong in a
   /// separate "management" flow (see profile). This keeps the count consistent
   /// with the dashboard stat (tournamentsJoined via Cloud Function).
-  Future<List<GNEsportLeague>> getMyLeagues() async {
+  Future<LeaguesPage> getMyLeagues({
+    DocumentSnapshot? startAfter,
+    int limit = 20,
+  }) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return [];
+    if (uid == null) return LeaguesPage.empty;
 
-    final col = firestore.collection(GNEsportLeague.collectionName);
-    final snap = await col
+    Query<Map<String, dynamic>> query = firestore
+        .collection(GNEsportLeague.collectionName)
         .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
         .where(GNEsportLeague.fieldParticipants, arrayContains: uid)
-        .orderBy(GNEsportLeague.fieldStartDate, descending: true)
-        .get();
+        .orderBy(GNEsportLeague.fieldStartDate, descending: true);
+    if (startAfter != null) query = query.startAfterDocument(startAfter);
 
-    final leagues = snap.docs
-        .map((doc) => GNEsportLeague.fromFirestore(doc))
-        .toList();
+    final snap = await query.limit(limit + 1).get();
+    final hasMore = snap.docs.length > limit;
+    final docs = hasMore ? snap.docs.take(limit).toList() : snap.docs;
+    final leagues = await _attachGroups(
+      docs.map((d) => GNEsportLeague.fromFirestore(d)).toList(),
+    );
+    return LeaguesPage(
+      items: leagues,
+      lastDoc: docs.isNotEmpty ? docs.last : null,
+      hasMore: hasMore,
+    );
+  }
 
-    return _attachGroups(leagues);
+  Future<LeaguesPage> getManagedLeagues({
+    DocumentSnapshot? startAfter,
+    int limit = 20,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return LeaguesPage.empty;
+
+    Query<Map<String, dynamic>> query = firestore
+        .collection(GNEsportLeague.collectionName)
+        .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
+        .where(GNEsportLeague.fieldOwnerId, isEqualTo: uid)
+        .orderBy(GNEsportLeague.fieldStartDate, descending: true);
+    if (startAfter != null) query = query.startAfterDocument(startAfter);
+
+    final snap = await query.limit(limit + 1).get();
+    final hasMore = snap.docs.length > limit;
+    final docs = hasMore ? snap.docs.take(limit).toList() : snap.docs;
+    final leagues = await _attachGroups(
+      docs.map((d) => GNEsportLeague.fromFirestore(d)).toList(),
+    );
+    return LeaguesPage(
+      items: leagues,
+      lastDoc: docs.isNotEmpty ? docs.last : null,
+      hasMore: hasMore,
+    );
   }
 
   /// Fetch leagues the current user does NOT participate in. Paginated.

@@ -125,7 +125,8 @@ void main() {
     await tester.pump();
     expect(find.text('Phong độ 10 trận gần nhất'), findsOneWidget);
     expect(find.text('Trận gần đây'), findsOneWidget);
-    expect(find.text('Bạn 2 - 1 Nam'), findsOneWidget);
+    expect(find.text('Nam'), findsOneWidget);
+    expect(find.text('2 - 1'), findsOneWidget);
   });
 
   testWidgets('success empty render empty text cho form và list', (
@@ -178,7 +179,8 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsNothing);
     await tester.drag(find.byType(ListView), const Offset(0, -500));
     await tester.pump();
-    expect(find.text('Bạn 2 - 1 Nam'), findsOneWidget);
+    expect(find.text('Nam'), findsOneWidget);
+    expect(find.text('2 - 1'), findsOneWidget);
   });
 
   testWidgets('tap "Xem chi tiết" → push route /dashboard', (tester) async {

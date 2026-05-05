@@ -10,6 +10,7 @@ class RecentMatchSummary extends Equatable {
   final int userScore;
   final int opponentScore;
   final String opponentDisplayName;
+  final String? opponentPhotoUrl;
   final MatchResult result;
 
   const RecentMatchSummary({
@@ -20,6 +21,7 @@ class RecentMatchSummary extends Equatable {
     required this.userScore,
     required this.opponentScore,
     required this.opponentDisplayName,
+    this.opponentPhotoUrl,
     required this.result,
   });
 
@@ -32,6 +34,7 @@ class RecentMatchSummary extends Equatable {
     userScore,
     opponentScore,
     opponentDisplayName,
+    opponentPhotoUrl,
     result,
   ];
 }

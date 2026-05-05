@@ -18,7 +18,7 @@ class TournamentView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<TournamentBloc, TournamentState>(
       builder: (context, state) => DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           body: _TournamentBody(
             state: state,
@@ -69,6 +69,7 @@ class _TournamentBody extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _MyLeaguesTab(state: state),
+                  _ManagedLeaguesTab(state: state),
                   _OtherLeaguesTab(state: state),
                 ],
               ),
@@ -177,7 +178,9 @@ class _TournamentHero extends StatelessWidget {
               Expanded(
                 child: _HeroStat(
                   label: 'Của tôi',
-                  value: '${state.myLeagues.length}',
+                  value: state.myHasMore
+                      ? '${state.myLeagues.length}+'
+                      : '${state.myLeagues.length}',
                 ),
               ),
               const SizedBox(width: 10),
@@ -269,8 +272,9 @@ class _TournamentTabBar extends StatelessWidget {
           context,
         ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
         tabs: const [
-          Tab(text: 'Giải đấu của tôi'),
-          Tab(text: 'Giải đấu khác'),
+          Tab(text: 'Tham gia'),
+          Tab(text: 'Quản lý'),
+          Tab(text: 'Khác'),
         ],
       ),
     );
@@ -318,16 +322,57 @@ void openCreateTournament(BuildContext context) {
   );
 }
 
-class _MyLeaguesTab extends StatelessWidget {
+class _MyLeaguesTab extends StatefulWidget {
   final TournamentState state;
   const _MyLeaguesTab({required this.state});
 
   @override
+  State<_MyLeaguesTab> createState() => _MyLeaguesTabState();
+}
+
+class _MyLeaguesTabState extends State<_MyLeaguesTab> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 400) {
+      final state = context.read<TournamentBloc>().state;
+      if (state.myHasMore && state.myStatus != ViewStatus.loading) {
+        context.read<TournamentBloc>().add(LoadMoreMyLeagues());
+      }
+    }
+  }
+
+  Future<void> _refresh() async {
+    final bloc = context.read<TournamentBloc>();
+    final tickBefore = bloc.state.refreshTick;
+    bloc.add(RefreshTournaments());
+    await bloc.stream.firstWhere((s) => s.refreshTick > tickBefore);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = widget.state;
     return RefreshIndicator(
-      onRefresh: () => _refresh(context),
+      onRefresh: _refresh,
       child: state.myLeagues.isEmpty
           ? ListView(
+              controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 2, 16, 96),
               children: [
@@ -341,34 +386,167 @@ class _MyLeaguesTab extends StatelessWidget {
               ],
             )
           : ListView.builder(
+              controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 2, 16, 96),
-              itemCount: state.myLeagues.length,
-              itemBuilder: (context, index) =>
-                  _leagueTile(context, state.myLeagues[index]),
+              itemCount: state.myLeagues.length + 1,
+              itemBuilder: (context, index) {
+                if (index == state.myLeagues.length) {
+                  return _footer(state);
+                }
+                final league = state.myLeagues[index];
+                return TournamentItem(
+                  league: league,
+                  onTap: () async {
+                    await context.push(Routing.tournamentDetailPath(league.id));
+                    if (context.mounted) {
+                      context.read<TournamentBloc>().add(LoadMyLeagues());
+                    }
+                  },
+                );
+              },
             ),
     );
   }
 
-  Future<void> _refresh(BuildContext context) async {
+  Widget _footer(TournamentState state) {
+    if (state.myStatus.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+    if (!state.myHasMore) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: Text(
+            'Đã hết',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox(height: 16);
+  }
+}
+
+class _ManagedLeaguesTab extends StatefulWidget {
+  final TournamentState state;
+  const _ManagedLeaguesTab({required this.state});
+
+  @override
+  State<_ManagedLeaguesTab> createState() => _ManagedLeaguesTabState();
+}
+
+class _ManagedLeaguesTabState extends State<_ManagedLeaguesTab> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 400) {
+      final state = context.read<TournamentBloc>().state;
+      if (state.managedHasMore && state.managedStatus != ViewStatus.loading) {
+        context.read<TournamentBloc>().add(LoadMoreManagedLeagues());
+      }
+    }
+  }
+
+  Future<void> _refresh() async {
     final bloc = context.read<TournamentBloc>();
     final tickBefore = bloc.state.refreshTick;
     bloc.add(RefreshTournaments());
     await bloc.stream.firstWhere((s) => s.refreshTick > tickBefore);
   }
 
-  Widget _leagueTile(BuildContext context, GNEsportLeague league) {
-    return TournamentItem(
-      league: league,
-      onTap: () async {
-        await context.push(Routing.tournamentDetailPath(league.id));
-        // Returning from the detail page may have changed the league
-        // (status, name, participants) — refresh the "my" list silently.
-        if (context.mounted) {
-          context.read<TournamentBloc>().add(LoadMyLeagues());
-        }
-      },
+  @override
+  Widget build(BuildContext context) {
+    final state = widget.state;
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: state.managedLeagues.isEmpty
+          ? ListView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 2, 16, 96),
+              children: [
+                if (state.managedStatus.isLoading)
+                  const _TournamentLoadingCard()
+                else
+                  const _TournamentEmptyState(
+                    title: 'Chưa có giải đấu nào',
+                    subtitle: 'Tạo giải đấu mới để bắt đầu quản lý',
+                  ),
+              ],
+            )
+          : ListView.builder(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 2, 16, 96),
+              itemCount: state.managedLeagues.length + 1,
+              itemBuilder: (context, index) {
+                if (index == state.managedLeagues.length) {
+                  return _footer(state);
+                }
+                final league = state.managedLeagues[index];
+                return TournamentItem(
+                  league: league,
+                  onTap: () async {
+                    await context.push(Routing.tournamentDetailPath(league.id));
+                    if (context.mounted) {
+                      context
+                          .read<TournamentBloc>()
+                          .add(LoadManagedLeagues());
+                    }
+                  },
+                );
+              },
+            ),
     );
+  }
+
+  Widget _footer(TournamentState state) {
+    if (state.managedStatus.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+    if (!state.managedHasMore) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: Text(
+            'Đã hết',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox(height: 16);
   }
 }
 

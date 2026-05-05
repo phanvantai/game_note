@@ -47,8 +47,19 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<List<GNEsportLeague>> getMyLeagues() {
-    return getIt<GNFirestore>().getMyLeagues();
+  Future<LeaguesPage> getMyLeagues({Object? startAfter, int limit = 20}) {
+    return getIt<GNFirestore>().getMyLeagues(
+      startAfter: startAfter is DocumentSnapshot ? startAfter : null,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<LeaguesPage> getManagedLeagues({Object? startAfter, int limit = 20}) {
+    return getIt<GNFirestore>().getManagedLeagues(
+      startAfter: startAfter is DocumentSnapshot ? startAfter : null,
+      limit: limit,
+    );
   }
 
   @override

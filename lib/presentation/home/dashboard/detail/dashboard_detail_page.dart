@@ -1032,44 +1032,126 @@ class _DetailedMatchList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (matches.isEmpty) return const SizedBox.shrink();
     final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return Column(
       children: matches.map((m) {
+        final resultColor = m.result.color;
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.52),
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.38),
-            ),
+            border: Border.all(color: resultColor.withValues(alpha: 0.22)),
           ),
-          child: ListTile(
-            onTap: () => context.push(Routing.tournamentDetailPath(m.leagueId)),
-            shape: RoundedRectangleBorder(
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              onTap: () =>
+                  context.push(Routing.tournamentDetailPath(m.leagueId)),
               borderRadius: BorderRadius.circular(14),
-            ),
-            leading: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: m.result.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: resultColor.withValues(alpha: 0.55),
+                          width: 2,
+                        ),
+                      ),
+                      child: m.opponentPhotoUrl != null
+                          ? GNCircleAvatar(
+                              photoUrl: m.opponentPhotoUrl,
+                              size: 40,
+                            )
+                          : _InitialsAvatar(
+                              name: m.opponentDisplayName,
+                              size: 40,
+                              accent: resultColor,
+                            ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            m.leagueName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.secondary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            m.opponentDisplayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            DateFormat('dd/MM/yyyy').format(m.date),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: resultColor.withValues(alpha: 0.13),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: resultColor.withValues(alpha: 0.38),
+                            ),
+                          ),
+                          child: Text(
+                            m.result.label,
+                            style: TextStyle(
+                              color: resultColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '${m.userScore} - ${m.opponentScore}',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
               ),
-              child: Icon(m.result.icon, color: m.result.color, size: 20),
-            ),
-            title: Text(
-              '${DateFormat('dd/MM/yyyy').format(m.date)} · ${m.leagueName}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              'Bạn ${m.userScore} - ${m.opponentScore} ${m.opponentDisplayName}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: Icon(
-              Icons.chevron_right,
-              color: colorScheme.onSurfaceVariant,
             ),
           ),
         );

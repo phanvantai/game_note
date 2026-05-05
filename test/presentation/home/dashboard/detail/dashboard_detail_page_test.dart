@@ -157,10 +157,7 @@ void main() {
     // 1 lastChampionAt + 2 H2H rows (no opponents qualify).
     expect(find.text('—'), findsNWidgets(3));
     // Empty H2H placeholder hint.
-    expect(
-      find.text('Cần ít nhất 50 trận đối đầu'),
-      findsNWidgets(2),
-    );
+    expect(find.textContaining('Cần ≥ 50 trận'), findsNWidgets(2));
     // Scroll to reveal chart placeholder + recent-matches section.
     await tester.scrollUntilVisible(
       find.text('Chưa đủ dữ liệu để vẽ biểu đồ'),
@@ -314,7 +311,8 @@ void main() {
     await tester.drag(find.byType(ListView), const Offset(0, -800));
     await tester.pump();
     expect(find.text('Trận gần đây'), findsOneWidget);
-    expect(find.textContaining('Bạn 3 - 1 Opp'), findsOneWidget);
+    expect(find.text('Opp'), findsOneWidget);
+    expect(find.text('3 - 1'), findsOneWidget);
   });
 
   testWidgets('section Đối đầu: chọn theo tỉ lệ, qualifier theo default 50',
@@ -357,12 +355,14 @@ void main() {
     );
     await tester.pumpWidget(wrap());
     expect(find.text('Đối đầu'), findsOneWidget);
-    expect(find.text('Khắc tinh'), findsOneWidget);
-    expect(find.text('Mồi ngon'), findsOneWidget);
-    // Tỉ lệ render lớn ở góc phải, dòng phụ ghi rõ tên + n/N + loại trận.
+    expect(find.text('KHẮC TINH'), findsOneWidget);
+    expect(find.text('MỒI NGON'), findsOneWidget);
+    // Tỉ lệ render lớn ở góc phải, tên và count trên dòng riêng.
     expect(find.text('60%'), findsNWidgets(2));
-    expect(find.text('Cole · 30/50 trận thua'), findsOneWidget);
-    expect(find.text('Bob · 36/60 trận thắng'), findsOneWidget);
+    expect(find.text('Cole'), findsOneWidget);
+    expect(find.text('30 / 50 trận thua'), findsOneWidget);
+    expect(find.text('Bob'), findsOneWidget);
+    expect(find.text('36 / 60 trận thắng'), findsOneWidget);
     expect(find.textContaining('Andy'), findsNothing);
   });
 
@@ -388,10 +388,7 @@ void main() {
     await tester.pumpWidget(wrap());
     // 2 H2H rows show "—" và placeholder hint.
     expect(find.text('—'), findsNWidgets(2));
-    expect(
-      find.text('Cần ít nhất 50 trận đối đầu'),
-      findsNWidgets(2),
-    );
+    expect(find.textContaining('Cần ≥ 50 trận'), findsNWidgets(2));
   });
 
   testWidgets('mở bottom sheet, đổi slider, lưu → cập nhật ngưỡng + persist',
@@ -415,7 +412,8 @@ void main() {
     );
     await tester.pumpWidget(wrap());
     expect(find.text('(≥ 50 trận)'), findsOneWidget);
-    expect(find.text('Andy · 24/60 trận thắng'), findsOneWidget);
+    expect(find.text('Andy'), findsAtLeastNWidgets(1));
+    expect(find.text('24 / 60 trận thắng'), findsOneWidget);
 
     // Open bottom sheet via tune icon.
     await tester.tap(find.byIcon(Icons.tune));
@@ -468,7 +466,7 @@ void main() {
     );
     await tester.pumpWidget(wrap());
     expect(find.text('(≥ 50 trận)'), findsOneWidget);
-    expect(find.text('Cần ít nhất 50 trận đối đầu'), findsNWidgets(2));
+    expect(find.textContaining('Cần ≥ 50 trận'), findsNWidgets(2));
   });
 
   test('pickTopByRate: tie-break theo matchesPlayed khi cùng tỉ lệ', () {
@@ -570,9 +568,13 @@ void main() {
       ),
     );
     await tester.pumpWidget(wrap());
-    await tester.drag(find.byType(ListView), const Offset(0, -800));
+    await tester.scrollUntilVisible(
+      find.text('Opp'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pump();
-    await tester.tap(find.byType(ListTile));
+    await tester.tap(find.text('Opp'));
     await tester.pumpAndSettle();
     expect(find.text('tournament l1'), findsOneWidget);
   });

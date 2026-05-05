@@ -12,6 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  visibility_detector: ^0.4.0+2
+
   # free icons
   cupertino_icons: ^1.0.8
   font_awesome_flutter: ^11.0.0

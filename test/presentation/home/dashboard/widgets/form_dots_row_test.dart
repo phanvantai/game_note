@@ -23,9 +23,7 @@ void main() {
     expect(find.text('Chưa có trận nào'), findsOneWidget);
   });
 
-  testWidgets('render đúng dot và extension màu/icon theo result', (
-    tester,
-  ) async {
+  testWidgets('render đúng số dot theo số trận', (tester) async {
     await tester.pumpWidget(
       _wrap(
         FormDotsRow(
@@ -39,11 +37,17 @@ void main() {
     );
 
     expect(find.byType(Container), findsNWidgets(3));
+  });
+
+  testWidgets('extension màu/icon/label đúng theo result', (tester) async {
     expect(MatchResult.win.color, Colors.green);
     expect(MatchResult.draw.color, Colors.amber);
     expect(MatchResult.loss.color, Colors.red);
     expect(MatchResult.win.icon, Icons.check_circle);
     expect(MatchResult.draw.icon, Icons.remove_circle);
     expect(MatchResult.loss.icon, Icons.cancel);
+    expect(MatchResult.win.label, 'T');
+    expect(MatchResult.draw.label, 'H');
+    expect(MatchResult.loss.label, 'B');
   });
 }

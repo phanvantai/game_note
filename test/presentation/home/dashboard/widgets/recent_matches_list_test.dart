@@ -11,8 +11,8 @@ RecentMatchSummary _summary(MatchResult result) => RecentMatchSummary(
   date: DateTime(2026, 5, 3),
   userScore: 3,
   opponentScore: 1,
-  opponentDisplayName: 'NamPhan',
   result: result,
+  opponentDisplayName: 'NamPhan',
 );
 
 Widget _wrap(Widget child) {
@@ -37,20 +37,68 @@ void main() {
   testWidgets('empty list render SizedBox', (tester) async {
     await tester.pumpWidget(_wrap(const RecentMatchesList(matches: [])));
 
-    expect(find.byType(ListTile), findsNothing);
+    expect(find.byType(InkWell), findsNothing);
   });
 
-  testWidgets('render match và tap đi tới tournament detail', (tester) async {
+  testWidgets('render avatar, tên đối thủ, giải đấu, tỉ số và result badge',
+      (tester) async {
     await tester.pumpWidget(
       _wrap(RecentMatchesList(matches: [_summary(MatchResult.win)])),
     );
 
-    expect(find.text('03/05 · Champions Cup'), findsOneWidget);
-    expect(find.text('Bạn 3 - 1 NamPhan'), findsOneWidget);
+    expect(find.text('NamPhan'), findsOneWidget);
+    expect(find.text('Champions Cup'), findsOneWidget);
+    expect(find.text('3 - 1'), findsOneWidget);
+    // Win result badge shows 'T'
+    expect(find.text('T'), findsOneWidget);
+    // Initials avatar 'N' from 'NamPhan'
+    expect(find.text('N'), findsOneWidget);
+  });
 
-    await tester.tap(find.byType(ListTile));
+  testWidgets('tap đi tới tournament detail', (tester) async {
+    await tester.pumpWidget(
+      _wrap(RecentMatchesList(matches: [_summary(MatchResult.win)])),
+    );
+
+    await tester.tap(find.byType(InkWell).first);
     await tester.pumpAndSettle();
 
     expect(find.text('detail l1'), findsOneWidget);
+  });
+
+  testWidgets('result badge hiển thị đúng T/H/B theo kết quả', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        RecentMatchesList(
+          matches: [
+            _summary(MatchResult.win),
+            RecentMatchSummary(
+              matchId: 'm2',
+              leagueId: 'l2',
+              leagueName: 'Cup 2',
+              date: DateTime(2026, 5, 4),
+              userScore: 0,
+              opponentScore: 0,
+              result: MatchResult.draw,
+              opponentDisplayName: 'Player B',
+            ),
+            RecentMatchSummary(
+              matchId: 'm3',
+              leagueId: 'l3',
+              leagueName: 'Cup 3',
+              date: DateTime(2026, 5, 5),
+              userScore: 0,
+              opponentScore: 2,
+              result: MatchResult.loss,
+              opponentDisplayName: 'Player C',
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('T'), findsOneWidget);
+    expect(find.text('H'), findsOneWidget);
+    expect(find.text('B'), findsOneWidget);
   });
 }

@@ -19,13 +19,13 @@ class FormDotsRow extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: matches
+      children: matches.reversed
           .map(
             (match) => Container(
-              width: 14,
-              height: 14,
+              width: 20,
+              height: 20,
               decoration: BoxDecoration(
-                color: match.result.color,
+                color: match.result.color.withValues(alpha: 0.75),
                 shape: BoxShape.circle,
               ),
             ),
@@ -55,6 +55,17 @@ extension MatchResultColor on MatchResult {
         return Icons.remove_circle;
       case MatchResult.loss:
         return Icons.cancel;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case MatchResult.win:
+        return 'T';
+      case MatchResult.draw:
+        return 'H';
+      case MatchResult.loss:
+        return 'B';
     }
   }
 }

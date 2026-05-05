@@ -35,9 +35,9 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
 
     _tabs = const [
       _TabSpec(
-        icon: Icons.home_outlined,
-        activeIcon: Icons.home,
-        label: 'Trang chủ',
+        icon: Icons.sports_esports_outlined,
+        activeIcon: Icons.sports_esports,
+        label: 'Arena',
         page: HomePage(),
       ),
       _TabSpec(
@@ -99,18 +99,19 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
                   child: AdWidget(ad: _bannerAd!),
                 ),
               // coverage:ignore-end
-              BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                items: _tabs
+              NavigationBar(
+                selectedIndex: _tabController.index,
+                onDestinationSelected: _onItemTapped,
+                destinations: _tabs
                     .map(
-                      (t) => BottomNavigationBarItem(
+                      (t) => NavigationDestination(
                         icon: _TabIcon(
                           icon: t.icon,
                           showBadge:
                               t.showUnreadBadge &&
                               notificationState.unreadNotificationsCount > 0,
                         ),
-                        activeIcon: _TabIcon(
+                        selectedIcon: _TabIcon(
                           icon: t.activeIcon,
                           showBadge:
                               t.showUnreadBadge &&
@@ -120,8 +121,6 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
                       ),
                     )
                     .toList(),
-                currentIndex: _tabController.index,
-                onTap: _onItemTapped,
               ),
             ],
           ),

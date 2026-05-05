@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
@@ -46,6 +47,7 @@ void main() {
   });
 
   setUp(() async {
+    VisibilityDetectorController.instance.updateInterval = Duration.zero;
     await getIt.reset();
     final groupBloc = _MockGroupBloc();
     final tournamentBloc = _MockTournamentBloc();
@@ -92,7 +94,7 @@ void main() {
   testWidgets('MainPage provide các bloc và render MainView', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: MainPage()));
 
-    expect(find.text('Trang chủ'), findsWidgets);
+    expect(find.text('Arena'), findsWidgets);
     expect(find.text('Giải đấu'), findsOneWidget);
     expect(find.text('Cá nhân'), findsOneWidget);
     final notificationBloc = getIt<NotificationBloc>();

@@ -35,58 +35,40 @@ Widget _wrap({
 
 void main() {
   group('CreateEsportLeaguePage', () {
-    testWidgets('render Scaffold + AppBar "Tạo giải đấu" + nút "Tạo"', (
+    testWidgets('render Scaffold, không có AppBar, có nút "Tạo giải đấu"', (
       tester,
     ) async {
       await tester.pumpWidget(
         _wrap(
           groups: [_group('g1', 'Nhóm 1')],
-          onAddLeague:
-              (
-                name,
-                groupId,
-                startDate,
-                endDate,
-                description,
-                rankPayoutEnabled,
-                rankPayouts,
-                defaultMatchCost,
-              ) {},
+          onAddLeague: (_, __, ___, ____, _____, ______, _______, ________) {},
         ),
       );
 
       expect(find.byType(Scaffold), findsOneWidget);
-      expect(find.byType(AppBar), findsOneWidget);
-      expect(find.text('Tạo giải đấu'), findsOneWidget);
-      expect(find.widgetWithText(TextButton, 'Tạo'), findsOneWidget);
-      // section header chi phí (luôn hiện, không còn ExpansionTile)
-      expect(find.text('Chi phí'), findsOneWidget);
+      expect(find.byType(AppBar), findsNothing);
+      expect(find.text('Tạo giải đấu'), findsWidgets);
+      expect(find.widgetWithText(FilledButton, 'Tạo giải đấu'), findsOneWidget);
+      expect(find.text('Cấu hình chi phí'), findsOneWidget);
       expect(find.byType(ExpansionTile), findsNothing);
     });
 
-    testWidgets('mặc định bật rank payout (switch on + field hiện)', (
+    testWidgets('mặc định tắt rank payout (switch off khi mở section)', (
       tester,
     ) async {
       await tester.pumpWidget(
         _wrap(
           groups: [_group('g1', 'Nhóm 1')],
-          onAddLeague:
-              (
-                name,
-                groupId,
-                startDate,
-                endDate,
-                description,
-                rankPayoutEnabled,
-                rankPayouts,
-                defaultMatchCost,
-              ) {},
+          onAddLeague: (_, __, ___, ____, _____, ______, _______, ________) {},
         ),
       );
 
+      // Expand the cost section.
+      await tester.tap(find.text('Cấu hình chi phí'));
+      await tester.pumpAndSettle();
+
       final switchWidget = tester.widget<Switch>(find.byType(Switch));
-      expect(switchWidget.value, isTrue);
-      expect(find.widgetWithText(TextField, '50, 100, 150'), findsOneWidget);
+      expect(switchWidget.value, isFalse);
     });
 
     testWidgets('bấm "Tạo" khi chưa chọn nhóm ⇒ không gọi callback', (
@@ -97,22 +79,14 @@ void main() {
         _wrap(
           groups: [_group('g1', 'Nhóm 1')],
           onAddLeague:
-              (
-                name,
-                groupId,
-                startDate,
-                endDate,
-                description,
-                rankPayoutEnabled,
-                rankPayouts,
-                defaultMatchCost,
-              ) {
+              (_, __, ___, ____, _____, ______, _______, ________) {
                 captured.callCount++;
               },
         ),
       );
 
-      await tester.tap(find.widgetWithText(TextButton, 'Tạo'));
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
       await tester.pump();
       expect(captured.callCount, 0);
     });
@@ -154,17 +128,17 @@ void main() {
           'Giải mùa xuân',
         );
         await tester.enterText(
-          find.widgetWithText(TextField, 'Mô tả'),
+          find.widgetWithText(TextField, 'Mô tả (tuỳ chọn)'),
           'Mô tả ngắn',
         );
 
-        // mở dropdown + chọn item "Nhóm 2"
         await tester.tap(find.byType(DropdownButtonFormField<GNEsportGroup>));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Nhóm 2').last);
         await tester.pumpAndSettle();
 
-        await tester.tap(find.widgetWithText(TextButton, 'Tạo'));
+        await tester.ensureVisible(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
+        await tester.tap(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
         await tester.pump();
 
         expect(captured.callCount, 1);
@@ -173,8 +147,9 @@ void main() {
         expect(captured.groupId, 'g2');
         expect(captured.startDate, isNull);
         expect(captured.endDate, isNull);
-        expect(captured.rankPayoutEnabled, isTrue);
-        expect(captured.rankPayouts, [50000, 100000, 150000]);
+        // Cost section collapsed → default values.
+        expect(captured.rankPayoutEnabled, isFalse);
+        expect(captured.rankPayouts, isEmpty);
         expect(captured.defaultMatchCost, 50000);
       },
     );

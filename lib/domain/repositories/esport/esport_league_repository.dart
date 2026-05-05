@@ -19,9 +19,11 @@ class LeagueDetailData {
 }
 
 abstract class EsportLeagueRepository {
-  /// Leagues the current user owns or participates in.
-  /// Server-side filtered (2 parallel queries, deduped). No pagination.
-  Future<List<GNEsportLeague>> getMyLeagues();
+  /// Leagues the current user participates in as a player. Paginated.
+  Future<LeaguesPage> getMyLeagues({Object? startAfter, int limit});
+
+  /// Leagues the current user owns (ownerId == uid). Paginated.
+  Future<LeaguesPage> getManagedLeagues({Object? startAfter, int limit});
 
   /// Leagues the current user is NOT in. Paginated; pass `startAfter` from
   /// the previous page's `lastDoc` to load the next page.
