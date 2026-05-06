@@ -11,7 +11,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../../core/helpers/admob_helper.dart';
 import '../../../users/user_item.dart';
-import 'widgets/group_leagues_tab.dart';
 import 'widgets/group_overview_tab.dart';
 
 class GroupDetailView extends StatefulWidget {
@@ -26,18 +25,16 @@ class _GroupDetailViewState extends State<GroupDetailView>
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
   late final TabController _tabController;
-  bool _leaguesLoaded = false;
   bool _overviewLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _overviewLoaded) return;
       _overviewLoaded = true;
-      _leaguesLoaded = true;
       final groupId = context.read<GroupDetailBloc>().state.group.id;
       context.read<GroupDetailBloc>()
         ..add(LoadGroupOverview(groupId))
@@ -49,14 +46,9 @@ class _GroupDetailViewState extends State<GroupDetailView>
     final groupId = context.read<GroupDetailBloc>().state.group.id;
     if (_tabController.index == 0 && !_overviewLoaded) {
       _overviewLoaded = true;
-      _leaguesLoaded = true;
       context.read<GroupDetailBloc>()
         ..add(LoadGroupOverview(groupId))
         ..add(LoadGroupLeagues(groupId));
-    }
-    if (_tabController.index == 2 && !_leaguesLoaded) {
-      _leaguesLoaded = true;
-      context.read<GroupDetailBloc>().add(LoadGroupLeagues(groupId));
     }
   }
 
@@ -147,8 +139,10 @@ class _GroupDetailViewState extends State<GroupDetailView>
                         onAddMember: () => _addMember(context, state),
                         onRemoveMember: (userId) =>
                             _removeMember(false, context, state, userId),
+                        onToggleDeactivation: (userId, deactivate) =>
+                            _toggleDeactivation(context, state, userId,
+                                deactivate),
                       ),
-                      const GroupLeaguesTab(),
                     ],
                   ),
                 ),
@@ -214,6 +208,19 @@ class _GroupDetailViewState extends State<GroupDetailView>
     );
   }
 
+  void _toggleDeactivation(
+    BuildContext context,
+    GroupDetailState state,
+    String userId,
+    bool deactivate,
+  ) {
+    BlocProvider.of<GroupDetailBloc>(context).add(ToggleMemberDeactivation(
+      groupId: state.group.id,
+      userId: userId,
+      deactivate: deactivate,
+    ));
+  }
+
   void _removeMember(
     bool currentUser,
     BuildContext context,
@@ -271,7 +278,6 @@ class _GroupDetailTabBar extends StatelessWidget {
         tabs: const [
           Tab(text: 'Tổng quan'),
           Tab(text: 'Thành viên'),
-          Tab(text: 'Giải đấu'),
         ],
       ),
     );
@@ -282,16 +288,19 @@ class _MembersTab extends StatelessWidget {
   final GroupDetailState state;
   final VoidCallback onAddMember;
   final void Function(String userId) onRemoveMember;
+  final void Function(String userId, bool deactivate) onToggleDeactivation;
 
   const _MembersTab({
     required this.state,
     required this.onAddMember,
     required this.onRemoveMember,
+    required this.onToggleDeactivation,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final deactivatedMembers = state.group.deactivatedMembers;
     return CustomScrollView(
       slivers: [
         if (state.isOwner)
@@ -315,19 +324,80 @@ class _MembersTab extends StatelessWidget {
             itemCount: state.members.length,
             itemBuilder: (_, index) {
               final user = state.members[index];
+              final isDeactivated = deactivatedMembers.contains(user.id);
               return _MemberTile(
                 child: UserItem(
                   user: user,
+                  subtitle: isDeactivated
+                      ? Chip(
+                          label: const Text('Không hoạt động'),
+                          labelStyle: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          backgroundColor:
+                              colorScheme.surfaceContainerHighest,
+                          padding: EdgeInsets.zero,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          side: BorderSide.none,
+                          visualDensity: VisualDensity.compact,
+                        )
+                      : null,
                   trailing: state.isOwner
                       ? !user.isCurrentUser
-                            ? IconButton(
-                                tooltip: 'Xoá thành viên',
-                                onPressed: () => onRemoveMember(user.id),
-                                icon: Icon(
-                                  Icons.person_remove_outlined,
-                                  color: colorScheme.error,
-                                  size: 20,
-                                ),
+                            ? PopupMenuButton<_MemberAction>(
+                                icon: const Icon(Icons.more_vert, size: 20),
+                                onSelected: (action) {
+                                  if (action == _MemberAction.remove) {
+                                    onRemoveMember(user.id);
+                                  } else if (action ==
+                                      _MemberAction.deactivate) {
+                                    onToggleDeactivation(user.id, true);
+                                  } else if (action ==
+                                      _MemberAction.reactivate) {
+                                    onToggleDeactivation(user.id, false);
+                                  }
+                                },
+                                itemBuilder: (_) => [
+                                  PopupMenuItem(
+                                    value: isDeactivated
+                                        ? _MemberAction.reactivate
+                                        : _MemberAction.deactivate,
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          isDeactivated
+                                              ? Icons.person_outlined
+                                              : Icons.person_off_outlined,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(isDeactivated
+                                            ? 'Kích hoạt lại'
+                                            : 'Ngừng hoạt động'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _MemberAction.remove,
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.person_remove_outlined,
+                                          color: colorScheme.error,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          'Xoá khỏi nhóm',
+                                          style: TextStyle(
+                                              color: colorScheme.error),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               )
                             : Icon(
                                 Icons.admin_panel_settings_outlined,
@@ -371,3 +441,5 @@ class _MemberTile extends StatelessWidget {
 }
 
 enum _GroupAction { leaveGroup }
+
+enum _MemberAction { deactivate, reactivate, remove }

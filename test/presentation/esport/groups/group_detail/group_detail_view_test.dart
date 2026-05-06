@@ -35,12 +35,14 @@ class _FakeGroupDetailState extends Fake implements GroupDetailState {}
 GNEsportGroup _group({
   String ownerId = 'owner1',
   List<String> members = const ['owner1'],
+  List<String> deactivatedMembers = const [],
 }) =>
     GNEsportGroup(
       id: 'G1',
       groupName: 'Test Group',
       ownerId: ownerId,
       members: members,
+      deactivatedMembers: deactivatedMembers,
       description: '',
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
@@ -58,9 +60,16 @@ GNUser _user(String id, {bool isPlaceholder = false}) => GNUser(
       isPlaceholder: isPlaceholder,
     );
 
-GroupDetailState _ownerState({List<GNUser> members = const []}) =>
+GroupDetailState _ownerState({
+  List<GNUser> members = const [],
+  List<String> deactivatedMembers = const [],
+}) =>
     GroupDetailState(
-      group: _group(ownerId: 'owner1'),
+      group: _group(
+        ownerId: 'owner1',
+        members: ['owner1', ...members.map((u) => u.id)],
+        deactivatedMembers: deactivatedMembers,
+      ),
       members: members,
       currentUserId: 'owner1',
     );
@@ -124,7 +133,7 @@ void main() {
 
   tearDown(() => getIt.reset());
 
-  testWidgets('render 3 tab labels', (tester) async {
+  testWidgets('render 2 tab labels', (tester) async {
     when(() => bloc.state).thenReturn(_ownerState());
 
     await tester.pumpWidget(_wrapWithRouter(bloc));
@@ -132,7 +141,7 @@ void main() {
 
     expect(find.text('Tổng quan'), findsOneWidget);
     expect(find.text('Thành viên'), findsOneWidget);
-    expect(find.text('Giải đấu'), findsOneWidget);
+    expect(find.text('Giải đấu'), findsNothing);
   });
 
   testWidgets('initState dispatch LoadGroupOverview', (tester) async {
@@ -146,26 +155,17 @@ void main() {
     ).called(1);
   });
 
-  testWidgets(
-      'initState dispatch LoadGroupLeagues cùng LoadGroupOverview (không phải khi chuyển tab)',
+  testWidgets('initState dispatch LoadGroupLeagues cùng LoadGroupOverview',
       (tester) async {
     when(() => bloc.state).thenReturn(_ownerState());
 
     await tester.pumpWidget(_wrapWithRouter(bloc));
     await tester.pumpAndSettle();
 
-    // LoadGroupLeagues được dispatch trong initState, không phải khi chuyển tab.
+    // LoadGroupLeagues được dispatch trong initState (vẫn cần cho year filter của overview).
     verify(
       () => bloc.add(any(that: isA<LoadGroupLeagues>())),
     ).called(1);
-
-    clearInteractions(bloc);
-
-    // Chuyển sang tab Giải đấu → KHÔNG dispatch LoadGroupLeagues lần 2.
-    await tester.tap(find.text('Giải đấu'));
-    await tester.pumpAndSettle();
-
-    verifyNever(() => bloc.add(any(that: isA<LoadGroupLeagues>())));
   });
 
   testWidgets('tab Thành viên: owner thấy nút Thêm thành viên',
@@ -196,12 +196,8 @@ void main() {
     expect(find.text('Thêm thành viên'), findsNothing);
   });
 
-  testWidgets('tab Thành viên: owner thấy nút xoá cho member khác',
+  testWidgets('tab Thành viên: owner thấy popup menu cho member khác',
       (tester) async {
-    // owner1 is current user; u2 is another member
-    // Since isCurrentUser checks FirebaseAuth and returns false in tests,
-    // the owner (owner1) sees a remove button for all members (since none
-    // of them returns isCurrentUser == true in test environment).
     when(() => bloc.state).thenReturn(
       _ownerState(members: [_user('owner1'), _user('u2')]),
     );
@@ -212,18 +208,8 @@ void main() {
     await tester.tap(find.text('Thành viên'));
     await tester.pumpAndSettle();
 
-    // u2 is not current user (FirebaseAuth returns null in tests) so remove
-    // button should be visible for u2
-    expect(
-      find.byWidgetPredicate(
-        (w) =>
-            w is IconButton &&
-            (w.tooltip == 'Xoá thành viên' || w.tooltip == null),
-      ),
-      findsWidgets,
-    );
-    // Specifically verify the person_remove icon exists
-    expect(find.byIcon(Icons.person_remove_outlined), findsWidgets);
+    // Owner sees a more_vert popup menu button for non-owner members.
+    expect(find.byIcon(Icons.more_vert), findsWidgets);
   });
 
   testWidgets('tab Thành viên: non-owner thấy icon admin cho owner member',
@@ -271,6 +257,124 @@ void main() {
       find.byWidgetPredicate((w) => w is PopupMenuButton),
       findsNothing,
     );
+  });
+
+  testWidgets(
+      'tab Thành viên: badge "Không hoạt động" hiện khi member trong deactivatedMembers',
+      (tester) async {
+    final state = _ownerState(
+      members: [_user('owner1'), _user('u2')],
+      deactivatedMembers: ['u2'],
+    );
+    when(() => bloc.state).thenReturn(state);
+    whenListen(bloc, Stream.value(state), initialState: state);
+
+    await tester.pumpWidget(_wrapWithRouter(bloc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Thành viên'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Không hoạt động'), findsOneWidget);
+  });
+
+  testWidgets(
+      'tab Thành viên: không có badge khi không có deactivated member',
+      (tester) async {
+    final state = _ownerState(
+      members: [_user('owner1'), _user('u2')],
+    );
+    when(() => bloc.state).thenReturn(state);
+    whenListen(bloc, Stream.value(state), initialState: state);
+
+    await tester.pumpWidget(_wrapWithRouter(bloc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Thành viên'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Không hoạt động'), findsNothing);
+  });
+
+  testWidgets(
+      'tab Thành viên: popup menu owner có đủ 3 option cho active member',
+      (tester) async {
+    final state = _ownerState(
+      members: [_user('owner1'), _user('u2')],
+    );
+    when(() => bloc.state).thenReturn(state);
+    whenListen(bloc, Stream.value(state), initialState: state);
+
+    await tester.pumpWidget(_wrapWithRouter(bloc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Thành viên'));
+    await tester.pumpAndSettle();
+
+    // Open the popup menu for u2 (more_vert icon)
+    await tester.tap(find.byIcon(Icons.more_vert).last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ngừng hoạt động'), findsOneWidget);
+    expect(find.text('Xoá khỏi nhóm'), findsOneWidget);
+  });
+
+  testWidgets(
+      'tab Thành viên: popup menu owner hiện "Kích hoạt lại" cho deactivated member',
+      (tester) async {
+    final state = _ownerState(
+      members: [_user('owner1'), _user('u2')],
+      deactivatedMembers: ['u2'],
+    );
+    when(() => bloc.state).thenReturn(state);
+    whenListen(bloc, Stream.value(state), initialState: state);
+
+    await tester.pumpWidget(_wrapWithRouter(bloc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Thành viên'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.more_vert).last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Kích hoạt lại'), findsOneWidget);
+    expect(find.text('Xoá khỏi nhóm'), findsOneWidget);
+  });
+
+  testWidgets(
+      'tab Thành viên: chọn "Ngừng hoạt động" → dispatch ToggleMemberDeactivation',
+      (tester) async {
+    final state = _ownerState(
+      members: [_user('owner1'), _user('u2')],
+    );
+    when(() => bloc.state).thenReturn(state);
+    whenListen(bloc, Stream.value(state), initialState: state);
+
+    await tester.pumpWidget(_wrapWithRouter(bloc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Thành viên'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.more_vert).last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ngừng hoạt động'));
+    await tester.pumpAndSettle();
+
+    verify(
+      () => bloc.add(
+        any(
+          that: predicate<GroupDetailEvent>(
+            (e) =>
+                e is ToggleMemberDeactivation &&
+                e.userId == 'u2' &&
+                e.deactivate == true,
+          ),
+        ),
+      ),
+    ).called(1);
   });
 
   testWidgets(

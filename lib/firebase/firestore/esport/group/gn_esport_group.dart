@@ -6,6 +6,7 @@ class GNEsportGroup extends Equatable {
   final String groupName;
   final String ownerId;
   final List<String> members;
+  final List<String> deactivatedMembers;
   final String description;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -16,6 +17,7 @@ class GNEsportGroup extends Equatable {
     required this.groupName,
     required this.ownerId,
     required this.members,
+    this.deactivatedMembers = const [],
     required this.description,
     required this.createdAt,
     required this.updatedAt,
@@ -26,6 +28,7 @@ class GNEsportGroup extends Equatable {
     String? groupName,
     String? ownerId,
     List<String>? members,
+    List<String>? deactivatedMembers,
     String? description,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -36,6 +39,7 @@ class GNEsportGroup extends Equatable {
       groupName: groupName ?? this.groupName,
       ownerId: ownerId ?? this.ownerId,
       members: members ?? this.members,
+      deactivatedMembers: deactivatedMembers ?? this.deactivatedMembers,
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -49,6 +53,7 @@ class GNEsportGroup extends Equatable {
     groupName,
     ownerId,
     members,
+    deactivatedMembers,
     description,
     // createdAt,
     // updatedAt,
@@ -63,6 +68,7 @@ class GNEsportGroup extends Equatable {
       groupName: data[groupNameKey] ?? '',
       ownerId: data[ownerIdKey] ?? '',
       members: List<String>.from(data[membersKey] ?? []),
+      deactivatedMembers: List<String>.from(data[deactivatedMembersKey] ?? []),
       description: data[descriptionKey] ?? '',
       createdAt: (data[createdAtKey] as Timestamp).toDate(),
       updatedAt: (data[updatedAtKey] as Timestamp).toDate(),
@@ -76,6 +82,7 @@ class GNEsportGroup extends Equatable {
       groupNameKey: groupName,
       ownerIdKey: ownerId,
       membersKey: members,
+      deactivatedMembersKey: deactivatedMembers,
       descriptionKey: description,
       createdAtKey: Timestamp.fromDate(createdAt),
       updatedAtKey: Timestamp.fromDate(updatedAt),
@@ -103,6 +110,7 @@ class GNEsportGroup extends Equatable {
   static const String groupNameKey = 'groupName';
   static const String ownerIdKey = 'ownerId';
   static const String membersKey = 'members';
+  static const String deactivatedMembersKey = 'deactivatedMembers';
   static const String descriptionKey = 'description';
   static const String createdAtKey = 'createdAt';
   static const String updatedAtKey = 'updatedAt';

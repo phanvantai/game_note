@@ -8,12 +8,14 @@ class UserItem extends StatelessWidget {
   final Function()? onTap;
   final Function()? onLongPress;
   final Widget? trailing;
+  final Widget? subtitle;
   const UserItem({
     super.key,
     required this.user,
     this.onTap,
     this.onLongPress,
     this.trailing,
+    this.subtitle,
   });
 
   @override
@@ -23,6 +25,7 @@ class UserItem extends StatelessWidget {
         user.displayName ?? user.email ?? user.phoneNumber ?? user.id,
         style: Theme.of(context).textTheme.bodyLarge,
       ),
+      subtitle: subtitle,
       leading: GNCircleAvatar(photoUrl: user.photoUrl, size: 40),
       onTap: onTap,
       onLongPress: onLongPress,

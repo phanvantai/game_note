@@ -20,17 +20,22 @@ class GroupOverviewCalculator {
   static GroupOverview compute({
     required GNEsportGroupStatsSummary summary,
     Map<String, GNUser> users = const {},
+    Set<String> deactivatedIds = const {},
     int minFinishedLeagues = kMinFinishedLeagues,
     int minMatches = kMinMatches,
   }) {
-    final players = summary.playerStats;
-    if (players.isEmpty && summary.totalLeagues == 0) {
+    final allPlayers = summary.playerStats;
+    if (allPlayers.isEmpty && summary.totalLeagues == 0) {
       return const GroupOverview.empty();
     }
 
+    final activePlayers = deactivatedIds.isEmpty
+        ? allPlayers
+        : allPlayers.where((e) => !deactivatedIds.contains(e.userId)).toList();
+
     GNUser toUser(GNEsportGroupPlayerEntry e) => _toUser(e, users);
 
-    final playerStats = players
+    final playerStats = activePlayers
         .map((e) => GroupPlayerStats(
               player: toUser(e),
               matches: e.matches,
@@ -47,9 +52,10 @@ class GroupOverviewCalculator {
         return _displayName(a.player).compareTo(_displayName(b.player));
       });
 
+    // Aggregate from ALL players to preserve group history accuracy.
     final totalPlayerMatches =
-        players.fold<int>(0, (acc, e) => acc + e.matches);
-    final totalGoals = players.fold<int>(0, (acc, e) => acc + e.goals);
+        allPlayers.fold<int>(0, (acc, e) => acc + e.matches);
+    final totalGoals = allPlayers.fold<int>(0, (acc, e) => acc + e.goals);
 
     return GroupOverview(
       totalLeagues: summary.totalLeagues,
@@ -60,7 +66,7 @@ class GroupOverviewCalculator {
       totalGoals: totalGoals,
       champion: _bestRate(
         kind: GroupAwardKind.champion,
-        players: players,
+        players: activePlayers,
         toUser: toUser,
         numerator: (e) => e.championships,
         sample: (e) => e.finishedLeaguesJoined,
@@ -68,15 +74,15 @@ class GroupOverviewCalculator {
       ),
       runnerUpKing: _bestRate(
         kind: GroupAwardKind.runnerUp,
-        players: players,
+        players: activePlayers,
         toUser: toUser,
         numerator: (e) => e.runnerUps,
         sample: (e) => e.finishedLeaguesJoined,
         minSample: minFinishedLeagues,
       ),
-      drawKing: _drawKing(players, toUser),
-      ironDefense: _ironDefense(players, toUser, minMatches),
-      master: _master(players, toUser, minMatches),
+      drawKing: _drawKing(activePlayers, toUser),
+      ironDefense: _ironDefense(activePlayers, toUser, minMatches),
+      master: _master(activePlayers, toUser, minMatches),
       playerStats: playerStats,
     );
   }

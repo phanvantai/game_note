@@ -23,4 +23,10 @@ abstract class EsportGroupRepository {
     required String groupId,
     required String memberId,
   });
+
+  Future<void> toggleMemberDeactivation({
+    required String groupId,
+    required String userId,
+    required bool deactivate,
+  });
 }

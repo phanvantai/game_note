@@ -421,6 +421,10 @@ exports.onLeagueMatchWritten = onDocumentWritten(
       // (User-level summary still updates — that path filters separately
       // via the `isActive` check in `onRecomputeUserSummaryRequest`.)
       const groupActive = groupId && leagueData.isActive !== false;
+      const deactivatedIds = groupActive ?
+        await fetchDeactivatedIds(groupId) : new Set();
+      const leagueExcluded = groupActive &&
+        hasDeactivatedParticipant(leagueData, deactivatedIds);
 
       await Promise.all([
         applyToSummary({
@@ -441,10 +445,10 @@ exports.onLeagueMatchWritten = onDocumentWritten(
           uid: away, opponentUid: home, opponentName: homeName,
           delta: awayDelta, matchAfter: matchAfterWithIds, eventId,
         }),
-        groupActive ? applyMatchDeltaToGroupSummary({
+        (groupActive && !leagueExcluded) ? applyMatchDeltaToGroupSummary({
           groupId, uid: home, displayName: homeName, delta: homeDelta, eventId,
         }) : Promise.resolve(),
-        groupActive ? applyMatchDeltaToGroupSummary({
+        (groupActive && !leagueExcluded) ? applyMatchDeltaToGroupSummary({
           groupId, uid: away, displayName: awayName, delta: awayDelta, eventId,
         }) : Promise.resolve(),
       ]);
@@ -675,6 +679,21 @@ function maxDate(a, b) {
   const am = a.toMillis ? a.toMillis() : new Date(a).getTime();
   const bm = b.toMillis ? b.toMillis() : new Date(b).getTime();
   return am >= bm ? a : b;
+}
+
+// Fetch the deactivatedMembers set for a group. Returns empty Set when the
+// group doc doesn't exist or the field is absent (backward compat).
+async function fetchDeactivatedIds(groupId) {
+  if (!groupId) return new Set();
+  const snap = await db.collection("esports_groups").doc(groupId).get();
+  return new Set((snap.data() || {}).deactivatedMembers || []);
+}
+
+// Returns true if any of the league's participants is in deactivatedIds.
+// When true the entire league is excluded from the group summary.
+function hasDeactivatedParticipant(leagueData, deactivatedIds) {
+  if (!deactivatedIds.size) return false;
+  return (leagueData.participants || []).some((p) => deactivatedIds.has(p));
 }
 
 // ---------------------------------------------------------------------
@@ -967,6 +986,8 @@ async function applyLeagueFinishedToGroupSummary(
   // (`onEsportLeagueWritten`) is responsible for rolling back any
   // championship counts that were applied while the league was active.
   if (leagueData.isActive === false) return;
+  const deactivatedIds = await fetchDeactivatedIds(groupId);
+  if (hasDeactivatedParticipant(leagueData, deactivatedIds)) return;
   const statsSnap = await db
       .collection("esports_leagues").doc(leagueId)
       .collection("leagues_stats").get();
@@ -1037,9 +1058,11 @@ exports.onEsportLeagueWritten = onDocumentWritten(
       const eventId = event.id;
       const leagueId = event.params.leagueId;
 
-      // Created — only count active leagues.
+      // Created — only count active leagues without deactivated members.
       if (!before && after) {
         if (!after.groupId || after.isActive === false) return null;
+        const deactivatedIds = await fetchDeactivatedIds(after.groupId);
+        if (hasDeactivatedParticipant(after, deactivatedIds)) return null;
         await bumpGroupTotalLeagues(after.groupId, +1, eventId);
         if (after.status === "finished") {
           // Rare: league created already finished. Mirror finishedLeagues
@@ -1055,6 +1078,8 @@ exports.onEsportLeagueWritten = onDocumentWritten(
       // when it disappeared. Inactive leagues weren't counted anyway.
       if (before && !after) {
         if (!before.groupId || before.isActive === false) return null;
+        const deactivatedIds = await fetchDeactivatedIds(before.groupId);
+        if (hasDeactivatedParticipant(before, deactivatedIds)) return null;
         await bumpGroupTotalLeagues(before.groupId, -1, eventId);
         if (before.status === "finished") {
           await bumpGroupFinishedLeagues(before.groupId, -1, eventId + ":fin");
@@ -1070,25 +1095,39 @@ exports.onEsportLeagueWritten = onDocumentWritten(
         const wasActive = before.isActive !== false;
         const isActive = after.isActive !== false;
         if (wasActive && !isActive) {
-          await applyLeagueActiveTransition(
-              leagueId, before, eventId + ":soft-del", -1);
+          const deactivatedIds = await fetchDeactivatedIds(before.groupId);
+          if (!hasDeactivatedParticipant(before, deactivatedIds)) {
+            await applyLeagueActiveTransition(
+                leagueId, before, eventId + ":soft-del", -1);
+          }
           return null;
         }
         if (!wasActive && isActive) {
-          await applyLeagueActiveTransition(
-              leagueId, after, eventId + ":undel", +1);
+          const deactivatedIds = await fetchDeactivatedIds(after.groupId);
+          if (!hasDeactivatedParticipant(after, deactivatedIds)) {
+            await applyLeagueActiveTransition(
+                leagueId, after, eventId + ":undel", +1);
+          }
           return null;
         }
 
         // groupId change — extremely rare, treat as delete + add.
         if (before.groupId !== after.groupId) {
           if (before.groupId && wasActive) {
-            await applyLeagueActiveTransition(
-                leagueId, before, eventId + ":out", -1);
+            const deactivatedIdsBefore =
+              await fetchDeactivatedIds(before.groupId);
+            if (!hasDeactivatedParticipant(before, deactivatedIdsBefore)) {
+              await applyLeagueActiveTransition(
+                  leagueId, before, eventId + ":out", -1);
+            }
           }
           if (after.groupId && isActive) {
-            await applyLeagueActiveTransition(
-                leagueId, after, eventId + ":in", +1);
+            const deactivatedIdsAfter =
+              await fetchDeactivatedIds(after.groupId);
+            if (!hasDeactivatedParticipant(after, deactivatedIdsAfter)) {
+              await applyLeagueActiveTransition(
+                  leagueId, after, eventId + ":in", +1);
+            }
           }
         }
       }
@@ -1249,11 +1288,17 @@ exports.onRecomputeGroupSummaryRequest = onDocumentCreated(
             .where("groupId", "==", groupId)
             .where("isActive", "==", true)
             .get();
-        summary.totalLeagues = leaguesSnap.size;
+
+        // Leagues containing a deactivated member are excluded entirely —
+        // consistent with the client-side year-filter league-level exclusion.
+        const deactivatedIds = await fetchDeactivatedIds(groupId);
 
         for (const leagueDoc of leaguesSnap.docs) {
           const league = leagueDoc.data();
           const leagueId = leagueDoc.id;
+
+          if (hasDeactivatedParticipant(league, deactivatedIds)) continue;
+          summary.totalLeagues += 1;
 
           const matchesSnap = await db.collection("esports_leagues")
               .doc(leagueId).collection("leagues_matches")

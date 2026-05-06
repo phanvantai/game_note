@@ -218,7 +218,9 @@ extension GNFirestoreUser on GNFirestore {
     }
     return uniqueDocs.values
         .map((doc) => GNUser.fromFireStore(doc))
-        .where((user) => group.members.contains(user.id))
+        .where((user) =>
+            group.members.contains(user.id) &&
+            !group.deactivatedMembers.contains(user.id))
         .toList();
   }
 

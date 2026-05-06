@@ -41,7 +41,10 @@ GNEsportGroup _group({String ownerId = 'owner1'}) => GNEsportGroup(
       status: 'active',
     );
 
-GNEsportLeague _league(String id, {int year = 2026, String? status}) =>
+GNEsportLeague _league(String id,
+        {int year = 2026,
+        String? status,
+        List<String> participants = const []}) =>
     GNEsportLeague(
       id: id,
       ownerId: 'owner1',
@@ -50,7 +53,7 @@ GNEsportLeague _league(String id, {int year = 2026, String? status}) =>
       startDate: DateTime(year, 1, 1),
       isActive: status != 'finished',
       description: '',
-      participants: const [],
+      participants: participants,
       status: status,
     );
 
@@ -493,6 +496,139 @@ void main() {
     );
   });
 
+  group('ToggleMemberDeactivation', () {
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'success: optimistic update đúng — deactivate thêm userId vào deactivatedMembers',
+      build: bloc,
+      seed: () => GroupDetailState(group: _group()),
+      setUp: () {
+        when(() => groupRepo.toggleMemberDeactivation(
+              groupId: 'G1',
+              userId: 'u2',
+              deactivate: true,
+            )).thenAnswer((_) async {});
+        when(() => statsRepo.requestRecompute('G1'))
+            .thenAnswer((_) async {});
+      },
+      act: (b) => b.add(const ToggleMemberDeactivation(
+        groupId: 'G1',
+        userId: 'u2',
+        deactivate: true,
+      )),
+      expect: () => [
+        isA<GroupDetailState>().having(
+          (s) => s.group.deactivatedMembers,
+          'deactivatedMembers',
+          contains('u2'),
+        ),
+      ],
+      verify: (_) {
+        verify(() => groupRepo.toggleMemberDeactivation(
+              groupId: 'G1',
+              userId: 'u2',
+              deactivate: true,
+            )).called(1);
+      },
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'success: deactivate false → xoá userId khỏi deactivatedMembers',
+      build: bloc,
+      seed: () => GroupDetailState(
+        group: _group().copyWith(deactivatedMembers: ['u2']),
+      ),
+      setUp: () {
+        when(() => groupRepo.toggleMemberDeactivation(
+              groupId: 'G1',
+              userId: 'u2',
+              deactivate: false,
+            )).thenAnswer((_) async {});
+        when(() => statsRepo.requestRecompute('G1'))
+            .thenAnswer((_) async {});
+      },
+      act: (b) => b.add(const ToggleMemberDeactivation(
+        groupId: 'G1',
+        userId: 'u2',
+        deactivate: false,
+      )),
+      expect: () => [
+        isA<GroupDetailState>().having(
+          (s) => s.group.deactivatedMembers,
+          'deactivatedMembers',
+          isNot(contains('u2')),
+        ),
+      ],
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'success: toggle xoá yearlyOverviews cache',
+      build: bloc,
+      seed: () => GroupDetailState(
+        group: _group(),
+        yearlyOverviews: {2025: const GroupOverview.empty()},
+      ),
+      setUp: () {
+        when(() => groupRepo.toggleMemberDeactivation(
+              groupId: any(named: 'groupId'),
+              userId: any(named: 'userId'),
+              deactivate: any(named: 'deactivate'),
+            )).thenAnswer((_) async {});
+        when(() => statsRepo.requestRecompute(any()))
+            .thenAnswer((_) async {});
+      },
+      act: (b) => b.add(const ToggleMemberDeactivation(
+        groupId: 'G1',
+        userId: 'u2',
+        deactivate: true,
+      )),
+      expect: () => [
+        isA<GroupDetailState>().having(
+          (s) => s.yearlyOverviews,
+          'yearlyOverviews',
+          isEmpty,
+        ),
+      ],
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'failure: rollback về state cũ khi repo ném lỗi',
+      build: bloc,
+      seed: () => GroupDetailState(group: _group()),
+      setUp: () {
+        when(() => groupRepo.toggleMemberDeactivation(
+              groupId: any(named: 'groupId'),
+              userId: any(named: 'userId'),
+              deactivate: any(named: 'deactivate'),
+            )).thenThrow(Exception('network error'));
+      },
+      act: (b) => b.add(const ToggleMemberDeactivation(
+        groupId: 'G1',
+        userId: 'u2',
+        deactivate: true,
+      )),
+      expect: () => [
+        // Optimistic update first
+        isA<GroupDetailState>().having(
+          (s) => s.group.deactivatedMembers,
+          'deactivatedMembers optimistic',
+          contains('u2'),
+        ),
+        // Rollback
+        isA<GroupDetailState>()
+            .having(
+              (s) => s.group.deactivatedMembers,
+              'deactivatedMembers rolled back',
+              isNot(contains('u2')),
+            )
+            .having(
+              (s) => s.errorMessage,
+              'errorMessage',
+              contains('network error'),
+            ),
+      ],
+    );
+  });
+
   group('FilterGroupOverviewByYear', () {
     final league2025 = _league('L1', year: 2025, status: 'finished');
     final league2024 = _league('L2', year: 2024, status: 'finished');
@@ -634,6 +770,31 @@ void main() {
         isA<GroupDetailState>().having(
             (s) => s.filteredOverviewStatus, 'status', ViewStatus.failure),
       ],
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'deactivated member: bỏ qua league có deactivated user, không fetch stats cho league đó',
+      build: bloc,
+      seed: () => GroupDetailState(
+        group: _group().copyWith(deactivatedMembers: ['deactivated']),
+        leagues: [
+          _league('L1', year: 2025, status: 'finished',
+              participants: ['owner1', 'A']),
+          _league('L2', year: 2025, status: 'finished',
+              participants: ['owner1', 'deactivated']),
+        ],
+        leaguesStatus: ViewStatus.success,
+      ),
+      setUp: () {
+        when(() => leagueRepo.getLeagueStats('L1')).thenAnswer(
+          (_) async => [_leagueStat('L1', 'A')],
+        );
+      },
+      act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
+      verify: (_) {
+        verify(() => leagueRepo.getLeagueStats('L1')).called(1);
+        verifyNever(() => leagueRepo.getLeagueStats('L2'));
+      },
     );
 
     blocTest<GroupDetailBloc, GroupDetailState>(

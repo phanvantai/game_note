@@ -111,3 +111,18 @@ class FilterGroupOverviewByYear extends GroupDetailEvent {
   @override
   List<Object?> get props => [year];
 }
+
+class ToggleMemberDeactivation extends GroupDetailEvent {
+  final String groupId;
+  final String userId;
+  final bool deactivate;
+
+  const ToggleMemberDeactivation({
+    required this.groupId,
+    required this.userId,
+    required this.deactivate,
+  });
+
+  @override
+  List<Object?> get props => [groupId, userId, deactivate];
+}

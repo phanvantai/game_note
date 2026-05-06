@@ -182,5 +182,64 @@ void main() {
       expect(result.master!.player.id, 'ghost');
       expect(result.master!.player.isPlaceholder, isTrue);
     });
+
+    test('deactivated user không xuất hiện trong playerStats', () {
+      final result = GroupOverviewCalculator.compute(
+        summary: _summary(
+          totalLeagues: 1,
+          players: [
+            _entry('active', matches: 5, wins: 3, goals: 8),
+            _entry('inactive', matches: 5, wins: 2, goals: 5),
+          ],
+        ),
+        deactivatedIds: {'inactive'},
+      );
+      final ids = result.playerStats.map((s) => s.player.id).toList();
+      expect(ids, contains('active'));
+      expect(ids, isNot(contains('inactive')));
+    });
+
+    test('deactivated user không nhận award', () {
+      final result = GroupOverviewCalculator.compute(
+        summary: _summary(
+          totalLeagues: 6,
+          finishedLeagues: 6,
+          players: [
+            // deactivated player có stats tốt nhất
+            _entry('inactive',
+                matches: 30, wins: 25, goals: 60,
+                championships: 5, finishedJoined: 6),
+            // active player
+            _entry('active',
+                matches: 30, wins: 15, goals: 40,
+                championships: 2, finishedJoined: 6),
+          ],
+        ),
+        deactivatedIds: {'inactive'},
+      );
+      expect(result.champion, isNotNull);
+      expect(result.champion!.player.id, 'active');
+      expect(result.master, isNotNull);
+      expect(result.master!.player.id, 'active');
+    });
+
+    test('totalMatchesPlayed và totalGoals tính cả deactivated user', () {
+      final result = GroupOverviewCalculator.compute(
+        summary: _summary(
+          totalLeagues: 1,
+          players: [
+            _entry('active', matches: 4, wins: 2, draws: 2, goals: 6),
+            _entry('inactive', matches: 4, wins: 2, draws: 2, goals: 4),
+          ],
+        ),
+        deactivatedIds: {'inactive'},
+      );
+      // totalMatchesPlayed = (4+4)/2 = 4 (includes both)
+      expect(result.totalMatchesPlayed, 4);
+      // totalGoals = 6 + 4 = 10 (includes both)
+      expect(result.totalGoals, 10);
+      // playerStats chỉ có active
+      expect(result.playerStats.length, 1);
+    });
   });
 }

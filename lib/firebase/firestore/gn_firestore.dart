@@ -4,7 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'user/gn_user.dart';
 
 class GNFirestore {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseFirestore _firestore;
+
+  GNFirestore([FirebaseFirestore? firestore]) {
+    _firestore = firestore ?? FirebaseFirestore.instance;
+  }
 
   FirebaseFirestore get firestore => _firestore;
 

@@ -69,7 +69,23 @@ extension GNFirestoreEsportGroup on GNFirestore {
     }
     await groupRef.update({
       GNEsportGroup.membersKey: FieldValue.arrayRemove([memberId]),
+      GNEsportGroup.deactivatedMembersKey: FieldValue.arrayRemove([memberId]),
       GNEsportGroup.updatedAtKey: Timestamp.now(),
+    });
+  }
+
+  Future<void> toggleMemberDeactivation({
+    required String groupId,
+    required String userId,
+    required bool deactivate,
+  }) async {
+    await firestore
+        .collection(GNEsportGroup.collectionName)
+        .doc(groupId)
+        .update({
+      GNEsportGroup.deactivatedMembersKey: deactivate
+          ? FieldValue.arrayUnion([userId])
+          : FieldValue.arrayRemove([userId]),
     });
   }
 

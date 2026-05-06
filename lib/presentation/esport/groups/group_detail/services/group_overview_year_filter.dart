@@ -16,12 +16,21 @@ class GroupOverviewYearFilter {
   /// [statsByLeague] maps leagueId → stats list fetched via
   /// [EsportLeagueRepository.getLeagueStats]. Missing entries are treated as
   /// empty (league had no recorded stats yet).
+  ///
+  /// [deactivatedIds] — leagues where any deactivated user is listed as a
+  /// participant are excluded entirely before aggregation.
   static GNEsportGroupStatsSummary aggregate({
     required List<GNEsportLeague> leagues,
     required int year,
     required Map<String, List<GNEsportLeagueStat>> statsByLeague,
+    Set<String> deactivatedIds = const {},
   }) {
-    final filtered = leagues.where((l) => l.startDate.year == year).toList();
+    final inYear = leagues.where((l) => l.startDate.year == year);
+    final filtered = (deactivatedIds.isEmpty
+            ? inYear
+            : inYear.where(
+                (l) => !l.participants.any(deactivatedIds.contains)))
+        .toList();
     if (filtered.isEmpty) {
       return GNEsportGroupStatsSummary.empty(
         filtered.isEmpty ? '' : filtered.first.groupId,

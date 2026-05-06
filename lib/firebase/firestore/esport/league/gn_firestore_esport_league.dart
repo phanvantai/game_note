@@ -343,6 +343,7 @@ extension GNFirestoreEsportLeague on GNFirestore {
     final snap = await firestore
         .collection(GNEsportLeague.collectionName)
         .where(GNEsportLeague.fieldGroupId, isEqualTo: groupId)
+        .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
         .orderBy(GNEsportLeague.fieldStartDate, descending: true)
         .get();
     final leagues = snap.docs.map(GNEsportLeague.fromFirestore).toList();

@@ -65,6 +65,7 @@ class GroupDetailState extends Equatable {
     int? selectedOverviewYear,
     bool clearSelectedYear = false,
     Map<int, GroupOverview>? yearlyOverviews,
+    bool clearYearlyOverviewCache = false,
     ViewStatus? filteredOverviewStatus,
   }) {
     return GroupDetailState(
@@ -84,7 +85,7 @@ class GroupDetailState extends Equatable {
       overviewIsStale: overviewIsStale ?? this.overviewIsStale,
       selectedOverviewYear:
           clearSelectedYear ? null : selectedOverviewYear ?? this.selectedOverviewYear,
-      yearlyOverviews: yearlyOverviews ?? this.yearlyOverviews,
+      yearlyOverviews: clearYearlyOverviewCache ? {} : yearlyOverviews ?? this.yearlyOverviews,
       filteredOverviewStatus:
           filteredOverviewStatus ?? this.filteredOverviewStatus,
     );

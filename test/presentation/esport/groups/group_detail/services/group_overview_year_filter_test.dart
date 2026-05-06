@@ -7,6 +7,7 @@ GNEsportLeague _league(
   String id, {
   int year = 2025,
   String status = 'finished',
+  List<String> participants = const [],
 }) =>
     GNEsportLeague(
       id: id,
@@ -16,7 +17,7 @@ GNEsportLeague _league(
       startDate: DateTime(year, 6, 1),
       isActive: status != 'finished',
       description: '',
-      participants: const [],
+      participants: participants,
       status: status,
     );
 
@@ -250,6 +251,47 @@ void main() {
         statsByLeague: const {},
       );
       expect(result.groupId, 'G1');
+    });
+
+    test('deactivated: loại league có deactivated user tham gia', () {
+      final leagues = [
+        _league('L1', year: 2025, participants: ['A', 'B']),
+        _league('L2', year: 2025, participants: ['A', 'deactivated']),
+        _league('L3', year: 2025, participants: ['A', 'C']),
+      ];
+      final statsByLeague = {
+        'L1': [_stat('L1', 'A', wins: 2), _stat('L1', 'B', wins: 1)],
+        'L2': [_stat('L2', 'A', wins: 3), _stat('L2', 'deactivated', wins: 0)],
+        'L3': [_stat('L3', 'A', wins: 1), _stat('L3', 'C', wins: 2)],
+      };
+      final result = GroupOverviewYearFilter.aggregate(
+        leagues: leagues,
+        year: 2025,
+        statsByLeague: statsByLeague,
+        deactivatedIds: {'deactivated'},
+      );
+      // L2 excluded → A gets stats from L1 + L3 only
+      final a = result.playerStats.firstWhere((p) => p.userId == 'A');
+      expect(a.wins, 3); // 2 + 1
+      expect(result.totalLeagues, 2); // L1 + L3 only
+      // deactivated user không có trong playerStats
+      expect(result.playerStats.any((p) => p.userId == 'deactivated'), isFalse);
+    });
+
+    test('deactivated: deactivatedIds rỗng → không lọc gì', () {
+      final leagues = [
+        _league('L1', year: 2025, participants: ['A', 'B']),
+      ];
+      final statsByLeague = {
+        'L1': [_stat('L1', 'A', wins: 2), _stat('L1', 'B', wins: 1)],
+      };
+      final result = GroupOverviewYearFilter.aggregate(
+        leagues: leagues,
+        year: 2025,
+        statsByLeague: statsByLeague,
+      );
+      expect(result.totalLeagues, 1);
+      expect(result.playerStats.length, 2);
     });
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -59,6 +61,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     on<ReplaceLeagueParticipant>(_onReplaceLeagueParticipant);
     on<SetLeagueMergeCompleted>(_onSetLeagueMergeCompleted);
     on<FilterGroupOverviewByYear>(_onFilterGroupOverviewByYear);
+    on<ToggleMemberDeactivation>(_onToggleMemberDeactivation);
   }
 
   Future<void> _onGetGroupDetail(
@@ -167,6 +170,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
           overview: GroupOverviewCalculator.compute(
             summary: cached,
             users: cachedUsers,
+            deactivatedIds: Set<String>.from(state.group.deactivatedMembers),
           ),
           overviewIsStale: true,
           overviewErrorMessage: '',
@@ -213,6 +217,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       final overview = GroupOverviewCalculator.compute(
         summary: summary,
         users: users,
+        deactivatedIds: Set<String>.from(state.group.deactivatedMembers),
       );
       _debugLogOverview(groupId, summary, overview);
       // Fire-and-forget: don't block the UI on a debug dump.
@@ -303,25 +308,34 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     ));
 
     try {
-      final leaguesInYear =
-          state.leagues.where((l) => l.startDate.year == year).toList();
+      final deactivatedIds = Set<String>.from(state.group.deactivatedMembers);
+      final eligibleLeagues = state.leagues
+          .where((l) => l.startDate.year == year)
+          .where((l) =>
+              deactivatedIds.isEmpty ||
+              !l.participants.any(deactivatedIds.contains))
+          .toList();
 
       final statsList = await Future.wait(
-        leaguesInYear.map((l) => _leagueRepository.getLeagueStats(l.id)),
+        eligibleLeagues.map((l) => _leagueRepository.getLeagueStats(l.id)),
       );
       final statsByLeague = {
-        for (var i = 0; i < leaguesInYear.length; i++)
-          leaguesInYear[i].id: statsList[i],
+        for (var i = 0; i < eligibleLeagues.length; i++)
+          eligibleLeagues[i].id: statsList[i],
       };
 
       final summary = GroupOverviewYearFilter.aggregate(
-        leagues: state.leagues,
+        leagues: eligibleLeagues,
         year: year,
         statsByLeague: statsByLeague,
+        deactivatedIds: deactivatedIds,
       );
       final users = await _fetchUsersFor(summary);
-      final filteredOverview =
-          GroupOverviewCalculator.compute(summary: summary, users: users);
+      final filteredOverview = GroupOverviewCalculator.compute(
+        summary: summary,
+        users: users,
+        deactivatedIds: Set<String>.from(state.group.deactivatedMembers),
+      );
 
       emit(state.copyWith(
         yearlyOverviews: {...state.yearlyOverviews, year: filteredOverview},
@@ -329,6 +343,36 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       ));
     } catch (e) {
       emit(state.copyWith(filteredOverviewStatus: ViewStatus.failure));
+    }
+  }
+
+  Future<void> _onToggleMemberDeactivation(
+    ToggleMemberDeactivation event,
+    Emitter<GroupDetailState> emit,
+  ) async {
+    final priorState = state;
+    final prevDeactivated = priorState.group.deactivatedMembers;
+    final newDeactivated = event.deactivate
+        ? [...prevDeactivated, event.userId]
+        : prevDeactivated.where((id) => id != event.userId).toList();
+
+    emit(state.copyWith(
+      group: priorState.group.copyWith(deactivatedMembers: newDeactivated),
+      overviewIsStale: true,
+      clearYearlyOverviewCache: true,
+    ));
+
+    try {
+      await _groupRepository.toggleMemberDeactivation(
+        groupId: event.groupId,
+        userId: event.userId,
+        deactivate: event.deactivate,
+      );
+      // Trigger server-side rebuild so the all-time summary doc excludes
+      // leagues with the newly (de)activated member.
+      unawaited(_groupStatsRepository.requestRecompute(event.groupId));
+    } catch (e) {
+      emit(priorState.copyWith(errorMessage: e.toString()));
     }
   }
 

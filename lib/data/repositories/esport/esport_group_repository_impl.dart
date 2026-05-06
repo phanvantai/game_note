@@ -53,4 +53,17 @@ class EsportGroupRepositoryImpl implements EsportGroupRepository {
       memberId: memberId,
     );
   }
+
+  @override
+  Future<void> toggleMemberDeactivation({
+    required String groupId,
+    required String userId,
+    required bool deactivate,
+  }) {
+    return getIt<GNFirestore>().toggleMemberDeactivation(
+      groupId: groupId,
+      userId: userId,
+      deactivate: deactivate,
+    );
+  }
 }
