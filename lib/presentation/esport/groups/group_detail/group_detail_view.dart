@@ -37,20 +37,25 @@ class _GroupDetailViewState extends State<GroupDetailView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _overviewLoaded) return;
       _overviewLoaded = true;
+      _leaguesLoaded = true;
       final groupId = context.read<GroupDetailBloc>().state.group.id;
-      context.read<GroupDetailBloc>().add(LoadGroupOverview(groupId));
+      context.read<GroupDetailBloc>()
+        ..add(LoadGroupOverview(groupId))
+        ..add(LoadGroupLeagues(groupId));
     });
   }
 
   void _onTabChanged() {
+    final groupId = context.read<GroupDetailBloc>().state.group.id;
     if (_tabController.index == 0 && !_overviewLoaded) {
       _overviewLoaded = true;
-      final groupId = context.read<GroupDetailBloc>().state.group.id;
-      context.read<GroupDetailBloc>().add(LoadGroupOverview(groupId));
+      _leaguesLoaded = true;
+      context.read<GroupDetailBloc>()
+        ..add(LoadGroupOverview(groupId))
+        ..add(LoadGroupLeagues(groupId));
     }
     if (_tabController.index == 2 && !_leaguesLoaded) {
       _leaguesLoaded = true;
-      final groupId = context.read<GroupDetailBloc>().state.group.id;
       context.read<GroupDetailBloc>().add(LoadGroupLeagues(groupId));
     }
   }

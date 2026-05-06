@@ -17,6 +17,7 @@ import 'package:pes_arena/presentation/esport/groups/group_detail/services/group
 import '../../../../../domain/repositories/esport/esport_group_repository.dart';
 import '../../../../../domain/repositories/esport/esport_group_stats_repository.dart';
 import '../../../../../domain/repositories/esport/esport_league_repository.dart';
+import '../services/group_overview_year_filter.dart';
 
 part 'group_detail_event.dart';
 part 'group_detail_state.dart';
@@ -57,6 +58,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     on<AddPlaceholderMember>(_onAddPlaceholderMember);
     on<ReplaceLeagueParticipant>(_onReplaceLeagueParticipant);
     on<SetLeagueMergeCompleted>(_onSetLeagueMergeCompleted);
+    on<FilterGroupOverviewByYear>(_onFilterGroupOverviewByYear);
   }
 
   Future<void> _onGetGroupDetail(
@@ -274,6 +276,59 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       emit(state.copyWith(leagues: updated));
     } catch (e) {
       showToast('Không thể cập nhật trạng thái');
+    }
+  }
+
+  Future<void> _onFilterGroupOverviewByYear(
+    FilterGroupOverviewByYear event,
+    Emitter<GroupDetailState> emit,
+  ) async {
+    final year = event.year;
+
+    if (year == null) {
+      // Reset to all-time view; keep the yearly cache.
+      emit(state.copyWith(clearSelectedYear: true));
+      return;
+    }
+
+    // Cache hit: year already computed, just switch the selected year.
+    if (state.yearlyOverviews.containsKey(year)) {
+      emit(state.copyWith(selectedOverviewYear: year));
+      return;
+    }
+
+    emit(state.copyWith(
+      selectedOverviewYear: year,
+      filteredOverviewStatus: ViewStatus.loading,
+    ));
+
+    try {
+      final leaguesInYear =
+          state.leagues.where((l) => l.startDate.year == year).toList();
+
+      final statsList = await Future.wait(
+        leaguesInYear.map((l) => _leagueRepository.getLeagueStats(l.id)),
+      );
+      final statsByLeague = {
+        for (var i = 0; i < leaguesInYear.length; i++)
+          leaguesInYear[i].id: statsList[i],
+      };
+
+      final summary = GroupOverviewYearFilter.aggregate(
+        leagues: state.leagues,
+        year: year,
+        statsByLeague: statsByLeague,
+      );
+      final users = await _fetchUsersFor(summary);
+      final filteredOverview =
+          GroupOverviewCalculator.compute(summary: summary, users: users);
+
+      emit(state.copyWith(
+        yearlyOverviews: {...state.yearlyOverviews, year: filteredOverview},
+        filteredOverviewStatus: ViewStatus.success,
+      ));
+    } catch (e) {
+      emit(state.copyWith(filteredOverviewStatus: ViewStatus.failure));
     }
   }
 

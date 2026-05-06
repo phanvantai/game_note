@@ -6,6 +6,7 @@ import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_det
 import 'package:pes_arena/presentation/esport/groups/group_detail/models/group_overview.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/widgets/group_detail_hero.dart';
 import 'package:pes_arena/widgets/gn_circle_avatar.dart';
+import 'package:flutter/services.dart';
 
 class GroupOverviewTab extends StatelessWidget {
   const GroupOverviewTab({super.key});
@@ -18,7 +19,9 @@ class GroupOverviewTab extends StatelessWidget {
     return BlocBuilder<GroupDetailBloc, GroupDetailState>(
       builder: (context, state) {
         final loading = state.overviewStatus == ViewStatus.loading;
-        final overview = state.overview;
+        final filteredLoading =
+            state.filteredOverviewStatus == ViewStatus.loading;
+        final overview = state.activeOverview;
         final description = state.group.description;
         return Stack(
           children: [
@@ -48,11 +51,15 @@ class GroupOverviewTab extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (state.leagues.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _YearFilterRow(state: state),
+                ],
                 const SizedBox(height: 16),
                 if (state.overviewStatus == ViewStatus.failure &&
                     overview == null)
                   _ErrorBlock(message: state.overviewErrorMessage)
-                else if (overview == null && loading)
+                else if (overview == null && (loading || filteredLoading))
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 48),
                     child: Center(child: CircularProgressIndicator()),
@@ -73,7 +80,7 @@ class GroupOverviewTab extends StatelessWidget {
                 ],
               ],
             ),
-            if (loading && overview != null)
+            if ((loading || filteredLoading) && overview != null)
               const Positioned(
                 top: 0,
                 left: 0,
@@ -523,6 +530,108 @@ class _WdlChip extends StatelessWidget {
   }
 }
 
+
+class _YearFilterRow extends StatelessWidget {
+  final GroupDetailState state;
+
+  const _YearFilterRow({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final years = state.leagues
+        .map((l) => l.startDate.year)
+        .toSet()
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    if (years.isEmpty) return const SizedBox.shrink();
+
+    final selected = state.selectedOverviewYear;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      height: 36,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _YearChip(
+            label: 'Tất cả',
+            selected: selected == null,
+            colorScheme: colorScheme,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              context
+                  .read<GroupDetailBloc>()
+                  .add(const FilterGroupOverviewByYear(null));
+            },
+          ),
+          ...years.map(
+            (year) => _YearChip(
+              label: '$year',
+              selected: selected == year,
+              colorScheme: colorScheme,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                context
+                    .read<GroupDetailBloc>()
+                    .add(FilterGroupOverviewByYear(year));
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _YearChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final ColorScheme colorScheme;
+  final VoidCallback onTap;
+
+  const _YearChip({
+    required this.label,
+    required this.selected,
+    required this.colorScheme,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: selected
+                ? colorScheme.secondary
+                : colorScheme.secondary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? colorScheme.secondary
+                  : colorScheme.secondary.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: selected
+                  ? colorScheme.onSecondary
+                  : colorScheme.secondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _SectionShell extends StatelessWidget {
   final String title;

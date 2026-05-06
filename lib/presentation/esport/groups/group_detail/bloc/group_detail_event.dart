@@ -101,3 +101,13 @@ class SetLeagueMergeCompleted extends GroupDetailEvent {
   @override
   List<Object?> get props => [leagueId, completed];
 }
+
+/// Lọc group overview theo năm. [year] == null → hiện all-time.
+class FilterGroupOverviewByYear extends GroupDetailEvent {
+  final int? year;
+
+  const FilterGroupOverviewByYear(this.year);
+
+  @override
+  List<Object?> get props => [year];
+}

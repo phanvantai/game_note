@@ -11,9 +11,11 @@ import 'package:pes_arena/domain/repositories/esport/esport_league_repository.da
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/stats/gn_esport_group_stats_summary.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
+import 'package:pes_arena/presentation/esport/groups/group_detail/models/group_overview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockGroupRepo extends Mock implements EsportGroupRepository {}
@@ -39,15 +41,31 @@ GNEsportGroup _group({String ownerId = 'owner1'}) => GNEsportGroup(
       status: 'active',
     );
 
-GNEsportLeague _league(String id) => GNEsportLeague(
+GNEsportLeague _league(String id, {int year = 2026, String? status}) =>
+    GNEsportLeague(
       id: id,
       ownerId: 'owner1',
       groupId: 'G1',
       name: 'League $id',
-      startDate: DateTime(2026, 1, 1),
-      isActive: true,
+      startDate: DateTime(year, 1, 1),
+      isActive: status != 'finished',
       description: '',
       participants: const [],
+      status: status,
+    );
+
+GNEsportLeagueStat _leagueStat(String leagueId, String userId,
+        {int wins = 1}) =>
+    GNEsportLeagueStat(
+      id: '$leagueId-$userId',
+      leagueId: leagueId,
+      userId: userId,
+      matchesPlayed: 3,
+      wins: wins,
+      draws: 0,
+      losses: 3 - wins,
+      goals: wins * 2,
+      goalsConceded: (3 - wins) * 2,
     );
 
 GNEsportGroupStatsSummary _summary({
@@ -472,6 +490,174 @@ void main() {
             .having((s) => s.replaceErrorMessage, 'replaceErrorMessage',
                 contains('replace failed')),
       ],
+    );
+  });
+
+  group('FilterGroupOverviewByYear', () {
+    final league2025 = _league('L1', year: 2025, status: 'finished');
+    final league2024 = _league('L2', year: 2024, status: 'finished');
+
+    GroupDetailState seedWithLeagues() => GroupDetailState(
+          group: _group(),
+          leagues: [league2025, league2024],
+          leaguesStatus: ViewStatus.success,
+        );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'year == null → reset selectedOverviewYear, giữ cache',
+      build: bloc,
+      seed: () => GroupDetailState(
+        group: _group(),
+        leagues: [league2025],
+        leaguesStatus: ViewStatus.success,
+        selectedOverviewYear: 2025,
+        yearlyOverviews: {2025: const GroupOverview.empty()},
+      ),
+      act: (b) => b.add(const FilterGroupOverviewByYear(null)),
+      expect: () => [
+        isA<GroupDetailState>()
+            .having((s) => s.selectedOverviewYear, 'selectedYear', isNull)
+            .having(
+                (s) => s.yearlyOverviews.containsKey(2025), 'cache kept', true),
+      ],
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'cache hit → chỉ emit selectedOverviewYear, không gọi getLeagueStats',
+      build: bloc,
+      seed: () => GroupDetailState(
+        group: _group(),
+        leagues: [league2025],
+        leaguesStatus: ViewStatus.success,
+        yearlyOverviews: {2025: const GroupOverview.empty()},
+      ),
+      act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
+      expect: () => [
+        isA<GroupDetailState>()
+            .having((s) => s.selectedOverviewYear, 'selectedYear', 2025)
+            .having((s) => s.filteredOverviewStatus, 'filteredStatus',
+                ViewStatus.initial),
+      ],
+      verify: (_) =>
+          verifyNever(() => leagueRepo.getLeagueStats(any())),
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'cache miss → loading rồi success, lưu vào yearlyOverviews',
+      build: bloc,
+      seed: seedWithLeagues,
+      setUp: () {
+        when(() => leagueRepo.getLeagueStats('L1')).thenAnswer(
+          (_) async => [_leagueStat('L1', 'A', wins: 2)],
+        );
+      },
+      act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
+      expect: () => [
+        isA<GroupDetailState>()
+            .having((s) => s.selectedOverviewYear, 'selectedYear', 2025)
+            .having((s) => s.filteredOverviewStatus, 'status',
+                ViewStatus.loading),
+        isA<GroupDetailState>()
+            .having((s) => s.filteredOverviewStatus, 'status',
+                ViewStatus.success)
+            .having((s) => s.yearlyOverviews.containsKey(2025), 'cached', true),
+      ],
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'cache miss → chỉ fetch leagues trong năm được chọn',
+      build: bloc,
+      seed: seedWithLeagues,
+      setUp: () {
+        when(() => leagueRepo.getLeagueStats('L1')).thenAnswer(
+          (_) async => [_leagueStat('L1', 'A')],
+        );
+      },
+      act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
+      verify: (_) {
+        verify(() => leagueRepo.getLeagueStats('L1')).called(1);
+        verifyNever(() => leagueRepo.getLeagueStats('L2'));
+      },
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'lần gọi thứ 2 với cùng năm dùng cache, không fetch lại',
+      build: bloc,
+      seed: seedWithLeagues,
+      setUp: () {
+        when(() => leagueRepo.getLeagueStats('L1')).thenAnswer(
+          (_) async => [_leagueStat('L1', 'A')],
+        );
+      },
+      act: (b) async {
+        b.add(const FilterGroupOverviewByYear(2025));
+        await Future.delayed(const Duration(milliseconds: 50));
+        b.add(const FilterGroupOverviewByYear(2025));
+      },
+      verify: (_) =>
+          verify(() => leagueRepo.getLeagueStats('L1')).called(1),
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'năm không có league → yearlyOverviews lưu empty overview',
+      build: bloc,
+      seed: seedWithLeagues,
+      act: (b) => b.add(const FilterGroupOverviewByYear(2023)),
+      expect: () => [
+        isA<GroupDetailState>()
+            .having((s) => s.filteredOverviewStatus, 'status',
+                ViewStatus.loading),
+        isA<GroupDetailState>()
+            .having((s) => s.filteredOverviewStatus, 'status',
+                ViewStatus.success)
+            .having(
+              (s) => s.yearlyOverviews[2023]?.totalLeagues,
+              'totalLeagues',
+              0,
+            ),
+      ],
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'repo ném lỗi → filteredOverviewStatus = failure',
+      build: bloc,
+      seed: seedWithLeagues,
+      setUp: () {
+        when(() => leagueRepo.getLeagueStats('L1'))
+            .thenThrow(Exception('network'));
+      },
+      act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
+      expect: () => [
+        isA<GroupDetailState>()
+            .having((s) => s.filteredOverviewStatus, 'status',
+                ViewStatus.loading),
+        isA<GroupDetailState>().having(
+            (s) => s.filteredOverviewStatus, 'status', ViewStatus.failure),
+      ],
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'activeOverview trả overview all-time khi selectedYear == null',
+      build: bloc,
+      seed: () => GroupDetailState(
+        group: _group(),
+        overview: const GroupOverview(
+          totalLeagues: 10,
+          finishedLeagues: 8,
+          totalMatchesPlayed: 40,
+          totalGoals: 120,
+          champion: null,
+          runnerUpKing: null,
+          drawKing: null,
+          ironDefense: null,
+          master: null,
+          playerStats: [],
+        ),
+      ),
+      act: (b) => b.add(const FilterGroupOverviewByYear(null)),
+      verify: (b) {
+        expect(b.state.activeOverview?.totalLeagues, 10);
+      },
     );
   });
 }

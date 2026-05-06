@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/models/group_overview.dart';
@@ -37,16 +38,35 @@ GNUser _user(String id, {String? name}) => GNUser(
       fcmToken: '',
     );
 
+GNEsportLeague _league(String id, {int year = 2025}) => GNEsportLeague(
+      id: id,
+      ownerId: 'owner1',
+      groupId: 'G1',
+      name: 'League $id',
+      startDate: DateTime(year, 6, 1),
+      isActive: true,
+      description: '',
+      participants: const [],
+    );
+
 GroupDetailState _state({
   ViewStatus overviewStatus = ViewStatus.initial,
   GroupOverview? overview,
   String overviewErrorMessage = '',
+  List<GNEsportLeague> leagues = const [],
+  int? selectedOverviewYear,
+  Map<int, GroupOverview> yearlyOverviews = const {},
+  ViewStatus filteredOverviewStatus = ViewStatus.initial,
 }) =>
     GroupDetailState(
       group: _group(),
       overviewStatus: overviewStatus,
       overview: overview,
       overviewErrorMessage: overviewErrorMessage,
+      leagues: leagues,
+      selectedOverviewYear: selectedOverviewYear,
+      yearlyOverviews: yearlyOverviews,
+      filteredOverviewStatus: filteredOverviewStatus,
     );
 
 Widget _wrap(GroupDetailBloc bloc) {
@@ -157,6 +177,134 @@ void main() {
     await tester.tap(find.text('Huỷ'));
     await tester.pumpAndSettle();
     verifyNever(() => bloc.add(any(that: isA<LoadGroupOverview>())));
+  });
+
+  group('year filter chips', () {
+    testWidgets('không hiển thị khi leagues rỗng', (tester) async {
+      final bloc = _MockGroupDetailBloc();
+      when(() => bloc.state).thenReturn(_state(
+        overviewStatus: ViewStatus.success,
+        overview: const GroupOverview.empty(),
+        leagues: const [],
+      ));
+      await tester.pumpWidget(_wrap(bloc));
+      expect(find.text('Tất cả'), findsNothing);
+    });
+
+    testWidgets('hiển thị "Tất cả" + năm khi có leagues', (tester) async {
+      final bloc = _MockGroupDetailBloc();
+      when(() => bloc.state).thenReturn(_state(
+        overviewStatus: ViewStatus.success,
+        overview: const GroupOverview.empty(),
+        leagues: [_league('L1', year: 2025), _league('L2', year: 2024)],
+      ));
+      await tester.pumpWidget(_wrap(bloc));
+      expect(find.text('Tất cả'), findsOneWidget);
+      expect(find.text('2025'), findsOneWidget);
+      expect(find.text('2024'), findsOneWidget);
+    });
+
+    testWidgets('năm trùng nhau chỉ hiện 1 chip', (tester) async {
+      final bloc = _MockGroupDetailBloc();
+      when(() => bloc.state).thenReturn(_state(
+        overviewStatus: ViewStatus.success,
+        overview: const GroupOverview.empty(),
+        leagues: [
+          _league('L1', year: 2025),
+          _league('L2', year: 2025),
+          _league('L3', year: 2024),
+        ],
+      ));
+      await tester.pumpWidget(_wrap(bloc));
+      expect(find.text('2025'), findsOneWidget);
+      expect(find.text('2024'), findsOneWidget);
+    });
+
+    testWidgets('tap năm → dispatch FilterGroupOverviewByYear(year)',
+        (tester) async {
+      final bloc = _MockGroupDetailBloc();
+      when(() => bloc.state).thenReturn(_state(
+        overviewStatus: ViewStatus.success,
+        overview: const GroupOverview.empty(),
+        leagues: [_league('L1', year: 2025)],
+      ));
+      await tester.pumpWidget(_wrap(bloc));
+      await tester.tap(find.text('2025'));
+      verify(() =>
+              bloc.add(any(that: isA<FilterGroupOverviewByYear>())))
+          .called(1);
+    });
+
+    testWidgets('tap "Tất cả" → dispatch FilterGroupOverviewByYear(null)',
+        (tester) async {
+      final bloc = _MockGroupDetailBloc();
+      when(() => bloc.state).thenReturn(_state(
+        overviewStatus: ViewStatus.success,
+        overview: const GroupOverview.empty(),
+        leagues: [_league('L1', year: 2025)],
+        selectedOverviewYear: 2025,
+      ));
+      await tester.pumpWidget(_wrap(bloc));
+      await tester.tap(find.text('Tất cả'));
+      final captured = verify(() => bloc.add(captureAny())).captured;
+      expect(
+        captured.any(
+            (e) => e is FilterGroupOverviewByYear && e.year == null),
+        isTrue,
+      );
+    });
+
+    testWidgets(
+        'filteredOverviewStatus loading + selectedYear != null → hiện spinner',
+        (tester) async {
+      final bloc = _MockGroupDetailBloc();
+      when(() => bloc.state).thenReturn(_state(
+        overviewStatus: ViewStatus.success,
+        overview: const GroupOverview.empty(),
+        leagues: [_league('L1', year: 2025)],
+        selectedOverviewYear: 2025,
+        filteredOverviewStatus: ViewStatus.loading,
+      ));
+      await tester.pumpWidget(_wrap(bloc));
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+    });
+
+    testWidgets('hiển thị yearlyOverview khi selectedYear có data',
+        (tester) async {
+      final bloc = _MockGroupDetailBloc();
+      final filteredOverview = GroupOverview(
+        totalLeagues: 2,
+        finishedLeagues: 2,
+        totalMatchesPlayed: 10,
+        totalGoals: 25,
+        champion: null,
+        runnerUpKing: null,
+        drawKing: null,
+        ironDefense: null,
+        master: null,
+        playerStats: [
+          GroupPlayerStats(
+            player: _user('a', name: 'Alpha'),
+            matches: 6,
+            wins: 4,
+            draws: 1,
+            losses: 1,
+            goals: 12,
+            goalsConceded: 5,
+          ),
+        ],
+      );
+      when(() => bloc.state).thenReturn(_state(
+        overviewStatus: ViewStatus.success,
+        overview: const GroupOverview.empty(),
+        leagues: [_league('L1', year: 2025)],
+        selectedOverviewYear: 2025,
+        yearlyOverviews: {2025: filteredOverview},
+        filteredOverviewStatus: ViewStatus.success,
+      ));
+      await tester.pumpWidget(_wrap(bloc));
+      expect(find.text('Alpha'), findsOneWidget);
+    });
   });
 
   testWidgets('refresh button bị disable khi đang loading', (tester) async {

@@ -182,6 +182,7 @@ class _CostConfigSectionState extends State<_CostConfigSection> {
                     initialRankPayoutEnabled: league.rankPayoutEnabled,
                     initialRankPayouts: league.rankPayouts,
                     initialDefaultMatchCost: league.defaultMatchCost,
+                    participantCount: league.participants.length,
                   ),
                   const SizedBox(height: 12),
                   Align(

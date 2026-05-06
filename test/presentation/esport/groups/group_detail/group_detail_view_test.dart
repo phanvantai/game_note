@@ -146,23 +146,26 @@ void main() {
     ).called(1);
   });
 
-  testWidgets('chuyển sang tab Giải đấu dispatch LoadGroupLeagues',
+  testWidgets(
+      'initState dispatch LoadGroupLeagues cùng LoadGroupOverview (không phải khi chuyển tab)',
       (tester) async {
     when(() => bloc.state).thenReturn(_ownerState());
 
     await tester.pumpWidget(_wrapWithRouter(bloc));
     await tester.pumpAndSettle();
 
-    // Clear any prior calls (LoadGroupOverview from initState)
-    clearInteractions(bloc);
-
-    // Tap the Giải đấu tab (index 2)
-    await tester.tap(find.text('Giải đấu'));
-    await tester.pumpAndSettle();
-
+    // LoadGroupLeagues được dispatch trong initState, không phải khi chuyển tab.
     verify(
       () => bloc.add(any(that: isA<LoadGroupLeagues>())),
     ).called(1);
+
+    clearInteractions(bloc);
+
+    // Chuyển sang tab Giải đấu → KHÔNG dispatch LoadGroupLeagues lần 2.
+    await tester.tap(find.text('Giải đấu'));
+    await tester.pumpAndSettle();
+
+    verifyNever(() => bloc.add(any(that: isA<LoadGroupLeagues>())));
   });
 
   testWidgets('tab Thành viên: owner thấy nút Thêm thành viên',

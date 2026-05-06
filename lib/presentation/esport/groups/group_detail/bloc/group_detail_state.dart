@@ -15,6 +15,20 @@ class GroupDetailState extends Equatable {
   final String overviewErrorMessage;
   final bool overviewIsStale;
 
+  /// Năm đang được chọn để lọc overview. null = Tất cả (dùng summary doc).
+  final int? selectedOverviewYear;
+
+  /// Cache các overview đã tính theo năm. Key = năm, value = overview đã compute.
+  final Map<int, GroupOverview> yearlyOverviews;
+
+  /// Status khi đang fetch + tính year-filtered overview lần đầu.
+  final ViewStatus filteredOverviewStatus;
+
+  /// Overview đang hiển thị: all-time khi [selectedOverviewYear] == null,
+  /// ngược lại lấy từ [yearlyOverviews].
+  GroupOverview? get activeOverview =>
+      selectedOverviewYear == null ? overview : yearlyOverviews[selectedOverviewYear];
+
   const GroupDetailState({
     this.viewStatus = ViewStatus.initial,
     this.members = const [],
@@ -29,6 +43,9 @@ class GroupDetailState extends Equatable {
     this.overview,
     this.overviewErrorMessage = '',
     this.overviewIsStale = false,
+    this.selectedOverviewYear,
+    this.yearlyOverviews = const {},
+    this.filteredOverviewStatus = ViewStatus.initial,
   });
 
   GroupDetailState copyWith({
@@ -45,6 +62,10 @@ class GroupDetailState extends Equatable {
     GroupOverview? overview,
     String? overviewErrorMessage,
     bool? overviewIsStale,
+    int? selectedOverviewYear,
+    bool clearSelectedYear = false,
+    Map<int, GroupOverview>? yearlyOverviews,
+    ViewStatus? filteredOverviewStatus,
   }) {
     return GroupDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
@@ -61,6 +82,11 @@ class GroupDetailState extends Equatable {
       overview: overview ?? this.overview,
       overviewErrorMessage: overviewErrorMessage ?? this.overviewErrorMessage,
       overviewIsStale: overviewIsStale ?? this.overviewIsStale,
+      selectedOverviewYear:
+          clearSelectedYear ? null : selectedOverviewYear ?? this.selectedOverviewYear,
+      yearlyOverviews: yearlyOverviews ?? this.yearlyOverviews,
+      filteredOverviewStatus:
+          filteredOverviewStatus ?? this.filteredOverviewStatus,
     );
   }
 
@@ -84,5 +110,8 @@ class GroupDetailState extends Equatable {
         overview,
         overviewErrorMessage,
         overviewIsStale,
+        selectedOverviewYear,
+        yearlyOverviews,
+        filteredOverviewStatus,
       ];
 }
