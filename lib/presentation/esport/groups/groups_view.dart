@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
-import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
 import '../../../core/common/view_status.dart';
 import '../../../core/ultils.dart';
+import '../../../firebase/firestore/esport/group/gn_esport_group.dart';
 import '../../../routing.dart';
-import '../bloc/esport_bloc.dart';
 import 'bloc/group_bloc.dart';
 import 'widgets/group_item.dart';
 
@@ -15,137 +15,14 @@ class GroupsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return BlocBuilder<GroupBloc, GroupState>(
       builder: (context, state) {
         return DefaultTabController(
           length: 2,
           child: Scaffold(
-            appBar: AppBar(
-              centerTitle: false,
-              title: Row(
-                spacing: 4,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Image.asset(
-                      'assets/images/pes.jpg',
-                      height: 32,
-                    ),
-                  ),
-                  Expanded(
-                    child: TabBar(
-                      padding: EdgeInsets.zero,
-                      dividerColor: Colors.transparent,
-                      tabAlignment: TabAlignment.start,
-                      isScrollable: true,
-                      tabs: const [
-                        Tab(text: 'Nhóm của tôi'),
-                        Tab(text: 'Nhóm khác'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                BlocBuilder<NotificationBloc, NotificationState>(
-                  builder: (context, state) => IconButton(
-                    icon: Stack(
-                      children: [
-                        const Icon(Icons.notifications_outlined),
-                        if (state.unreadNotificationsCount > 0)
-                          Positioned(
-                            right: 4,
-                            top: 4,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.error,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              width: 8,
-                              height: 8,
-                            ),
-                          ),
-                      ],
-                    ),
-                    onPressed: () {
-                      Navigator.pushNamed(context, Routing.notification);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            body: Column(
-              children: [
-                if (state.viewStatus == ViewStatus.loading)
-                  const LinearProgressIndicator(),
-                Expanded(
-                  child: TabBarView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      state.userGroups.isEmpty
-                          ? const AppEmptyState(
-                              icon: Icons.group_outlined,
-                              title: 'Không có nhóm nào',
-                              subtitle: 'Tạo nhóm mới để bắt đầu',
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(
-                                top: 8,
-                                bottom: 80,
-                              ),
-                              itemBuilder: (context, index) => GroupItem(
-                                group: state.userGroups[index],
-                                onTap: () async {
-                                  await Navigator.of(context).pushNamed(
-                                    Routing.groupDetail,
-                                    arguments: state.userGroups[index],
-                                  );
-                                  if (context.mounted) {
-                                    BlocProvider.of<GroupBloc>(
-                                      context,
-                                    ).add(GetEsportGroups());
-                                  }
-                                },
-                              ),
-                              itemCount: state.userGroups.length,
-                            ),
-                      state.otherGroups.isEmpty
-                          ? const AppEmptyState(
-                              icon: Icons.group_outlined,
-                              title: 'Không có nhóm nào',
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(
-                                top: 8,
-                                bottom: 80,
-                              ),
-                              itemBuilder: (context, index) => GroupItem(
-                                group: state.otherGroups[index],
-                                onTap: () async {
-                                  await Navigator.of(context).pushNamed(
-                                    Routing.groupDetail,
-                                    arguments: state.otherGroups[index],
-                                  );
-                                  if (context.mounted) {
-                                    BlocProvider.of<GroupBloc>(
-                                      context,
-                                    ).add(GetEsportGroups());
-                                  }
-                                },
-                              ),
-                              itemCount: state.otherGroups.length,
-                            ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => _showCreateGroupDialog(context),
-              label: const Text('Tạo nhóm'),
-              icon: const Icon(Icons.add),
+            body: _GroupsBody(
+              state: state,
+              onCreatePressed: () => _showCreateGroupDialog(context),
             ),
           ),
         );
@@ -154,12 +31,6 @@ class GroupsView extends StatelessWidget {
   }
 
   void _showCreateGroupDialog(BuildContext context) {
-    final esportModel = context.read<EsportBloc>().state.esportModel;
-    if (esportModel == null) {
-      showToast('Chưa chọn một môn thể thao điện tử');
-      return;
-    }
-
     String groupName = '';
     String groupDescription = '';
 
@@ -207,7 +78,6 @@ class GroupsView extends StatelessWidget {
                 BlocProvider.of<GroupBloc>(context).add(
                   CreateEsportGroup(
                     groupName: groupName,
-                    esportId: esportModel.id,
                     description: groupDescription,
                   ),
                 );
@@ -218,6 +88,340 @@ class GroupsView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _GroupsBody extends StatelessWidget {
+  final GroupState state;
+  final VoidCallback onCreatePressed;
+
+  const _GroupsBody({required this.state, required this.onCreatePressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.secondary.withValues(alpha: 0.16),
+            theme.scaffoldBackgroundColor,
+            colorScheme.primary.withValues(alpha: 0.06),
+          ],
+          stops: const [0, 0.46, 1],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            if (state.viewStatus == ViewStatus.loading)
+              const LinearProgressIndicator(minHeight: 3),
+            _GroupsHero(state: state, onCreatePressed: onCreatePressed),
+            const _GroupsTabBar(),
+            Expanded(
+              child: TabBarView(
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  state.userGroups.isEmpty
+                      ? const _GroupsEmptyState(
+                          title: 'Không có nhóm nào',
+                          subtitle: 'Tạo nhóm mới để bắt đầu',
+                        )
+                      : _GroupsList(groups: state.userGroups),
+                  state.otherGroups.isEmpty
+                      ? const _GroupsEmptyState(title: 'Không có nhóm nào')
+                      : _GroupsList(groups: state.otherGroups),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupsHero extends StatelessWidget {
+  final GroupState state;
+  final VoidCallback onCreatePressed;
+
+  const _GroupsHero({required this.state, required this.onCreatePressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final myGroups = state.userGroups.length;
+    final discoverGroups = state.otherGroups.length;
+    final members = {
+      for (final group in [...state.userGroups, ...state.otherGroups])
+        ...group.members,
+    }.length;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.secondary.withValues(alpha: 0.26),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.secondary.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.groups_2_outlined,
+                  color: colorScheme.onSecondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Community hub',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.secondary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Quản lý đội nhóm PES',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Tooltip(
+                message: 'Tạo nhóm',
+                child: FilledButton.icon(
+                  onPressed: onCreatePressed,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Tạo mới'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: _HeroStat(label: 'Của tôi', value: '$myGroups'),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeroStat(
+                  label: 'Khám phá',
+                  value: '$discoverGroups',
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeroStat(label: 'Member', value: '$members'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroStat extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _HeroStat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.64),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GroupsTabBar extends StatelessWidget {
+  const _GroupsTabBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      height: 46,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.42)),
+      ),
+      child: TabBar(
+        padding: EdgeInsets.zero,
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicator: BoxDecoration(
+          color: colorScheme.secondary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        labelColor: colorScheme.onSecondary,
+        unselectedLabelColor: colorScheme.onSurfaceVariant,
+        labelStyle: Theme.of(
+          context,
+        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+        tabs: const [
+          Tab(text: 'Nhóm của tôi'),
+          Tab(text: 'Nhóm khác'),
+        ],
+      ),
+    );
+  }
+}
+
+class _GroupsList extends StatelessWidget {
+  final List<GNEsportGroup> groups;
+
+  const _GroupsList({required this.groups});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 96),
+      itemBuilder: (context, index) => GroupItem(
+        group: groups[index],
+        onTap: () async {
+          await context.push(
+            Routing.groupDetailPath(groups[index].id),
+            extra: groups[index],
+          );
+          if (context.mounted) {
+            BlocProvider.of<GroupBloc>(context).add(GetEsportGroups());
+          }
+        },
+      ),
+      itemCount: groups.length,
+    );
+  }
+}
+
+class _GroupsEmptyState extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+
+  const _GroupsEmptyState({required this.title, this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.45),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: colorScheme.secondary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                Icons.group_outlined,
+                color: colorScheme.secondary,
+                size: 30,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

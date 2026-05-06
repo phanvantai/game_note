@@ -60,29 +60,21 @@ class CostSummaryPanel extends StatelessWidget {
       byPair[key] = (byPair[key] ?? 0) + t.amount;
     }
 
-    final mergedTransfers = byPair.entries
-        .where((e) => e.value > 0)
-        .map((e) {
-          final (from, to) = pairOrder[e.key]!;
-          return CostTransfer(
-            fromUserId: from,
-            toUserId: to,
-            amount: e.value,
-          );
-        })
-        .toList()
-      ..sort((a, b) => b.amount.compareTo(a.amount));
+    final mergedTransfers = byPair.entries.where((e) => e.value > 0).map((e) {
+      final (from, to) = pairOrder[e.key]!;
+      return CostTransfer(fromUserId: from, toUserId: to, amount: e.value);
+    }).toList()..sort((a, b) => b.amount.compareTo(a.amount));
 
     final net = CostCalculator.netByUser(transfers);
     final netEntries = net.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
@@ -138,8 +130,7 @@ class CostSummaryPanel extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        fromUser?.displayName ??
-                            _fallbackName,
+                        fromUser?.displayName ?? _fallbackName,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall,
                       ),

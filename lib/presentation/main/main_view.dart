@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/helpers/admob_helper.dart';
 import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
+import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../esport/groups/groups_view.dart';
 import '../esport/tournament/tournament_view.dart';
+import '../home/home_page.dart';
+import '../notification/bloc/notification_bloc.dart';
+import '../notification/notification_view.dart';
 import '../profile/profile_view.dart';
 
 class MainView extends StatefulWidget {
@@ -22,32 +26,48 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
 
-  Map<BottomNavigationBarItem, Widget> tabs = {};
+  late final List<_TabSpec> _tabs;
 
   late TabController _tabController;
   @override
   void initState() {
     super.initState();
 
-    tabs = {
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.emoji_events_outlined),
-        activeIcon: Icon(Icons.emoji_events),
-        label: 'Giải đấu',
-      ): const TournamentView(),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.group_outlined),
-        activeIcon: Icon(Icons.group),
+    _tabs = const [
+      _TabSpec(
+        icon: Icons.sports_esports_outlined,
+        activeIcon: Icons.sports_esports,
+        label: 'Arena',
+        page: HomePage(),
+      ),
+      _TabSpec(
+        icon: Icons.group_outlined,
+        activeIcon: Icons.group,
         label: 'Nhóm',
-      ): const GroupsView(),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.person_outline),
-        activeIcon: Icon(Icons.person),
+        page: GroupsView(),
+      ),
+      _TabSpec(
+        icon: Icons.emoji_events_outlined,
+        activeIcon: Icons.emoji_events,
+        label: 'Giải đấu',
+        page: TournamentView(),
+      ),
+      _TabSpec(
+        icon: Icons.notifications_outlined,
+        activeIcon: Icons.notifications,
+        label: 'Thông báo',
+        page: NotificationView(),
+        showUnreadBadge: true,
+      ),
+      _TabSpec(
+        icon: Icons.person_outline,
+        activeIcon: Icons.person,
         label: 'Cá nhân',
-      ): const ProfileView(),
-    };
+        page: ProfileView(),
+      ),
+    ];
 
-    _tabController = TabController(length: tabs.length, vsync: this);
+    _tabController = TabController(length: _tabs.length, vsync: this);
 
     context.read<GroupBloc>().add(GetEsportGroups());
 
@@ -58,28 +78,54 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: TabBarView(
-        physics: const NeverScrollableScrollPhysics(),
-        controller: _tabController,
-        children: tabs.values.toList(),
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!kIsWeb && _bannerAd != null)
-            SizedBox(
-              width: _bannerAd!.size.width.toDouble(),
-              height: _bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            ),
-          BottomNavigationBar(
-            items: tabs.keys.toList(),
-            currentIndex: _tabController.index,
-            onTap: _onItemTapped,
+    return BlocBuilder<NotificationBloc, NotificationState>(
+      buildWhen: (prev, curr) =>
+          prev.unreadNotificationsCount != curr.unreadNotificationsCount,
+      builder: (context, notificationState) {
+        return Scaffold(
+          body: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: _tabController,
+            children: _tabs.map((t) => t.page).toList(),
           ),
-        ],
-      ),
+          bottomNavigationBar: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // coverage:ignore-start
+              if (!kIsWeb && _bannerAd != null)
+                SizedBox(
+                  width: _bannerAd!.size.width.toDouble(),
+                  height: _bannerAd!.size.height.toDouble(),
+                  child: AdWidget(ad: _bannerAd!),
+                ),
+              // coverage:ignore-end
+              NavigationBar(
+                selectedIndex: _tabController.index,
+                onDestinationSelected: _onItemTapped,
+                destinations: _tabs
+                    .map(
+                      (t) => NavigationDestination(
+                        icon: _TabIcon(
+                          icon: t.icon,
+                          showBadge:
+                              t.showUnreadBadge &&
+                              notificationState.unreadNotificationsCount > 0,
+                        ),
+                        selectedIcon: _TabIcon(
+                          icon: t.activeIcon,
+                          showBadge:
+                              t.showUnreadBadge &&
+                              notificationState.unreadNotificationsCount > 0,
+                        ),
+                        label: t.label,
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -103,9 +149,10 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   }
 
   void _loadAd() async {
-    if (kIsWeb || isAdsLoaded) {
+    if (kIsWeb || isAdsLoaded || !getIt<GNRemoteConfig>().adsEnabled) {
       return;
     }
+    // coverage:ignore-start
     final AnchoredAdaptiveBannerAdSize? size =
         await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
           MediaQuery.of(context).size.width.truncate(),
@@ -136,5 +183,54 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
         },
       ),
     )..load();
+    // coverage:ignore-end
+  }
+}
+
+class _TabSpec {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final Widget page;
+  final bool showUnreadBadge;
+
+  const _TabSpec({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.page,
+    this.showUnreadBadge = false,
+  });
+}
+
+class _TabIcon extends StatelessWidget {
+  final IconData icon;
+  final bool showBadge;
+
+  const _TabIcon({required this.icon, required this.showBadge});
+
+  @override
+  Widget build(BuildContext context) {
+    final iconWidget = Icon(icon);
+    if (!showBadge) return iconWidget;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        iconWidget,
+        Positioned(
+          right: -2,
+          top: -2,
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: colorScheme.error,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

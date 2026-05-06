@@ -48,11 +48,37 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
         return Column(
           children: [
             if (showActions)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.28),
+                  ),
+                ),
                 child: Row(
                   children: [
-                    const Spacer(),
+                    Icon(
+                      Icons.calendar_month_outlined,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Lịch thi đấu',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.add),
                       tooltip: 'Tạo trận tùy chỉnh',
@@ -75,11 +101,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                       },
                     ),
                     FilledButton.tonal(
-                      onPressed: () {
-                        context.read<TournamentDetailBloc>().add(
-                          const GenerateRound(),
-                        );
-                      },
+                      onPressed: () => _confirmGenerateRound(context, state.fixtures.length),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         shape: RoundedRectangleBorder(
@@ -93,11 +115,10 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
               ),
             if (!isFixtures && state.results.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: TextField(
                   controller: _searchController,
-                  onChanged: (value) =>
-                      setState(() => _searchQuery = value),
+                  onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: InputDecoration(
                     isDense: true,
                     hintText: 'Tìm theo tên người chơi (vd: A B)',
@@ -112,11 +133,28 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                             },
                           ),
                     filled: true,
-                    fillColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    fillColor: Theme.of(context).colorScheme.surface,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.28),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.28),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
                     ),
                   ),
                 ),
@@ -132,17 +170,18 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
     List<GNEsportMatch> matches,
     String query,
   ) {
-    final tokens = removeVietnameseDiacritics(query)
-        .split(RegExp(r'\s+'))
-        .where((t) => t.isNotEmpty)
-        .toList();
+    final tokens = removeVietnameseDiacritics(
+      query,
+    ).split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
     if (tokens.isEmpty) return matches;
 
     return matches.where((match) {
-      final home =
-          removeVietnameseDiacritics(match.homeTeam?.displayName ?? '');
-      final away =
-          removeVietnameseDiacritics(match.awayTeam?.displayName ?? '');
+      final home = removeVietnameseDiacritics(
+        match.homeTeam?.displayName ?? '',
+      );
+      final away = removeVietnameseDiacritics(
+        match.awayTeam?.displayName ?? '',
+      );
       return tokens.every((t) => home.contains(t) || away.contains(t));
     }).toList();
   }
@@ -185,45 +224,60 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
     return RefreshIndicator(
       onRefresh: () => _refresh(context),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ListView.separated(
           physics: const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, index) {
-          final match = matches[index];
-          return Slidable(
-            endActionPane: ActionPane(
-              motion: const StretchMotion(),
-              children: [
-                if (state.currentUserIsMember)
-                  SlidableAction(
-                    borderRadius: BorderRadius.circular(12),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    icon: Icons.delete_outline,
-                    onPressed: (context) {
-                      context.read<TournamentDetailBloc>().add(
-                        DeleteEsportMatch(match),
-                      );
-                    },
-                  ),
-              ],
-            ),
-            child: EsportMatchItem(
-              match: match,
-              onTap: isFixtures && state.currentUserIsMember
-                  ? () => _updateMatchDialog(context, match)
-                  : null,
-              onLongPress: !isFixtures && state.currentUserIsMember
-                  ? () => _updateMatchDialog(context, match)
-                  : null,
-            ),
-          );
-        },
+            final match = matches[index];
+            return Slidable(
+              endActionPane: ActionPane(
+                motion: const StretchMotion(),
+                children: [
+                  if (state.currentUserIsMember)
+                    SlidableAction(
+                      borderRadius: BorderRadius.circular(16),
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                      icon: Icons.delete_outline,
+                      onPressed: (context) {
+                        context.read<TournamentDetailBloc>().add(
+                          DeleteEsportMatch(match),
+                        );
+                      },
+                    ),
+                ],
+              ),
+              child: EsportMatchItem(
+                match: match,
+                onTap: isFixtures && state.currentUserIsMember
+                    ? () => _updateMatchDialog(context, match)
+                    : null,
+                onLongPress: !isFixtures && state.currentUserIsMember
+                    ? () => _updateMatchDialog(context, match)
+                    : null,
+              ),
+            );
+          },
           separatorBuilder: (context, index) => const SizedBox(height: 8),
           itemCount: matches.length,
           padding: const EdgeInsets.symmetric(vertical: 8),
         ),
       ),
     );
+  }
+
+  Future<void> _confirmGenerateRound(BuildContext context, int existingCount) async {
+    final message = existingCount > 0
+        ? 'Hiện có $existingCount trận trong lịch. Tạo thêm một vòng mới?'
+        : 'Tạo vòng đấu round-robin cho tất cả người chơi?';
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: 'Tạo vòng đấu',
+      message: message,
+      confirmText: 'Tạo',
+    );
+    if (confirmed == true && context.mounted) {
+      context.read<TournamentDetailBloc>().add(const GenerateRound());
+    }
   }
 
   void _updateMatchDialog(BuildContext context, GNEsportMatch match) {
@@ -238,10 +292,11 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
     final defaultPrefillK = (league?.defaultMatchCost ?? 50000) ~/ 1000;
     bool costEnabled = (match.matchCost ?? 0) > 0;
     final matchCostController = TextEditingController(
-      text: ((match.matchCost ?? 0) > 0
-              ? (match.matchCost! ~/ 1000)
-              : defaultPrefillK)
-          .toString(),
+      text:
+          ((match.matchCost ?? 0) > 0
+                  ? (match.matchCost! ~/ 1000)
+                  : defaultPrefillK)
+              .toString(),
     );
 
     showDialog(
@@ -249,89 +304,94 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocalState) => AlertDialog(
           title: const Text('Cập nhật kết quả'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (match.homeTeam != null)
-                Row(
-                  children: [
-                    Expanded(child: EsportMatchTeam(user: match.homeTeam!)),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 56,
-                      child: TextField(
-                        controller: homeScoreController,
-                        textAlign: TextAlign.center,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 8),
-              if (match.awayTeam != null)
-                Row(
-                  children: [
-                    Expanded(child: EsportMatchTeam(user: match.awayTeam!)),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 56,
-                      child: TextField(
-                        controller: awayScoreController,
-                        textAlign: TextAlign.center,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 12,
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (match.homeTeam != null)
+                    Row(
+                      children: [
+                        Expanded(child: EsportMatchTeam(user: match.homeTeam!)),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 56,
+                          child: TextField(
+                            controller: homeScoreController,
+                            textAlign: TextAlign.center,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainerHighest,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 12,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: const Text('Có tiền cho trận này'),
-                value: costEnabled,
-                onChanged: (v) => setLocalState(() => costEnabled = v),
-              ),
-              if (costEnabled)
-                TextField(
-                  controller: matchCostController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    labelText: 'Số tiền (k VND)',
-                    prefixIcon: const Icon(Icons.attach_money, size: 20),
-                    filled: true,
-                    fillColor: colorScheme.surfaceContainerHighest,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+                  const SizedBox(height: 8),
+                  if (match.awayTeam != null)
+                    Row(
+                      children: [
+                        Expanded(child: EsportMatchTeam(user: match.awayTeam!)),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 56,
+                          child: TextField(
+                            controller: awayScoreController,
+                            textAlign: TextAlign.center,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainerHighest,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: const Text('Có tiền cho trận này'),
+                    value: costEnabled,
+                    onChanged: (v) => setLocalState(() => costEnabled = v),
                   ),
-                ),
-            ],
+                  if (costEnabled)
+                    TextField(
+                      controller: matchCostController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        labelText: 'Số tiền (k VND)',
+                        prefixIcon: const Icon(Icons.attach_money, size: 20),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerHighest,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
           actions: [
             TextButton(
@@ -350,8 +410,8 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                 final awayScore = int.parse(awayScoreController.text);
                 final matchCost = costEnabled
                     ? (int.tryParse(matchCostController.text.trim()) ??
-                            defaultPrefillK) *
-                        1000
+                              defaultPrefillK) *
+                          1000
                     : 0;
                 context.read<TournamentDetailBloc>().add(
                   UpdateEsportMatch(

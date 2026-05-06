@@ -1,19 +1,27 @@
 part of 'tournament_bloc.dart';
 
 class TournamentState extends Equatable {
-  static const Object _otherCursorUnchanged = Object();
+  static const Object _sentinel = Object();
 
-  /// Loading status for the "Giải đấu của tôi" tab.
+  /// Loading status for the "Tham gia" tab.
   final ViewStatus myStatus;
 
-  /// Loading status for the "Giải đấu khác" tab. Also reflects load-more.
+  /// Loading status for the "Quản lý" tab.
+  final ViewStatus managedStatus;
+
+  /// Loading status for the "Khác" tab. Also reflects load-more.
   final ViewStatus otherStatus;
 
   final List<GNEsportLeague> myLeagues;
+  final List<GNEsportLeague> managedLeagues;
   final List<GNEsportLeague> otherLeagues;
 
-  /// Cursor for the next page of `otherLeagues`. Opaque `DocumentSnapshot` —
-  /// stored as `Object?` so the bloc layer doesn't import cloud_firestore.
+  /// Cursors for next-page fetches. Stored as `Object?` so the bloc layer
+  /// doesn't import cloud_firestore directly.
+  final Object? myCursor;
+  final bool myHasMore;
+  final Object? managedCursor;
+  final bool managedHasMore;
   final Object? otherCursor;
   final bool otherHasMore;
 
@@ -26,9 +34,15 @@ class TournamentState extends Equatable {
 
   const TournamentState({
     this.myStatus = ViewStatus.initial,
+    this.managedStatus = ViewStatus.initial,
     this.otherStatus = ViewStatus.initial,
     this.myLeagues = const [],
+    this.managedLeagues = const [],
     this.otherLeagues = const [],
+    this.myCursor,
+    this.myHasMore = true,
+    this.managedCursor,
+    this.managedHasMore = true,
     this.otherCursor,
     this.otherHasMore = true,
     this.errorMessage = '',
@@ -37,22 +51,35 @@ class TournamentState extends Equatable {
 
   TournamentState copyWith({
     ViewStatus? myStatus,
+    ViewStatus? managedStatus,
     ViewStatus? otherStatus,
     List<GNEsportLeague>? myLeagues,
+    List<GNEsportLeague>? managedLeagues,
     List<GNEsportLeague>? otherLeagues,
-    Object? otherCursor = _otherCursorUnchanged,
+    Object? myCursor = _sentinel,
+    bool? myHasMore,
+    Object? managedCursor = _sentinel,
+    bool? managedHasMore,
+    Object? otherCursor = _sentinel,
     bool? otherHasMore,
     String? errorMessage,
     int? refreshTick,
   }) {
     return TournamentState(
       myStatus: myStatus ?? this.myStatus,
+      managedStatus: managedStatus ?? this.managedStatus,
       otherStatus: otherStatus ?? this.otherStatus,
       myLeagues: myLeagues ?? this.myLeagues,
+      managedLeagues: managedLeagues ?? this.managedLeagues,
       otherLeagues: otherLeagues ?? this.otherLeagues,
-      otherCursor: identical(otherCursor, _otherCursorUnchanged)
-          ? this.otherCursor
-          : otherCursor,
+      myCursor: identical(myCursor, _sentinel) ? this.myCursor : myCursor,
+      myHasMore: myHasMore ?? this.myHasMore,
+      managedCursor: identical(managedCursor, _sentinel)
+          ? this.managedCursor
+          : managedCursor,
+      managedHasMore: managedHasMore ?? this.managedHasMore,
+      otherCursor:
+          identical(otherCursor, _sentinel) ? this.otherCursor : otherCursor,
       otherHasMore: otherHasMore ?? this.otherHasMore,
       errorMessage: errorMessage ?? this.errorMessage,
       refreshTick: refreshTick ?? this.refreshTick,
@@ -62,9 +89,15 @@ class TournamentState extends Equatable {
   @override
   List<Object?> get props => [
         myStatus,
+        managedStatus,
         otherStatus,
         myLeagues,
+        managedLeagues,
         otherLeagues,
+        myCursor,
+        myHasMore,
+        managedCursor,
+        managedHasMore,
         otherCursor,
         otherHasMore,
         errorMessage,

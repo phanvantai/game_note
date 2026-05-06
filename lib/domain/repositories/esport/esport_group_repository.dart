@@ -7,7 +7,6 @@ abstract class EsportGroupRepository {
 
   Future<GNEsportGroup> createEsportGroup({
     required String groupName,
-    required String esportId,
     String description = '',
   });
 
@@ -23,5 +22,11 @@ abstract class EsportGroupRepository {
   Future<void> removeMemberFromGroup({
     required String groupId,
     required String memberId,
+  });
+
+  Future<void> toggleMemberDeactivation({
+    required String groupId,
+    required String userId,
+    required bool deactivate,
   });
 }

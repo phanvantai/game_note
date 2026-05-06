@@ -119,6 +119,12 @@ The project follows **Clean Architecture** principles with clear layer separatio
 ### Coverage Policy
 - **Target: 100% line coverage** for all production code under `lib/`. Every PR
   that adds or modifies code must include tests that maintain this bar.
+- **Test-with-code rule**: any code change MUST be accompanied by a matching
+  test update in the same change (add tests for new code, update assertions
+  for changed behavior, delete tests for removed code). Don't ship a code
+  edit and leave the test for "next PR" — coverage drops and behavioral
+  drift creep in immediately. Before declaring a task done, run
+  `flutter test --coverage` and verify no new uncovered lines under `lib/`.
 - **Exclusions** (allowed to skip): `main.dart`, `injection_container.dart`,
   generated files, ad/analytics integrations, and pure-platform-channel glue
   that requires a real device. Everything else — entities, repositories, blocs,

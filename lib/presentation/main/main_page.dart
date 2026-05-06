@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pes_arena/presentation/esport/bloc/esport_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:provider/provider.dart';
 
 import '../../injection_container.dart';
 import '../esport/groups/bloc/group_bloc.dart';
+import '../home/dashboard/bloc/dashboard_bloc.dart';
+import '../home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
 import '../profile/bloc/profile_bloc.dart';
 import 'main_view.dart';
 
@@ -18,12 +19,12 @@ class MainPage extends StatelessWidget {
     return MultiProvider(
       providers: [
         BlocProvider(create: (_) => getIt<ProfileBloc>()),
-        BlocProvider(create: (_) => getIt<EsportBloc>()..add(InitEsport())),
         BlocProvider(create: (_) => getIt<GroupBloc>()),
         BlocProvider(create: (_) => getIt<TournamentBloc>()),
-        BlocProvider(
-          create: (_) =>
-              getIt<NotificationBloc>()..add(NotificationEventFetch()),
+        BlocProvider(create: (_) => getIt<DashboardBloc>()),
+        BlocProvider(create: (_) => getIt<OngoingTournamentsBloc>()),
+        BlocProvider<NotificationBloc>.value(
+          value: getIt<NotificationBloc>()..add(NotificationEventFetch()),
         ),
       ],
       child: const MainView(),

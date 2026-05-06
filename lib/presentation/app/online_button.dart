@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../routing.dart';
 
@@ -11,7 +12,7 @@ class OnlineButton extends StatelessWidget {
       icon: const Icon(Icons.wifi_outlined, size: 18),
       label: const Text('Online'),
       onPressed: () {
-        Navigator.of(context).pushReplacementNamed(Routing.app);
+        context.go(Routing.app);
       },
     );
   }

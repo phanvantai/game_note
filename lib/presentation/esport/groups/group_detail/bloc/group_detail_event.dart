@@ -44,3 +44,85 @@ class RemoveMember extends GroupDetailEvent {
   @override
   List<Object?> get props => [groupId, userId];
 }
+
+class LoadGroupLeagues extends GroupDetailEvent {
+  final String groupId;
+
+  const LoadGroupLeagues(this.groupId);
+
+  @override
+  List<Object?> get props => [groupId];
+}
+
+class ReplaceLeagueParticipant extends GroupDetailEvent {
+  final String leagueId;
+  final String oldUserId;
+  final String newUserId;
+
+  const ReplaceLeagueParticipant({
+    required this.leagueId,
+    required this.oldUserId,
+    required this.newUserId,
+  });
+
+  @override
+  List<Object?> get props => [leagueId, oldUserId, newUserId];
+}
+
+class LoadGroupOverview extends GroupDetailEvent {
+  final String groupId;
+  final bool forceRefresh;
+
+  const LoadGroupOverview(this.groupId, {this.forceRefresh = false});
+
+  @override
+  List<Object?> get props => [groupId, forceRefresh];
+}
+
+class AddPlaceholderMember extends GroupDetailEvent {
+  final String groupId;
+  final String displayName;
+
+  const AddPlaceholderMember(this.groupId, this.displayName);
+
+  @override
+  List<Object?> get props => [groupId, displayName];
+}
+
+class SetLeagueMergeCompleted extends GroupDetailEvent {
+  final String leagueId;
+  final bool completed;
+
+  const SetLeagueMergeCompleted({
+    required this.leagueId,
+    required this.completed,
+  });
+
+  @override
+  List<Object?> get props => [leagueId, completed];
+}
+
+/// Lọc group overview theo năm. [year] == null → hiện all-time.
+class FilterGroupOverviewByYear extends GroupDetailEvent {
+  final int? year;
+
+  const FilterGroupOverviewByYear(this.year);
+
+  @override
+  List<Object?> get props => [year];
+}
+
+class ToggleMemberDeactivation extends GroupDetailEvent {
+  final String groupId;
+  final String userId;
+  final bool deactivate;
+
+  const ToggleMemberDeactivation({
+    required this.groupId,
+    required this.userId,
+    required this.deactivate,
+  });
+
+  @override
+  List<Object?> get props => [groupId, userId, deactivate];
+}

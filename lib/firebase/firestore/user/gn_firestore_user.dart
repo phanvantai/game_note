@@ -50,33 +50,6 @@ extension GNFirestoreUser on GNFirestore {
     return GNUser.fromFireStore(userDoc);
   }
 
-  // Batch load multiple users to avoid N+1 query problem
-  Future<Map<String, GNUser>> getUsersById(List<String> userIds) async {
-    if (userIds.isEmpty) return {};
-
-    // Remove duplicates
-    final uniqueUserIds = userIds.toSet().toList();
-
-    // Firestore 'in' query supports up to 10 items, so we need to batch
-    const batchSize = 10;
-    Map<String, GNUser> users = {};
-
-    for (int i = 0; i < uniqueUserIds.length; i += batchSize) {
-      final batch = uniqueUserIds.skip(i).take(batchSize).toList();
-
-      final querySnapshot = await firestore
-          .collection(GNUser.collectionName)
-          .where(FieldPath.documentId, whereIn: batch)
-          .get();
-
-      for (final doc in querySnapshot.docs) {
-        users[doc.id] = GNUser.fromFireStore(doc);
-      }
-    }
-
-    return users;
-  }
-
   Future<void> deleteCurrentUser() async {
     final user = getIt<GNAuth>().currentUser;
     if (user == null) {
@@ -125,6 +98,30 @@ extension GNFirestoreUser on GNFirestore {
       GNUser.photoUrlKey: photoUrl,
       GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
     });
+  }
+
+  /// Tạo user "placeholder" cho người chơi offline chưa có account online.
+  /// id có prefix `placeholder_` để Firestore rules có thể nhận diện
+  /// và cho phép tạo (rule cần allow create khi id startsWith 'placeholder_').
+  Future<GNUser> createPlaceholderUser({required String displayName}) async {
+    final col = firestore.collection(GNUser.collectionName);
+    final id = 'placeholder_${col.doc().id}';
+    final user = GNUser(
+      id: id,
+      displayName: displayName,
+      phoneNumber: null,
+      email: null,
+      photoUrl: null,
+      role: UserRole.user.name,
+      fcmToken: '',
+      isPlaceholder: true,
+    );
+    await col.doc(id).set({
+      ...user.toMap(),
+      GNCommonFields.createdAt: FieldValue.serverTimestamp(),
+      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
+    });
+    return user;
   }
 
   // search user by displayName or email or phoneNumber
@@ -221,7 +218,9 @@ extension GNFirestoreUser on GNFirestore {
     }
     return uniqueDocs.values
         .map((doc) => GNUser.fromFireStore(doc))
-        .where((user) => group.members.contains(user.id))
+        .where((user) =>
+            group.members.contains(user.id) &&
+            !group.deactivatedMembers.contains(user.id))
         .toList();
   }
 

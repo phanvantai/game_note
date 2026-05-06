@@ -10,21 +10,33 @@ class EsportMatchTeam extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final name = user.displayName ?? user.email ?? user.phoneNumber ?? user.id;
+    final nameText = Text(
+      name,
+      style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+      overflow: TextOverflow.ellipsis,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: Row(
-        children: [
-          GNCircleAvatar(photoUrl: user.photoUrl, size: 28),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              user.displayName ?? user.email ?? user.phoneNumber ?? user.id,
-              style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final hasBoundedWidth = constraints.maxWidth.isFinite;
+          return Row(
+            mainAxisSize: hasBoundedWidth ? MainAxisSize.max : MainAxisSize.min,
+            children: [
+              GNCircleAvatar(photoUrl: user.photoUrl, size: 28),
+              const SizedBox(width: 8),
+              if (hasBoundedWidth)
+                Expanded(child: nameText)
+              else
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: nameText,
+                ),
+            ],
+          );
+        },
       ),
     );
   }

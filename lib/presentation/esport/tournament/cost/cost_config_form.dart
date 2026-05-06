@@ -3,6 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 
+/// Sinh các preset gợi ý phân chia thưởng (đơn vị k VND) dựa theo số người tham gia.
+///
+/// Trả về danh sách preset, mỗi preset là [List<int>] các giá trị k VND.
+/// Trả về rỗng nếu [participantCount] < 2.
+List<List<int>> generateRankPayoutPresets(int participantCount) {
+  if (participantCount < 2) return [];
+  final slots = participantCount - 1;
+  final candidates = [
+    List.generate(slots, (i) => (i + 1) * 50),  // 50, 100, 150, ...
+    List.generate(slots, (i) => 100 + i * 50),  // 100, 150, 200, ...
+    List.generate(slots, (i) => (i + 1) * 100), // 100, 200, 300, ...
+  ];
+  final seen = <String>{};
+  return candidates.where((p) => seen.add(p.join(','))).toList();
+}
+
 /// Kết quả collect từ [CostConfigForm]. Tất cả số tiền là VND đầy đủ.
 class CostConfigFormResult {
   final bool rankPayoutEnabled;
@@ -30,11 +46,15 @@ class CostConfigForm extends StatefulWidget {
   /// VND.
   final int initialDefaultMatchCost;
 
+  /// Số người tham gia giải đấu. Dùng để sinh preset gợi ý (0 = không gợi ý).
+  final int participantCount;
+
   const CostConfigForm({
     super.key,
     this.initialRankPayoutEnabled = false,
     this.initialRankPayouts = const [],
     this.initialDefaultMatchCost = 50000,
+    this.participantCount = 0,
   });
 
   @override
@@ -113,6 +133,11 @@ class CostConfigFormState extends State<CostConfigForm> {
         ),
         if (_rankPayoutEnabled) ...[
           const SizedBox(height: 4),
+          _RankPayoutPresets(
+            participantCount: widget.participantCount,
+            onSelect: (label) =>
+                setState(() => _rankPayoutsController.text = label),
+          ),
           TextField(
             controller: _rankPayoutsController,
             keyboardType: TextInputType.text,
@@ -146,6 +171,43 @@ class CostConfigFormState extends State<CostConfigForm> {
           'Số này sẽ được điền sẵn khi bật cost cho từng trận lúc nhập kết quả.',
           style: textTheme.bodySmall,
         ),
+      ],
+    );
+  }
+}
+
+class _RankPayoutPresets extends StatelessWidget {
+  final int participantCount;
+  final void Function(String label) onSelect;
+
+  const _RankPayoutPresets({
+    required this.participantCount,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final presets = generateRankPayoutPresets(participantCount);
+    if (presets.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Gợi ý:', style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: presets.map((preset) {
+            final label = preset.join(', ');
+            return ActionChip(
+              label: Text('$label k', style: const TextStyle(fontSize: 12)),
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              onPressed: () => onSelect(label),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 6),
       ],
     );
   }

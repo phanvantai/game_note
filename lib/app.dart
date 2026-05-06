@@ -13,9 +13,8 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(
       builder: (context, themeNotifier, _) {
-        return MaterialApp(
-          onGenerateRoute: Routing.generateRoute,
-          initialRoute: Routing.app,
+        return MaterialApp.router(
+          routerConfig: appRouter,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,

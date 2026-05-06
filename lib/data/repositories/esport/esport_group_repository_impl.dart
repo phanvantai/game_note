@@ -7,21 +7,23 @@ import 'package:pes_arena/injection_container.dart';
 
 class EsportGroupRepositoryImpl implements EsportGroupRepository {
   @override
-  Future<void> addMemberToGroup(
-      {required String groupId, required String memberId}) {
-    return getIt<GNFirestore>()
-        .addMemberToGroup(groupId: groupId, memberId: memberId);
+  Future<void> addMemberToGroup({
+    required String groupId,
+    required String memberId,
+  }) {
+    return getIt<GNFirestore>().addMemberToGroup(
+      groupId: groupId,
+      memberId: memberId,
+    );
   }
 
   @override
   Future<GNEsportGroup> createEsportGroup({
     required String groupName,
-    required String esportId,
     String description = '',
   }) {
     return getIt<GNFirestore>().createEsportGroup(
       groupName: groupName,
-      esportId: esportId,
       description: description,
     );
   }
@@ -42,9 +44,26 @@ class EsportGroupRepositoryImpl implements EsportGroupRepository {
   }
 
   @override
-  Future<void> removeMemberFromGroup(
-      {required String groupId, required String memberId}) {
-    return getIt<GNFirestore>()
-        .removeMemberFromGroup(groupId: groupId, memberId: memberId);
+  Future<void> removeMemberFromGroup({
+    required String groupId,
+    required String memberId,
+  }) {
+    return getIt<GNFirestore>().removeMemberFromGroup(
+      groupId: groupId,
+      memberId: memberId,
+    );
+  }
+
+  @override
+  Future<void> toggleMemberDeactivation({
+    required String groupId,
+    required String userId,
+    required bool deactivate,
+  }) {
+    return getIt<GNFirestore>().toggleMemberDeactivation(
+      groupId: groupId,
+      userId: userId,
+      deactivate: deactivate,
+    );
   }
 }

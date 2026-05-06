@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 
 import '../../../firebase/firestore/feedback/feedback_model.dart';
@@ -18,9 +17,18 @@ class FeedbackItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return AppCard(
-      margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(12),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [status.color.withValues(alpha: 0.08), colorScheme.surface],
+        ),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -64,12 +72,18 @@ class FeedbackItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(feedback.title, style: textTheme.titleSmall),
+                Text(
+                  feedback.title,
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   feedback.detail,
                   style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.35,
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
@@ -82,7 +96,7 @@ class FeedbackItem extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: status.color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(99),
             ),
             child: Text(
               status.name,

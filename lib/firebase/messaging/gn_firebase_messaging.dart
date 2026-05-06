@@ -13,8 +13,6 @@ class GNFirebaseMessaging {
 
   // Initialize Firebase and set up the message handlers
   Future<void> initialize() async {
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
     _requestNotificationPermissions();
     _handleForegroundMessages();
     _handleBackgroundMessages();
@@ -121,13 +119,6 @@ class GNFirebaseMessaging {
     });
   }
 
-  // Static background message handler
-  static Future<void> _firebaseMessagingBackgroundHandler(
-      RemoteMessage message) async {
-    if (kDebugMode) {
-      print("Handling a background message: ${message.messageId}");
-    }
-  }
 }
 
 @pragma('vm:entry-point')

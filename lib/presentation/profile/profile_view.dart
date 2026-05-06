@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,7 +13,6 @@ import '../../core/constants/constants.dart';
 import '../../core/ultils.dart';
 import '../../routing.dart';
 import 'bloc/profile_bloc.dart';
-import 'feedback/feedback_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -53,120 +53,40 @@ class _ProfileViewState extends State<ProfileView>
   Widget build(BuildContext context) {
     super.build(context);
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return BlocConsumer<ProfileBloc, ProfileState>(
       builder: (context, state) => Scaffold(
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            children: [
-              if (state.viewStatus == ViewStatus.loading)
-                const LinearProgressIndicator(),
-              const SizedBox(height: 24),
-              // Avatar section
-              Center(
-                child: GestureDetector(
-                  onTap: kIsWeb ? null : () => _showAvatarOptions(context),
-                  child: Stack(
-                    children: [
-                      CachedNetworkImage(
-                        imageUrl: state.user?.photoUrl ?? '',
-                        width: 96,
-                        height: 96,
-                        imageBuilder: (context, imageProvider) => CircleAvatar(
-                          backgroundImage: imageProvider,
-                          radius: 48,
-                        ),
-                        errorWidget: (context, url, error) => CircleAvatar(
-                          radius: 48,
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                          child: Icon(
-                            Icons.person,
-                            size: 40,
-                            color: colorScheme.onSurface.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ),
-                      if (!kIsWeb)
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: colorScheme.secondary,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: colorScheme.surface,
-                                width: 2,
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 14,
-                              color: colorScheme.onSecondary,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+        body: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.secondary.withValues(alpha: 0.16),
+                Theme.of(context).scaffoldBackgroundColor,
+                colorScheme.primary.withValues(alpha: 0.06),
+              ],
+              stops: const [0, 0.46, 1],
+            ),
+          ),
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+              children: [
+                if (state.viewStatus == ViewStatus.loading)
+                  const LinearProgressIndicator(minHeight: 3),
+                _ProfileHero(
+                  state: state,
+                  onAvatarTap: kIsWeb
+                      ? null
+                      : () => _showAvatarOptions(context),
+                  onEditTap: () => _navigateToUpdateProfile(context, state),
                 ),
-              ),
-              const SizedBox(height: 12),
-              // Name + edit
-              Center(
-                child: state.displayUser.isNotEmpty
-                    ? GestureDetector(
-                        onTap: () => _navigateToUpdateProfile(context, state),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              state.displayUser,
-                              style: textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.edit_outlined,
-                              size: 18,
-                              color: colorScheme.onSurface.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : GestureDetector(
-                        onTap: () => _navigateToUpdateProfile(context, state),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Vui lòng cập nhật thông tin',
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onErrorContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-              ),
-              const SizedBox(height: 32),
-
-              // Account section
-              _buildSectionLabel(context, 'Tài khoản'),
-              const SizedBox(height: 8),
-              AppCard(
-                child: Column(
+                const SizedBox(height: 16),
+                _ProfileSection(
+                  title: 'Tài khoản',
+                  icon: Icons.manage_accounts_outlined,
                   children: [
                     _buildMenuItem(
                       context,
@@ -174,29 +94,18 @@ class _ProfileViewState extends State<ProfileView>
                       title: 'Cập nhật thông tin',
                       onTap: () => _navigateToUpdateProfile(context, state),
                     ),
-                    Divider(
-                      height: 0.5,
-                      indent: 56,
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.lock_outline,
                       title: 'Đổi mật khẩu',
-                      onTap: () => Navigator.of(
-                        context,
-                      ).pushNamed(Routing.changePassword),
+                      onTap: () => context.push(Routing.changePassword),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // App section
-              _buildSectionLabel(context, 'Ứng dụng'),
-              const SizedBox(height: 8),
-              AppCard(
-                child: Column(
+                const SizedBox(height: 16),
+                _ProfileSection(
+                  title: 'Ứng dụng',
+                  icon: Icons.tune_outlined,
                   children: [
                     if (!kIsWeb) ...[
                       _buildMenuItem(
@@ -205,104 +114,65 @@ class _ProfileViewState extends State<ProfileView>
                         title: 'Chế độ offline',
                         onTap: () => _switchToOffline(context),
                       ),
-                      Divider(
-                        height: 0.5,
-                        indent: 56,
-                        color: colorScheme.outline.withValues(alpha: 0.2),
+                      _buildMenuItem(
+                        context,
+                        icon: Icons.sync_outlined,
+                        title: 'Đồng bộ dữ liệu offline',
+                        onTap: () => context.push(Routing.syncOfflineData),
                       ),
                     ],
                     _buildMenuItem(
                       context,
                       icon: Icons.settings_outlined,
                       title: 'Tuỳ chọn khác',
-                      onTap: () => Navigator.of(context).pushNamed(
-                        Routing.setting,
-                        arguments: context.read<ProfileBloc>(),
-                      ),
+                      onTap: () => context.push(Routing.setting),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // About section
-              _buildSectionLabel(context, 'Thông tin'),
-              const SizedBox(height: 8),
-              AppCard(
-                child: Column(
+                const SizedBox(height: 16),
+                _ProfileSection(
+                  title: 'Thông tin',
+                  icon: Icons.info_outline,
                   children: [
                     _buildMenuItem(
                       context,
                       icon: Icons.star_outline,
                       title: 'Đánh giá',
                       onTap: () {
-                        final url = defaultTargetPlatform ==
-                                TargetPlatform.android
+                        final url =
+                            defaultTargetPlatform == TargetPlatform.android
                             ? Uri.parse(playStoreUrl)
                             : Uri.parse(appStoreUrl);
                         launchUrl(url);
                       },
                     ),
-                    Divider(
-                      height: 0.5,
-                      indent: 56,
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.chat_bubble_outline,
                       title: 'Nhận xét góp ý',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const FeedbackView()),
-                      ),
+                      onTap: () => context.push(Routing.feedback),
                     ),
-                    Divider(
-                      height: 0.5,
-                      indent: 56,
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                    ),
-                    ListTile(
-                      onTap: _incrementCounter,
-                      leading: Icon(
-                        Icons.info_outline,
-                        color: colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                      title: Text('Phiên bản', style: textTheme.bodyLarge),
-                      trailing: FutureBuilder<AppInfo>(
-                        future: appInfo(),
-                        builder: (context, snapshot) {
-                          return Text(
-                            snapshot.hasData
-                                ? snapshot.data!.versionNumber
-                                : '1.0.0',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurface.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                    _VersionMenuItem(onTap: _incrementCounter),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _ProfileSection(
+                  title: 'Phiên làm việc',
+                  icon: Icons.logout,
+                  children: [
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.logout,
+                      title: 'Đăng xuất',
+                      iconColor: colorScheme.error,
+                      textColor: colorScheme.error,
+                      showChevron: false,
+                      onTap: () => _signOut(context),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // Sign out
-              AppCard(
-                child: _buildMenuItem(
-                  context,
-                  icon: Icons.logout,
-                  title: 'Đăng xuất',
-                  iconColor: colorScheme.error,
-                  textColor: colorScheme.error,
-                  showChevron: false,
-                  onTap: () => _signOut(context),
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -311,22 +181,6 @@ class _ProfileViewState extends State<ProfileView>
           showSnackBar(context, state.error);
         }
       },
-    );
-  }
-
-  Widget _buildSectionLabel(BuildContext context, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Theme.of(
-            context,
-          ).colorScheme.onSurface.withValues(alpha: 0.45),
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1,
-        ),
-      ),
     );
   }
 
@@ -339,24 +193,12 @@ class _ProfileViewState extends State<ProfileView>
     Color? textColor,
     bool showChevron = true,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: iconColor ?? colorScheme.onSurface.withValues(alpha: 0.6),
-      ),
-      title: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(color: textColor),
-      ),
-      trailing: showChevron
-          ? Icon(
-              Icons.chevron_right,
-              color: colorScheme.onSurface.withValues(alpha: 0.3),
-            )
-          : null,
+    return _ProfileActionTile(
+      icon: icon,
+      title: title,
+      iconColor: iconColor,
+      textColor: textColor,
+      showChevron: showChevron,
       onTap: onTap,
     );
   }
@@ -366,43 +208,43 @@ class _ProfileViewState extends State<ProfileView>
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
       builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.outline.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.outline.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(99),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.image_outlined),
-              title: const Text('Thay đổi ảnh đại diện'),
-              onTap: () {
-                context.read<ProfileBloc>().add(ChangeAvatarProfileEvent());
-                Navigator.of(sheetContext).pop();
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.delete_outline, color: colorScheme.error),
-              title: Text(
-                'Xoá ảnh đại diện',
-                style: TextStyle(color: colorScheme.error),
+              const SizedBox(height: 16),
+              _SheetAction(
+                icon: Icons.image_outlined,
+                title: 'Thay đổi ảnh đại diện',
+                onTap: () {
+                  context.read<ProfileBloc>().add(ChangeAvatarProfileEvent());
+                  Navigator.of(sheetContext).pop();
+                },
               ),
-              onTap: () {
-                context.read<ProfileBloc>().add(DeleteAvatarProfileEvent());
-                Navigator.of(sheetContext).pop();
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
+              const SizedBox(height: 8),
+              _SheetAction(
+                icon: Icons.delete_outline,
+                title: 'Xoá ảnh đại diện',
+                color: colorScheme.error,
+                onTap: () {
+                  context.read<ProfileBloc>().add(DeleteAvatarProfileEvent());
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -412,9 +254,7 @@ class _ProfileViewState extends State<ProfileView>
     BuildContext context,
     ProfileState state,
   ) async {
-    await Navigator.of(
-      context,
-    ).pushNamed(Routing.updateProfile, arguments: state.user);
+    await context.push(Routing.updateProfile, extra: state.user);
     if (context.mounted) {
       context.read<ProfileBloc>().add(LoadProfileEvent());
     }
@@ -429,7 +269,7 @@ class _ProfileViewState extends State<ProfileView>
       confirmText: 'Chấp nhận',
     );
     if (confirmed == true && context.mounted) {
-      Navigator.of(context).pushReplacementNamed(Routing.offline);
+      context.go(Routing.offline);
     }
   }
 
@@ -448,4 +288,352 @@ class _ProfileViewState extends State<ProfileView>
 
   @override
   bool get wantKeepAlive => true;
+}
+
+class _ProfileHero extends StatelessWidget {
+  final ProfileState state;
+  final VoidCallback? onAvatarTap;
+  final VoidCallback onEditTap;
+
+  const _ProfileHero({
+    required this.state,
+    required this.onAvatarTap,
+    required this.onEditTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final display = state.displayUser.isEmpty
+        ? 'Vui lòng cập nhật thông tin'
+        : state.displayUser;
+    final contact = state.user?.email ?? state.user?.phoneNumber ?? 'PES Arena';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.secondary.withValues(alpha: 0.24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.secondary.withValues(alpha: 0.1),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onAvatarTap,
+            child: Stack(
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: colorScheme.secondary.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: CachedNetworkImage(
+                      imageUrl: state.user?.photoUrl ?? '',
+                      fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => Container(
+                        color: colorScheme.surfaceContainerHighest,
+                        child: Icon(
+                          Icons.person,
+                          size: 34,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (onAvatarTap != null)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: colorScheme.secondary,
+                        borderRadius: BorderRadius.circular(9),
+                        border: Border.all(
+                          color: colorScheme.surface,
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 13,
+                        color: colorScheme.onSecondary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Player profile',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colorScheme.secondary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  display,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  contact,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileSection extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  const _ProfileSection({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: colorScheme.secondary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          for (var i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i != children.length - 1) const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  final Color? iconColor;
+  final Color? textColor;
+  final bool showChevron;
+
+  const _ProfileActionTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.iconColor,
+    this.textColor,
+    this.showChevron = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final resolvedIconColor = iconColor ?? colorScheme.secondary;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.26),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: resolvedIconColor.withValues(alpha: 0.11),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, color: resolvedIconColor, size: 19),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (showChevron)
+                Icon(
+                  Icons.chevron_right,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VersionMenuItem extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _VersionMenuItem({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.26),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(alpha: 0.11),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(
+                  Icons.info_outline,
+                  color: colorScheme.secondary,
+                  size: 19,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Phiên bản',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              FutureBuilder<AppInfo>(
+                future: appInfo(),
+                builder: (context, snapshot) {
+                  return Text(
+                    snapshot.hasData ? snapshot.data!.versionNumber : '1.0.0',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetAction extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  final Color? color;
+
+  const _SheetAction({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final resolvedColor = color ?? colorScheme.secondary;
+    return _ProfileActionTile(
+      icon: icon,
+      title: title,
+      iconColor: resolvedColor,
+      textColor: color,
+      showChevron: false,
+      onTap: onTap,
+    );
+  }
 }

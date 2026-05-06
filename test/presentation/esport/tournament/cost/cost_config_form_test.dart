@@ -5,17 +5,89 @@ import 'package:pes_arena/presentation/esport/tournament/cost/cost_config_form.d
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
+  group('generateRankPayoutPresets', () {
+    test('0 người tham gia → rỗng', () {
+      expect(generateRankPayoutPresets(0), isEmpty);
+    });
+
+    test('1 người tham gia → rỗng', () {
+      expect(generateRankPayoutPresets(1), isEmpty);
+    });
+
+    test('2 người: 1 slot → 2 preset không trùng', () {
+      final presets = generateRankPayoutPresets(2);
+      expect(presets, hasLength(2));
+      expect(presets[0], [50]);
+      expect(presets[1], [100]);
+    });
+
+    test('3 người: 2 slots → 3 preset', () {
+      final presets = generateRankPayoutPresets(3);
+      expect(presets, hasLength(3));
+      expect(presets[0], [50, 100]);
+      expect(presets[1], [100, 150]);
+      expect(presets[2], [100, 200]);
+    });
+
+    test('4 người: 3 slots → 3 preset', () {
+      final presets = generateRankPayoutPresets(4);
+      expect(presets, hasLength(3));
+      expect(presets[0], [50, 100, 150]);
+      expect(presets[1], [100, 150, 200]);
+      expect(presets[2], [100, 200, 300]);
+    });
+
+    test('5 người: 4 slots → 3 preset', () {
+      final presets = generateRankPayoutPresets(5);
+      expect(presets, hasLength(3));
+      expect(presets[0], [50, 100, 150, 200]);
+      expect(presets[1], [100, 150, 200, 250]);
+      expect(presets[2], [100, 200, 300, 400]);
+    });
+
+    test('6 người: 5 slots → 3 preset', () {
+      final presets = generateRankPayoutPresets(6);
+      expect(presets, hasLength(3));
+      expect(presets[0], [50, 100, 150, 200, 250]);
+      expect(presets[1], [100, 150, 200, 250, 300]);
+      expect(presets[2], [100, 200, 300, 400, 500]);
+    });
+
+    test('không có preset trùng nhau', () {
+      for (final n in [2, 3, 4, 5, 6, 8, 10]) {
+        final presets = generateRankPayoutPresets(n);
+        final keys = presets.map((p) => p.join(',')).toList();
+        expect(keys.toSet().length, keys.length, reason: 'n=$n có preset trùng');
+      }
+    });
+
+    test('mỗi preset có đúng (participantCount - 1) phần tử', () {
+      for (final n in [2, 3, 4, 5, 6]) {
+        final presets = generateRankPayoutPresets(n);
+        for (final p in presets) {
+          expect(p.length, n - 1, reason: 'n=$n, preset=$p');
+        }
+      }
+    });
+
+    test('mọi giá trị trong preset đều dương', () {
+      for (final n in [2, 3, 4, 5, 6, 10]) {
+        final presets = generateRankPayoutPresets(n);
+        for (final p in presets) {
+          expect(p.every((v) => v > 0), isTrue, reason: 'n=$n, preset=$p');
+        }
+      }
+    });
+  });
+
   group('CostConfigForm — render', () {
     testWidgets('default: switch off + default cost field hiển thị "50"',
         (tester) async {
       await tester.pumpWidget(_wrap(const CostConfigForm()));
 
-      // switch off ⇒ rank payouts field bị ẩn
       expect(find.byType(Switch), findsOneWidget);
       expect(find.text('VD: 50, 100, 150 (k VND)'), findsNothing);
-      // default cost field show
       expect(find.text('Tiền mặc định mỗi trận (k VND)'), findsOneWidget);
-      // controller default text "50"
       expect(find.widgetWithText(TextField, '50'), findsOneWidget);
     });
 
@@ -35,8 +107,6 @@ void main() {
           initialRankPayouts: [50000, 100000, 150000],
         )),
       );
-
-      // hiển thị k
       expect(find.widgetWithText(TextField, '50, 100, 150'), findsOneWidget);
     });
 
@@ -53,14 +123,12 @@ void main() {
         (tester) async {
       await tester.pumpWidget(_wrap(const CostConfigForm()));
 
-      // off → field ẩn
       expect(find.widgetWithText(TextField, '50, 100, 150'), findsNothing);
 
       await tester.tap(find.byType(Switch));
       await tester.pump();
       expect(find.widgetWithText(TextField, '50, 100, 150'), findsOneWidget);
 
-      // tắt lại
       await tester.tap(find.byType(Switch));
       await tester.pump();
       expect(find.widgetWithText(TextField, '50, 100, 150'), findsNothing);
@@ -80,7 +148,6 @@ void main() {
       expect(field.inputFormatters, isNotNull);
       expect(field.inputFormatters!.length, 1);
 
-      // chạy formatter trên input bẩn → chỉ giữ digit, ',', whitespace
       final formatter = field.inputFormatters!.first;
       String filter(String raw) => formatter
           .formatEditUpdate(
@@ -96,6 +163,129 @@ void main() {
     });
   });
 
+  group('CostConfigForm — preset chips', () {
+    testWidgets('participantCount = 0: không hiện chips dù switch on',
+        (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        initialRankPayoutEnabled: true,
+        participantCount: 0,
+      )));
+      expect(find.byType(ActionChip), findsNothing);
+      expect(find.text('Gợi ý:'), findsNothing);
+    });
+
+    testWidgets('participantCount = 1: không hiện chips', (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        initialRankPayoutEnabled: true,
+        participantCount: 1,
+      )));
+      expect(find.byType(ActionChip), findsNothing);
+    });
+
+    testWidgets('participantCount = 2: 2 chips khi switch on', (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        initialRankPayoutEnabled: true,
+        participantCount: 2,
+      )));
+      expect(find.byType(ActionChip), findsNWidgets(2));
+      expect(find.text('Gợi ý:'), findsOneWidget);
+    });
+
+    testWidgets('participantCount = 4: 3 chips khi switch on', (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        initialRankPayoutEnabled: true,
+        participantCount: 4,
+      )));
+      expect(find.byType(ActionChip), findsNWidgets(3));
+    });
+
+    testWidgets('participantCount = 5: 3 chips khi switch on', (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        initialRankPayoutEnabled: true,
+        participantCount: 5,
+      )));
+      expect(find.byType(ActionChip), findsNWidgets(3));
+      expect(find.text('50, 100, 150, 200 k'), findsOneWidget);
+      expect(find.text('100, 150, 200, 250 k'), findsOneWidget);
+      expect(find.text('100, 200, 300, 400 k'), findsOneWidget);
+    });
+
+    testWidgets('switch off ⇒ chips ẩn dù participantCount > 1',
+        (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        initialRankPayoutEnabled: false,
+        participantCount: 5,
+      )));
+      expect(find.byType(ActionChip), findsNothing);
+    });
+
+    testWidgets('tap chip → điền giá trị vào text field (không có "k")',
+        (tester) async {
+      final key = GlobalKey<CostConfigFormState>();
+      await tester.pumpWidget(_wrap(CostConfigForm(
+        key: key,
+        initialRankPayoutEnabled: true,
+        participantCount: 4,
+      )));
+
+      await tester.tap(find.text('50, 100, 150 k'));
+      await tester.pump();
+
+      expect(
+        find.widgetWithText(TextField, '50, 100, 150'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tap chip thứ hai → text field cập nhật đúng', (tester) async {
+      final key = GlobalKey<CostConfigFormState>();
+      await tester.pumpWidget(_wrap(CostConfigForm(
+        key: key,
+        initialRankPayoutEnabled: true,
+        participantCount: 4,
+      )));
+
+      await tester.tap(find.text('100, 150, 200 k'));
+      await tester.pump();
+
+      expect(
+        find.widgetWithText(TextField, '100, 150, 200'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tap chip → validateAndCollect trả đúng giá trị k×1000',
+        (tester) async {
+      final key = GlobalKey<CostConfigFormState>();
+      await tester.pumpWidget(_wrap(CostConfigForm(
+        key: key,
+        initialRankPayoutEnabled: true,
+        participantCount: 4,
+      )));
+
+      await tester.tap(find.text('100, 200, 300 k'));
+      await tester.pump();
+
+      final result = key.currentState!.validateAndCollect();
+      expect(result, isNotNull);
+      expect(result!.rankPayouts, [100000, 200000, 300000]);
+    });
+
+    testWidgets('chips chỉ hiện sau khi bật switch', (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        initialRankPayoutEnabled: false,
+        participantCount: 4,
+      )));
+
+      expect(find.byType(ActionChip), findsNothing);
+
+      await tester.tap(find.byType(Switch));
+      await tester.pump();
+
+      expect(find.byType(ActionChip), findsNWidgets(3));
+    });
+  });
+
   group('CostConfigForm — validateAndCollect', () {
     testWidgets('disabled: rankPayouts rỗng, dùng default match cost từ field',
         (tester) async {
@@ -106,7 +296,7 @@ void main() {
       expect(result, isNotNull);
       expect(result!.rankPayoutEnabled, isFalse);
       expect(result.rankPayouts, isEmpty);
-      expect(result.defaultMatchCost, 50 * 1000); // default "50" × 1000
+      expect(result.defaultMatchCost, 50 * 1000);
     });
 
     testWidgets('enabled + valid input ⇒ parse + nhân 1000', (tester) async {
@@ -134,7 +324,6 @@ void main() {
         initialRankPayouts: const [50000],
       )));
 
-      // rank payouts là TextField đầu tiên (default cost field nằm sau)
       await tester.enterText(find.byType(TextField).first, '');
       final result = key.currentState!.validateAndCollect();
       expect(result, isNull);

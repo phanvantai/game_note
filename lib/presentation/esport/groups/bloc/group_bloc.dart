@@ -28,10 +28,12 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
       final groups = await _esportGroupRepository.getEsportGroups();
       emit(state.copyWith(viewStatus: ViewStatus.success, groups: groups));
     } catch (e) {
-      emit(state.copyWith(
-        viewStatus: ViewStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -43,19 +45,22 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     try {
       final group = await _esportGroupRepository.createEsportGroup(
         groupName: event.groupName,
-        esportId: event.esportId,
         description: event.description,
       );
-      emit(state.copyWith(
-        viewStatus: ViewStatus.success,
-        groups: [...state.groups, group],
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.success,
+          groups: [...state.groups, group],
+        ),
+      );
       showToast('Tạo nhóm thành công');
     } catch (e) {
-      emit(state.copyWith(
-        viewStatus: ViewStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -71,10 +76,12 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
       );
       emit(state.copyWith(viewStatus: ViewStatus.success));
     } catch (e) {
-      emit(state.copyWith(
-        viewStatus: ViewStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 }

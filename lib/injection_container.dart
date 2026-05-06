@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'package:pes_arena/offline/data/database/database_manager.dart';
 import 'package:pes_arena/offline/data/datasources/league_local_datasource.dart';
 import 'package:pes_arena/offline/data/repositories/league_repository_impl.dart';
@@ -15,7 +17,17 @@ import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/cache/dashboard_cache.dart';
+import 'core/cache/group_overview_cache.dart';
+import 'core/cache/h2h_preferences.dart';
 import 'core/helpers/shared_preferences_helper.dart';
+import 'data/repositories/esport/esport_group_stats_repository_impl.dart';
+import 'data/repositories/user_stats_repository_impl.dart';
+import 'domain/repositories/esport/esport_group_stats_repository.dart';
+import 'domain/repositories/user_stats_repository.dart';
+import 'data/sync/offline_to_online_migrator.dart';
+import 'data/sync/sync_remote_gateway.dart';
+import 'data/sync/sync_remote_gateway_impl.dart';
 import 'data/repositories/esport/esport_group_repository_impl.dart';
 import 'data/repositories/esport/esport_league_repository_impl.dart';
 import 'data/repositories/notification_repository_impl.dart';
@@ -26,6 +38,7 @@ import 'domain/repositories/notification_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'firebase/firestore/gn_firestore.dart';
 import 'firebase/messaging/gn_firebase_messaging.dart';
+import 'firebase/remote_config/gn_remote_config.dart';
 import 'firebase/storage/gn_storage.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'presentation/auth/sign_in/bloc/sign_in_bloc.dart';
@@ -33,22 +46,40 @@ import 'presentation/auth/third_party/bloc/third_party_bloc.dart';
 import 'offline/data/models/league_manager.dart';
 import 'offline/presentation/league_detail/bloc/league_detail_bloc.dart';
 import 'firebase/auth/gn_auth.dart';
-import 'presentation/esport/bloc/esport_bloc.dart';
 import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
+import 'presentation/home/dashboard/bloc/dashboard_bloc.dart';
+import 'presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
 import 'presentation/notification/bloc/notification_bloc.dart';
 import 'presentation/profile/bloc/profile_bloc.dart';
+import 'presentation/sync/bloc/sync_bloc.dart';
 import 'presentation/users/bloc/user_bloc.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> init() async {
   getIt.registerSingletonAsync<SharedPreferences>(
-      () => SharedPreferences.getInstance());
+    () => SharedPreferences.getInstance(),
+  );
   getIt.registerSingleton(
-      SharedPreferencesHelper(await getIt.getAsync<SharedPreferences>()));
+    SharedPreferencesHelper(await getIt.getAsync<SharedPreferences>()),
+  );
+
+  getIt.registerSingleton(
+    DashboardCache(await getIt.getAsync<SharedPreferences>()),
+  );
+
+  getIt.registerSingleton(
+    GroupOverviewCache(await getIt.getAsync<SharedPreferences>()),
+  );
+
+  getIt.registerSingleton(
+    H2HPreferences(await getIt.getAsync<SharedPreferences>()),
+  );
 
   getIt.registerSingleton(PermissionUtil());
+
+  getIt.registerSingleton(GNRemoteConfig());
 
   if (!kIsWeb) {
     getIt.registerSingleton(DatabaseManager());
@@ -57,7 +88,8 @@ Future<void> init() async {
 
     // datasources
     getIt.registerSingleton<LeagueLocalDatasource>(
-        LeagueLocalDatasourceImpl(getIt()));
+      LeagueLocalDatasourceImpl(getIt()),
+    );
 
     // repositories
     getIt.registerSingleton<LeagueRepository>(LeagueRepositoryImpl(getIt()));
@@ -98,23 +130,60 @@ Future<void> init() async {
   // repositories
   getIt.registerFactory<UserRepository>(() => UserRepositoryImpl());
   getIt.registerFactory<EsportGroupRepository>(
-      () => EsportGroupRepositoryImpl());
+    () => EsportGroupRepositoryImpl(),
+  );
   getIt.registerFactory<EsportLeagueRepository>(
-      () => EsportLeagueRepositoryImpl());
+    () => EsportLeagueRepositoryImpl(),
+  );
+  getIt.registerFactory<UserStatsRepository>(
+    () => UserStatsRepositoryImpl(),
+  );
+  getIt.registerFactory<EsportGroupStatsRepository>(
+    () => EsportGroupStatsRepositoryImpl(),
+  );
 
   getIt.registerFactory<NotificationRepository>(
-      () => NotificationRepositoryImpl());
+    () => NotificationRepositoryImpl(),
+  );
   // blocs
   getIt.registerFactory(() => SignInBloc());
   getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
   getIt.registerFactory<ProfileBloc>(() => ProfileBloc(getIt()));
 
-  getIt.registerFactory<EsportBloc>(() => EsportBloc());
   getIt.registerFactory<GroupBloc>(() => GroupBloc(getIt()));
   getIt.registerFactory<TournamentBloc>(() => TournamentBloc(getIt()));
+  getIt.registerFactory<DashboardBloc>(
+    () => DashboardBloc(
+      userStatsRepository: getIt(),
+      auth: getIt(),
+      cache: getIt(),
+      firestore: getIt(),
+    ),
+  );
+  getIt.registerFactory<OngoingTournamentsBloc>(
+    () => OngoingTournamentsBloc(getIt()),
+  );
 
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
   getIt.registerSingleton<NotificationBloc>(NotificationBloc(getIt()));
 
   getIt.registerFactory<ChangePasswordBloc>(() => ChangePasswordBloc(getIt()));
+
+  // Offline → Online sync feature. SyncBloc requires LeagueRepository which
+  // is only registered when !kIsWeb, so guard registration accordingly.
+  getIt.registerLazySingleton<SyncRemoteGateway>(
+    () => SyncRemoteGatewayImpl(getIt()),
+  );
+  getIt.registerLazySingleton<OfflineToOnlineMigrator>(
+    () => OfflineToOnlineMigrator(getIt()),
+  );
+  if (!kIsWeb) {
+    getIt.registerFactory<SyncBloc>(
+      () => SyncBloc(
+        offlineLeagueRepository: getIt(),
+        gateway: getIt(),
+        migrator: getIt(),
+      ),
+    );
+  }
 }

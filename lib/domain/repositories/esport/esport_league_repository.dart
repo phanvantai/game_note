@@ -19,9 +19,11 @@ class LeagueDetailData {
 }
 
 abstract class EsportLeagueRepository {
-  /// Leagues the current user owns or participates in.
-  /// Server-side filtered (2 parallel queries, deduped). No pagination.
-  Future<List<GNEsportLeague>> getMyLeagues();
+  /// Leagues the current user participates in as a player. Paginated.
+  Future<LeaguesPage> getMyLeagues({Object? startAfter, int limit});
+
+  /// Leagues the current user owns (ownerId == uid). Paginated.
+  Future<LeaguesPage> getManagedLeagues({Object? startAfter, int limit});
 
   /// Leagues the current user is NOT in. Paginated; pass `startAfter` from
   /// the previous page's `lastDoc` to load the next page.
@@ -29,6 +31,27 @@ abstract class EsportLeagueRepository {
     Object? startAfter,
     int limit,
   });
+
+  /// Active leagues whose `groupId` is in [groupIds]. Used by the home
+  /// banner to surface ongoing tournaments from groups the user has joined.
+  Future<List<GNEsportLeague>> getActiveLeaguesByGroupIds(
+    List<String> groupIds,
+  );
+
+  /// All leagues (including inactive/finished) belonging to [groupId].
+  /// Used by the group admin tab to manage participants.
+  Future<List<GNEsportLeague>> getLeaguesByGroupId(String groupId);
+
+  /// Atomically replace [oldUserId] with [newUserId] in [leagueId].
+  /// If [newUserId] already has stats, they are merged.
+  Future<void> replaceParticipant({
+    required String leagueId,
+    required String oldUserId,
+    required String newUserId,
+  });
+
+  /// Toggle the mergeCompleted flag on a league.
+  Future<void> setMergeCompleted(String leagueId, {required bool completed});
 
   Future<GNEsportLeague?> getLeague(String leagueId);
 

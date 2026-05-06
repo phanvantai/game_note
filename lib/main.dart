@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:pes_arena/app.dart';
 import 'package:pes_arena/injection_container.dart' as di;
@@ -11,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/theme/theme_provider.dart';
 import 'firebase/messaging/gn_firebase_messaging.dart';
+import 'firebase/remote_config/gn_remote_config.dart';
 import 'offline/data/database/database_manager.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'firebase_options.dart';
@@ -19,14 +22,17 @@ import 'injection_container.dart';
 var dataFile = '';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (!kIsWeb) {
-    MobileAds.instance.initialize();
-  }
+  usePathUrlStrategy();
+  GoRouter.optionURLReflectsImperativeAPIs = true;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (!kIsWeb) {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   }
   await di.init();
+  await di.getIt<GNRemoteConfig>().initialize();
+  if (!kIsWeb && di.getIt<GNRemoteConfig>().adsEnabled) {
+    MobileAds.instance.initialize();
+  }
   if (!kIsWeb) {
     await di.getIt<DatabaseManager>().open();
   }

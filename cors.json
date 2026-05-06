@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://pes.taiphanvan.dev", "http://localhost:*"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]

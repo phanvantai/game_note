@@ -40,8 +40,26 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<List<GNEsportLeague>> getMyLeagues() {
-    return getIt<GNFirestore>().getMyLeagues();
+  Future<List<GNEsportLeague>> getActiveLeaguesByGroupIds(
+    List<String> groupIds,
+  ) {
+    return getIt<GNFirestore>().getActiveLeaguesByGroupIds(groupIds);
+  }
+
+  @override
+  Future<LeaguesPage> getMyLeagues({Object? startAfter, int limit = 20}) {
+    return getIt<GNFirestore>().getMyLeagues(
+      startAfter: startAfter is DocumentSnapshot ? startAfter : null,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<LeaguesPage> getManagedLeagues({Object? startAfter, int limit = 20}) {
+    return getIt<GNFirestore>().getManagedLeagues(
+      startAfter: startAfter is DocumentSnapshot ? startAfter : null,
+      limit: limit,
+    );
   }
 
   @override
@@ -151,6 +169,29 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   @override
   Stream<List<GNEsportLeagueStat>> listenForLeagueStats(String leagueId) {
     return getIt<GNFirestore>().listenForLeagueStats(leagueId);
+  }
+
+  @override
+  Future<List<GNEsportLeague>> getLeaguesByGroupId(String groupId) {
+    return getIt<GNFirestore>().getLeaguesByGroupId(groupId);
+  }
+
+  @override
+  Future<void> replaceParticipant({
+    required String leagueId,
+    required String oldUserId,
+    required String newUserId,
+  }) {
+    return getIt<GNFirestore>().replaceParticipantInLeague(
+      leagueId: leagueId,
+      oldUserId: oldUserId,
+      newUserId: newUserId,
+    );
+  }
+
+  @override
+  Future<void> setMergeCompleted(String leagueId, {required bool completed}) {
+    return getIt<GNFirestore>().setMergeCompleted(leagueId, completed: completed);
   }
 
 }
