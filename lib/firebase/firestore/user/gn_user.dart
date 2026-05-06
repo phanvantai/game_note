@@ -95,5 +95,11 @@ class GNUser extends Equatable {
 
   bool get isAdmin => role == 'admin';
   bool get isUser => role == 'user';
-  bool get isCurrentUser => id == FirebaseAuth.instance.currentUser?.uid;
+  bool get isCurrentUser {
+    try {
+      return id == FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      return false;
+    }
+  }
 }

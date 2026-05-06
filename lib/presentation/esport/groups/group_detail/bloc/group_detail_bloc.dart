@@ -9,6 +9,7 @@ import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/stats/gn_esport_group_stats_summary.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/models/group_overview.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/services/group_overview_calculator.dart';
@@ -27,6 +28,8 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
   final GroupOverviewCache _overviewCache;
   final GNFirestore _firestore;
   final Duration _recomputeTimeout;
+  late final Future<GNUser> Function({required String displayName})
+      _createPlaceholderUser;
 
   GroupDetailBloc(
     this._groupRepository,
@@ -37,17 +40,21 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     GNEsportGroup group, {
     String? currentUserId,
     Duration recomputeTimeout = const Duration(seconds: 30),
+    Future<GNUser> Function({required String displayName})? createPlaceholderUser,
   })  : _recomputeTimeout = recomputeTimeout,
         super(GroupDetailState(
           group: group,
           currentUserId: currentUserId ?? FirebaseAuth.instance.currentUser?.uid,
         )) {
+    _createPlaceholderUser =
+        createPlaceholderUser ?? _firestore.createPlaceholderUser;
     on<GetMembers>(_onGetMembers);
     on<AddMember>(_onAddMember);
     on<RemoveMember>(_onRemoveMember);
     on<GetGroupDetail>(_onGetGroupDetail);
     on<LoadGroupLeagues>(_onLoadGroupLeagues);
     on<LoadGroupOverview>(_onLoadGroupOverview);
+    on<AddPlaceholderMember>(_onAddPlaceholderMember);
     on<ReplaceLeagueParticipant>(_onReplaceLeagueParticipant);
     on<SetLeagueMergeCompleted>(_onSetLeagueMergeCompleted);
   }
@@ -85,6 +92,23 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       add(GetMembers(state.group.id));
       add(GetGroupDetail(state.group.id));
       showToast('Thêm thành viên thành công');
+    } catch (e) {
+      emit(state.copyWith(
+          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onAddPlaceholderMember(
+      AddPlaceholderMember event, Emitter<GroupDetailState> emit) async {
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      final user =
+          await _createPlaceholderUser(displayName: event.displayName);
+      await _groupRepository.addMemberToGroup(
+          groupId: event.groupId, memberId: user.id);
+      add(GetMembers(state.group.id));
+      add(GetGroupDetail(state.group.id));
+      showToast('Đã thêm người chơi mới');
     } catch (e) {
       emit(state.copyWith(
           viewStatus: ViewStatus.failure, errorMessage: e.toString()));

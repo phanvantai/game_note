@@ -79,6 +79,16 @@ class LoadGroupOverview extends GroupDetailEvent {
   List<Object?> get props => [groupId, forceRefresh];
 }
 
+class AddPlaceholderMember extends GroupDetailEvent {
+  final String groupId;
+  final String displayName;
+
+  const AddPlaceholderMember(this.groupId, this.displayName);
+
+  @override
+  List<Object?> get props => [groupId, displayName];
+}
+
 class SetLeagueMergeCompleted extends GroupDetailEvent {
   final String leagueId;
   final bool completed;

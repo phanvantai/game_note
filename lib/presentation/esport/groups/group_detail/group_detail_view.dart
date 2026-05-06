@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
-import 'package:pes_arena/presentation/users/bloc/user_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../../core/helpers/admob_helper.dart';
@@ -83,6 +83,36 @@ class _GroupDetailViewState extends State<GroupDetailView>
             overflow: TextOverflow.ellipsis,
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
+          actions: [
+            if (state.currentUserIsMember && !state.isOwner)
+              PopupMenuButton<_GroupAction>(
+                onSelected: (action) {
+                  if (action == _GroupAction.leaveGroup &&
+                      state.currentUserId != null) {
+                    _removeMember(true, context, state, state.currentUserId!);
+                  }
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: _GroupAction.leaveGroup,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.exit_to_app,
+                          color: colorScheme.error,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Rời nhóm',
+                          style: TextStyle(color: colorScheme.error),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+          ],
         ),
         body: Container(
           decoration: BoxDecoration(
@@ -107,46 +137,11 @@ class _GroupDetailViewState extends State<GroupDetailView>
                     controller: _tabController,
                     children: [
                       const GroupOverviewTab(),
-                      ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-                        itemCount: state.members.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 8),
-                        itemBuilder: (_, index) {
-                          final user = state.members[index];
-                          return _MemberTile(
-                            child: UserItem(
-                              user: user,
-                              trailing: state.isOwner
-                                  ? !user.isCurrentUser
-                                      ? IconButton(
-                                          tooltip: 'Xoá thành viên',
-                                          onPressed: () => _removeMember(
-                                            false,
-                                            context,
-                                            state,
-                                            user.id,
-                                          ),
-                                          icon: Icon(
-                                            Icons.person_remove_outlined,
-                                            color: colorScheme.error,
-                                            size: 20,
-                                          ),
-                                        )
-                                      : Icon(
-                                          Icons.admin_panel_settings_outlined,
-                                          color: colorScheme.secondary,
-                                          size: 20,
-                                        )
-                                  : user.id == state.group.ownerId
-                                      ? Icon(
-                                          Icons.admin_panel_settings_outlined,
-                                          color: colorScheme.secondary,
-                                          size: 20,
-                                        )
-                                      : null,
-                            ),
-                          );
-                        },
+                      _MembersTab(
+                        state: state,
+                        onAddMember: () => _addMember(context, state),
+                        onRemoveMember: (userId) =>
+                            _removeMember(false, context, state, userId),
                       ),
                       const GroupLeaguesTab(),
                     ],
@@ -156,7 +151,6 @@ class _GroupDetailViewState extends State<GroupDetailView>
             ),
           ),
         ),
-        floatingActionButton: _floatingButton(context, state),
         bottomNavigationBar: (!kIsWeb && _bannerAd != null)
             ? SizedBox(
                 width: _bannerAd!.size.width.toDouble(),
@@ -177,30 +171,6 @@ class _GroupDetailViewState extends State<GroupDetailView>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _loadAd();
-  }
-
-  Widget? _floatingButton(BuildContext context, GroupDetailState state) {
-    if (state.isOwner) {
-      return FloatingActionButton.extended(
-        onPressed: () => _addMember(context, state),
-        label: const Text('Thêm thành viên'),
-        icon: const Icon(Icons.person_add_outlined),
-      );
-    }
-    if (state.currentUserIsMember) {
-      return FloatingActionButton.extended(
-        onPressed: () {
-          if (state.currentUserId != null) {
-            _removeMember(true, context, state, state.currentUserId!);
-          }
-        },
-        backgroundColor: Theme.of(context).colorScheme.error,
-        foregroundColor: Theme.of(context).colorScheme.onError,
-        label: const Text('Rời nhóm'),
-        icon: const Icon(Icons.exit_to_app),
-      );
-    }
-    return null;
   }
 
   void _loadAd() async {
@@ -230,59 +200,11 @@ class _GroupDetailViewState extends State<GroupDetailView>
   }
 
   void _addMember(BuildContext context, GroupDetailState state) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        final userBloc = getIt<UserBloc>();
-        return BlocBuilder<UserBloc, UserState>(
-          bloc: userBloc..add(const SearchUser('')),
-          builder: (userContext, userState) => AlertDialog(
-            title: const Text('Thêm thành viên'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  decoration: appInputDecoration(
-                    context: context,
-                    hintText: 'Tìm kiếm theo tên',
-                    prefixIcon: Icons.search,
-                  ),
-                  onChanged: (value) => userBloc.add(SearchUser(value)),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 250,
-                  width: double.maxFinite,
-                  child: ListView.builder(
-                    itemCount: userState.users.length,
-                    itemBuilder: (ctx, index) {
-                      final user = userState.users[index];
-                      if (user.isCurrentUser ||
-                          state.group.members.contains(user.id)) {
-                        return const SizedBox.shrink();
-                      }
-                      return UserItem(
-                        user: user,
-                        onTap: () {
-                          BlocProvider.of<GroupDetailBloc>(
-                            context,
-                          ).add(AddMember(state.group.id, user.id));
-                          Navigator.of(context).pop();
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Đóng'),
-              ),
-            ],
-          ),
-        );
+    context.push(
+      '/group/${state.group.id}/add-member',
+      extra: {
+        'bloc': context.read<GroupDetailBloc>(),
+        'members': Set<String>.from(state.group.members),
       },
     );
   }
@@ -338,15 +260,88 @@ class _GroupDetailTabBar extends StatelessWidget {
         ),
         labelColor: colorScheme.onSecondary,
         unselectedLabelColor: colorScheme.onSurfaceVariant,
-        labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
+        labelStyle: Theme.of(
+          context,
+        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
         tabs: const [
           Tab(text: 'Tổng quan'),
           Tab(text: 'Thành viên'),
           Tab(text: 'Giải đấu'),
         ],
       ),
+    );
+  }
+}
+
+class _MembersTab extends StatelessWidget {
+  final GroupDetailState state;
+  final VoidCallback onAddMember;
+  final void Function(String userId) onRemoveMember;
+
+  const _MembersTab({
+    required this.state,
+    required this.onAddMember,
+    required this.onRemoveMember,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return CustomScrollView(
+      slivers: [
+        if (state.isOwner)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: FilledButton.icon(
+                onPressed: onAddMember,
+                icon: const Icon(Icons.person_add_outlined, size: 18),
+                label: const Text('Thêm thành viên'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44),
+                ),
+              ),
+            ),
+          ),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(16, state.isOwner ? 8 : 12, 16, 96),
+          sliver: SliverList.separated(
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            itemCount: state.members.length,
+            itemBuilder: (_, index) {
+              final user = state.members[index];
+              return _MemberTile(
+                child: UserItem(
+                  user: user,
+                  trailing: state.isOwner
+                      ? !user.isCurrentUser
+                            ? IconButton(
+                                tooltip: 'Xoá thành viên',
+                                onPressed: () => onRemoveMember(user.id),
+                                icon: Icon(
+                                  Icons.person_remove_outlined,
+                                  color: colorScheme.error,
+                                  size: 20,
+                                ),
+                              )
+                            : Icon(
+                                Icons.admin_panel_settings_outlined,
+                                color: colorScheme.secondary,
+                                size: 20,
+                              )
+                      : user.id == state.group.ownerId
+                      ? Icon(
+                          Icons.admin_panel_settings_outlined,
+                          color: colorScheme.secondary,
+                          size: 20,
+                        )
+                      : null,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -369,3 +364,5 @@ class _MemberTile extends StatelessWidget {
     );
   }
 }
+
+enum _GroupAction { leaveGroup }

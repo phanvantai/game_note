@@ -295,6 +295,123 @@ void main() {
     );
   });
 
+  group('AddPlaceholderMember', () {
+    GNUser placeholderUser() => GNUser(
+          id: 'placeholder_abc',
+          displayName: 'Tân thủ',
+          email: null,
+          phoneNumber: null,
+          photoUrl: null,
+          role: 'user',
+          fcmToken: '',
+          isPlaceholder: true,
+        );
+
+    GroupDetailBloc blocWithPlaceholder({
+      required Future<GNUser> Function({required String displayName})
+          createPlaceholderUser,
+    }) =>
+        GroupDetailBloc(
+          groupRepo,
+          leagueRepo,
+          statsRepo,
+          cache,
+          _FakeFirestore(),
+          _group(),
+          currentUserId: 'owner1',
+          recomputeTimeout: const Duration(seconds: 2),
+          createPlaceholderUser: createPlaceholderUser,
+        );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'success: tạo placeholder rồi thêm vào nhóm, emit loading đầu tiên, gọi addMember',
+      build: () => blocWithPlaceholder(
+        createPlaceholderUser: ({required displayName}) async =>
+            placeholderUser(),
+      ),
+      setUp: () {
+        when(() => groupRepo.addMemberToGroup(
+              groupId: 'G1',
+              memberId: 'placeholder_abc',
+            )).thenAnswer((_) async {});
+        when(() => groupRepo.getMembersOfGroup('G1'))
+            .thenAnswer((_) async => []);
+        when(() => groupRepo.getGroup('G1')).thenAnswer((_) async => _group());
+      },
+      act: (b) => b.add(const AddPlaceholderMember('G1', 'Tân thủ')),
+      // GetMembers/GetGroupDetail cascading: Equatable dedup makes exact count
+      // non-deterministic. Assert on semantics only.
+      expect: () => isA<List<GroupDetailState>>()
+          .having((l) => l.isNotEmpty, 'isNotEmpty', isTrue)
+          .having(
+            (l) => l.first.viewStatus,
+            'first state is loading',
+            ViewStatus.loading,
+          )
+          .having(
+            (l) => l.any((s) => s.viewStatus == ViewStatus.failure),
+            'no failure emitted',
+            isFalse,
+          ),
+      verify: (_) {
+        verify(() => groupRepo.addMemberToGroup(
+              groupId: 'G1',
+              memberId: 'placeholder_abc',
+            )).called(1);
+      },
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'failure khi createPlaceholderUser ném lỗi → emit failure',
+      build: () => blocWithPlaceholder(
+        createPlaceholderUser: ({required displayName}) async =>
+            throw Exception('firestore error'),
+      ),
+      act: (b) => b.add(const AddPlaceholderMember('G1', 'Tân thủ')),
+      expect: () => [
+        isA<GroupDetailState>()
+            .having((s) => s.viewStatus, 'viewStatus', ViewStatus.loading),
+        isA<GroupDetailState>()
+            .having((s) => s.viewStatus, 'viewStatus', ViewStatus.failure)
+            .having((s) => s.errorMessage, 'errorMessage',
+                contains('firestore error')),
+      ],
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'failure khi addMemberToGroup ném lỗi → emit failure',
+      build: () => blocWithPlaceholder(
+        createPlaceholderUser: ({required displayName}) async =>
+            placeholderUser(),
+      ),
+      setUp: () {
+        when(() => groupRepo.addMemberToGroup(
+              groupId: any(named: 'groupId'),
+              memberId: any(named: 'memberId'),
+            )).thenThrow(Exception('network error'));
+      },
+      act: (b) => b.add(const AddPlaceholderMember('G1', 'Tân thủ')),
+      expect: () => [
+        isA<GroupDetailState>()
+            .having((s) => s.viewStatus, 'viewStatus', ViewStatus.loading),
+        isA<GroupDetailState>()
+            .having((s) => s.viewStatus, 'viewStatus', ViewStatus.failure)
+            .having((s) => s.errorMessage, 'errorMessage',
+                contains('network error')),
+      ],
+    );
+  });
+
+  group('AddPlaceholderMember props', () {
+    test('AddPlaceholderMember equatable props', () {
+      const e1 = AddPlaceholderMember('G1', 'Tân thủ');
+      const e2 = AddPlaceholderMember('G1', 'Tân thủ');
+      const e3 = AddPlaceholderMember('G1', 'Khác');
+      expect(e1, equals(e2));
+      expect(e1, isNot(equals(e3)));
+    });
+  });
+
   group('ReplaceLeagueParticipant', () {
     blocTest<GroupDetailBloc, GroupDetailState>(
       'phát ra replaceParticipantStatus loading → success và tự load lại leagues',

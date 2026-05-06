@@ -7,6 +7,8 @@ import 'firebase/firestore/user/gn_user.dart';
 import 'offline/presentation/offline_view.dart';
 import 'presentation/app/app_view.dart';
 import 'presentation/auth/verify/verify_page.dart';
+import 'presentation/esport/groups/group_detail/add_member_page.dart';
+import 'presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/home/dashboard/detail/dashboard_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
@@ -151,6 +153,20 @@ final List<RouteBase> _appRoutes = [
         initialGroup: state.extra as GNEsportGroup?,
       ),
     ),
+  ),
+  GoRoute(
+    path: '/group/:groupId/add-member',
+    pageBuilder: (context, state) {
+      final extra = state.extra as Map<String, dynamic>;
+      return _slide(
+        context: context,
+        state: state,
+        child: AddMemberPage(
+          bloc: extra['bloc'] as GroupDetailBloc,
+          currentMemberIds: extra['members'] as Set<String>,
+        ),
+      );
+    },
   ),
   GoRoute(
     path: '/tournament/:leagueId',
