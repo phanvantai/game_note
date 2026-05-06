@@ -83,14 +83,6 @@ class _GroupDetailViewState extends State<GroupDetailView>
             overflow: TextOverflow.ellipsis,
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Tổng quan'),
-              Tab(text: 'Thành viên'),
-              Tab(text: 'Giải đấu'),
-            ],
-          ),
         ),
         body: Container(
           decoration: BoxDecoration(
@@ -107,56 +99,59 @@ class _GroupDetailViewState extends State<GroupDetailView>
             ),
           ),
           child: SafeArea(
-            child: TabBarView(
-              controller: _tabController,
+            child: Column(
               children: [
-                // Tab 1: Tổng quan
-                const GroupOverviewTab(),
-                // Tab 2: Thành viên — list only, hero + description live
-                // on the Tổng quan tab now.
-                ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-                  itemCount: state.members.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (_, index) {
-                    final user = state.members[index];
-                    return _MemberTile(
-                      child: UserItem(
-                        user: user,
-                        trailing: state.isOwner
-                            ? !user.isCurrentUser
-                                ? IconButton(
-                                    tooltip: 'Xoá thành viên',
-                                    onPressed: () => _removeMember(
-                                      false,
-                                      context,
-                                      state,
-                                      user.id,
-                                    ),
-                                    icon: Icon(
-                                      Icons.person_remove_outlined,
-                                      color: colorScheme.error,
-                                      size: 20,
-                                    ),
-                                  )
-                                : Icon(
-                                    Icons.admin_panel_settings_outlined,
-                                    color: colorScheme.secondary,
-                                    size: 20,
-                                  )
-                            : user.id == state.group.ownerId
-                                ? Icon(
-                                    Icons.admin_panel_settings_outlined,
-                                    color: colorScheme.secondary,
-                                    size: 20,
-                                  )
-                                : null,
+                _GroupDetailTabBar(controller: _tabController),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      const GroupOverviewTab(),
+                      ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                        itemCount: state.members.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
+                        itemBuilder: (_, index) {
+                          final user = state.members[index];
+                          return _MemberTile(
+                            child: UserItem(
+                              user: user,
+                              trailing: state.isOwner
+                                  ? !user.isCurrentUser
+                                      ? IconButton(
+                                          tooltip: 'Xoá thành viên',
+                                          onPressed: () => _removeMember(
+                                            false,
+                                            context,
+                                            state,
+                                            user.id,
+                                          ),
+                                          icon: Icon(
+                                            Icons.person_remove_outlined,
+                                            color: colorScheme.error,
+                                            size: 20,
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.admin_panel_settings_outlined,
+                                          color: colorScheme.secondary,
+                                          size: 20,
+                                        )
+                                  : user.id == state.group.ownerId
+                                      ? Icon(
+                                          Icons.admin_panel_settings_outlined,
+                                          color: colorScheme.secondary,
+                                          size: 20,
+                                        )
+                                      : null,
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                      const GroupLeaguesTab(),
+                    ],
+                  ),
                 ),
-                // Tab 3: Giải đấu
-                const GroupLeaguesTab(),
               ],
             ),
           ),
@@ -312,6 +307,47 @@ class _GroupDetailViewState extends State<GroupDetailView>
         context,
       ).add(RemoveMember(state.group.id, userId));
     }
+  }
+}
+
+class _GroupDetailTabBar extends StatelessWidget {
+  final TabController controller;
+
+  const _GroupDetailTabBar({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      height: 46,
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.42)),
+      ),
+      child: TabBar(
+        controller: controller,
+        padding: EdgeInsets.zero,
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicator: BoxDecoration(
+          color: colorScheme.secondary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        labelColor: colorScheme.onSecondary,
+        unselectedLabelColor: colorScheme.onSurfaceVariant,
+        labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+        ),
+        tabs: const [
+          Tab(text: 'Tổng quan'),
+          Tab(text: 'Thành viên'),
+          Tab(text: 'Giải đấu'),
+        ],
+      ),
+    );
   }
 }
 
