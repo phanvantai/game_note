@@ -97,13 +97,16 @@ flutter:
     - assets/svg/
 
 flutter_launcher_icons:
-  image_path: "assets/images/icon.png"
+  image_path: "assets/images/icon_light.png"
   android: "launcher_icon"
   min_sdk_android: 21
   ios: true
   remove_alpha_ios: true
+  image_path_ios_dark_transparent: "assets/images/icon.png"
+  image_path_ios_tinted_grayscale: "assets/images/icon.png"
+  desaturate_tinted_to_grayscale_ios: true
   web:
     generate: true
-    image_path: "assets/images/icon.png"
-    background_color: "#ffffff"
-    theme_color: "#ffffff"
+    image_path: "assets/images/icon_light.png"
+    background_color: "#FAFAFA"
+    theme_color: "#E8734A"
