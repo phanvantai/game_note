@@ -414,6 +414,14 @@ exports.onLeagueMatchWritten = onDocumentWritten(
       const matchId = event.params.matchId;
       const matchAfterWithIds = after ? {...after, id: matchId, leagueId} : null;
 
+      const leagueData = leagueDoc.data() || {};
+      const groupId = leagueData.groupId || null;
+      // Soft-deleted leagues don't contribute to group summary so the
+      // Tổng quan tab matches user dashboard's `isActive == true` rule.
+      // (User-level summary still updates — that path filters separately
+      // via the `isActive` check in `onRecomputeUserSummaryRequest`.)
+      const groupActive = groupId && leagueData.isActive !== false;
+
       await Promise.all([
         applyToSummary({
           uid: home, opponentUid: away, opponentName: awayName,
@@ -433,6 +441,12 @@ exports.onLeagueMatchWritten = onDocumentWritten(
           uid: away, opponentUid: home, opponentName: homeName,
           delta: awayDelta, matchAfter: matchAfterWithIds, eventId,
         }),
+        groupActive ? applyMatchDeltaToGroupSummary({
+          groupId, uid: home, displayName: homeName, delta: homeDelta, eventId,
+        }) : Promise.resolve(),
+        groupActive ? applyMatchDeltaToGroupSummary({
+          groupId, uid: away, displayName: awayName, delta: awayDelta, eventId,
+        }) : Promise.resolve(),
       ]);
 
       return null;
@@ -553,10 +567,23 @@ exports.onLeagueStatusChanged = onDocumentUpdated(
       const leagueId = event.params.leagueId;
       const eventId = event.id;
 
+      let sign = 0;
+      let leagueData = null;
       if (after.status === "finished" && before.status !== "finished") {
-        await applyChampionRunnerUp(leagueId, after, eventId, +1);
+        sign = +1;
+        leagueData = after;
       } else if (before.status === "finished" && after.status !== "finished") {
-        await applyChampionRunnerUp(leagueId, before, eventId, -1);
+        sign = -1;
+        leagueData = before;
+      }
+
+      if (sign !== 0 && leagueData) {
+        await Promise.all([
+          applyChampionRunnerUp(leagueId, leagueData, eventId, sign),
+          applyLeagueFinishedToGroupSummary(
+              leagueId, leagueData, eventId, sign,
+          ),
+        ]);
       }
 
       return null;
@@ -817,3 +844,504 @@ exports.onRecomputeUserSummaryRequest = onDocumentCreated(
       return null;
     },
 );
+
+// =====================================================================
+// Per-group lifetime stats (group overview tab)
+//
+// Single source of truth: `esports_groups/{groupId}/stats/summary`.
+// Maintained incrementally by `onLeagueMatchWritten`,
+// `onLeagueStatusChanged`, and `onEsportLeagueWritten`. Awards
+// (vô đối / kẻ về nhì / hoà vương / cao thủ / hàng thủ thép) are
+// computed client-side from the playerStats array — keeps the schema
+// minimal and lets thresholds change without redeploying functions.
+//
+// Rebuild path: clients write
+// `esports_groups/{groupId}/stats/_recompute_request` — handled by
+// `onRecomputeGroupSummaryRequest` below.
+// =====================================================================
+
+const GROUP_RECOMPUTE_REQ_DOC_ID = "_recompute_request";
+
+function groupSummaryRef(groupId) {
+  return db.collection("esports_groups").doc(groupId)
+      .collection("stats").doc(SUMMARY_DOC_ID);
+}
+
+function emptyGroupSummary() {
+  return {
+    totalLeagues: 0,
+    finishedLeagues: 0,
+    playerStats: [],
+    schemaVersion: SCHEMA_VERSION,
+    lastEventIds: [],
+  };
+}
+
+function emptyGroupPlayerEntry(uid, displayName) {
+  return {
+    userId: uid,
+    displayName: displayName || "",
+    photoUrl: null,
+    matches: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    goals: 0,
+    goalsConceded: 0,
+    championships: 0,
+    runnerUps: 0,
+    finishedLeaguesJoined: 0,
+  };
+}
+
+// Find or create a player entry, applying mutator and clamping at zero.
+function upsertPlayer(playerStats, uid, displayName, mutator) {
+  const arr = [...(playerStats || [])];
+  let idx = arr.findIndex((e) => e.userId === uid);
+  let entry;
+  if (idx === -1) {
+    entry = emptyGroupPlayerEntry(uid, displayName);
+    arr.push(entry);
+    idx = arr.length - 1;
+  } else {
+    entry = {...arr[idx]};
+    if (displayName && !entry.displayName) entry.displayName = displayName;
+  }
+  mutator(entry);
+  entry.matches = Math.max(0, entry.matches);
+  entry.wins = Math.max(0, entry.wins);
+  entry.draws = Math.max(0, entry.draws);
+  entry.losses = Math.max(0, entry.losses);
+  entry.goals = Math.max(0, entry.goals);
+  entry.goalsConceded = Math.max(0, entry.goalsConceded);
+  entry.championships = Math.max(0, entry.championships);
+  entry.runnerUps = Math.max(0, entry.runnerUps);
+  entry.finishedLeaguesJoined = Math.max(0, entry.finishedLeaguesJoined);
+  arr[idx] = entry;
+  // Drop empty rows so the array doesn't accumulate ghosts when a single
+  // match is un-finished by an admin and was the only contribution.
+  return arr.filter((e) =>
+    (e.matches || 0) > 0 ||
+    (e.championships || 0) > 0 ||
+    (e.runnerUps || 0) > 0 ||
+    (e.finishedLeaguesJoined || 0) > 0);
+}
+
+async function applyMatchDeltaToGroupSummary(
+    {groupId, uid, displayName, delta, eventId},
+) {
+  if (!groupId || !uid) return;
+  if (isZeroDelta(delta)) return;
+  const ref = groupSummaryRef(groupId);
+  await db.runTransaction(async (txn) => {
+    const snap = await txn.get(ref);
+    const prev = snap.exists ? snap.data() : emptyGroupSummary();
+    if (alreadyProcessed(prev, eventId)) return;
+    const playerStats = upsertPlayer(prev.playerStats, uid, displayName, (e) => {
+      e.matches += delta.matchesPlayed;
+      e.wins += delta.wins;
+      e.draws += delta.draws;
+      e.losses += delta.losses;
+      e.goals += delta.goals;
+      e.goalsConceded += delta.goalsConceded;
+    });
+    txn.set(ref, {
+      ...prev,
+      totalLeagues: prev.totalLeagues || 0,
+      finishedLeagues: prev.finishedLeagues || 0,
+      playerStats,
+      schemaVersion: SCHEMA_VERSION,
+      lastEventIds: bumpEventLog(prev, eventId),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+  });
+}
+
+async function applyLeagueFinishedToGroupSummary(
+    leagueId, leagueData, eventId, sign,
+) {
+  const groupId = leagueData.groupId;
+  if (!groupId) return;
+  // Soft-deleted leagues should not contribute to the group summary,
+  // even if their status flips. The isActive transition trigger
+  // (`onEsportLeagueWritten`) is responsible for rolling back any
+  // championship counts that were applied while the league was active.
+  if (leagueData.isActive === false) return;
+  const statsSnap = await db
+      .collection("esports_leagues").doc(leagueId)
+      .collection("leagues_stats").get();
+  const stats = statsSnap.docs.map((d) => d.data());
+  stats.sort((a, b) => {
+    const ap = (a.wins || 0) * 3 + (a.draws || 0);
+    const bp = (b.wins || 0) * 3 + (b.draws || 0);
+    if (ap !== bp) return bp - ap;
+    const agd = (a.goals || 0) - (a.goalsConceded || 0);
+    const bgd = (b.goals || 0) - (b.goalsConceded || 0);
+    if (agd !== bgd) return bgd - agd;
+    return (b.goals || 0) - (a.goals || 0);
+  });
+  const championUid = stats[0] ? stats[0].userId : null;
+  const runnerUpUid = stats[1] ? stats[1].userId : null;
+
+  // Resolve display names so first-time entries aren't blank.
+  const namePromises = {};
+  for (const s of stats) {
+    if (s.userId && !namePromises[s.userId]) {
+      namePromises[s.userId] = fetchUserDisplayName(s.userId);
+    }
+  }
+  const names = {};
+  for (const uid of Object.keys(namePromises)) {
+    names[uid] = await namePromises[uid];
+  }
+
+  const ref = groupSummaryRef(groupId);
+  await db.runTransaction(async (txn) => {
+    const snap = await txn.get(ref);
+    const prev = snap.exists ? snap.data() : emptyGroupSummary();
+    if (alreadyProcessed(prev, eventId)) return;
+
+    let playerStats = prev.playerStats || [];
+    for (const s of stats) {
+      const uid = s.userId;
+      if (!uid) continue;
+      playerStats = upsertPlayer(playerStats, uid, names[uid] || "", (e) => {
+        e.finishedLeaguesJoined += sign;
+        if (uid === championUid) e.championships += sign;
+        if (uid === runnerUpUid) e.runnerUps += sign;
+      });
+    }
+
+    txn.set(ref, {
+      ...prev,
+      totalLeagues: prev.totalLeagues || 0,
+      finishedLeagues: Math.max(0, (prev.finishedLeagues || 0) + sign),
+      playerStats,
+      schemaVersion: SCHEMA_VERSION,
+      lastEventIds: bumpEventLog(prev, eventId),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+  });
+}
+
+// ---------------------------------------------------------------------
+// Trigger: league created or deleted — bump totalLeagues counter on the
+// group summary. Status flips finished/!finished are handled separately
+// by `onLeagueStatusChanged` so we don't double-count.
+// ---------------------------------------------------------------------
+exports.onEsportLeagueWritten = onDocumentWritten(
+    "esports_leagues/{leagueId}",
+    async (event) => {
+      const before = event.data.before.exists ? event.data.before.data() : null;
+      const after = event.data.after.exists ? event.data.after.data() : null;
+      const eventId = event.id;
+      const leagueId = event.params.leagueId;
+
+      // Created — only count active leagues.
+      if (!before && after) {
+        if (!after.groupId || after.isActive === false) return null;
+        await bumpGroupTotalLeagues(after.groupId, +1, eventId);
+        if (after.status === "finished") {
+          // Rare: league created already finished. Mirror finishedLeagues
+          // — the championship/runner-up bump is the responsibility of
+          // onLeagueStatusChanged, which won't fire on create. Most flows
+          // create as 'upcoming' first, so this branch is a safety net.
+          await bumpGroupFinishedLeagues(after.groupId, +1, eventId + ":fin");
+        }
+        return null;
+      }
+
+      // Deleted (hard delete) — only decrement if the league was active
+      // when it disappeared. Inactive leagues weren't counted anyway.
+      if (before && !after) {
+        if (!before.groupId || before.isActive === false) return null;
+        await bumpGroupTotalLeagues(before.groupId, -1, eventId);
+        if (before.status === "finished") {
+          await bumpGroupFinishedLeagues(before.groupId, -1, eventId + ":fin");
+        }
+        return null;
+      }
+
+      if (before && after) {
+        // Soft-delete / un-delete transition. Treated like a delete or
+        // create from the group summary's perspective: roll back (or
+        // re-add) the league's match contributions, championship counts,
+        // and counters atomically.
+        const wasActive = before.isActive !== false;
+        const isActive = after.isActive !== false;
+        if (wasActive && !isActive) {
+          await applyLeagueActiveTransition(
+              leagueId, before, eventId + ":soft-del", -1);
+          return null;
+        }
+        if (!wasActive && isActive) {
+          await applyLeagueActiveTransition(
+              leagueId, after, eventId + ":undel", +1);
+          return null;
+        }
+
+        // groupId change — extremely rare, treat as delete + add.
+        if (before.groupId !== after.groupId) {
+          if (before.groupId && wasActive) {
+            await applyLeagueActiveTransition(
+                leagueId, before, eventId + ":out", -1);
+          }
+          if (after.groupId && isActive) {
+            await applyLeagueActiveTransition(
+                leagueId, after, eventId + ":in", +1);
+          }
+        }
+      }
+      return null;
+    },
+);
+
+// Soft-delete / un-delete transition for a league. Folds every finished
+// match in/out of the group summary's per-player aggregates, then bumps
+// totalLeagues and (if applicable) the finished-league counters and
+// championships. `sign` is +1 to apply (un-delete), -1 to undo (soft-
+// delete). Idempotent via the eventId ring stored on the summary doc.
+async function applyLeagueActiveTransition(
+    leagueId, leagueData, eventId, sign,
+) {
+  const groupId = leagueData.groupId;
+  if (!groupId) return;
+
+  // 1. Aggregate per-player delta from every finished match.
+  const matchesSnap = await db.collection("esports_leagues")
+      .doc(leagueId).collection("leagues_matches")
+      .where("isFinished", "==", true).get();
+
+  // Map<uid, {displayName, delta}> — built once, applied in one txn.
+  const playerDeltas = new Map();
+  const ensure = (uid) => {
+    if (!playerDeltas.has(uid)) {
+      playerDeltas.set(uid, {displayName: "", delta: zeroDelta()});
+    }
+    return playerDeltas.get(uid);
+  };
+  for (const matchDoc of matchesSnap.docs) {
+    const m = matchDoc.data();
+    if (!m.homeTeamId || !m.awayTeamId) continue;
+    const homeContrib = statContribution(
+        m.homeScore || 0, m.awayScore || 0, sign);
+    const awayContrib = statContribution(
+        m.awayScore || 0, m.homeScore || 0, sign);
+    const homeEntry = ensure(m.homeTeamId);
+    homeEntry.delta = sumDelta(homeEntry.delta, homeContrib);
+    const awayEntry = ensure(m.awayTeamId);
+    awayEntry.delta = sumDelta(awayEntry.delta, awayContrib);
+  }
+
+  // Resolve display names so freshly-added rows aren't blank.
+  for (const uid of Array.from(playerDeltas.keys())) {
+    playerDeltas.get(uid).displayName = await fetchUserDisplayName(uid);
+  }
+
+  // 2. Apply player deltas + totalLeagues bump in one transaction.
+  const ref = groupSummaryRef(groupId);
+  await db.runTransaction(async (txn) => {
+    const snap = await txn.get(ref);
+    const prev = snap.exists ? snap.data() : emptyGroupSummary();
+    if (alreadyProcessed(prev, eventId)) return;
+
+    let playerStats = prev.playerStats || [];
+    for (const [uid, info] of playerDeltas.entries()) {
+      const d = info.delta;
+      if (isZeroDelta(d)) continue;
+      playerStats = upsertPlayer(playerStats, uid, info.displayName, (e) => {
+        e.matches += d.matchesPlayed;
+        e.wins += d.wins;
+        e.draws += d.draws;
+        e.losses += d.losses;
+        e.goals += d.goals;
+        e.goalsConceded += d.goalsConceded;
+      });
+    }
+
+    txn.set(ref, {
+      ...prev,
+      totalLeagues: Math.max(0, (prev.totalLeagues || 0) + sign),
+      finishedLeagues: prev.finishedLeagues || 0,
+      playerStats,
+      schemaVersion: SCHEMA_VERSION,
+      lastEventIds: bumpEventLog(prev, eventId),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+  });
+
+  // 3. If the league was finished, also adjust championship/runner-up
+  // counts and the finishedLeagues counter. We sidestep the
+  // `isActive === false` guard in `applyLeagueFinishedToGroupSummary`
+  // by passing a synthesized leagueData with isActive forced true —
+  // the transition itself is what decides whether to apply.
+  if (leagueData.status === "finished") {
+    await applyLeagueFinishedToGroupSummary(
+        leagueId, {...leagueData, isActive: true}, eventId + ":fin", sign);
+  }
+}
+
+async function bumpGroupTotalLeagues(groupId, delta, eventId) {
+  const ref = groupSummaryRef(groupId);
+  await db.runTransaction(async (txn) => {
+    const snap = await txn.get(ref);
+    const prev = snap.exists ? snap.data() : emptyGroupSummary();
+    if (alreadyProcessed(prev, eventId)) return;
+    txn.set(ref, {
+      ...prev,
+      totalLeagues: Math.max(0, (prev.totalLeagues || 0) + delta),
+      finishedLeagues: prev.finishedLeagues || 0,
+      playerStats: prev.playerStats || [],
+      schemaVersion: SCHEMA_VERSION,
+      lastEventIds: bumpEventLog(prev, eventId),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+  });
+}
+
+async function bumpGroupFinishedLeagues(groupId, delta, eventId) {
+  const ref = groupSummaryRef(groupId);
+  await db.runTransaction(async (txn) => {
+    const snap = await txn.get(ref);
+    const prev = snap.exists ? snap.data() : emptyGroupSummary();
+    if (alreadyProcessed(prev, eventId)) return;
+    txn.set(ref, {
+      ...prev,
+      totalLeagues: prev.totalLeagues || 0,
+      finishedLeagues: Math.max(0, (prev.finishedLeagues || 0) + delta),
+      playerStats: prev.playerStats || [],
+      schemaVersion: SCHEMA_VERSION,
+      lastEventIds: bumpEventLog(prev, eventId),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+  });
+}
+
+// ---------------------------------------------------------------------
+// Trigger: client requests a backfill via
+// `esports_groups/{groupId}/stats/_recompute_request`. Folds every
+// finished match in every league of the group into a fresh summary doc.
+// ---------------------------------------------------------------------
+exports.onRecomputeGroupSummaryRequest = onDocumentCreated(
+    "esports_groups/{groupId}/stats/_recompute_request",
+    async (event) => {
+      const groupId = event.params.groupId;
+      log(`recomputeGroupSummary: start groupId=${groupId}`);
+
+      try {
+        const summary = emptyGroupSummary();
+        const players = new Map(); // userId -> entry
+
+        const ensure = (uid, displayName) => {
+          if (!players.has(uid)) {
+            players.set(uid, emptyGroupPlayerEntry(uid, displayName));
+          } else if (displayName) {
+            const e = players.get(uid);
+            if (!e.displayName) e.displayName = displayName;
+          }
+          return players.get(uid);
+        };
+
+        // Mirror user dashboard backfill: only count active leagues. Soft-
+        // deleted leagues (isActive: false) are excluded so the Tổng quan
+        // tab doesn't count history that the group has explicitly removed.
+        const leaguesSnap = await db.collection("esports_leagues")
+            .where("groupId", "==", groupId)
+            .where("isActive", "==", true)
+            .get();
+        summary.totalLeagues = leaguesSnap.size;
+
+        for (const leagueDoc of leaguesSnap.docs) {
+          const league = leagueDoc.data();
+          const leagueId = leagueDoc.id;
+
+          const matchesSnap = await db.collection("esports_leagues")
+              .doc(leagueId).collection("leagues_matches")
+              .where("isFinished", "==", true).get();
+
+          // Cache display names per league to avoid re-fetching the same
+          // user N times when they're in many matches.
+          const localNames = {};
+          const nameOf = async (uid) => {
+            if (!uid) return "";
+            if (localNames[uid] !== undefined) return localNames[uid];
+            localNames[uid] = await fetchUserDisplayName(uid);
+            return localNames[uid];
+          };
+
+          for (const matchDoc of matchesSnap.docs) {
+            const m = matchDoc.data();
+            const homeUid = m.homeTeamId;
+            const awayUid = m.awayTeamId;
+            if (!homeUid || !awayUid) continue;
+            const homeName = await nameOf(homeUid);
+            const awayName = await nameOf(awayUid);
+            const homeContrib = statContribution(
+                m.homeScore || 0, m.awayScore || 0, +1);
+            const awayContrib = statContribution(
+                m.awayScore || 0, m.homeScore || 0, +1);
+            const homeEntry = ensure(homeUid, homeName);
+            const awayEntry = ensure(awayUid, awayName);
+            applyContribInPlace(homeEntry, homeContrib);
+            applyContribInPlace(awayEntry, awayContrib);
+          }
+
+          if (league.status === "finished") {
+            summary.finishedLeagues += 1;
+            const statsSnap = await db.collection("esports_leagues")
+                .doc(leagueId).collection("leagues_stats").get();
+            const stats = statsSnap.docs.map((d) => d.data());
+            stats.sort((a, b) => {
+              const ap = (a.wins || 0) * 3 + (a.draws || 0);
+              const bp = (b.wins || 0) * 3 + (b.draws || 0);
+              if (ap !== bp) return bp - ap;
+              const agd = (a.goals || 0) - (a.goalsConceded || 0);
+              const bgd = (b.goals || 0) - (b.goalsConceded || 0);
+              if (agd !== bgd) return bgd - agd;
+              return (b.goals || 0) - (a.goals || 0);
+            });
+            for (let i = 0; i < stats.length; i += 1) {
+              const uid = stats[i].userId;
+              if (!uid) continue;
+              const name = await nameOf(uid);
+              const entry = ensure(uid, name);
+              entry.finishedLeaguesJoined += 1;
+              if (i === 0) entry.championships += 1;
+              if (i === 1) entry.runnerUps += 1;
+            }
+          }
+        }
+
+        summary.playerStats = Array.from(players.values()).filter((e) =>
+          (e.matches || 0) > 0 ||
+          (e.championships || 0) > 0 ||
+          (e.runnerUps || 0) > 0 ||
+          (e.finishedLeaguesJoined || 0) > 0);
+        summary.schemaVersion = SCHEMA_VERSION;
+        summary.updatedAt = FieldValue.serverTimestamp();
+        // lastEventIds intentionally reset — a backfill is the new ground
+        // truth, so we don't need to remember partial trigger state.
+        summary.lastEventIds = [];
+
+        const batch = db.batch();
+        batch.set(groupSummaryRef(groupId), summary);
+        batch.delete(db.collection("esports_groups").doc(groupId)
+            .collection("stats").doc(GROUP_RECOMPUTE_REQ_DOC_ID));
+        await batch.commit();
+        log(`recomputeGroupSummary: done groupId=${groupId} ` +
+            `players=${summary.playerStats.length}`);
+      } catch (err) {
+        error(`recomputeGroupSummary failed for groupId=${groupId}`, err);
+      }
+      return null;
+    },
+);
+
+function applyContribInPlace(entry, contrib) {
+  entry.matches += contrib.matchesPlayed;
+  entry.wins += contrib.wins;
+  entry.draws += contrib.draws;
+  entry.losses += contrib.losses;
+  entry.goals += contrib.goals;
+  entry.goalsConceded += contrib.goalsConceded;
+}

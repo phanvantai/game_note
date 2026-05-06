@@ -68,7 +68,7 @@ void main() {
         ),
       ).thenAnswer((_) async {
         callCount++;
-        return _page([_league(id: 'L${callCount}')], hasMore: callCount == 1);
+        return _page([_league(id: 'L$callCount')], hasMore: callCount == 1);
       });
       return TournamentBloc(repo);
     },

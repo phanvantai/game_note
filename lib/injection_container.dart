@@ -18,9 +18,12 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/cache/dashboard_cache.dart';
+import 'core/cache/group_overview_cache.dart';
 import 'core/cache/h2h_preferences.dart';
 import 'core/helpers/shared_preferences_helper.dart';
+import 'data/repositories/esport/esport_group_stats_repository_impl.dart';
 import 'data/repositories/user_stats_repository_impl.dart';
+import 'domain/repositories/esport/esport_group_stats_repository.dart';
 import 'domain/repositories/user_stats_repository.dart';
 import 'data/sync/offline_to_online_migrator.dart';
 import 'data/sync/sync_remote_gateway.dart';
@@ -64,6 +67,10 @@ Future<void> init() async {
 
   getIt.registerSingleton(
     DashboardCache(await getIt.getAsync<SharedPreferences>()),
+  );
+
+  getIt.registerSingleton(
+    GroupOverviewCache(await getIt.getAsync<SharedPreferences>()),
   );
 
   getIt.registerSingleton(
@@ -130,6 +137,9 @@ Future<void> init() async {
   );
   getIt.registerFactory<UserStatsRepository>(
     () => UserStatsRepositoryImpl(),
+  );
+  getIt.registerFactory<EsportGroupStatsRepository>(
+    () => EsportGroupStatsRepositoryImpl(),
   );
 
   getIt.registerFactory<NotificationRepository>(

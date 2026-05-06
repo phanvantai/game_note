@@ -10,6 +10,10 @@ class GroupDetailState extends Equatable {
   final ViewStatus replaceParticipantStatus;
   final String replaceErrorMessage;
   final String? currentUserId;
+  final ViewStatus overviewStatus;
+  final GroupOverview? overview;
+  final String overviewErrorMessage;
+  final bool overviewIsStale;
 
   const GroupDetailState({
     this.viewStatus = ViewStatus.initial,
@@ -21,6 +25,10 @@ class GroupDetailState extends Equatable {
     this.replaceParticipantStatus = ViewStatus.initial,
     this.replaceErrorMessage = '',
     this.currentUserId,
+    this.overviewStatus = ViewStatus.initial,
+    this.overview,
+    this.overviewErrorMessage = '',
+    this.overviewIsStale = false,
   });
 
   GroupDetailState copyWith({
@@ -33,6 +41,10 @@ class GroupDetailState extends Equatable {
     ViewStatus? replaceParticipantStatus,
     String? replaceErrorMessage,
     String? currentUserId,
+    ViewStatus? overviewStatus,
+    GroupOverview? overview,
+    String? overviewErrorMessage,
+    bool? overviewIsStale,
   }) {
     return GroupDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
@@ -45,6 +57,10 @@ class GroupDetailState extends Equatable {
           replaceParticipantStatus ?? this.replaceParticipantStatus,
       replaceErrorMessage: replaceErrorMessage ?? '',
       currentUserId: currentUserId ?? this.currentUserId,
+      overviewStatus: overviewStatus ?? this.overviewStatus,
+      overview: overview ?? this.overview,
+      overviewErrorMessage: overviewErrorMessage ?? this.overviewErrorMessage,
+      overviewIsStale: overviewIsStale ?? this.overviewIsStale,
     );
   }
 
@@ -64,5 +80,9 @@ class GroupDetailState extends Equatable {
         replaceParticipantStatus,
         replaceErrorMessage,
         currentUserId,
+        overviewStatus,
+        overview,
+        overviewErrorMessage,
+        overviewIsStale,
       ];
 }

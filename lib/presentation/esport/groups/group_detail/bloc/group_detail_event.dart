@@ -69,6 +69,16 @@ class ReplaceLeagueParticipant extends GroupDetailEvent {
   List<Object?> get props => [leagueId, oldUserId, newUserId];
 }
 
+class LoadGroupOverview extends GroupDetailEvent {
+  final String groupId;
+  final bool forceRefresh;
+
+  const LoadGroupOverview(this.groupId, {this.forceRefresh = false});
+
+  @override
+  List<Object?> get props => [groupId, forceRefresh];
+}
+
 class SetLeagueMergeCompleted extends GroupDetailEvent {
   final String leagueId;
   final bool completed;

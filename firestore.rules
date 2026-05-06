@@ -92,6 +92,16 @@ service cloud.firestore {
     match /esports_groups/{groupId} {
       allow read, write: if signedIn();
       allow update, delete: if signedIn() && request.auth.uid == resource.data.ownerId;
+
+      // Per-group lifetime stats. Cloud Functions maintain the `summary`
+      // doc; group members read it. Members may create
+      // `_recompute_request` to trigger a server-side backfill.
+      match /stats/{docId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupMember(groupId)
+            && docId == '_recompute_request';
+        allow update, delete: if false;
+      }
     }
 
     match /esports_leagues/{leagueId} {

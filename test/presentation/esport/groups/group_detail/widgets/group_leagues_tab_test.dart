@@ -64,9 +64,9 @@ Widget _wrap(GroupDetailBloc bloc, {GoRouter? router}) {
       GoRouter(routes: [
         GoRoute(
           path: '/',
-          builder: (_, __) => const Scaffold(body: GroupLeaguesTab()),
+          builder: (_, _) => const Scaffold(body: GroupLeaguesTab()),
         ),
-        GoRoute(path: '/tournament/:leagueId', builder: (_, __) => const SizedBox()),
+        GoRoute(path: '/tournament/:leagueId', builder: (_, _) => const SizedBox()),
       ]);
   return BlocProvider<GroupDetailBloc>.value(
     value: bloc,
@@ -236,7 +236,7 @@ void main() {
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, __) => const Scaffold(body: GroupLeaguesTab()),
+          builder: (_, _) => const Scaffold(body: GroupLeaguesTab()),
         ),
         GoRoute(
           path: '/tournament/:leagueId',

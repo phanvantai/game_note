@@ -41,7 +41,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           groups: [_group('g1', 'Nhóm 1')],
-          onAddLeague: (_, __, ___, ____, _____, ______, _______, ________) {},
+          onAddLeague: (_, _, _, _, _, _, _, _) {},
         ),
       );
 
@@ -59,7 +59,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           groups: [_group('g1', 'Nhóm 1')],
-          onAddLeague: (_, __, ___, ____, _____, ______, _______, ________) {},
+          onAddLeague: (_, _, _, _, _, _, _, _) {},
         ),
       );
 
@@ -79,7 +79,7 @@ void main() {
         _wrap(
           groups: [_group('g1', 'Nhóm 1')],
           onAddLeague:
-              (_, __, ___, ____, _____, ______, _______, ________) {
+              (_, _, _, _, _, _, _, _) {
                 captured.callCount++;
               },
         ),

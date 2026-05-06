@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
@@ -13,6 +12,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../../../core/helpers/admob_helper.dart';
 import '../../../users/user_item.dart';
 import 'widgets/group_leagues_tab.dart';
+import 'widgets/group_overview_tab.dart';
 
 class GroupDetailView extends StatefulWidget {
   const GroupDetailView({super.key});
@@ -27,16 +27,28 @@ class _GroupDetailViewState extends State<GroupDetailView>
   bool isAdsLoaded = false;
   late final TabController _tabController;
   bool _leaguesLoaded = false;
+  bool _overviewLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _overviewLoaded) return;
+      _overviewLoaded = true;
+      final groupId = context.read<GroupDetailBloc>().state.group.id;
+      context.read<GroupDetailBloc>().add(LoadGroupOverview(groupId));
+    });
   }
 
   void _onTabChanged() {
-    if (_tabController.index == 1 && !_leaguesLoaded) {
+    if (_tabController.index == 0 && !_overviewLoaded) {
+      _overviewLoaded = true;
+      final groupId = context.read<GroupDetailBloc>().state.group.id;
+      context.read<GroupDetailBloc>().add(LoadGroupOverview(groupId));
+    }
+    if (_tabController.index == 2 && !_leaguesLoaded) {
       _leaguesLoaded = true;
       final groupId = context.read<GroupDetailBloc>().state.group.id;
       context.read<GroupDetailBloc>().add(LoadGroupLeagues(groupId));
@@ -74,6 +86,7 @@ class _GroupDetailViewState extends State<GroupDetailView>
           bottom: TabBar(
             controller: _tabController,
             tabs: const [
+              Tab(text: 'Tổng quan'),
               Tab(text: 'Thành viên'),
               Tab(text: 'Giải đấu'),
             ],
@@ -97,86 +110,52 @@ class _GroupDetailViewState extends State<GroupDetailView>
             child: TabBarView(
               controller: _tabController,
               children: [
-                // Tab 1: Thành viên
-                ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                  children: [
-                    if (state.viewStatus == ViewStatus.loading)
-                      const LinearProgressIndicator(minHeight: 3),
-                    _GroupDetailHero(state: state),
-                    if (state.group.description.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      _GroupSectionShell(
-                        title: 'Mô tả',
-                        icon: Icons.notes_outlined,
-                        child: Text(
-                          state.group.description,
-                          style: textTheme.bodyMedium?.copyWith(height: 1.45),
-                          textAlign: TextAlign.justify,
-                        ),
+                // Tab 1: Tổng quan
+                const GroupOverviewTab(),
+                // Tab 2: Thành viên — list only, hero + description live
+                // on the Tổng quan tab now.
+                ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                  itemCount: state.members.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (_, index) {
+                    final user = state.members[index];
+                    return _MemberTile(
+                      child: UserItem(
+                        user: user,
+                        trailing: state.isOwner
+                            ? !user.isCurrentUser
+                                ? IconButton(
+                                    tooltip: 'Xoá thành viên',
+                                    onPressed: () => _removeMember(
+                                      false,
+                                      context,
+                                      state,
+                                      user.id,
+                                    ),
+                                    icon: Icon(
+                                      Icons.person_remove_outlined,
+                                      color: colorScheme.error,
+                                      size: 20,
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.admin_panel_settings_outlined,
+                                    color: colorScheme.secondary,
+                                    size: 20,
+                                  )
+                            : user.id == state.group.ownerId
+                                ? Icon(
+                                    Icons.admin_panel_settings_outlined,
+                                    color: colorScheme.secondary,
+                                    size: 20,
+                                  )
+                                : null,
                       ),
-                    ],
-                    const SizedBox(height: 16),
-                    _GroupSectionShell(
-                      title: 'Thành viên (${state.members.length})',
-                      icon: Icons.people_alt_outlined,
-                      trailing: state.isOwner
-                          ? _RoleChip(
-                              label: 'Owner',
-                              icon: Icons.admin_panel_settings_outlined,
-                              color: colorScheme.secondary,
-                            )
-                          : null,
-                      child: Column(
-                        children: state.members.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final user = entry.value;
-                          final isLast = index == state.members.length - 1;
-                          return Column(
-                            children: [
-                              _MemberTile(
-                                child: UserItem(
-                                  user: user,
-                                  trailing: state.isOwner
-                                      ? !user.isCurrentUser
-                                            ? IconButton(
-                                                tooltip: 'Xoá thành viên',
-                                                onPressed: () => _removeMember(
-                                                  false,
-                                                  context,
-                                                  state,
-                                                  user.id,
-                                                ),
-                                                icon: Icon(
-                                                  Icons.person_remove_outlined,
-                                                  color: colorScheme.error,
-                                                  size: 20,
-                                                ),
-                                              )
-                                            : Icon(
-                                                Icons.admin_panel_settings_outlined,
-                                                color: colorScheme.secondary,
-                                                size: 20,
-                                              )
-                                      : user.id == state.group.ownerId
-                                      ? Icon(
-                                          Icons.admin_panel_settings_outlined,
-                                          color: colorScheme.secondary,
-                                          size: 20,
-                                        )
-                                      : null,
-                                ),
-                              ),
-                              if (!isLast) const SizedBox(height: 8),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                    );
+                  },
                 ),
-                // Tab 2: Giải đấu
+                // Tab 3: Giải đấu
                 const GroupLeaguesTab(),
               ],
             ),
@@ -333,224 +312,6 @@ class _GroupDetailViewState extends State<GroupDetailView>
         context,
       ).add(RemoveMember(state.group.id, userId));
     }
-  }
-}
-
-class _GroupDetailHero extends StatelessWidget {
-  final GroupDetailState state;
-
-  const _GroupDetailHero({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final groupName = state.group.groupName.isEmpty
-        ? 'Đang tải nhóm'
-        : state.group.groupName;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.24),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.1),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 62,
-            height: 62,
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: colorScheme.secondary.withValues(alpha: 0.18),
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: Image.asset(
-                'assets/images/pes_club_logo.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Group arena',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.secondary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  groupName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _HeroChip(
-                      icon: Icons.people_alt_outlined,
-                      label: '${state.members.length} thành viên',
-                    ),
-                    const SizedBox(width: 8),
-                    if (state.isOwner)
-                      _HeroChip(
-                        icon: Icons.admin_panel_settings_outlined,
-                        label: 'Quản trị',
-                      )
-                    else if (state.currentUserIsMember)
-                      _HeroChip(
-                        icon: Icons.verified_user_outlined,
-                        label: 'Member',
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeroChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _HeroChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Flexible(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-        decoration: BoxDecoration(
-          color: colorScheme.secondary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(99),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: colorScheme.secondary),
-            const SizedBox(width: 5),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: colorScheme.secondary,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GroupSectionShell extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Widget child;
-  final Widget? trailing;
-
-  const _GroupSectionShell({
-    required this.title,
-    required this.icon,
-    required this.child,
-    this.trailing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: colorScheme.secondary),
-              const SizedBox(width: 8),
-              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
-              ?trailing,
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-class _RoleChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  const _RoleChip({
-    required this.label,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
