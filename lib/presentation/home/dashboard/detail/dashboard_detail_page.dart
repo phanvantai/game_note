@@ -798,37 +798,43 @@ class _H2HCard extends StatelessWidget {
           // ── Type badge + percentage ──────────────────────────
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.13),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: accent.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, color: accent, size: 12),
-                    const SizedBox(width: 4),
-                    Text(
-                      label.toUpperCase(),
-                      style: TextStyle(
-                        color: accent,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.6,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.13),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: accent.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, color: accent, size: 12),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          label.toUpperCase(),
+                          style: TextStyle(
+                            color: accent,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Text(
                 hasOpponent ? '$pct%' : '—',
-                style: theme.textTheme.titleLarge?.copyWith(
+                style: theme.textTheme.titleMedium?.copyWith(
                   color: hasOpponent ? accent : colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w900,
                 ),
