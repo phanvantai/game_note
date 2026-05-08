@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 
@@ -94,6 +96,65 @@ class CostCalculator {
         ));
       }
     });
+    return transfers;
+  }
+
+  /// Tính tiền theo bracket ranking cho Cup / Full mode.
+  ///
+  /// `rankPayouts[i]` = số tiền mỗi người bị loại ở nhóm thứ `i+1` phải trả
+  /// cho champion:
+  ///   i=0 → runner-up (1 người, thua trận final)
+  ///   i=1 → mỗi người thua bán kết
+  ///   i=2 → mỗi người thua tứ kết
+  ///   …
+  ///
+  /// Chỉ tính cho những trận đã `isFinished`. Champion được xác định từ
+  /// winner của trận ở `knockoutRound` cao nhất.
+  static List<CostTransfer> bracketRankPayouts(
+    List<GNEsportMatch> knockoutMatches,
+    List<int> rankPayouts,
+  ) {
+    if (knockoutMatches.isEmpty || rankPayouts.isEmpty) return const [];
+
+    int maxRound = 0;
+    for (final m in knockoutMatches) {
+      maxRound = math.max(maxRound, m.knockoutRound ?? 0);
+    }
+
+    final finalMatch = knockoutMatches
+        .where((m) => m.knockoutRound == maxRound && m.isFinished)
+        .firstOrNull;
+    if (finalMatch == null) return const [];
+
+    final homeScore = finalMatch.homeScore ?? 0;
+    final awayScore = finalMatch.awayScore ?? 0;
+    if (homeScore == awayScore) return const [];
+
+    final championId =
+        homeScore > awayScore ? finalMatch.homeTeamId : finalMatch.awayTeamId;
+
+    final transfers = <CostTransfer>[];
+    for (int i = 0; i < rankPayouts.length; i++) {
+      final amount = rankPayouts[i];
+      if (amount <= 0) continue;
+
+      final round = maxRound - i;
+      if (round < 0) break;
+
+      final roundMatches = knockoutMatches
+          .where((m) => (m.knockoutRound ?? 0) == round && m.isFinished);
+
+      for (final m in roundMatches) {
+        final home = m.homeScore ?? 0;
+        final away = m.awayScore ?? 0;
+        if (home == away) continue;
+        final loserId = home > away ? m.awayTeamId : m.homeTeamId;
+        if (loserId.isEmpty || loserId == championId) continue;
+        transfers.add(
+          CostTransfer(fromUserId: loserId, toUserId: championId, amount: amount),
+        );
+      }
+    }
     return transfers;
   }
 
