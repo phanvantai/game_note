@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
-import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 
 import '../../../../firebase/firestore/esport/league/gn_esport_league.dart';
@@ -23,8 +22,6 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
     on<LoadOtherLeagues>(_onLoadOtherLeagues);
     on<LoadMoreOtherLeagues>(_onLoadMoreOtherLeagues);
     on<RefreshTournaments>(_onRefresh);
-    on<AddTournament>(_onAddTournament);
-
     add(LoadMyLeagues());
     add(LoadManagedLeagues());
     add(LoadOtherLeagues());
@@ -246,35 +243,6 @@ class TournamentBloc extends Bloc<TournamentEvent, TournamentState> {
         state.copyWith(
           errorMessage: e.toString(),
           refreshTick: state.refreshTick + 1,
-        ),
-      );
-    }
-  }
-
-  Future<void> _onAddTournament(
-    AddTournament event,
-    Emitter<TournamentState> emit,
-  ) async {
-    emit(state.copyWith(myStatus: ViewStatus.loading));
-    try {
-      await _esportLeagueRepository.addLeague(
-        name: event.name,
-        groupId: event.groupId,
-        startDate: event.startDate,
-        endDate: event.endDate,
-        description: event.description,
-        rankPayoutEnabled: event.rankPayoutEnabled,
-        rankPayouts: event.rankPayouts,
-        defaultMatchCost: event.defaultMatchCost,
-      );
-      add(LoadMyLeagues());
-      add(LoadManagedLeagues());
-      showToast('Tạo giải đấu thành công');
-    } catch (e) {
-      emit(
-        state.copyWith(
-          myStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
         ),
       );
     }

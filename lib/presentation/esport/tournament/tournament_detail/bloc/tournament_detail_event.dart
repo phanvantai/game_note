@@ -70,6 +70,15 @@ class GenerateRound extends TournamentDetailEvent {
   List<Object> get props => [];
 }
 
+class GenerateGroupRound extends TournamentDetailEvent {
+  final String groupId;
+
+  const GenerateGroupRound(this.groupId);
+
+  @override
+  List<Object> get props => [groupId];
+}
+
 class CreateCustomMatch extends TournamentDetailEvent {
   final GNUser homeTeam;
   final GNUser awayTeam;
@@ -162,3 +171,34 @@ class LoadLeagueError extends TournamentDetailEvent {
 /// Admin-only: rebuild stats for the current league from its finished
 /// matches.
 class RecomputeStats extends TournamentDetailEvent {}
+
+class GenerateCup extends TournamentDetailEvent {
+  final List<String> seededTeamIds;
+
+  const GenerateCup(this.seededTeamIds);
+
+  @override
+  List<Object> get props => [seededTeamIds];
+}
+
+class GenerateFull extends TournamentDetailEvent {
+  final List<List<String>> groups;
+  final int advanceCount;
+
+  const GenerateFull({
+    required this.groups,
+    required this.advanceCount,
+  });
+
+  @override
+  List<Object> get props => [groups, advanceCount];
+}
+
+class SelectGroup extends TournamentDetailEvent {
+  final String? groupId;
+
+  const SelectGroup(this.groupId);
+
+  @override
+  List<Object> get props => [groupId ?? ''];
+}

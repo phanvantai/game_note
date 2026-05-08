@@ -12,6 +12,8 @@ class GNEsportLeagueStat extends Equatable {
   final int wins; // total number of wins
   final int draws; // total number of draws
   final int losses; // total number of losses
+  // full mode: which group this stat belongs to (null = league-wide)
+  final String? groupId;
   final GNUser? user; // user this stat belongs to
 
   static const String collectionName = 'leagues_stats';
@@ -25,6 +27,7 @@ class GNEsportLeagueStat extends Equatable {
   static const String fieldWins = 'wins';
   static const String fieldDraws = 'draws';
   static const String fieldLosses = 'losses';
+  static const String fieldGroupId = 'groupId';
 
   const GNEsportLeagueStat({
     required this.id,
@@ -36,6 +39,7 @@ class GNEsportLeagueStat extends Equatable {
     required this.wins,
     required this.draws,
     required this.losses,
+    this.groupId,
     this.user,
   });
 
@@ -50,6 +54,7 @@ class GNEsportLeagueStat extends Equatable {
         wins,
         draws,
         losses,
+        groupId,
         user,
       ];
 
@@ -63,6 +68,7 @@ class GNEsportLeagueStat extends Equatable {
     int? wins,
     int? draws,
     int? losses,
+    String? groupId,
     GNUser? user,
   }) {
     return GNEsportLeagueStat(
@@ -75,6 +81,7 @@ class GNEsportLeagueStat extends Equatable {
       wins: wins ?? this.wins,
       draws: draws ?? this.draws,
       losses: losses ?? this.losses,
+      groupId: groupId ?? this.groupId,
       user: user ?? this.user,
     );
   }
@@ -89,13 +96,20 @@ class GNEsportLeagueStat extends Equatable {
       fieldWins: wins,
       fieldDraws: draws,
       fieldLosses: losses,
+      if (groupId != null) fieldGroupId: groupId,
     };
   }
 
   factory GNEsportLeagueStat.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    return GNEsportLeagueStat.fromMap(
+      doc.data() as Map<String, dynamic>,
+      doc.id,
+    );
+  }
+
+  factory GNEsportLeagueStat.fromMap(Map<String, dynamic> data, String id) {
     return GNEsportLeagueStat(
-      id: doc.id,
+      id: id,
       userId: data[fieldUserId],
       leagueId: data[fieldLeagueId],
       matchesPlayed: data[fieldMatchesPlayed],
@@ -104,6 +118,7 @@ class GNEsportLeagueStat extends Equatable {
       wins: data[fieldWins],
       draws: data[fieldDraws],
       losses: data[fieldLosses],
+      groupId: data[fieldGroupId] as String?,
     );
   }
 

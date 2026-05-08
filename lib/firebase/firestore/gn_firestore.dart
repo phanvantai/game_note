@@ -22,7 +22,8 @@ class GNFirestore {
 
   Future<Map<String, GNUser>> getUsersById(List<String> userIds) async {
     if (userIds.isEmpty) return {};
-    final uniqueIds = userIds.toSet().toList();
+    final uniqueIds = userIds.where((id) => id.isNotEmpty).toSet().toList();
+    if (uniqueIds.isEmpty) return {};
     const batchSize = 10;
     final users = <String, GNUser>{};
     for (var i = 0; i < uniqueIds.length; i += batchSize) {

@@ -16,7 +16,9 @@ import 'package:intl/intl.dart';
 import '../../../../core/helpers/admob_helper.dart';
 import 'add_player_popup.dart';
 import 'bloc/tournament_detail_bloc.dart';
+import 'bracket/bracket_view.dart';
 import 'cost/cost_split_view.dart';
+import 'groups/group_standings_view.dart';
 import 'matches/matches_view.dart';
 import 'table/table_view.dart';
 import 'widgets/league_share_card.dart';
@@ -69,8 +71,26 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     final theme = Theme.of(context);
 
     return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
-      builder: (context, state) => DefaultTabController(
-        length: 4,
+      builder: (context, state) {
+        final mode = state.league?.mode ?? TournamentMode.league;
+
+        final List<Tab> tabs;
+        final List<Widget> tabViews;
+        switch (mode) {
+          case TournamentMode.cup:
+            tabs = const [Tab(text: 'Bracket'), Tab(text: 'Kết quả'), Tab(text: 'Chi phí')];
+            tabViews = const [BracketView(), EsportMatchesView(isFixtures: false), CostSplitView()];
+          case TournamentMode.full:
+            tabs = const [Tab(text: 'Bảng'), Tab(text: 'Bracket'), Tab(text: 'Kết quả'), Tab(text: 'Chi phí')];
+            tabViews = const [GroupStandingsView(), BracketView(), EsportMatchesView(isFixtures: false), CostSplitView()];
+          case TournamentMode.league:
+            tabs = const [Tab(text: 'BXH'), Tab(text: 'Lịch'), Tab(text: 'Kết quả'), Tab(text: 'Chi phí')];
+            tabViews = const [EsportTableView(), EsportMatchesView(isFixtures: true), EsportMatchesView(isFixtures: false), CostSplitView()];
+        }
+
+        return DefaultTabController(
+        key: ValueKey(mode),
+        length: tabs.length,
         child: Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
           body: Container(
@@ -116,18 +136,11 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                       }
                     },
                   ),
-                  const _TournamentDetailTabBar(),
+                  _TournamentDetailTabBar(tabs: tabs),
                   Expanded(
                     child: Stack(
                       children: [
-                        const TabBarView(
-                          children: [
-                            EsportTableView(),
-                            EsportMatchesView(isFixtures: true),
-                            EsportMatchesView(isFixtures: false),
-                            CostSplitView(),
-                          ],
-                        ),
+                        TabBarView(children: tabViews),
                         if (state.viewStatus.isLoading)
                           const Positioned(
                             top: 0,
@@ -179,7 +192,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                 )
               : null,
         ),
-      ),
+        );
+      },
     );
   }
 
@@ -602,7 +616,9 @@ class _StatusPill extends StatelessWidget {
 }
 
 class _TournamentDetailTabBar extends StatelessWidget {
-  const _TournamentDetailTabBar();
+  final List<Tab> tabs;
+
+  const _TournamentDetailTabBar({required this.tabs});
 
   @override
   Widget build(BuildContext context) {
@@ -629,12 +645,7 @@ class _TournamentDetailTabBar extends StatelessWidget {
         labelStyle: Theme.of(
           context,
         ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
-        tabs: const [
-          Tab(text: 'BXH'),
-          Tab(text: 'Lịch'),
-          Tab(text: 'Kết quả'),
-          Tab(text: 'Chi phí'),
-        ],
+        tabs: tabs,
       ),
     );
   }

@@ -11,12 +11,16 @@ class CostSummaryPanel extends StatelessWidget {
   final GNEsportLeague league;
   final List<GNEsportLeagueStat> sortedStats;
   final List<GNEsportMatch> matches;
+  final bool isBracketMode;
+  final List<GNEsportMatch> knockoutMatches;
 
   const CostSummaryPanel({
     super.key,
     required this.league,
     required this.sortedStats,
     required this.matches,
+    this.isBracketMode = false,
+    this.knockoutMatches = const [],
   });
 
   /// Hiển thị `12k` (làm tròn xuống nghìn). Tham khảo input cũng dùng đơn vị k.
@@ -28,6 +32,11 @@ class CostSummaryPanel extends StatelessWidget {
   GNUser? _userById(String id) {
     for (final s in sortedStats) {
       if (s.userId == id) return s.user;
+    }
+    // For bracket mode, try to resolve from match participants
+    for (final m in knockoutMatches) {
+      if (m.homeTeamId == id) return m.homeTeam;
+      if (m.awayTeamId == id) return m.awayTeam;
     }
     return null;
   }
@@ -45,7 +54,9 @@ class CostSummaryPanel extends StatelessWidget {
     final transfers = <CostTransfer>[];
     if (league.rankPayoutEnabled) {
       transfers.addAll(
-        CostCalculator.rankPayouts(sortedStats, league.rankPayouts),
+        isBracketMode
+            ? CostCalculator.bracketRankPayouts(knockoutMatches, league.rankPayouts)
+            : CostCalculator.rankPayouts(sortedStats, league.rankPayouts),
       );
     }
     if (hasMatchCost) {

@@ -23,6 +23,32 @@ class GroupOverviewTab extends StatelessWidget {
             state.filteredOverviewStatus == ViewStatus.loading;
         final overview = state.activeOverview;
         final description = state.group.description;
+        final isMember = state.currentUserIsMember;
+
+        if (!isMember) {
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            children: [
+              GroupDetailHero(state: state),
+              if (description.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _SectionShell(
+                  title: 'Mô tả',
+                  icon: Icons.notes_outlined,
+                  child: Text(
+                    description,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(height: 1.45),
+                    textAlign: TextAlign.justify,
+                  ),
+                ),
+              ],
+            ],
+          );
+        }
+
         return Stack(
           children: [
             ListView(

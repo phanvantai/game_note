@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_item.dart';
@@ -281,45 +283,95 @@ class _TournamentTabBar extends StatelessWidget {
   }
 }
 
-void openCreateTournament(BuildContext context) {
+Future<void> openCreateTournament(BuildContext context) async {
   final groups = context.read<GroupBloc>().state.userGroups;
   if (groups.isEmpty) {
     showToast('Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước');
     return;
   }
   final tournamentBloc = context.read<TournamentBloc>();
-  Navigator.of(context).push(
+  final repo = GetIt.instance<EsportLeagueRepository>();
+
+  final leagueId = await Navigator.of(context).push<String>(
     MaterialPageRoute(
       builder: (ctx) => CreateEsportLeaguePage(
         groups: groups,
-        onAddLeague:
-            (
-              name,
-              groupId,
-              startDate,
-              endDate,
-              description,
-              rankPayoutEnabled,
-              rankPayouts,
-              defaultMatchCost,
-            ) {
-              tournamentBloc.add(
-                AddTournament(
-                  name: name,
-                  groupId: groupId,
-                  startDate: startDate,
-                  endDate: endDate,
-                  description: description,
-                  rankPayoutEnabled: rankPayoutEnabled,
-                  rankPayouts: rankPayouts,
-                  defaultMatchCost: defaultMatchCost,
-                ),
+        onAddLeague: ({
+          required name,
+          required groupId,
+          startDate,
+          endDate,
+          required description,
+          required rankPayoutEnabled,
+          required rankPayouts,
+          required defaultMatchCost,
+          required mode,
+          required participants,
+          required groupCount,
+          required advanceCount,
+          required knockoutSeeding,
+          required groupAssignment,
+        }) async {
+          final id = await repo.addLeague(
+            name: name,
+            groupId: groupId,
+            startDate: startDate,
+            endDate: endDate,
+            description: description,
+            rankPayoutEnabled: rankPayoutEnabled,
+            rankPayouts: rankPayouts,
+            defaultMatchCost: defaultMatchCost,
+            mode: mode,
+            groupCount: groupCount,
+            advanceCount: advanceCount,
+            participants: participants,
+            knockoutSeeding: knockoutSeeding,
+          );
+          try {
+            if (participants.isNotEmpty) {
+              await repo.addMultipleParticipants(
+                leagueId: id,
+                userIds: participants,
               );
-              Navigator.of(ctx).pop();
-            },
+            }
+            if (participants.length >= 2) {
+              switch (mode) {
+                case TournamentMode.league:
+                  await repo.generateRound(leagueId: id, teamIds: participants);
+                case TournamentMode.cup:
+                  await repo.generateCupBracket(leagueId: id, seededTeamIds: participants);
+                case TournamentMode.full:
+                  final groups = List.generate(groupCount, (_) => <String>[]);
+                  for (final entry in groupAssignment.entries) {
+                    if (entry.value < groups.length) {
+                      groups[entry.value].add(entry.key);
+                    }
+                  }
+                  await repo.generateFullTournament(
+                    leagueId: id,
+                    groups: groups,
+                    advanceCount: advanceCount,
+                    knockoutSeeding: knockoutSeeding,
+                  );
+              }
+            }
+          } catch (e) {
+            // Roll back the league document so no zombie league is left behind.
+            await repo.deleteLeague(id);
+            rethrow;
+          }
+          tournamentBloc.add(LoadMyLeagues());
+          tournamentBloc.add(LoadManagedLeagues());
+          showToast('Tạo giải đấu thành công');
+          return id;
+        },
       ),
     ),
   );
+
+  if (leagueId != null && context.mounted) {
+    context.push(Routing.tournamentDetailPath(leagueId));
+  }
 }
 
 class _MyLeaguesTab extends StatefulWidget {

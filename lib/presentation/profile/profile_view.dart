@@ -85,25 +85,6 @@ class _ProfileViewState extends State<ProfileView>
                 ),
                 const SizedBox(height: 16),
                 _ProfileSection(
-                  title: 'Tài khoản',
-                  icon: Icons.manage_accounts_outlined,
-                  children: [
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.person_outline,
-                      title: 'Cập nhật thông tin',
-                      onTap: () => _navigateToUpdateProfile(context, state),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.lock_outline,
-                      title: 'Đổi mật khẩu',
-                      onTap: () => context.push(Routing.changePassword),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _ProfileSection(
                   title: 'Ứng dụng',
                   icon: Icons.tune_outlined,
                   children: [

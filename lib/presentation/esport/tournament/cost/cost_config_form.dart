@@ -49,12 +49,16 @@ class CostConfigForm extends StatefulWidget {
   /// Số người tham gia giải đấu. Dùng để sinh preset gợi ý (0 = không gợi ý).
   final int participantCount;
 
+  /// Cup / Full mode: ẩn preset, thay label + mô tả thành bracket ranking.
+  final bool isBracketMode;
+
   const CostConfigForm({
     super.key,
     this.initialRankPayoutEnabled = false,
     this.initialRankPayouts = const [],
     this.initialDefaultMatchCost = 50000,
     this.participantCount = 0,
+    this.isBracketMode = false,
   });
 
   @override
@@ -123,21 +127,26 @@ class CostConfigFormState extends State<CostConfigForm> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           dense: true,
-          title: const Text('Tính tiền theo thứ hạng'),
-          subtitle: const Text(
-            'Hạng dưới góp tiền cho hạng nhất theo cấu hình',
-            style: TextStyle(fontSize: 11),
+          title: Text(widget.isBracketMode
+              ? 'Tính tiền theo bracket'
+              : 'Tính tiền theo thứ hạng'),
+          subtitle: Text(
+            widget.isBracketMode
+                ? 'Champion nhận tiền từ runner-up và người bị loại sớm'
+                : 'Hạng dưới góp tiền cho hạng nhất theo cấu hình',
+            style: const TextStyle(fontSize: 11),
           ),
           value: _rankPayoutEnabled,
           onChanged: (v) => setState(() => _rankPayoutEnabled = v),
         ),
         if (_rankPayoutEnabled) ...[
           const SizedBox(height: 4),
-          _RankPayoutPresets(
-            participantCount: widget.participantCount,
-            onSelect: (label) =>
-                setState(() => _rankPayoutsController.text = label),
-          ),
+          if (!widget.isBracketMode)
+            _RankPayoutPresets(
+              participantCount: widget.participantCount,
+              onSelect: (label) =>
+                  setState(() => _rankPayoutsController.text = label),
+            ),
           TextField(
             controller: _rankPayoutsController,
             keyboardType: TextInputType.text,
@@ -152,7 +161,9 @@ class CostConfigFormState extends State<CostConfigForm> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Lần lượt: hạng 2, hạng 3, hạng 4… đóng cho hạng 1.',
+            widget.isBracketMode
+                ? 'Lần lượt: runner-up, mỗi người thua bán kết, mỗi người thua tứ kết…'
+                : 'Lần lượt: hạng 2, hạng 3, hạng 4… đóng cho hạng 1.',
             style: textTheme.bodySmall,
           ),
         ],

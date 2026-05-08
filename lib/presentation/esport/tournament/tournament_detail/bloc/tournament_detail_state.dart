@@ -13,6 +13,8 @@ class TournamentDetailState extends Equatable {
   /// data equals the old data — without it Equatable suppresses the emit
   /// and the RefreshIndicator spins forever.
   final int refreshTick;
+  // full mode: which group tab is currently selected (null = no selection)
+  final String? selectedGroupId;
 
   const TournamentDetailState({
     this.viewStatus = ViewStatus.initial,
@@ -22,6 +24,7 @@ class TournamentDetailState extends Equatable {
     this.errorMessage = '',
     this.users = const [],
     this.refreshTick = 0,
+    this.selectedGroupId,
   });
 
   TournamentDetailState copyWith({
@@ -32,6 +35,8 @@ class TournamentDetailState extends Equatable {
     String? errorMessage,
     List<GNUser>? users,
     int? refreshTick,
+    String? selectedGroupId,
+    bool clearSelectedGroupId = false,
   }) {
     return TournamentDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
@@ -41,6 +46,9 @@ class TournamentDetailState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       users: users ?? this.users,
       refreshTick: refreshTick ?? this.refreshTick,
+      selectedGroupId: clearSelectedGroupId
+          ? null
+          : (selectedGroupId ?? this.selectedGroupId),
     );
   }
 
@@ -53,28 +61,64 @@ class TournamentDetailState extends Equatable {
         errorMessage,
         users,
         refreshTick,
+        selectedGroupId,
       ];
 
   bool get currentUserIsMember {
-    return /*participants.any((element) =>
-            element.userId == FirebaseAuth.instance.currentUser?.uid) ||*/
-        (league?.group?.members ?? <String>[]).any(
-            (element) => element == FirebaseAuth.instance.currentUser?.uid);
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return false;
+      return (league?.group?.members ?? <String>[]).any((e) => e == uid);
+    } catch (_) {
+      return false;
+    }
   }
 
   bool get currentUserIsLeagueAdmin {
-    final currentUid = FirebaseAuth.instance.currentUser?.uid;
-    if (currentUid == league?.group?.ownerId) {
-      return true;
+    try {
+      final currentUid = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUid == null) return false;
+      if (currentUid == league?.group?.ownerId) return true;
+      return league?.ownerId == currentUid;
+    } catch (_) {
+      return false;
     }
-    return league?.ownerId == FirebaseAuth.instance.currentUser?.uid;
   }
 
   List<GNEsportMatch> get fixtures {
-    return matches.where((element) => !element.isFinished).toList();
+    return matches
+        .where((m) => !m.isFinished && m.phase != 'knockout')
+        .toList();
   }
 
   List<GNEsportMatch> get results {
     return matches.where((element) => element.isFinished).toList();
+  }
+
+  List<GNEsportMatch> get knockoutMatches {
+    return matches.where((m) => m.phase == 'knockout').toList();
+  }
+
+  List<GNEsportMatch> groupMatches(String groupId) {
+    return matches.where((m) => m.phase == 'group' && m.groupId == groupId).toList();
+  }
+
+  List<GNEsportLeagueStat> groupStats(String groupId) {
+    return participants.where((s) => s.groupId == groupId).toList();
+  }
+
+  List<String> get groupIds {
+    final ids = <String>{};
+    for (final m in matches) {
+      if (m.phase == 'group' && m.groupId != null) ids.add(m.groupId!);
+    }
+    final sorted = ids.toList()..sort();
+    return sorted;
+  }
+
+  bool get allGroupMatchesFinished {
+    final groupMatches = matches.where((m) => m.phase == 'group').toList();
+    if (groupMatches.isEmpty) return false;
+    return groupMatches.every((m) => m.isFinished);
   }
 }

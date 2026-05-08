@@ -36,6 +36,7 @@ class TournamentDetailBloc
     on<AddMultipleParticipants>(_onAddMultipleParticipants);
 
     on<GenerateRound>(_onGenerateRound);
+    on<GenerateGroupRound>(_onGenerateGroupRound);
     on<UpdateEsportMatch>(_onUpdateMatch);
 
     on<ChangeLeagueStatus>(_onChangeLeagueStatus);
@@ -52,6 +53,14 @@ class TournamentDetailBloc
 
     on<GetLeague>(_onGetLeague);
     on<RecomputeStats>(_onRecomputeStats);
+    on<GenerateCup>(_onGenerateCup);
+    on<GenerateFull>(_onGenerateFull);
+    on<SelectGroup>((event, emit) {
+      emit(state.copyWith(
+        selectedGroupId: event.groupId,
+        clearSelectedGroupId: event.groupId == null,
+      ));
+    });
     on<LoadLeagueError>((event, emit) {
       emit(
         state.copyWith(
@@ -116,7 +125,7 @@ class TournamentDetailBloc
         _esportLeagueRepository.getParticipantsAndMatches(event.leagueId),
       ]);
       final league = results[0] as GNEsportLeague?;
-      final data = results[1] as LeagueDetailData;
+      var data = results[1] as LeagueDetailData;
 
       if (league == null) {
         emit(
@@ -280,7 +289,7 @@ class TournamentDetailBloc
     }
   }
 
-  void _onUpdateLeague(
+  Future<void> _onUpdateLeague(
     UpdateLeague event,
     Emitter<TournamentDetailState> emit,
   ) async {
@@ -317,7 +326,7 @@ class TournamentDetailBloc
     }
   }
 
-  void _onUpdateMatches(
+  Future<void> _onUpdateMatches(
     UpdateMatches event,
     Emitter<TournamentDetailState> emit,
   ) async {
@@ -539,7 +548,7 @@ class TournamentDetailBloc
       emit(state.copyWith(viewStatus: ViewStatus.loading));
     }
     try {
-      final data = await _esportLeagueRepository.getParticipantsAndMatches(
+      var data = await _esportLeagueRepository.getParticipantsAndMatches(
         event.leagueId,
       );
 
@@ -625,6 +634,37 @@ class TournamentDetailBloc
     }
   }
 
+  Future<void> _onGenerateGroupRound(
+    GenerateGroupRound event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null || state.viewStatus == ViewStatus.loading) return;
+    final teamIds = state.participants
+        .where((p) => p.groupId == event.groupId)
+        .map((p) => p.userId)
+        .toList();
+    if (teamIds.length < 2) {
+      showToast('Bảng cần ít nhất 2 người chơi để tạo vòng đấu');
+      return;
+    }
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.generateGroupRound(
+        leagueId: leagueId,
+        groupId: event.groupId,
+        teamIds: teamIds,
+      );
+      add(GetParticipantsAndMatches(leagueId));
+      showToast('Tạo vòng đấu thành công');
+    } catch (e) {
+      emit(state.copyWith(
+        viewStatus: ViewStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
   void _onGenerateRound(
     GenerateRound event,
     Emitter<TournamentDetailState> emit,
@@ -683,6 +723,51 @@ class TournamentDetailBloc
           errorMessage: e.toString(),
         ),
       );
+    }
+  }
+
+  Future<void> _onGenerateCup(
+    GenerateCup event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null || state.viewStatus == ViewStatus.loading) return;
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.generateCupBracket(
+        leagueId: leagueId,
+        seededTeamIds: event.seededTeamIds,
+      );
+      add(GetMatches(leagueId));
+      showToast('Tạo bracket thành công');
+    } catch (e) {
+      emit(state.copyWith(
+        viewStatus: ViewStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onGenerateFull(
+    GenerateFull event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null || state.viewStatus == ViewStatus.loading) return;
+    emit(state.copyWith(viewStatus: ViewStatus.loading));
+    try {
+      await _esportLeagueRepository.generateFullTournament(
+        leagueId: leagueId,
+        groups: event.groups,
+        advanceCount: event.advanceCount,
+      );
+      add(GetParticipantsAndMatches(leagueId));
+      showToast('Tạo giải Full thành công');
+    } catch (e) {
+      emit(state.copyWith(
+        viewStatus: ViewStatus.failure,
+        errorMessage: e.toString(),
+      ));
     }
   }
 

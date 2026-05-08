@@ -60,6 +60,8 @@ GroupDetailState _state({
 }) =>
     GroupDetailState(
       group: _group(),
+      members: [_user('owner1')],
+      currentUserId: 'owner1',
       overviewStatus: overviewStatus,
       overview: overview,
       overviewErrorMessage: overviewErrorMessage,
