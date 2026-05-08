@@ -6,6 +6,32 @@ import '../group/gn_esport_group.dart';
 
 enum GNEsportLeagueStatus { upcoming, ongoing, finished }
 
+enum TournamentMode { league, cup, full }
+
+extension TournamentModeExtension on TournamentMode {
+  String get value {
+    switch (this) {
+      case TournamentMode.league:
+        return 'league';
+      case TournamentMode.cup:
+        return 'cup';
+      case TournamentMode.full:
+        return 'full';
+    }
+  }
+
+  static TournamentMode fromString(String? value) {
+    switch (value) {
+      case 'cup':
+        return TournamentMode.cup;
+      case 'full':
+        return TournamentMode.full;
+      default:
+        return TournamentMode.league;
+    }
+  }
+}
+
 extension GNEsportLeagueStatusExtension on GNEsportLeagueStatus {
   String get value {
     switch (this) {
@@ -77,6 +103,12 @@ class GNEsportLeague extends Equatable {
   /// Admin đã xác nhận không còn cần merge/replace user nào nữa trong giải này.
   final bool mergeCompleted;
 
+  final TournamentMode mode;
+  // full mode: số bảng (1, 2, 4...)
+  final int groupCount;
+  // full mode: số người mỗi bảng lên knockout
+  final int advanceCount;
+
   final GNEsportGroup? group; // group this league belongs to
 
   // esport_leagues is a top-level collection
@@ -97,6 +129,16 @@ class GNEsportLeague extends Equatable {
   static const String fieldRankPayouts = 'rankPayouts';
   static const String fieldDefaultMatchCost = 'defaultMatchCost';
   static const String fieldMergeCompleted = 'mergeCompleted';
+  static const String fieldMode = 'mode';
+  static const String fieldGroupCount = 'groupCount';
+  static const String fieldAdvanceCount = 'advanceCount';
+  static const String fieldKnockoutSeeding = 'knockoutSeeding';
+
+  /// Seeding for knockout bracket:
+  /// - League: `[]`
+  /// - Cup: ordered user IDs (seed 1 first)
+  /// - Full: position strings like `["A1","B1","A2","B2"]`
+  final List<String> knockoutSeeding;
 
   const GNEsportLeague({
     required this.id,
@@ -114,6 +156,10 @@ class GNEsportLeague extends Equatable {
     this.rankPayouts = const [],
     this.defaultMatchCost = 50000,
     this.mergeCompleted = false,
+    this.mode = TournamentMode.league,
+    this.groupCount = 1,
+    this.advanceCount = 2,
+    this.knockoutSeeding = const [],
   });
 
   @override
@@ -133,6 +179,10 @@ class GNEsportLeague extends Equatable {
         rankPayouts,
         defaultMatchCost,
         mergeCompleted,
+        mode,
+        groupCount,
+        advanceCount,
+        knockoutSeeding,
       ];
 
   GNEsportLeague copyWith({
@@ -151,6 +201,10 @@ class GNEsportLeague extends Equatable {
     List<int>? rankPayouts,
     int? defaultMatchCost,
     bool? mergeCompleted,
+    TournamentMode? mode,
+    int? groupCount,
+    int? advanceCount,
+    List<String>? knockoutSeeding,
   }) {
     return GNEsportLeague(
       id: id ?? this.id,
@@ -168,6 +222,10 @@ class GNEsportLeague extends Equatable {
       rankPayouts: rankPayouts ?? this.rankPayouts,
       defaultMatchCost: defaultMatchCost ?? this.defaultMatchCost,
       mergeCompleted: mergeCompleted ?? this.mergeCompleted,
+      mode: mode ?? this.mode,
+      groupCount: groupCount ?? this.groupCount,
+      advanceCount: advanceCount ?? this.advanceCount,
+      knockoutSeeding: knockoutSeeding ?? this.knockoutSeeding,
     );
   }
 
@@ -186,6 +244,10 @@ class GNEsportLeague extends Equatable {
       fieldRankPayouts: rankPayouts,
       fieldDefaultMatchCost: defaultMatchCost,
       fieldMergeCompleted: mergeCompleted,
+      fieldMode: mode.value,
+      fieldGroupCount: groupCount,
+      fieldAdvanceCount: advanceCount,
+      if (knockoutSeeding.isNotEmpty) fieldKnockoutSeeding: knockoutSeeding,
     };
   }
 
@@ -221,6 +283,10 @@ class GNEsportLeague extends Equatable {
       ),
       defaultMatchCost: (data[fieldDefaultMatchCost] as num?)?.toInt() ?? 50000,
       mergeCompleted: data[fieldMergeCompleted] ?? false,
+      mode: TournamentModeExtension.fromString(data[fieldMode] as String?),
+      groupCount: (data[fieldGroupCount] as num?)?.toInt() ?? 1,
+      advanceCount: (data[fieldAdvanceCount] as num?)?.toInt() ?? 2,
+      knockoutSeeding: List<String>.from(data[fieldKnockoutSeeding] ?? []),
     );
   }
 }

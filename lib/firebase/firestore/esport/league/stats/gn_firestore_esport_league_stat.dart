@@ -5,17 +5,18 @@ import '../gn_esport_league.dart';
 import 'gn_esport_league_stat.dart';
 
 extension GNFirestoreEsportLeagueStat on GNFirestore {
-  // create a stat for a user in a league
+  // create a stat for a user in a league.
+  // [groupId] is set for full-mode group-scoped stats; null for league-wide.
   Future<void> addLeagueStat({
     required String userId,
     required String leagueId,
+    String? groupId,
   }) async {
     final leagueStatCollection = firestore
         .collection(GNEsportLeague.collectionName)
         .doc(leagueId)
         .collection(GNEsportLeagueStat.collectionName);
 
-    // Create a new league stat with default values
     final newLeagueStat = GNEsportLeagueStat(
       id: leagueStatCollection.doc().id,
       userId: userId,
@@ -26,6 +27,7 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
       wins: 0,
       draws: 0,
       losses: 0,
+      groupId: groupId,
     );
 
     await leagueStatCollection.doc(newLeagueStat.id).set(newLeagueStat.toMap());

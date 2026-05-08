@@ -240,29 +240,35 @@ extension GNFirestoreEsportLeague on GNFirestore {
     List<int> rankPayouts = const [],
     int defaultMatchCost = 50000,
     String? status,
+    TournamentMode mode = TournamentMode.league,
+    int groupCount = 1,
+    int advanceCount = 2,
+    List<String> participants = const [],
+    List<String> knockoutSeeding = const [],
   }) async {
-    // Reference to the Firestore collection
     final leaguesCollection =
         firestore.collection(GNEsportLeague.collectionName);
 
-    // Create a new league with default and provided values
     final newLeague = GNEsportLeague(
-      id: leaguesCollection.doc().id, // Generate a unique ID
-      ownerId: FirebaseAuth.instance.currentUser?.uid ?? '', // Current user ID
-      groupId: groupId, // Group ID
+      id: leaguesCollection.doc().id,
+      ownerId: FirebaseAuth.instance.currentUser?.uid ?? '',
+      groupId: groupId,
       name: name,
-      startDate: startDate ?? DateTime.now(), // Default start date is now
-      endDate: endDate ?? DateTime.now(), // Default end date is now
-      isActive: true, // League is active by default
+      startDate: startDate ?? DateTime.now(),
+      endDate: endDate,
+      isActive: true,
       description: description,
-      participants: const [], // Empty list of participants
+      participants: participants,
       rankPayoutEnabled: rankPayoutEnabled,
       rankPayouts: rankPayouts,
       defaultMatchCost: defaultMatchCost,
       status: status,
+      mode: mode,
+      groupCount: groupCount,
+      advanceCount: advanceCount,
+      knockoutSeeding: knockoutSeeding,
     );
 
-    // Add the new league to Firestore
     await leaguesCollection.doc(newLeague.id).set(newLeague.toMap());
     return newLeague.id;
   }

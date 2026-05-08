@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_match.dart';
@@ -77,6 +80,218 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     await batch.commit();
   }
 
+  /// Generate an additional round-robin round for a specific group in full mode.
+  Future<void> generateGroupRound({
+    required String leagueId,
+    required String groupId,
+    required List<String> teamIds,
+  }) async {
+    final batch = firestore.batch();
+    final matchPath =
+        '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
+    for (int i = 0; i < teamIds.length; i++) {
+      for (int j = i + 1; j < teamIds.length; j++) {
+        final matchId = firestore.collection(matchPath).doc().id;
+        final match = GNEsportMatch(
+          id: matchId,
+          homeTeamId: teamIds[i],
+          awayTeamId: teamIds[j],
+          homeScore: 0,
+          awayScore: 0,
+          date: DateTime.now(),
+          isFinished: false,
+          leagueId: leagueId,
+          phase: 'group',
+          groupId: groupId,
+        );
+        batch.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+      }
+    }
+    await batch.commit();
+  }
+
+  /// Generate a single-elimination knockout bracket.
+  ///
+  /// [seededTeamIds] must have a length that is a power of 2 (2, 4, 8, 16…).
+  /// Throws [ArgumentError] otherwise.
+  ///
+  /// Bracket seeding: slot s in round 0 pairs seededTeamIds[s] vs
+  /// seededTeamIds[N-1-s]. Winners advance via (round+1, slot÷2); even slots
+  /// become homeTeamId, odd slots become awayTeamId in the next match.
+  Future<void> generateCupBracket({
+    required String leagueId,
+    required List<String> seededTeamIds,
+  }) async {
+    final n = seededTeamIds.length;
+    if (n < 2 || (n & (n - 1)) != 0) {
+      throw ArgumentError(
+        'Cup bracket requires a power-of-2 participant count, got $n',
+      );
+    }
+    final totalRounds = (math.log(n) / math.log(2)).round();
+    final r0SlotCount = n ~/ 2;
+    final matchPath =
+        '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
+
+    // Pre-generate all doc IDs for all rounds so we can set nextMatchId.
+    // roundIds[r] = list of match IDs for round r.
+    final List<List<String>> roundIds = List.generate(
+      totalRounds,
+      (r) => List.generate(
+        r0SlotCount >> r,
+        (_) => firestore.collection(matchPath).doc().id,
+      ),
+    );
+
+    final batch = firestore.batch();
+
+    for (int r = 0; r < totalRounds; r++) {
+      final slotsInRound = r0SlotCount >> r;
+      for (int s = 0; s < slotsInRound; s++) {
+        final matchId = roundIds[r][s];
+        final nextMatchId =
+            r < totalRounds - 1 ? roundIds[r + 1][s ~/ 2] : null;
+
+        final String homeId;
+        final String awayId;
+        if (r == 0) {
+          homeId = seededTeamIds[s];
+          awayId = seededTeamIds[n - 1 - s];
+        } else {
+          homeId = '';
+          awayId = '';
+        }
+
+        final match = GNEsportMatch(
+          id: matchId,
+          homeTeamId: homeId,
+          awayTeamId: awayId,
+          homeScore: 0,
+          awayScore: 0,
+          date: DateTime.now(),
+          isFinished: false,
+          leagueId: leagueId,
+          phase: 'knockout',
+          knockoutRound: r,
+          knockoutSlot: s,
+          nextMatchId: nextMatchId,
+        );
+
+        batch.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+      }
+    }
+
+    await batch.commit();
+  }
+
+  /// Generate a full-tournament: group stage (round-robin per group) +
+  /// an empty knockout bracket for the advancing players.
+  ///
+  /// [groups] is a list of player-ID lists, one per group (A, B, …).
+  /// The knockout bracket has groups.length × [advanceCount] slots,
+  /// which must be a power of 2.
+  Future<void> generateFullTournament({
+    required String leagueId,
+    required List<List<String>> groups,
+    required int advanceCount,
+    List<String> knockoutSeeding = const [],
+  }) async {
+    final knockoutSize = groups.length * advanceCount;
+    if (knockoutSize < 2 || (knockoutSize & (knockoutSize - 1)) != 0) {
+      throw ArgumentError(
+        'Knockout size (groupCount × advanceCount = $knockoutSize) '
+        'must be a power of 2',
+      );
+    }
+    final batch = firestore.batch();
+    final matchPath =
+        '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
+
+    // --- Group stage ---
+    final groupLabels = List.generate(
+      groups.length,
+      (i) => String.fromCharCode('A'.codeUnitAt(0) + i),
+    );
+    // Create per-group stat docs for each player.
+    // We don't await inside the batch loop — fire-and-forget alongside batch.
+    final statFutures = <Future<void>>[];
+    for (int g = 0; g < groups.length; g++) {
+      final groupId = groupLabels[g];
+      final groupMembers = groups[g];
+      for (final memberId in groupMembers) {
+        statFutures.add(
+          addLeagueStat(userId: memberId, leagueId: leagueId, groupId: groupId),
+        );
+      }
+      for (int i = 0; i < groupMembers.length; i++) {
+        for (int j = i + 1; j < groupMembers.length; j++) {
+          final matchId = firestore.collection(matchPath).doc().id;
+          final match = GNEsportMatch(
+            id: matchId,
+            homeTeamId: groupMembers[i],
+            awayTeamId: groupMembers[j],
+            homeScore: 0,
+            awayScore: 0,
+            date: DateTime.now(),
+            isFinished: false,
+            leagueId: leagueId,
+            phase: 'group',
+            groupId: groupId,
+          );
+          batch.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+        }
+      }
+    }
+
+    // --- Knockout bracket skeleton (all TBD) ---
+    final totalRounds = (math.log(knockoutSize) / math.log(2)).round();
+    final r0SlotCount = knockoutSize ~/ 2;
+    final List<List<String>> roundIds = List.generate(
+      totalRounds,
+      (r) => List.generate(
+        r0SlotCount >> r,
+        (_) => firestore.collection(matchPath).doc().id,
+      ),
+    );
+
+    final useSeeding =
+        knockoutSeeding.length == knockoutSize && knockoutSize >= 2;
+    for (int r = 0; r < totalRounds; r++) {
+      final slotsInRound = r0SlotCount >> r;
+      for (int s = 0; s < slotsInRound; s++) {
+        final matchId = roundIds[r][s];
+        final nextMatchId =
+            r < totalRounds - 1 ? roundIds[r + 1][s ~/ 2] : null;
+        final String homeId;
+        final String awayId;
+        if (r == 0 && useSeeding) {
+          homeId = knockoutSeeding[s];
+          awayId = knockoutSeeding[knockoutSize - 1 - s];
+        } else {
+          homeId = '';
+          awayId = '';
+        }
+        final match = GNEsportMatch(
+          id: matchId,
+          homeTeamId: homeId,
+          awayTeamId: awayId,
+          homeScore: 0,
+          awayScore: 0,
+          date: DateTime.now(),
+          isFinished: false,
+          leagueId: leagueId,
+          phase: 'knockout',
+          knockoutRound: r,
+          knockoutSlot: s,
+          nextMatchId: nextMatchId,
+        );
+        batch.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+      }
+    }
+
+    await Future.wait([batch.commit(), ...statFutures]);
+  }
+
   // get matches of a league
   Future<List<GNEsportMatch>> getMatches(String leagueId) async {
     final snapshot = await firestore
@@ -93,8 +308,8 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         snapshot.docs.map((doc) => GNEsportMatch.fromFirestore(doc)).toList();
 
     for (final match in matchDocs) {
-      userIds.add(match.homeTeamId);
-      userIds.add(match.awayTeamId);
+      if (match.homeTeamId.isNotEmpty) userIds.add(match.homeTeamId);
+      if (match.awayTeamId.isNotEmpty) userIds.add(match.awayTeamId);
     }
 
     // Batch load all users at once to avoid N+1 query problem
@@ -114,17 +329,13 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
 
   /// Update a match score atomically.
   ///
-  /// Wraps everything (read match + read both stat docs + write all 3) in a
-  /// Firestore transaction. If any of those docs is modified by another
-  /// writer mid-transaction, Firestore retries automatically. This fixes
-  /// the lost-update / double-decrement bugs that the old read-modify-write
-  /// flow had when two admins updated matches concurrently.
+  /// Behaviour varies by match phase:
+  /// - `null` / `'group'`: updates player stat docs (group-scoped for 'group').
+  /// - `'knockout'`: advances the winner into the next bracket match instead
+  ///   of updating stats. No stat tracking for knockout rounds.
   ///
-  /// [expectedUpdatedAt] — if provided, the transaction throws
-  /// [ConcurrentMatchUpdateException] when the match's `updatedAt` differs
-  /// from the value the UI captured when the dialog opened (i.e. someone
-  /// else committed an update in the meantime). Pass null to skip the
-  /// check (e.g. for non-interactive flows).
+  /// [expectedUpdatedAt] — if provided, throws [ConcurrentMatchUpdateException]
+  /// when the stored `updatedAt` differs (optimistic-lock).
   Future<void> updateMatch({
     required String matchId,
     required String leagueId,
@@ -133,36 +344,41 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     int? matchCost,
     Timestamp? expectedUpdatedAt,
   }) async {
-    final matchRef = firestore
-        .collection(GNEsportLeague.collectionName)
-        .doc(leagueId)
-        .collection(GNEsportMatch.collectionName)
-        .doc(matchId);
+    final matchPath =
+        '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
+    final matchRef = firestore.doc('$matchPath/$matchId');
 
-    // Resolve stat document refs OUTSIDE the transaction. The stats
-    // collection is keyed by an opaque doc id — we have to query by userId
-    // first. Doing this inside the transaction would require all reads
-    // before any writes anyway, but the query API isn't available on
-    // Transaction. If a stat doc is recreated between this lookup and the
-    // commit, the next listener tick will reconcile.
-    final initialMatch = await matchRef.get();
-    if (!initialMatch.exists) {
-      throw Exception('Match not found');
+    // Fetch match outside transaction so we can resolve refs that require
+    // queries (which aren't allowed inside a Firestore transaction).
+    final initialSnap = await matchRef.get();
+    if (!initialSnap.exists) throw Exception('Match not found');
+    final m = GNEsportMatch.fromFirestore(initialSnap);
+
+    final isKnockout = m.phase == 'knockout';
+
+    // --- Resolve refs outside transaction ---
+    DocumentReference<Map<String, dynamic>>? homeStatRef, awayStatRef;
+    DocumentReference<Map<String, dynamic>>? nextMatchRef;
+
+    if (!isKnockout &&
+        m.homeTeamId.isNotEmpty &&
+        m.awayTeamId.isNotEmpty) {
+      final refs = await Future.wait([
+        _statRefForUser(leagueId, m.homeTeamId, groupId: m.groupId),
+        _statRefForUser(leagueId, m.awayTeamId, groupId: m.groupId),
+      ]);
+      homeStatRef = refs[0];
+      awayStatRef = refs[1];
     }
-    final m = GNEsportMatch.fromFirestore(initialMatch);
-    final statRefs = await Future.wait([
-      _statRefForUser(leagueId, m.homeTeamId),
-      _statRefForUser(leagueId, m.awayTeamId),
-    ]);
-    final homeStatRef = statRefs[0];
-    final awayStatRef = statRefs[1];
+
+    if (isKnockout && m.nextMatchId != null) {
+      nextMatchRef = firestore.doc('$matchPath/${m.nextMatchId}');
+    }
 
     await firestore.runTransaction((txn) async {
-      // Reads first — required by Firestore transaction semantics.
+      // --- Reads (must come before all writes) ---
       final matchSnap = await txn.get(matchRef);
-      if (!matchSnap.exists) {
-        throw Exception('Match not found');
-      }
+      if (!matchSnap.exists) throw Exception('Match not found');
       final current = GNEsportMatch.fromFirestore(matchSnap);
 
       if (expectedUpdatedAt != null &&
@@ -171,11 +387,6 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         throw ConcurrentMatchUpdateException(matchId);
       }
 
-      final homeStatSnap = await txn.get(homeStatRef);
-      final awayStatSnap = await txn.get(awayStatRef);
-      final homeStats = GNEsportLeagueStat.fromFirestore(homeStatSnap);
-      final awayStats = GNEsportLeagueStat.fromFirestore(awayStatSnap);
-
       final newMatch = current.copyWith(
         homeScore: homeScore,
         awayScore: awayScore,
@@ -183,39 +394,58 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         matchCost: matchCost ?? current.matchCost,
       );
 
-      // Compute net delta in one pass: reverse old contribution if the
-      // match was finished, then apply new contribution if it still is.
-      var homeDelta = _zeroDelta;
-      var awayDelta = _zeroDelta;
-      if (current.isFinished) {
-        final undo = _statContribution(
-          current.homeScore!,
-          current.awayScore!,
-          sign: -1,
-        );
-        homeDelta = homeDelta + undo.home;
-        awayDelta = awayDelta + undo.away;
-      }
-      if (newMatch.isFinished) {
-        final apply = _statContribution(
-          newMatch.homeScore!,
-          newMatch.awayScore!,
-          sign: 1,
-        );
-        homeDelta = homeDelta + apply.home;
-        awayDelta = awayDelta + apply.away;
+      if (!isKnockout && homeStatRef != null && awayStatRef != null) {
+        final homeStatSnap = await txn.get(homeStatRef);
+        final awayStatSnap = await txn.get(awayStatRef);
+        final homeStats = GNEsportLeagueStat.fromFirestore(homeStatSnap);
+        final awayStats = GNEsportLeagueStat.fromFirestore(awayStatSnap);
+
+        var homeDelta = _zeroDelta;
+        var awayDelta = _zeroDelta;
+        if (current.isFinished) {
+          final undo = _statContribution(
+            current.homeScore!,
+            current.awayScore!,
+            sign: -1,
+          );
+          homeDelta = homeDelta + undo.home;
+          awayDelta = awayDelta + undo.away;
+        }
+        if (newMatch.isFinished) {
+          final apply = _statContribution(
+            newMatch.homeScore!,
+            newMatch.awayScore!,
+            sign: 1,
+          );
+          homeDelta = homeDelta + apply.home;
+          awayDelta = awayDelta + apply.away;
+        }
+
+        if (homeDelta.isNotEmpty) {
+          txn.update(homeStatRef, _applyDeltaMap(homeStats, homeDelta));
+        }
+        if (awayDelta.isNotEmpty) {
+          txn.update(awayStatRef, _applyDeltaMap(awayStats, awayDelta));
+        }
       }
 
-      // Writes.
+      // --- Writes ---
       txn.update(matchRef, {
         ...newMatch.toMap(),
         GNEsportMatch.fieldUpdatedAt: FieldValue.serverTimestamp(),
       });
-      if (homeDelta.isNotEmpty) {
-        txn.update(homeStatRef, _applyDeltaMap(homeStats, homeDelta));
-      }
-      if (awayDelta.isNotEmpty) {
-        txn.update(awayStatRef, _applyDeltaMap(awayStats, awayDelta));
+
+      // Advance knockout winner into the next bracket slot.
+      if (isKnockout && nextMatchRef != null && newMatch.isFinished) {
+        final winnerId = newMatch.homeScore! >= newMatch.awayScore!
+            ? current.homeTeamId
+            : current.awayTeamId;
+        final isEvenSlot = (current.knockoutSlot ?? 0).isEven;
+        txn.update(nextMatchRef, {
+          isEvenSlot
+              ? GNEsportMatch.fieldHomeTeamId
+              : GNEsportMatch.fieldAwayTeamId: winnerId,
+        });
       }
     });
   }
@@ -250,8 +480,8 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         .doc(match.id);
 
     final statRefs = await Future.wait([
-      _statRefForUser(match.leagueId, match.homeTeamId),
-      _statRefForUser(match.leagueId, match.awayTeamId),
+      _statRefForUser(match.leagueId, match.homeTeamId, groupId: match.groupId),
+      _statRefForUser(match.leagueId, match.awayTeamId, groupId: match.groupId),
     ]);
     final homeStatRef = statRefs[0];
     final awayStatRef = statRefs[1];
@@ -289,17 +519,29 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
 
   Future<DocumentReference<Map<String, dynamic>>> _statRefForUser(
     String leagueId,
-    String userId,
-  ) async {
-    final snapshot = await firestore
+    String userId, {
+    String? groupId,
+  }) async {
+    var query = firestore
         .collection(GNEsportLeague.collectionName)
         .doc(leagueId)
         .collection(GNEsportLeagueStat.collectionName)
-        .where(GNEsportLeagueStat.fieldUserId, isEqualTo: userId)
-        .limit(1)
-        .get();
+        .where(GNEsportLeagueStat.fieldUserId, isEqualTo: userId);
+    if (groupId != null) {
+      query =
+          query.where(GNEsportLeagueStat.fieldGroupId, isEqualTo: groupId);
+    } else {
+      query = query.where(
+        GNEsportLeagueStat.fieldGroupId,
+        isNull: true,
+      );
+    }
+    final snapshot = await query.limit(1).get();
     if (snapshot.docs.isEmpty) {
-      throw Exception('No stats found for user $userId in league $leagueId');
+      throw Exception(
+        'No stats found for user $userId in league $leagueId'
+        '${groupId != null ? " group $groupId" : ""}',
+      );
     }
     return snapshot.docs.first.reference;
   }

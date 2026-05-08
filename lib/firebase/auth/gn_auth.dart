@@ -255,19 +255,10 @@ class GNAuth {
   }
 
   void checkLoginMethod() {
-    User? user = FirebaseAuth.instance.currentUser;
-
-    if (user != null) {
-      // Get the list of sign-in methods for the current user
-      List<UserInfo> providerData = user.providerData;
-      for (var provider in providerData) {
-        if (provider.providerId == 'password') {
-          _isSignInWithEmailAndPassword = true;
-        } else {
-          _isSignInWithEmailAndPassword = false;
-        }
-      }
-    }
+    final user = FirebaseAuth.instance.currentUser;
+    _isSignInWithEmailAndPassword = user?.providerData
+            .any((p) => p.providerId == 'password') ??
+        false;
   }
 
   // change password

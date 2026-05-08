@@ -23,6 +23,17 @@ class GNEsportMatch extends Equatable {
   /// match anymore. Null on legacy docs that pre-date this field.
   final Timestamp? updatedAt;
 
+  // 'group' | 'knockout' | null (league mode)
+  final String? phase;
+  // full mode group stage: 'A', 'B', 'C'...
+  final String? groupId;
+  // 0-based round index in knockout (0 = first round, last = final)
+  final int? knockoutRound;
+  // 0-based slot position within a knockout round
+  final int? knockoutSlot;
+  // ID of the match the winner advances to. Null for the final.
+  final String? nextMatchId;
+
   final GNUser? homeTeam;
   final GNUser? awayTeam;
 
@@ -40,6 +51,11 @@ class GNEsportMatch extends Equatable {
   static const String fieldLeagueId = 'leagueId';
   static const String fieldMatchCost = 'matchCost';
   static const String fieldUpdatedAt = 'updatedAt';
+  static const String fieldPhase = 'phase';
+  static const String fieldGroupId = 'groupId';
+  static const String fieldKnockoutRound = 'knockoutRound';
+  static const String fieldKnockoutSlot = 'knockoutSlot';
+  static const String fieldNextMatchId = 'nextMatchId';
 
   const GNEsportMatch({
     required this.id,
@@ -54,6 +70,11 @@ class GNEsportMatch extends Equatable {
     this.awayTeam,
     this.matchCost,
     this.updatedAt,
+    this.phase,
+    this.groupId,
+    this.knockoutRound,
+    this.knockoutSlot,
+    this.nextMatchId,
   });
 
   @override
@@ -68,6 +89,11 @@ class GNEsportMatch extends Equatable {
         leagueId,
         matchCost,
         updatedAt,
+        phase,
+        groupId,
+        knockoutRound,
+        knockoutSlot,
+        nextMatchId,
       ];
 
   GNEsportMatch copyWith({
@@ -83,6 +109,11 @@ class GNEsportMatch extends Equatable {
     GNUser? awayTeam,
     int? matchCost,
     Timestamp? updatedAt,
+    String? phase,
+    String? groupId,
+    int? knockoutRound,
+    int? knockoutSlot,
+    String? nextMatchId,
   }) {
     return GNEsportMatch(
       id: id ?? this.id,
@@ -97,6 +128,11 @@ class GNEsportMatch extends Equatable {
       awayTeam: awayTeam ?? this.awayTeam,
       matchCost: matchCost ?? this.matchCost,
       updatedAt: updatedAt ?? this.updatedAt,
+      phase: phase ?? this.phase,
+      groupId: groupId ?? this.groupId,
+      knockoutRound: knockoutRound ?? this.knockoutRound,
+      knockoutSlot: knockoutSlot ?? this.knockoutSlot,
+      nextMatchId: nextMatchId ?? this.nextMatchId,
     );
   }
 
@@ -110,6 +146,11 @@ class GNEsportMatch extends Equatable {
       fieldIsFinished: isFinished,
       fieldLeagueId: leagueId,
       fieldMatchCost: matchCost,
+      if (phase != null) fieldPhase: phase,
+      if (groupId != null) fieldGroupId: groupId,
+      if (knockoutRound != null) fieldKnockoutRound: knockoutRound,
+      if (knockoutSlot != null) fieldKnockoutSlot: knockoutSlot,
+      if (nextMatchId != null) fieldNextMatchId: nextMatchId,
     };
   }
 
@@ -138,6 +179,11 @@ class GNEsportMatch extends Equatable {
       updatedAt: data[fieldUpdatedAt] is Timestamp
           ? data[fieldUpdatedAt] as Timestamp
           : null,
+      phase: data[fieldPhase] as String?,
+      groupId: data[fieldGroupId] as String?,
+      knockoutRound: (data[fieldKnockoutRound] as num?)?.toInt(),
+      knockoutSlot: (data[fieldKnockoutSlot] as num?)?.toInt(),
+      nextMatchId: data[fieldNextMatchId] as String?,
     );
   }
 }
