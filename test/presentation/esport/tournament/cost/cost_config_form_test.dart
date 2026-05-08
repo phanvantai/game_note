@@ -286,6 +286,49 @@ void main() {
     });
   });
 
+  group('CostConfigForm — bracket mode', () {
+    testWidgets('isBracketMode: switch label bracket, không có preset chips',
+        (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        isBracketMode: true,
+        initialRankPayoutEnabled: true,
+        participantCount: 4,
+      )));
+
+      expect(find.text('Tính tiền theo bracket'), findsOneWidget);
+      expect(find.text('Tính tiền theo thứ hạng'), findsNothing);
+      expect(find.byType(ActionChip), findsNothing);
+    });
+
+    testWidgets('isBracketMode: description text bracket khi switch on',
+        (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        isBracketMode: true,
+        initialRankPayoutEnabled: true,
+      )));
+
+      expect(
+        find.textContaining('runner-up'),
+        findsWidgets,
+      );
+      expect(
+        find.textContaining('hạng 2, hạng 3'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('isBracketMode = false (default): label cũ + preset hiện',
+        (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm(
+        initialRankPayoutEnabled: true,
+        participantCount: 4,
+      )));
+
+      expect(find.text('Tính tiền theo thứ hạng'), findsOneWidget);
+      expect(find.byType(ActionChip), findsNWidgets(3));
+    });
+  });
+
   group('CostConfigForm — validateAndCollect', () {
     testWidgets('disabled: rankPayouts rỗng, dùng default match cost từ field',
         (tester) async {

@@ -31,9 +31,10 @@ GNEsportMatch _match({
   int? awayScore,
   bool isFinished = true,
   int? matchCost,
+  int? knockoutRound,
 }) {
   return GNEsportMatch(
-    id: '$home-$away',
+    id: '$home-$away-${knockoutRound ?? ''}',
     homeTeamId: home,
     awayTeamId: away,
     homeScore: homeScore,
@@ -42,6 +43,8 @@ GNEsportMatch _match({
     isFinished: isFinished,
     leagueId: 'L',
     matchCost: matchCost,
+    knockoutRound: knockoutRound,
+    phase: knockoutRound != null ? 'knockout' : null,
   );
 }
 
@@ -218,6 +221,81 @@ void main() {
       );
       expect(cd.fromUserId, 'C');
       expect(cd.amount, 100000);
+    });
+  });
+
+  group('CostCalculator.bracketRankPayouts', () {
+    // Cup 4 người: semi(round=0) → final(round=1)
+    // A thắng C ở semi, B thắng D ở semi → final: A thắng B
+    // Champion=A, runner-up=B, semi-losers=C,D
+    List<GNEsportMatch> _cup4() => [
+          _match(home: 'A', away: 'C', homeScore: 2, awayScore: 0, knockoutRound: 0),
+          _match(home: 'B', away: 'D', homeScore: 1, awayScore: 0, knockoutRound: 0),
+          _match(home: 'A', away: 'B', homeScore: 2, awayScore: 1, knockoutRound: 1),
+        ];
+
+    test('4 người, 2 mức: runner-up + mỗi semi-loser trả đúng', () {
+      final transfers = CostCalculator.bracketRankPayouts(_cup4(), [100000, 50000]);
+
+      expect(transfers, hasLength(3));
+      // Champion = A
+      expect(transfers.every((t) => t.toUserId == 'A'), isTrue);
+      // Runner-up B trả 100k
+      expect(transfers.firstWhere((t) => t.fromUserId == 'B').amount, 100000);
+      // Semi-losers C, D mỗi người trả 50k
+      expect(transfers.firstWhere((t) => t.fromUserId == 'C').amount, 50000);
+      expect(transfers.firstWhere((t) => t.fromUserId == 'D').amount, 50000);
+    });
+
+    test('chỉ 1 mức (runner-up): C và D không phải trả', () {
+      final transfers = CostCalculator.bracketRankPayouts(_cup4(), [100000]);
+      expect(transfers, hasLength(1));
+      expect(transfers.first.fromUserId, 'B');
+      expect(transfers.first.amount, 100000);
+    });
+
+    test('final chưa finished: trả về rỗng', () {
+      final matches = [
+        _match(home: 'A', away: 'C', homeScore: 2, awayScore: 0, knockoutRound: 0),
+        _match(home: 'A', away: 'B', homeScore: null, awayScore: null, isFinished: false, knockoutRound: 1),
+      ];
+      expect(CostCalculator.bracketRankPayouts(matches, [100000]), isEmpty);
+    });
+
+    test('final hoà: trả về rỗng', () {
+      final matches = [
+        _match(home: 'A', away: 'B', homeScore: 1, awayScore: 1, knockoutRound: 0),
+      ];
+      expect(CostCalculator.bracketRankPayouts(matches, [100000]), isEmpty);
+    });
+
+    test('rankPayouts rỗng: trả về rỗng', () {
+      expect(CostCalculator.bracketRankPayouts(_cup4(), []), isEmpty);
+    });
+
+    test('knockoutMatches rỗng: trả về rỗng', () {
+      expect(CostCalculator.bracketRankPayouts([], [100000]), isEmpty);
+    });
+
+    test('amount = 0 trong list: skip mức đó', () {
+      final transfers = CostCalculator.bracketRankPayouts(_cup4(), [100000, 0]);
+      // Chỉ runner-up (B) trả; C,D skip vì amount=0
+      expect(transfers, hasLength(1));
+      expect(transfers.first.fromUserId, 'B');
+    });
+
+    test('semi match chưa finished: semi-loser không tính', () {
+      final matches = [
+        _match(home: 'A', away: 'C', homeScore: 2, awayScore: 0, knockoutRound: 0),
+        // B vs D chưa xong
+        _match(home: 'B', away: 'D', homeScore: null, awayScore: null, isFinished: false, knockoutRound: 0),
+        _match(home: 'A', away: 'B', homeScore: 2, awayScore: 1, knockoutRound: 1),
+      ];
+      final transfers = CostCalculator.bracketRankPayouts(matches, [100000, 50000]);
+      // Runner-up B: 100k; Semi-loser C: 50k; D không tính (match chưa xong)
+      expect(transfers.any((t) => t.fromUserId == 'D'), isFalse);
+      expect(transfers.firstWhere((t) => t.fromUserId == 'B').amount, 100000);
+      expect(transfers.firstWhere((t) => t.fromUserId == 'C').amount, 50000);
     });
   });
 

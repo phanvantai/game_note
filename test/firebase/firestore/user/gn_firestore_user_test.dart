@@ -94,4 +94,32 @@ void main() {
       expect(results.map((u) => u.id), contains('u1'));
     });
   });
+
+  group('getUsersById', () {
+    test('list rỗng → trả về map rỗng', () async {
+      final result = await fs.getUsersById([]);
+      expect(result, isEmpty);
+    });
+
+    test('list chỉ có empty string → trả về map rỗng (không crash)', () async {
+      final result = await fs.getUsersById(['', '']);
+      expect(result, isEmpty);
+    });
+
+    test('mix empty + valid ids → chỉ query valid ids', () async {
+      await setupUserDoc('u1', 'Alice');
+
+      final result = await fs.getUsersById(['', 'u1', '']);
+      expect(result.keys, containsAll(['u1']));
+      expect(result['u1']?.displayName, 'Alice');
+    });
+
+    test('ids hợp lệ → trả về đúng users', () async {
+      await setupUserDoc('u1', 'Alice');
+      await setupUserDoc('u2', 'Bob');
+
+      final result = await fs.getUsersById(['u1', 'u2']);
+      expect(result.keys, containsAll(['u1', 'u2']));
+    });
+  });
 }

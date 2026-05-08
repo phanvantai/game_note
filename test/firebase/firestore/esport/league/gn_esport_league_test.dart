@@ -229,4 +229,109 @@ void main() {
       );
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // TournamentMode
+  // ---------------------------------------------------------------------------
+
+  group('TournamentMode.fromString', () {
+    test('"cup" → TournamentMode.cup', () {
+      expect(TournamentModeExtension.fromString('cup'), TournamentMode.cup);
+    });
+
+    test('"full" → TournamentMode.full', () {
+      expect(TournamentModeExtension.fromString('full'), TournamentMode.full);
+    });
+
+    test('"league" → TournamentMode.league', () {
+      expect(
+          TournamentModeExtension.fromString('league'), TournamentMode.league);
+    });
+
+    test('null hoặc lạ → fallback TournamentMode.league', () {
+      expect(TournamentModeExtension.fromString(null), TournamentMode.league);
+      expect(
+          TournamentModeExtension.fromString('unknown'), TournamentMode.league);
+    });
+  });
+
+  group('TournamentMode.value', () {
+    test('league → "league"', () {
+      expect(TournamentMode.league.value, 'league');
+    });
+    test('cup → "cup"', () {
+      expect(TournamentMode.cup.value, 'cup');
+    });
+    test('full → "full"', () {
+      expect(TournamentMode.full.value, 'full');
+    });
+  });
+
+  group('GNEsportLeague mode/groupCount/advanceCount/knockoutSeeding', () {
+    test('toMap persist mode, groupCount, advanceCount, knockoutSeeding', () {
+      final league = GNEsportLeague(
+        id: 'L1',
+        ownerId: 'owner',
+        groupId: 'G1',
+        name: 'Full League',
+        startDate: DateTime(2026, 1, 1),
+        isActive: true,
+        description: '',
+        participants: const [],
+        mode: TournamentMode.full,
+        groupCount: 4,
+        advanceCount: 2,
+        knockoutSeeding: const ['U1', 'U2'],
+      );
+      final map = league.toMap();
+
+      expect(map[GNEsportLeague.fieldMode], 'full');
+      expect(map[GNEsportLeague.fieldGroupCount], 4);
+      expect(map[GNEsportLeague.fieldAdvanceCount], 2);
+      expect(map[GNEsportLeague.fieldKnockoutSeeding], ['U1', 'U2']);
+    });
+
+    test('fromMap roundtrip giữ nguyên mode full + groupCount + advanceCount', () {
+      final original = GNEsportLeague(
+        id: 'L1',
+        ownerId: 'owner',
+        groupId: 'G1',
+        name: 'Full',
+        startDate: DateTime(2026, 1, 1),
+        isActive: true,
+        description: '',
+        participants: const [],
+        mode: TournamentMode.full,
+        groupCount: 2,
+        advanceCount: 1,
+        knockoutSeeding: const ['U3'],
+      );
+      final map = Map<String, dynamic>.from(original.toMap());
+      map[GNEsportLeague.fieldStartDate] = original.startDate;
+      final restored = GNEsportLeague.fromMap(map, original.id);
+
+      expect(restored.mode, TournamentMode.full);
+      expect(restored.groupCount, 2);
+      expect(restored.advanceCount, 1);
+      expect(restored.knockoutSeeding, ['U3']);
+    });
+
+    test('document cũ thiếu mode → fallback TournamentMode.league', () {
+      final legacy = <String, dynamic>{
+        GNEsportLeague.fieldOwnerId: 'owner',
+        GNEsportLeague.fieldGroupId: 'G1',
+        GNEsportLeague.fieldName: 'Old',
+        GNEsportLeague.fieldStartDate: DateTime(2025, 1, 1),
+        GNEsportLeague.fieldIsActive: true,
+        GNEsportLeague.fieldDescription: '',
+        GNEsportLeague.fieldParticipants: <String>[],
+      };
+      final restored = GNEsportLeague.fromMap(legacy, 'old');
+
+      expect(restored.mode, TournamentMode.league);
+      expect(restored.groupCount, 1);
+      expect(restored.advanceCount, 2);
+      expect(restored.knockoutSeeding, isEmpty);
+    });
+  });
 }

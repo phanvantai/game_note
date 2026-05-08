@@ -66,9 +66,12 @@ GNEsportMatch _match({
   int? awayScore,
   bool isFinished = true,
   int? matchCost,
+  int? knockoutRound,
+  GNUser? homeTeam,
+  GNUser? awayTeam,
 }) {
   return GNEsportMatch(
-    id: '$home-$away',
+    id: '$home-$away-${knockoutRound ?? ''}',
     homeTeamId: home,
     awayTeamId: away,
     homeScore: homeScore,
@@ -77,6 +80,10 @@ GNEsportMatch _match({
     isFinished: isFinished,
     leagueId: 'L1',
     matchCost: matchCost,
+    knockoutRound: knockoutRound,
+    phase: knockoutRound != null ? 'knockout' : null,
+    homeTeam: homeTeam,
+    awayTeam: awayTeam,
   );
 }
 
@@ -244,6 +251,53 @@ void main() {
 
       expect(find.text('+20k'), findsOneWidget);
       expect(find.text('-20k'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'bracket mode: bracketRankPayouts tính từ knockout matches',
+    (tester) async {
+      // Cup 4 người: semi(r=0) → final(r=1). Champion=A, runner-up=B, losers C,D
+      final knockoutMatches = [
+        _match(home: 'A', away: 'C', homeScore: 2, awayScore: 0, knockoutRound: 0,
+            homeTeam: _user('A', 'Alice'), awayTeam: _user('C', 'Charlie')),
+        _match(home: 'B', away: 'D', homeScore: 1, awayScore: 0, knockoutRound: 0,
+            homeTeam: _user('B', 'Bob'), awayTeam: _user('D', 'Dave')),
+        _match(home: 'A', away: 'B', homeScore: 2, awayScore: 1, knockoutRound: 1,
+            homeTeam: _user('A', 'Alice'), awayTeam: _user('B', 'Bob')),
+      ];
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(rankPayoutEnabled: true, rankPayouts: [100000, 50000]),
+        sortedStats: const [],
+        matches: const [],
+        isBracketMode: true,
+        knockoutMatches: knockoutMatches,
+      )));
+
+      expect(find.text('Chi phí'), findsOneWidget);
+      // Runner-up (B=Bob) trả 100k
+      expect(find.text('100k'), findsOneWidget);
+      // Semi-losers C,D trả 50k mỗi người → 2 dòng 50k
+      expect(find.text('50k'), findsNWidgets(2));
+    },
+  );
+
+  testWidgets(
+    'bracket mode: final chưa xong → không có transfer rank',
+    (tester) async {
+      final knockoutMatches = [
+        _match(home: 'A', away: 'B', homeScore: null, awayScore: null,
+            isFinished: false, knockoutRound: 0),
+      ];
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(rankPayoutEnabled: true, rankPayouts: [100000]),
+        sortedStats: const [],
+        matches: const [],
+        isBracketMode: true,
+        knockoutMatches: knockoutMatches,
+      )));
+
+      expect(find.text('Chưa có khoản nào'), findsOneWidget);
     },
   );
 
