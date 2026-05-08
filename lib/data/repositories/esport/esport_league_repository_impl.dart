@@ -4,6 +4,7 @@ import 'package:pes_arena/firebase/firestore/esport/league/gn_firestore_esport_l
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:pes_arena/injection_container.dart';
 
@@ -12,7 +13,7 @@ import '../../../firebase/firestore/gn_firestore.dart';
 
 class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   @override
-  Future<void> addLeague({
+  Future<String> addLeague({
     required String name,
     required String groupId,
     DateTime? startDate,
@@ -21,6 +22,11 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
     bool rankPayoutEnabled = false,
     List<int> rankPayouts = const [],
     int defaultMatchCost = 50000,
+    TournamentMode mode = TournamentMode.league,
+    int groupCount = 1,
+    int advanceCount = 2,
+    List<String> participants = const [],
+    List<String> knockoutSeeding = const [],
   }) {
     return getIt<GNFirestore>().addLeague(
       name: name,
@@ -31,6 +37,37 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       rankPayoutEnabled: rankPayoutEnabled,
       rankPayouts: rankPayouts,
       defaultMatchCost: defaultMatchCost,
+      mode: mode,
+      groupCount: groupCount,
+      advanceCount: advanceCount,
+      participants: participants,
+      knockoutSeeding: knockoutSeeding,
+    );
+  }
+
+  @override
+  Future<void> generateCupBracket({
+    required String leagueId,
+    required List<String> seededTeamIds,
+  }) {
+    return getIt<GNFirestore>().generateCupBracket(
+      leagueId: leagueId,
+      seededTeamIds: seededTeamIds,
+    );
+  }
+
+  @override
+  Future<void> generateFullTournament({
+    required String leagueId,
+    required List<List<String>> groups,
+    required int advanceCount,
+    List<String> knockoutSeeding = const [],
+  }) {
+    return getIt<GNFirestore>().generateFullTournament(
+      leagueId: leagueId,
+      groups: groups,
+      advanceCount: advanceCount,
+      knockoutSeeding: knockoutSeeding,
     );
   }
 
@@ -79,6 +116,11 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
+  Future<Map<String, GNUser>> getUsersByIds(List<String> userIds) {
+    return getIt<GNFirestore>().getUsersById(userIds);
+  }
+
+  @override
   Future<void> addParticipant(
       {required String leagueId, required String userId}) {
     return getIt<GNFirestore>().addParticipantToLeague(leagueId, userId);
@@ -95,6 +137,19 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       {required String leagueId, required List<String> teamIds}) {
     return getIt<GNFirestore>()
         .generateRound(leagueId: leagueId, teamIds: teamIds);
+  }
+
+  @override
+  Future<void> generateGroupRound({
+    required String leagueId,
+    required String groupId,
+    required List<String> teamIds,
+  }) {
+    return getIt<GNFirestore>().generateGroupRound(
+      leagueId: leagueId,
+      groupId: groupId,
+      teamIds: teamIds,
+    );
   }
 
   @override

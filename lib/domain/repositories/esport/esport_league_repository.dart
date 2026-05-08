@@ -1,8 +1,8 @@
+import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_firestore_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-
-import '../../../firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
 export 'package:pes_arena/firebase/firestore/esport/league/gn_firestore_esport_league.dart'
     show LeaguesPage;
@@ -55,7 +55,7 @@ abstract class EsportLeagueRepository {
 
   Future<GNEsportLeague?> getLeague(String leagueId);
 
-  Future<void> addLeague({
+  Future<String> addLeague({
     required String name,
     required String groupId,
     DateTime? startDate,
@@ -64,9 +64,28 @@ abstract class EsportLeagueRepository {
     bool rankPayoutEnabled = false,
     List<int> rankPayouts = const [],
     int defaultMatchCost = 50000,
+    TournamentMode mode,
+    int groupCount,
+    int advanceCount,
+    List<String> participants,
+    List<String> knockoutSeeding,
+  });
+
+  Future<void> generateCupBracket({
+    required String leagueId,
+    required List<String> seededTeamIds,
+  });
+
+  Future<void> generateFullTournament({
+    required String leagueId,
+    required List<List<String>> groups,
+    required int advanceCount,
+    List<String> knockoutSeeding,
   });
 
   Future<List<GNEsportLeagueStat>> getLeagueStats(String leagueId);
+
+  Future<Map<String, GNUser>> getUsersByIds(List<String> userIds);
 
   Future<void> addParticipant({
     required String leagueId,
@@ -80,6 +99,12 @@ abstract class EsportLeagueRepository {
 
   Future<void> generateRound({
     required String leagueId,
+    required List<String> teamIds,
+  });
+
+  Future<void> generateGroupRound({
+    required String leagueId,
+    required String groupId,
     required List<String> teamIds,
   });
 
