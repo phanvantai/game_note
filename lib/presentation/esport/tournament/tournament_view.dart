@@ -327,32 +327,38 @@ Future<void> openCreateTournament(BuildContext context) async {
             participants: participants,
             knockoutSeeding: knockoutSeeding,
           );
-          if (participants.isNotEmpty) {
-            await repo.addMultipleParticipants(
-              leagueId: id,
-              userIds: participants,
-            );
-          }
-          if (participants.length >= 2) {
-            switch (mode) {
-              case TournamentMode.league:
-                await repo.generateRound(leagueId: id, teamIds: participants);
-              case TournamentMode.cup:
-                await repo.generateCupBracket(leagueId: id, seededTeamIds: participants);
-              case TournamentMode.full:
-                final groups = List.generate(groupCount, (_) => <String>[]);
-                for (final entry in groupAssignment.entries) {
-                  if (entry.value < groups.length) {
-                    groups[entry.value].add(entry.key);
-                  }
-                }
-                await repo.generateFullTournament(
-                  leagueId: id,
-                  groups: groups,
-                  advanceCount: advanceCount,
-                  knockoutSeeding: knockoutSeeding,
-                );
+          try {
+            if (participants.isNotEmpty) {
+              await repo.addMultipleParticipants(
+                leagueId: id,
+                userIds: participants,
+              );
             }
+            if (participants.length >= 2) {
+              switch (mode) {
+                case TournamentMode.league:
+                  await repo.generateRound(leagueId: id, teamIds: participants);
+                case TournamentMode.cup:
+                  await repo.generateCupBracket(leagueId: id, seededTeamIds: participants);
+                case TournamentMode.full:
+                  final groups = List.generate(groupCount, (_) => <String>[]);
+                  for (final entry in groupAssignment.entries) {
+                    if (entry.value < groups.length) {
+                      groups[entry.value].add(entry.key);
+                    }
+                  }
+                  await repo.generateFullTournament(
+                    leagueId: id,
+                    groups: groups,
+                    advanceCount: advanceCount,
+                    knockoutSeeding: knockoutSeeding,
+                  );
+              }
+            }
+          } catch (e) {
+            // Roll back the league document so no zombie league is left behind.
+            await repo.deleteLeague(id);
+            rethrow;
           }
           tournamentBloc.add(LoadMyLeagues());
           tournamentBloc.add(LoadManagedLeagues());

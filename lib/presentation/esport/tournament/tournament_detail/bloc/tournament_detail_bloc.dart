@@ -56,7 +56,10 @@ class TournamentDetailBloc
     on<GenerateCup>(_onGenerateCup);
     on<GenerateFull>(_onGenerateFull);
     on<SelectGroup>((event, emit) {
-      emit(state.copyWith(selectedGroupId: event.groupId));
+      emit(state.copyWith(
+        selectedGroupId: event.groupId,
+        clearSelectedGroupId: event.groupId == null,
+      ));
     });
     on<LoadLeagueError>((event, emit) {
       emit(
@@ -286,7 +289,7 @@ class TournamentDetailBloc
     }
   }
 
-  void _onUpdateLeague(
+  Future<void> _onUpdateLeague(
     UpdateLeague event,
     Emitter<TournamentDetailState> emit,
   ) async {
@@ -323,7 +326,7 @@ class TournamentDetailBloc
     }
   }
 
-  void _onUpdateMatches(
+  Future<void> _onUpdateMatches(
     UpdateMatches event,
     Emitter<TournamentDetailState> emit,
   ) async {
@@ -631,7 +634,7 @@ class TournamentDetailBloc
     }
   }
 
-  void _onGenerateGroupRound(
+  Future<void> _onGenerateGroupRound(
     GenerateGroupRound event,
     Emitter<TournamentDetailState> emit,
   ) async {
@@ -641,7 +644,10 @@ class TournamentDetailBloc
         .where((p) => p.groupId == event.groupId)
         .map((p) => p.userId)
         .toList();
-    if (teamIds.length < 2) return;
+    if (teamIds.length < 2) {
+      showToast('Bảng cần ít nhất 2 người chơi để tạo vòng đấu');
+      return;
+    }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _esportLeagueRepository.generateGroupRound(

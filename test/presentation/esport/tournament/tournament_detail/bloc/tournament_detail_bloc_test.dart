@@ -564,6 +564,47 @@ void main() {
       ]);
       expect(s.results.map((e) => e.id), ['m2']);
     });
+
+    test('copyWith giữ nguyên selectedGroupId khi không truyền tham số', () {
+      const state = TournamentDetailState(selectedGroupId: 'A');
+      expect(state.copyWith().selectedGroupId, 'A');
+    });
+
+    test('copyWith(clearSelectedGroupId: true) xoá selectedGroupId về null', () {
+      const state = TournamentDetailState(selectedGroupId: 'A');
+      expect(state.copyWith(clearSelectedGroupId: true).selectedGroupId, isNull);
+    });
+
+    test('copyWith(selectedGroupId: "B") cập nhật selectedGroupId', () {
+      const state = TournamentDetailState(selectedGroupId: 'A');
+      expect(state.copyWith(selectedGroupId: 'B').selectedGroupId, 'B');
+    });
+  });
+
+  group('SelectGroup', () {
+    blocTest<TournamentDetailBloc, TournamentDetailState>(
+      'SelectGroup với groupId → emit state có selectedGroupId',
+      build: build,
+      act: (bloc) => bloc.add(const SelectGroup('A')),
+      expect: () => [
+        isA<TournamentDetailState>()
+            .having((s) => s.selectedGroupId, 'selectedGroupId', 'A'),
+      ],
+    );
+
+    blocTest<TournamentDetailBloc, TournamentDetailState>(
+      'SelectGroup(null) → emit state với selectedGroupId = null',
+      build: () {
+        final b = build();
+        b.emit(b.state.copyWith(selectedGroupId: 'A'));
+        return b;
+      },
+      act: (bloc) => bloc.add(const SelectGroup(null)),
+      expect: () => [
+        isA<TournamentDetailState>()
+            .having((s) => s.selectedGroupId, 'selectedGroupId', isNull),
+      ],
+    );
   });
 
   // ---------- handlers còn lại ----------

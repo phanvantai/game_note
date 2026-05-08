@@ -86,9 +86,9 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     required String groupId,
     required List<String> teamIds,
   }) async {
-    final batch = firestore.batch();
     final matchPath =
         '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
+    final docs = <MapEntry<String, Map<String, dynamic>>>[];
     for (int i = 0; i < teamIds.length; i++) {
       for (int j = i + 1; j < teamIds.length; j++) {
         final matchId = firestore.collection(matchPath).doc().id;
@@ -104,10 +104,10 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
           phase: 'group',
           groupId: groupId,
         );
-        batch.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+        docs.add(MapEntry('$matchPath/$matchId', match.toMap()));
       }
     }
-    await batch.commit();
+    await _writeBatched(docs);
   }
 
   /// Generate a single-elimination knockout bracket.
@@ -143,7 +143,7 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       ),
     );
 
-    final batch = firestore.batch();
+    final docs = <MapEntry<String, Map<String, dynamic>>>[];
 
     for (int r = 0; r < totalRounds; r++) {
       final slotsInRound = r0SlotCount >> r;
@@ -177,11 +177,11 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
           nextMatchId: nextMatchId,
         );
 
-        batch.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+        docs.add(MapEntry('$matchPath/$matchId', match.toMap()));
       }
     }
 
-    await batch.commit();
+    await _writeBatched(docs);
   }
 
   /// Generate a full-tournament: group stage (round-robin per group) +
@@ -203,7 +203,6 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         'must be a power of 2',
       );
     }
-    final batch = firestore.batch();
     final matchPath =
         '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
 
@@ -212,9 +211,12 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       groups.length,
       (i) => String.fromCharCode('A'.codeUnitAt(0) + i),
     );
-    // Create per-group stat docs for each player.
-    // We don't await inside the batch loop — fire-and-forget alongside batch.
+
+    // Stat docs first: if stat creation fails we haven't written any matches,
+    // so there is no partial state to clean up.
     final statFutures = <Future<void>>[];
+    final docs = <MapEntry<String, Map<String, dynamic>>>[];
+
     for (int g = 0; g < groups.length; g++) {
       final groupId = groupLabels[g];
       final groupMembers = groups[g];
@@ -238,7 +240,7 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
             phase: 'group',
             groupId: groupId,
           );
-          batch.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+          docs.add(MapEntry('$matchPath/$matchId', match.toMap()));
         }
       }
     }
@@ -285,11 +287,13 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
           knockoutSlot: s,
           nextMatchId: nextMatchId,
         );
-        batch.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+        docs.add(MapEntry('$matchPath/$matchId', match.toMap()));
       }
     }
 
-    await Future.wait([batch.commit(), ...statFutures]);
+    // Stat docs before match docs: if stats fail, no matches are written.
+    await Future.wait(statFutures);
+    await _writeBatched(docs);
   }
 
   // get matches of a league
@@ -348,7 +352,7 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
     final matchRef = firestore.doc('$matchPath/$matchId');
 
-    // Fetch match outside transaction so we can resolve refs that require
+    // Fetch match outside transaction so we can resolve stat refs that require
     // queries (which aren't allowed inside a Firestore transaction).
     final initialSnap = await matchRef.get();
     if (!initialSnap.exists) throw Exception('Match not found');
@@ -356,9 +360,8 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
 
     final isKnockout = m.phase == 'knockout';
 
-    // --- Resolve refs outside transaction ---
+    // Stat refs require a query, so we resolve them outside the transaction.
     DocumentReference<Map<String, dynamic>>? homeStatRef, awayStatRef;
-    DocumentReference<Map<String, dynamic>>? nextMatchRef;
 
     if (!isKnockout &&
         m.homeTeamId.isNotEmpty &&
@@ -369,10 +372,6 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       ]);
       homeStatRef = refs[0];
       awayStatRef = refs[1];
-    }
-
-    if (isKnockout && m.nextMatchId != null) {
-      nextMatchRef = firestore.doc('$matchPath/${m.nextMatchId}');
     }
 
     await firestore.runTransaction((txn) async {
@@ -435,13 +434,15 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         GNEsportMatch.fieldUpdatedAt: FieldValue.serverTimestamp(),
       });
 
-      // Advance knockout winner into the next bracket slot.
-      if (isKnockout && nextMatchRef != null && newMatch.isFinished) {
+      // Advance knockout winner into the next bracket slot using
+      // transaction-fresh data so we never act on a stale nextMatchId.
+      if (isKnockout && newMatch.isFinished && current.nextMatchId != null) {
+        final nextRef = firestore.doc('$matchPath/${current.nextMatchId}');
         final winnerId = newMatch.homeScore! >= newMatch.awayScore!
             ? current.homeTeamId
             : current.awayTeamId;
         final isEvenSlot = (current.knockoutSlot ?? 0).isEven;
-        txn.update(nextMatchRef, {
+        txn.update(nextRef, {
           isEvenSlot
               ? GNEsportMatch.fieldHomeTeamId
               : GNEsportMatch.fieldAwayTeamId: winnerId,
@@ -516,6 +517,23 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
   }
 
   // --- Helpers --------------------------------------------------------------
+
+  static const int _kBatchLimit = 499;
+
+  /// Writes [docs] (path → data pairs) in chunks of [_kBatchLimit] to stay
+  /// under Firestore's 500-write-per-batch ceiling.
+  Future<void> _writeBatched(
+    List<MapEntry<String, Map<String, dynamic>>> docs,
+  ) async {
+    for (int i = 0; i < docs.length; i += _kBatchLimit) {
+      final end = (i + _kBatchLimit).clamp(0, docs.length);
+      final batch = firestore.batch();
+      for (final entry in docs.sublist(i, end)) {
+        batch.set(firestore.doc(entry.key), entry.value);
+      }
+      await batch.commit();
+    }
+  }
 
   Future<DocumentReference<Map<String, dynamic>>> _statRefForUser(
     String leagueId,

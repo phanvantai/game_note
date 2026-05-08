@@ -36,6 +36,7 @@ class TournamentDetailState extends Equatable {
     List<GNUser>? users,
     int? refreshTick,
     String? selectedGroupId,
+    bool clearSelectedGroupId = false,
   }) {
     return TournamentDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
@@ -45,7 +46,9 @@ class TournamentDetailState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       users: users ?? this.users,
       refreshTick: refreshTick ?? this.refreshTick,
-      selectedGroupId: selectedGroupId ?? this.selectedGroupId,
+      selectedGroupId: clearSelectedGroupId
+          ? null
+          : (selectedGroupId ?? this.selectedGroupId),
     );
   }
 

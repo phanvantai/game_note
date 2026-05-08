@@ -183,6 +183,11 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
+  Future<void> deleteLeague(String leagueId) {
+    return getIt<GNFirestore>().deleteLeague(leagueId);
+  }
+
+  @override
   Future<void> deleteMatch(GNEsportMatch match) {
     return getIt<GNFirestore>().deleteMatch(match);
   }

@@ -250,6 +250,14 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
         ? _seededOrder
         : _selectedParticipantIds;
 
+    if (_mode == TournamentMode.cup) {
+      final n = participants.length;
+      if (n < 2 || (n & (n - 1)) != 0) {
+        showToast('Cup cần số người là lũy thừa của 2 (2, 4, 8, 16...)');
+        return;
+      }
+    }
+
     final leagueId = await widget.onAddLeague(
       name: _nameController.text.trim(),
       groupId: _selectedGroup!.id,

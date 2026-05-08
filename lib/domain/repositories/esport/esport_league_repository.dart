@@ -112,6 +112,7 @@ abstract class EsportLeagueRepository {
   Future<void> updateMatch(GNEsportMatch match);
   Future<void> updateLeague(GNEsportLeague league);
   Future<void> inactiveLeague(GNEsportLeague league);
+  Future<void> deleteLeague(String leagueId);
   Future<void> deleteMatch(GNEsportMatch match);
   Future<void> createCustomMatch(GNEsportMatch match);
 

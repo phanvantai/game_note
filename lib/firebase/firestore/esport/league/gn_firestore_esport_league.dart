@@ -334,6 +334,13 @@ extension GNFirestoreEsportLeague on GNFirestore {
     await leagueRef.update({GNEsportLeague.fieldIsActive: false});
   }
 
+  Future<void> deleteLeague(String leagueId) async {
+    await firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .delete();
+  }
+
   // listen for league updated
   Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId) {
     return firestore
