@@ -35,21 +35,25 @@ class _GroupDetailViewState extends State<GroupDetailView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _overviewLoaded) return;
       _overviewLoaded = true;
-      final groupId = context.read<GroupDetailBloc>().state.group.id;
-      context.read<GroupDetailBloc>()
-        ..add(LoadGroupOverview(groupId))
-        ..add(LoadGroupLeagues(groupId));
+      final bloc = context.read<GroupDetailBloc>();
+      final state = bloc.state;
+      final isMember = state.group.members.contains(state.currentUserId);
+      if (!isMember) return;
+      bloc
+        ..add(LoadGroupOverview(state.group.id))
+        ..add(LoadGroupLeagues(state.group.id));
     });
   }
 
   void _onTabChanged() {
-    final groupId = context.read<GroupDetailBloc>().state.group.id;
-    if (_tabController.index == 0 && !_overviewLoaded) {
-      _overviewLoaded = true;
-      context.read<GroupDetailBloc>()
-        ..add(LoadGroupOverview(groupId))
-        ..add(LoadGroupLeagues(groupId));
-    }
+    if (_tabController.index != 0 || _overviewLoaded) return;
+    _overviewLoaded = true;
+    final bloc = context.read<GroupDetailBloc>();
+    final state = bloc.state;
+    if (!state.group.members.contains(state.currentUserId)) return;
+    bloc
+      ..add(LoadGroupOverview(state.group.id))
+      ..add(LoadGroupLeagues(state.group.id));
   }
 
   @override

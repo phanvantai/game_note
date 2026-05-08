@@ -55,6 +55,11 @@ class _SettingView extends StatelessWidget {
               const SizedBox(height: 16),
               _SettingsSection(
                 children: [
+                  _SettingActionTile(
+                    icon: Icons.person_outline,
+                    title: 'Cập nhật thông tin',
+                    onTap: () => context.push(Routing.updateProfile),
+                  ),
                   if (auth.isSignInWithEmailAndPassword)
                     _SettingActionTile(
                       icon: Icons.lock_outline,
