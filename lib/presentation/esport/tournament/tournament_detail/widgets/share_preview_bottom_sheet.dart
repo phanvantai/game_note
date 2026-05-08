@@ -42,10 +42,20 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
   late AnimationController _controller;
   late Animation<double> _scaleAnim;
   bool _sharing = false;
-  bool _isDark = true;
+  bool _isDark = false;
+  bool _themeInitialized = false;
 
   Uint8List get _activeImage =>
       _isDark ? widget.darkImageBytes : widget.lightImageBytes;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_themeInitialized) {
+      _themeInitialized = true;
+      _isDark = Theme.of(context).brightness == Brightness.dark;
+    }
+  }
 
   @override
   void initState() {

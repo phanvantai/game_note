@@ -18,7 +18,7 @@ class EsportTableView extends StatelessWidget {
   static const double tableRowHeight = 52.0;
   static const double tableIconColumnWidth = 44.0;
   static const double tableNameColumnWidth = 126.0;
-  static const double tableStatsColumnWidth = 36.0;
+  static const double tableStatsColumnWidth = 40.0;
 
   static const _gold = Color(0xFFFBBF24);
   static const _silver = Color(0xFF9CA3AF);
