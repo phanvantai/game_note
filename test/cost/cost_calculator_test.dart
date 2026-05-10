@@ -31,6 +31,7 @@ GNEsportMatch _match({
   int? awayScore,
   bool isFinished = true,
   int? matchCost,
+  int? costPerGoal,
   int? knockoutRound,
 }) {
   return GNEsportMatch(
@@ -43,6 +44,7 @@ GNEsportMatch _match({
     isFinished: isFinished,
     leagueId: 'L',
     matchCost: matchCost,
+    costPerGoal: costPerGoal,
     knockoutRound: knockoutRound,
     phase: knockoutRound != null ? 'knockout' : null,
   );
@@ -221,6 +223,93 @@ void main() {
       );
       expect(cd.fromUserId, 'C');
       expect(cd.amount, 100000);
+    });
+
+    test('per-goal addon: 3-1 với base 50k + perGoal 50k → loser trả 150k', () {
+      final transfers = CostCalculator.matchCosts([
+        _match(
+          home: 'A',
+          away: 'B',
+          homeScore: 3,
+          awayScore: 1,
+          matchCost: 50000,
+          costPerGoal: 50000,
+        ),
+      ]);
+      expect(transfers, hasLength(1));
+      expect(transfers.first.fromUserId, 'B');
+      expect(transfers.first.toUserId, 'A');
+      expect(transfers.first.amount, 50000 + 2 * 50000);
+    });
+
+    test('per-goal addon: hoà 2-2 vẫn skip dù costPerGoal > 0', () {
+      final transfers = CostCalculator.matchCosts([
+        _match(
+          home: 'A',
+          away: 'B',
+          homeScore: 2,
+          awayScore: 2,
+          matchCost: 50000,
+          costPerGoal: 50000,
+        ),
+      ]);
+      expect(transfers, isEmpty);
+    });
+
+    test('per-goal addon: matchCost=0 vẫn skip dù costPerGoal > 0', () {
+      final transfers = CostCalculator.matchCosts([
+        _match(
+          home: 'A',
+          away: 'B',
+          homeScore: 3,
+          awayScore: 0,
+          matchCost: 0,
+          costPerGoal: 50000,
+        ),
+      ]);
+      expect(transfers, isEmpty);
+    });
+
+    test('per-goal addon: costPerGoal null → chỉ tính base', () {
+      final transfers = CostCalculator.matchCosts([
+        _match(
+          home: 'A',
+          away: 'B',
+          homeScore: 5,
+          awayScore: 0,
+          matchCost: 50000,
+        ),
+      ]);
+      expect(transfers, hasLength(1));
+      expect(transfers.first.amount, 50000);
+    });
+
+    test('per-goal addon: netting same pair với 2 trận khác hiệu số', () {
+      // Trận 1: A thắng B 3-0 → B trả 50k + 3*50k = 200k
+      // Trận 2: B thắng A 1-0 → A trả 50k + 1*50k = 100k
+      // Net: B trả A 100k
+      final transfers = CostCalculator.matchCosts([
+        _match(
+          home: 'A',
+          away: 'B',
+          homeScore: 3,
+          awayScore: 0,
+          matchCost: 50000,
+          costPerGoal: 50000,
+        ),
+        _match(
+          home: 'B',
+          away: 'A',
+          homeScore: 1,
+          awayScore: 0,
+          matchCost: 50000,
+          costPerGoal: 50000,
+        ),
+      ]);
+      expect(transfers, hasLength(1));
+      expect(transfers.first.fromUserId, 'B');
+      expect(transfers.first.toUserId, 'A');
+      expect(transfers.first.amount, 100000);
     });
   });
 

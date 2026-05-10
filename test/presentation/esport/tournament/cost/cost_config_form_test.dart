@@ -81,11 +81,12 @@ void main() {
   });
 
   group('CostConfigForm — render', () {
-    testWidgets('default: switch off + default cost field hiển thị "50"',
+    testWidgets('default: 2 switch off + default cost field hiển thị "50"',
         (tester) async {
       await tester.pumpWidget(_wrap(const CostConfigForm()));
 
-      expect(find.byType(Switch), findsOneWidget);
+      // 2 switch: rank payout + per-goal addon. Cả hai mặc định off.
+      expect(find.byType(Switch), findsNWidgets(2));
       expect(find.text('VD: 50, 100, 150 (k VND)'), findsNothing);
       expect(find.text('Tiền mặc định mỗi trận (k VND)'), findsOneWidget);
       expect(find.widgetWithText(TextField, '50'), findsOneWidget);
@@ -125,11 +126,11 @@ void main() {
 
       expect(find.widgetWithText(TextField, '50, 100, 150'), findsNothing);
 
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.byType(Switch).first);
       await tester.pump();
       expect(find.widgetWithText(TextField, '50, 100, 150'), findsOneWidget);
 
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.byType(Switch).first);
       await tester.pump();
       expect(find.widgetWithText(TextField, '50, 100, 150'), findsNothing);
     });
@@ -279,7 +280,7 @@ void main() {
 
       expect(find.byType(ActionChip), findsNothing);
 
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.byType(Switch).first);
       await tester.pump();
 
       expect(find.byType(ActionChip), findsNWidgets(3));
@@ -403,6 +404,62 @@ void main() {
       await tester.enterText(find.widgetWithText(TextField, '50'), '75');
       final result = key.currentState!.validateAndCollect();
       expect(result!.defaultMatchCost, 75000);
+    });
+
+    testWidgets('default per-goal off ⇒ defaultCostPerGoal = 0', (tester) async {
+      final key = GlobalKey<CostConfigFormState>();
+      await tester.pumpWidget(_wrap(CostConfigForm(key: key)));
+
+      final result = key.currentState!.validateAndCollect();
+      expect(result!.defaultPerGoalEnabled, isFalse);
+      expect(result.defaultCostPerGoal, 0);
+    });
+
+    testWidgets('bật per-goal qua initial ⇒ collect đúng giá trị k×1000',
+        (tester) async {
+      final key = GlobalKey<CostConfigFormState>();
+      await tester.pumpWidget(_wrap(CostConfigForm(
+        key: key,
+        initialDefaultPerGoalEnabled: true,
+        initialDefaultCostPerGoal: 70000,
+      )));
+
+      final result = key.currentState!.validateAndCollect();
+      expect(result!.defaultPerGoalEnabled, isTrue);
+      expect(result.defaultCostPerGoal, 70000);
+    });
+
+    testWidgets(
+        'toggle per-goal switch ⇒ ô "Tiền mỗi bàn (k VND)" hiện/ẩn',
+        (tester) async {
+      await tester.pumpWidget(_wrap(const CostConfigForm()));
+
+      expect(find.text('Tiền mỗi bàn (k VND)'), findsNothing);
+
+      // Switch thứ 2 là per-goal (switch đầu là rank payout).
+      await tester.tap(find.byType(Switch).at(1));
+      await tester.pump();
+      expect(find.text('Tiền mỗi bàn (k VND)'), findsOneWidget);
+
+      await tester.tap(find.byType(Switch).at(1));
+      await tester.pump();
+      expect(find.text('Tiền mỗi bàn (k VND)'), findsNothing);
+    });
+
+    testWidgets('per-goal field rỗng khi enabled ⇒ fallback 50k',
+        (tester) async {
+      final key = GlobalKey<CostConfigFormState>();
+      await tester.pumpWidget(_wrap(CostConfigForm(
+        key: key,
+        initialDefaultPerGoalEnabled: true,
+      )));
+
+      await tester.enterText(
+        find.widgetWithText(TextField, '50').last,
+        '',
+      );
+      final result = key.currentState!.validateAndCollect();
+      expect(result!.defaultCostPerGoal, 50000);
     });
   });
 }

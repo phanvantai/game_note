@@ -64,6 +64,8 @@ abstract class EsportLeagueRepository {
     bool rankPayoutEnabled = false,
     List<int> rankPayouts = const [],
     int defaultMatchCost = 50000,
+    bool defaultPerGoalEnabled = false,
+    int defaultCostPerGoal = 50000,
     TournamentMode mode,
     int groupCount,
     int advanceCount,

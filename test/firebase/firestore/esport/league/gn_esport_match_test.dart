@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 
-GNEsportMatch _match({int? matchCost}) {
+GNEsportMatch _match({int? matchCost, int? costPerGoal}) {
   return GNEsportMatch(
     id: 'M1',
     homeTeamId: 'A',
@@ -12,6 +12,7 @@ GNEsportMatch _match({int? matchCost}) {
     isFinished: true,
     leagueId: 'L1',
     matchCost: matchCost,
+    costPerGoal: costPerGoal,
   );
 }
 
@@ -33,6 +34,17 @@ void main() {
       expect(map.containsKey(GNEsportMatch.fieldMatchCost), isTrue);
       expect(map[GNEsportMatch.fieldMatchCost], isNull);
     });
+
+    test('persist costPerGoal khi có giá trị', () {
+      final map = _match(matchCost: 50000, costPerGoal: 60000).toMap();
+      expect(map[GNEsportMatch.fieldCostPerGoal], 60000);
+    });
+
+    test('costPerGoal null vẫn lưu key (Firestore distinguish unset)', () {
+      final map = _match(matchCost: 50000).toMap();
+      expect(map.containsKey(GNEsportMatch.fieldCostPerGoal), isTrue);
+      expect(map[GNEsportMatch.fieldCostPerGoal], isNull);
+    });
   });
 
   group('GNEsportMatch.fromMap', () {
@@ -44,6 +56,14 @@ void main() {
       expect(restored.matchCost, 75000);
     });
 
+    test('roundtrip giữ costPerGoal', () {
+      final original = _match(matchCost: 50000, costPerGoal: 60000);
+      final map = Map<String, dynamic>.from(original.toMap());
+      map[GNEsportMatch.fieldDate] = original.date;
+      final restored = GNEsportMatch.fromMap(map, original.id);
+      expect(restored.costPerGoal, 60000);
+    });
+
     test('document cũ thiếu matchCost: trả về null', () {
       final legacy = <String, dynamic>{
         GNEsportMatch.fieldHomeTeamId: 'A',
@@ -53,10 +73,11 @@ void main() {
         GNEsportMatch.fieldDate: DateTime(2025, 1, 1),
         GNEsportMatch.fieldIsFinished: true,
         GNEsportMatch.fieldLeagueId: 'L1',
-        // không có matchCost
+        // không có matchCost / costPerGoal
       };
       final restored = GNEsportMatch.fromMap(legacy, 'old');
       expect(restored.matchCost, isNull);
+      expect(restored.costPerGoal, isNull);
     });
   });
 
@@ -83,6 +104,7 @@ void main() {
         isFinished: false,
         leagueId: 'L9',
         matchCost: 99,
+        costPerGoal: 33,
       );
       expect(m.id, 'X');
       expect(m.homeTeamId, 'P1');
@@ -93,6 +115,7 @@ void main() {
       expect(m.isFinished, false);
       expect(m.leagueId, 'L9');
       expect(m.matchCost, 99);
+      expect(m.costPerGoal, 33);
     });
 
     test('props equality: 2 match cùng data thì equal', () {

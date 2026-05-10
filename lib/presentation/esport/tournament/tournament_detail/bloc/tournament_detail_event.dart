@@ -139,15 +139,25 @@ class UpdateLeagueCostConfig extends TournamentDetailEvent {
   final bool rankPayoutEnabled;
   final List<int> rankPayouts;
   final int defaultMatchCost;
+  final bool defaultPerGoalEnabled;
+  final int defaultCostPerGoal;
 
   const UpdateLeagueCostConfig({
     required this.rankPayoutEnabled,
     required this.rankPayouts,
     required this.defaultMatchCost,
+    required this.defaultPerGoalEnabled,
+    required this.defaultCostPerGoal,
   });
 
   @override
-  List<Object> get props => [rankPayoutEnabled, rankPayouts, defaultMatchCost];
+  List<Object> get props => [
+        rankPayoutEnabled,
+        rankPayouts,
+        defaultMatchCost,
+        defaultPerGoalEnabled,
+        defaultCostPerGoal,
+      ];
 }
 
 class UpdateMatches extends TournamentDetailEvent {

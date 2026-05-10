@@ -6,6 +6,8 @@ GNEsportLeague _league({
   bool rankPayoutEnabled = false,
   List<int> rankPayouts = const [],
   int defaultMatchCost = 50000,
+  bool defaultPerGoalEnabled = false,
+  int defaultCostPerGoal = 50000,
 }) {
   return GNEsportLeague(
     id: 'L1',
@@ -21,6 +23,8 @@ GNEsportLeague _league({
     rankPayoutEnabled: rankPayoutEnabled,
     rankPayouts: rankPayouts,
     defaultMatchCost: defaultMatchCost,
+    defaultPerGoalEnabled: defaultPerGoalEnabled,
+    defaultCostPerGoal: defaultCostPerGoal,
   );
 }
 
@@ -31,11 +35,15 @@ void main() {
         rankPayoutEnabled: true,
         rankPayouts: [50000, 100000, 150000],
         defaultMatchCost: 75000,
+        defaultPerGoalEnabled: true,
+        defaultCostPerGoal: 60000,
       ).toMap();
 
       expect(map[GNEsportLeague.fieldRankPayoutEnabled], isTrue);
       expect(map[GNEsportLeague.fieldRankPayouts], [50000, 100000, 150000]);
       expect(map[GNEsportLeague.fieldDefaultMatchCost], 75000);
+      expect(map[GNEsportLeague.fieldDefaultPerGoalEnabled], isTrue);
+      expect(map[GNEsportLeague.fieldDefaultCostPerGoal], 60000);
     });
 
     test('không có key matchCostEnabled (đã bỏ)', () {
@@ -50,6 +58,8 @@ void main() {
         rankPayoutEnabled: true,
         rankPayouts: [50000, 100000],
         defaultMatchCost: 80000,
+        defaultPerGoalEnabled: true,
+        defaultCostPerGoal: 60000,
       );
       // toMap không bao gồm `id` (Firestore tự gán doc.id) — phải truyền lại.
       final map = Map<String, dynamic>.from(original.toMap());
@@ -61,6 +71,8 @@ void main() {
       expect(restored.rankPayoutEnabled, true);
       expect(restored.rankPayouts, [50000, 100000]);
       expect(restored.defaultMatchCost, 80000);
+      expect(restored.defaultPerGoalEnabled, true);
+      expect(restored.defaultCostPerGoal, 60000);
     });
 
     test('document cũ thiếu field cost: fallback về default (an toàn)', () {
@@ -81,6 +93,8 @@ void main() {
       expect(restored.rankPayoutEnabled, false);
       expect(restored.rankPayouts, isEmpty);
       expect(restored.defaultMatchCost, 50000);
+      expect(restored.defaultPerGoalEnabled, false);
+      expect(restored.defaultCostPerGoal, 50000);
     });
 
     test('rankPayouts là List<dynamic> (Firestore trả): parse thành List<int>',
@@ -158,6 +172,8 @@ void main() {
         rankPayoutEnabled: true,
         rankPayouts: const [50000],
         defaultMatchCost: 99000,
+        defaultPerGoalEnabled: true,
+        defaultCostPerGoal: 70000,
       );
       expect(copy.id, 'L2');
       expect(copy.ownerId, 'newOwner');
@@ -172,6 +188,8 @@ void main() {
       expect(copy.rankPayoutEnabled, true);
       expect(copy.rankPayouts, [50000]);
       expect(copy.defaultMatchCost, 99000);
+      expect(copy.defaultPerGoalEnabled, true);
+      expect(copy.defaultCostPerGoal, 70000);
     });
 
     test('props equality: 2 instance cùng data thì equal', () {

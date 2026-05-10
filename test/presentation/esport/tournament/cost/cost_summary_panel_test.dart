@@ -10,6 +10,8 @@ GNEsportLeague _league({
   bool rankPayoutEnabled = false,
   List<int> rankPayouts = const [],
   String? status,
+  bool defaultPerGoalEnabled = false,
+  int defaultCostPerGoal = 50000,
 }) {
   return GNEsportLeague(
     id: 'L1',
@@ -23,6 +25,8 @@ GNEsportLeague _league({
     status: status,
     rankPayoutEnabled: rankPayoutEnabled,
     rankPayouts: rankPayouts,
+    defaultPerGoalEnabled: defaultPerGoalEnabled,
+    defaultCostPerGoal: defaultCostPerGoal,
   );
 }
 
@@ -66,6 +70,7 @@ GNEsportMatch _match({
   int? awayScore,
   bool isFinished = true,
   int? matchCost,
+  int? costPerGoal,
   int? knockoutRound,
   GNUser? homeTeam,
   GNUser? awayTeam,
@@ -80,6 +85,7 @@ GNEsportMatch _match({
     isFinished: isFinished,
     leagueId: 'L1',
     matchCost: matchCost,
+    costPerGoal: costPerGoal,
     knockoutRound: knockoutRound,
     phase: knockoutRound != null ? 'knockout' : null,
     homeTeam: homeTeam,
@@ -298,6 +304,115 @@ void main() {
       )));
 
       expect(find.text('Chưa có khoản nào'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'tách 2 sub-section "Theo thứ hạng" và "Theo trận" khi cả hai cùng có dữ liệu',
+    (tester) async {
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(
+          rankPayoutEnabled: true,
+          rankPayouts: const [50000],
+          status: GNEsportLeagueStatus.finished.value,
+        ),
+        sortedStats: [
+          _stat('A', 'Alice', wins: 1),
+          _stat('B', 'Bob'),
+        ],
+        matches: [
+          _match(home: 'B', away: 'A', homeScore: 0, awayScore: 2,
+              matchCost: 30000),
+        ],
+      )));
+
+      expect(find.text('Theo thứ hạng'), findsOneWidget);
+      expect(find.text('Theo trận'), findsOneWidget);
+      // Net: A nhận 50k + 30k = 80k.
+      expect(find.text('+80k'), findsOneWidget);
+      expect(find.text('-80k'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'chỉ rank ⇒ không hiện heading "Theo trận"',
+    (tester) async {
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(
+          rankPayoutEnabled: true,
+          rankPayouts: const [50000],
+          status: 'ongoing',
+        ),
+        sortedStats: [
+          _stat('A', 'Alice', wins: 1),
+          _stat('B', 'Bob'),
+        ],
+        matches: const [],
+      )));
+
+      expect(find.text('Theo thứ hạng'), findsOneWidget);
+      expect(find.text('Theo trận'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'chỉ match cost ⇒ không hiện heading "Theo thứ hạng"',
+    (tester) async {
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(),
+        sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
+        matches: [
+          _match(home: 'A', away: 'B', homeScore: 1, awayScore: 0,
+              matchCost: 50000),
+        ],
+      )));
+
+      expect(find.text('Theo thứ hạng'), findsNothing);
+      expect(find.text('Theo trận'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'bracket mode ⇒ heading section là "Theo bracket"',
+    (tester) async {
+      final knockoutMatches = [
+        _match(home: 'A', away: 'B', homeScore: 2, awayScore: 1, knockoutRound: 0,
+            homeTeam: _user('A', 'Alice'), awayTeam: _user('B', 'Bob')),
+      ];
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(rankPayoutEnabled: true, rankPayouts: [100000]),
+        sortedStats: const [],
+        matches: const [],
+        isBracketMode: true,
+        knockoutMatches: knockoutMatches,
+      )));
+
+      expect(find.text('Theo bracket'), findsOneWidget);
+      expect(find.text('Theo thứ hạng'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'per-goal addon: 3-1 với base 50k + perGoal 50k → loser trả 150k',
+    (tester) async {
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(),
+        sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
+        matches: [
+          _match(
+            home: 'A',
+            away: 'B',
+            homeScore: 3,
+            awayScore: 1,
+            matchCost: 50000,
+            costPerGoal: 50000,
+          ),
+        ],
+      )));
+
+      expect(find.text('150k'), findsOneWidget);
+      expect(find.text('+150k'), findsOneWidget);
+      expect(find.text('-150k'), findsOneWidget);
     },
   );
 

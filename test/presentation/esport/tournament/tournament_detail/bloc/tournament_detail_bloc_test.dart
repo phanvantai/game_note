@@ -133,6 +133,8 @@ void main() {
         rankPayoutEnabled: true,
         rankPayouts: [50000],
         defaultMatchCost: 50000,
+        defaultPerGoalEnabled: false,
+        defaultCostPerGoal: 0,
       )),
       expect: () => const <TournamentDetailState>[],
       verify: (_) => verifyNever(() => repo.updateLeague(any())),
@@ -148,6 +150,8 @@ void main() {
         rankPayoutEnabled: true,
         rankPayouts: [50000, 100000],
         defaultMatchCost: 80000,
+        defaultPerGoalEnabled: true,
+        defaultCostPerGoal: 70000,
       )),
       expect: () => [
         // emit loading
@@ -166,6 +170,16 @@ void main() {
               (s) => s.league?.defaultMatchCost,
               'defaultMatchCost',
               80000,
+            )
+            .having(
+              (s) => s.league?.defaultPerGoalEnabled,
+              'defaultPerGoalEnabled',
+              true,
+            )
+            .having(
+              (s) => s.league?.defaultCostPerGoal,
+              'defaultCostPerGoal',
+              70000,
             ),
       ],
       verify: (_) {
@@ -176,6 +190,8 @@ void main() {
         expect(passed.rankPayoutEnabled, isTrue);
         expect(passed.rankPayouts, [50000, 100000]);
         expect(passed.defaultMatchCost, 80000);
+        expect(passed.defaultPerGoalEnabled, isTrue);
+        expect(passed.defaultCostPerGoal, 70000);
         expect(toasts, contains('Đã cập nhật chi phí giải đấu'));
       },
     );
@@ -191,6 +207,8 @@ void main() {
         rankPayoutEnabled: false,
         rankPayouts: [],
         defaultMatchCost: 50000,
+        defaultPerGoalEnabled: false,
+        defaultCostPerGoal: 0,
       )),
       expect: () => [
         isA<TournamentDetailState>().having(

@@ -54,7 +54,7 @@ class CostSplitView extends StatelessWidget {
               if (state.currentUserIsLeagueAdmin) ...[
                 _CostConfigWrapper(
                   key: ValueKey(
-                    '${league.id}-${league.rankPayoutEnabled}-${league.rankPayouts.join(',')}-${league.defaultMatchCost}',
+                    '${league.id}-${league.rankPayoutEnabled}-${league.rankPayouts.join(',')}-${league.defaultMatchCost}-${league.defaultPerGoalEnabled}-${league.defaultCostPerGoal}',
                   ),
                   league: league,
                   isBracketMode: isBracketMode,
@@ -109,6 +109,8 @@ class _CostConfigWrapperState extends State<_CostConfigWrapper> {
         rankPayoutEnabled: cost.rankPayoutEnabled,
         rankPayouts: cost.rankPayouts,
         defaultMatchCost: cost.defaultMatchCost,
+        defaultPerGoalEnabled: cost.defaultPerGoalEnabled,
+        defaultCostPerGoal: cost.defaultCostPerGoal,
       ),
     );
   }
@@ -122,6 +124,8 @@ class _CostConfigWrapperState extends State<_CostConfigWrapper> {
       initialRankPayoutEnabled: league.rankPayoutEnabled,
       initialRankPayouts: league.rankPayouts,
       initialDefaultMatchCost: league.defaultMatchCost,
+      initialDefaultPerGoalEnabled: league.defaultPerGoalEnabled,
+      initialDefaultCostPerGoal: league.defaultCostPerGoal,
       participantCount: league.participants.length,
       action: FilledButton.icon(
         onPressed: _save,

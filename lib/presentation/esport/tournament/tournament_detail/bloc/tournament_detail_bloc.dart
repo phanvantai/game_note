@@ -312,6 +312,8 @@ class TournamentDetailBloc
         rankPayoutEnabled: event.rankPayoutEnabled,
         rankPayouts: event.rankPayouts,
         defaultMatchCost: event.defaultMatchCost,
+        defaultPerGoalEnabled: event.defaultPerGoalEnabled,
+        defaultCostPerGoal: event.defaultCostPerGoal,
       );
       await _esportLeagueRepository.updateLeague(updated);
       emit(state.copyWith(viewStatus: ViewStatus.success, league: updated));

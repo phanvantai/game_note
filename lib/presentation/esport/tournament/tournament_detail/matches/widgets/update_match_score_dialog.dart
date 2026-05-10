@@ -16,11 +16,21 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
   final colorScheme = Theme.of(context).colorScheme;
   final league = context.read<TournamentDetailBloc>().state.league;
   final defaultPrefillK = (league?.defaultMatchCost ?? 50000) ~/ 1000;
+  final defaultPerGoalK = (league?.defaultCostPerGoal ?? 50000) ~/ 1000;
   bool costEnabled = (match.matchCost ?? 0) > 0;
+  bool perGoalEnabled = (match.costPerGoal ?? 0) > 0
+      ? true
+      : (league?.defaultPerGoalEnabled ?? false);
   final matchCostCtrl = TextEditingController(
     text: ((match.matchCost ?? 0) > 0
             ? (match.matchCost! ~/ 1000)
             : defaultPrefillK)
+        .toString(),
+  );
+  final perGoalCostCtrl = TextEditingController(
+    text: ((match.costPerGoal ?? 0) > 0
+            ? (match.costPerGoal! ~/ 1000)
+            : defaultPerGoalK)
         .toString(),
   );
 
@@ -98,7 +108,7 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
                   value: costEnabled,
                   onChanged: (v) => setLocalState(() => costEnabled = v),
                 ),
-                if (costEnabled)
+                if (costEnabled) ...[
                   TextField(
                     controller: matchCostCtrl,
                     keyboardType: TextInputType.number,
@@ -114,6 +124,33 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
                       ),
                     ),
                   ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: const Text('Thêm tiền theo hiệu số bàn thắng'),
+                    value: perGoalEnabled,
+                    onChanged: (v) =>
+                        setLocalState(() => perGoalEnabled = v),
+                  ),
+                  if (perGoalEnabled)
+                    TextField(
+                      controller: perGoalCostCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        labelText: 'Tiền mỗi bàn (k VND)',
+                        helperText: 'VD: 3-1 → cộng x2 vào tiền.',
+                        prefixIcon:
+                            const Icon(Icons.sports_soccer, size: 20),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerHighest,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ),
           ),
@@ -136,12 +173,17 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
               final matchCost = costEnabled
                   ? (int.tryParse(matchCostCtrl.text.trim()) ?? defaultPrefillK) * 1000
                   : 0;
+              final costPerGoal = (costEnabled && perGoalEnabled)
+                  ? (int.tryParse(perGoalCostCtrl.text.trim()) ?? defaultPerGoalK) *
+                      1000
+                  : 0;
               context.read<TournamentDetailBloc>().add(
                 UpdateEsportMatch(
                   match.copyWith(
                     homeScore: homeScore,
                     awayScore: awayScore,
                     matchCost: matchCost,
+                    costPerGoal: costPerGoal,
                   ),
                 ),
               );
