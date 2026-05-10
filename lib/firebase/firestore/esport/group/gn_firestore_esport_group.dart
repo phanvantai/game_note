@@ -83,10 +83,10 @@ extension GNFirestoreEsportGroup on GNFirestore {
         .collection(GNEsportGroup.collectionName)
         .doc(groupId)
         .update({
-      GNEsportGroup.deactivatedMembersKey: deactivate
-          ? FieldValue.arrayUnion([userId])
-          : FieldValue.arrayRemove([userId]),
-    });
+          GNEsportGroup.deactivatedMembersKey: deactivate
+              ? FieldValue.arrayUnion([userId])
+              : FieldValue.arrayRemove([userId]),
+        });
   }
 
   // Fetch a group by its ID
@@ -100,6 +100,30 @@ extension GNFirestoreEsportGroup on GNFirestore {
       return GNEsportGroup.fromFirestore(docSnapshot);
     }
     return null;
+  }
+
+  Future<List<GNEsportGroup>> getGroupsByOwnerId(String ownerId) async {
+    final snapshot = await firestore
+        .collection(GNEsportGroup.collectionName)
+        .where(GNEsportGroup.ownerIdKey, isEqualTo: ownerId)
+        .where(GNEsportGroup.statusKey, isEqualTo: 'active')
+        .get();
+    return snapshot.docs
+        .map((doc) => GNEsportGroup.fromFirestore(doc))
+        .toList();
+  }
+
+  Future<void> transferGroupOwnership({
+    required String groupId,
+    required String newOwnerId,
+  }) async {
+    await firestore
+        .collection(GNEsportGroup.collectionName)
+        .doc(groupId)
+        .update({
+          GNEsportGroup.ownerIdKey: newOwnerId,
+          GNEsportGroup.updatedAtKey: Timestamp.now(),
+        });
   }
 
   // Batch load multiple groups to avoid N+1 query problem

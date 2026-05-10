@@ -11,6 +11,8 @@ class GNUser extends Equatable {
   final String role;
   final String fcmToken;
   final bool isPlaceholder;
+  final bool deleted;
+  final DateTime? deletedAt;
 
   static const String collectionName = 'users';
 
@@ -22,6 +24,8 @@ class GNUser extends Equatable {
   static const String photoUrlKey = 'photoUrl';
   static const String fcmTokenKey = 'fcmToken';
   static const String isPlaceholderKey = 'isPlaceholder';
+  static const String deletedKey = 'deleted';
+  static const String deletedAtKey = 'deletedAt';
 
   const GNUser({
     required this.id,
@@ -32,6 +36,8 @@ class GNUser extends Equatable {
     required this.role,
     required this.fcmToken,
     this.isPlaceholder = false,
+    this.deleted = false,
+    this.deletedAt,
   });
 
   GNUser copyWith({
@@ -42,6 +48,8 @@ class GNUser extends Equatable {
     String? role,
     String? fcmToken,
     bool? isPlaceholder,
+    bool? deleted,
+    DateTime? deletedAt,
   }) {
     return GNUser(
       id: id,
@@ -52,6 +60,8 @@ class GNUser extends Equatable {
       role: role ?? this.role,
       fcmToken: fcmToken ?? this.fcmToken,
       isPlaceholder: isPlaceholder ?? this.isPlaceholder,
+      deleted: deleted ?? this.deleted,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 
@@ -64,6 +74,8 @@ class GNUser extends Equatable {
       roleKey: role,
       fcmTokenKey: fcmToken,
       isPlaceholderKey: isPlaceholder,
+      deletedKey: deleted,
+      deletedAtKey: deletedAt == null ? null : Timestamp.fromDate(deletedAt!),
     };
   }
 
@@ -78,20 +90,30 @@ class GNUser extends Equatable {
       role: data[roleKey] ?? 'user',
       fcmToken: data[fcmTokenKey] ?? '',
       isPlaceholder: data[isPlaceholderKey] ?? false,
+      deleted: data[deletedKey] ?? false,
+      deletedAt: (data[deletedAtKey] as Timestamp?)?.toDate(),
     );
   }
 
   @override
   List<Object?> get props => [
-        id,
-        displayName,
-        phoneNumber,
-        email,
-        photoUrl,
-        role,
-        fcmToken,
-        isPlaceholder,
-      ];
+    id,
+    displayName,
+    phoneNumber,
+    email,
+    photoUrl,
+    role,
+    fcmToken,
+    isPlaceholder,
+    deleted,
+    deletedAt,
+  ];
+
+  bool get isDeleted => deleted;
+  String get effectiveDisplayName {
+    final name = displayName ?? 'Người chơi';
+    return deleted ? '$name (đã xoá)' : name;
+  }
 
   bool get isAdmin => role == 'admin';
   bool get isUser => role == 'user';

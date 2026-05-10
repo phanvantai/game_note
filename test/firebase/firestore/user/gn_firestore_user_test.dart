@@ -42,22 +42,19 @@ void main() {
         .collection(GNEsportGroup.collectionName)
         .doc(groupId)
         .set({
-      GNEsportGroup.groupNameKey: 'Nhóm test',
-      GNEsportGroup.ownerIdKey: 'owner',
-      GNEsportGroup.membersKey: members,
-      GNEsportGroup.deactivatedMembersKey: deactivatedMembers,
-      GNEsportGroup.descriptionKey: '',
-      GNEsportGroup.createdAtKey: Timestamp.now(),
-      GNEsportGroup.updatedAtKey: Timestamp.now(),
-      GNEsportGroup.statusKey: 'active',
-    });
+          GNEsportGroup.groupNameKey: 'Nhóm test',
+          GNEsportGroup.ownerIdKey: 'owner',
+          GNEsportGroup.membersKey: members,
+          GNEsportGroup.deactivatedMembersKey: deactivatedMembers,
+          GNEsportGroup.descriptionKey: '',
+          GNEsportGroup.createdAtKey: Timestamp.now(),
+          GNEsportGroup.updatedAtKey: Timestamp.now(),
+          GNEsportGroup.statusKey: 'active',
+        });
   }
 
   Future<void> setupUserDoc(String userId, String displayName) async {
-    await fakeFirestore
-        .collection(GNUser.collectionName)
-        .doc(userId)
-        .set({
+    await fakeFirestore.collection(GNUser.collectionName).doc(userId).set({
       GNUser.displayNameKey: displayName,
       GNUser.emailKey: null,
       GNUser.phoneNumberKey: null,
@@ -83,10 +80,7 @@ void main() {
     });
 
     test('trả về active member nếu không có ai bị deactivate', () async {
-      await setupGroupDoc(
-        members: ['owner', 'u1'],
-        deactivatedMembers: [],
-      );
+      await setupGroupDoc(members: ['owner', 'u1'], deactivatedMembers: []);
       await setupUserDoc('u1', 'Tuấn');
 
       final results = await fs.searchUserByGroup('G1', 'Tuấn');
@@ -120,6 +114,36 @@ void main() {
 
       final result = await fs.getUsersById(['u1', 'u2']);
       expect(result.keys, containsAll(['u1', 'u2']));
+    });
+  });
+
+  group('deleteCurrentUser', () {
+    test('soft-deletes user doc and clears PII before auth delete', () async {
+      when(() => mockUser.delete()).thenAnswer((_) async {});
+      await fakeFirestore.collection(GNUser.collectionName).doc('owner').set({
+        GNUser.displayNameKey: 'Tai',
+        GNUser.emailKey: 'tai@example.com',
+        GNUser.phoneNumberKey: '090',
+        GNUser.photoUrlKey: 'https://avatar',
+        GNUser.roleKey: 'user',
+        GNUser.fcmTokenKey: 'token',
+      });
+
+      await fs.deleteCurrentUser();
+
+      final snap = await fakeFirestore
+          .collection(GNUser.collectionName)
+          .doc('owner')
+          .get();
+      final data = snap.data()!;
+      expect(data[GNUser.deletedKey], true);
+      expect(data[GNUser.deletedAtKey], isA<Timestamp>());
+      expect(data[GNUser.emailKey], isNull);
+      expect(data[GNUser.phoneNumberKey], isNull);
+      expect(data[GNUser.fcmTokenKey], '');
+      expect(data[GNUser.displayNameKey], 'Tai');
+      expect(data[GNUser.photoUrlKey], 'https://avatar');
+      verify(() => mockUser.delete()).called(1);
     });
   });
 }

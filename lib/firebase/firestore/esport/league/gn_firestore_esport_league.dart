@@ -83,6 +83,27 @@ extension GNFirestoreEsportLeague on GNFirestore {
     );
   }
 
+  Future<List<GNEsportLeague>> getLeaguesByOwnerId(String ownerId) async {
+    final snap = await firestore
+        .collection(GNEsportLeague.collectionName)
+        .where(GNEsportLeague.fieldIsActive, isEqualTo: true)
+        .where(GNEsportLeague.fieldOwnerId, isEqualTo: ownerId)
+        .orderBy(GNEsportLeague.fieldStartDate, descending: true)
+        .get();
+    final leagues = snap.docs.map(GNEsportLeague.fromFirestore).toList();
+    return _attachGroups(leagues);
+  }
+
+  Future<void> transferLeagueOwnership({
+    required String leagueId,
+    required String newOwnerId,
+  }) async {
+    await firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .update({GNEsportLeague.fieldOwnerId: newOwnerId});
+  }
+
   /// Fetch leagues the current user does NOT participate in. Paginated.
   ///
   /// Firestore can't express "NOT participants array-contains uid" in a
@@ -195,9 +216,7 @@ extension GNFirestoreEsportLeague on GNFirestore {
     if (leagues.isEmpty) return leagues;
     final groupIds = leagues.map((l) => l.groupId).toSet().toList();
     final groupsMap = await getGroupsById(groupIds);
-    return leagues
-        .map((l) => l.copyWith(group: groupsMap[l.groupId]))
-        .toList();
+    return leagues.map((l) => l.copyWith(group: groupsMap[l.groupId])).toList();
   }
 
   Future<GNEsportLeague?> getLeague(String leagueId) async {
@@ -248,8 +267,9 @@ extension GNFirestoreEsportLeague on GNFirestore {
     List<String> participants = const [],
     List<String> knockoutSeeding = const [],
   }) async {
-    final leaguesCollection =
-        firestore.collection(GNEsportLeague.collectionName);
+    final leaguesCollection = firestore.collection(
+      GNEsportLeague.collectionName,
+    );
 
     final newLeague = GNEsportLeague(
       id: leaguesCollection.doc().id,
@@ -278,9 +298,12 @@ extension GNFirestoreEsportLeague on GNFirestore {
   }
 
   Future<void> addParticipantToLeague(
-      String leagueId, String participantId) async {
-    final leagueRef =
-        firestore.collection(GNEsportLeague.collectionName).doc(leagueId);
+    String leagueId,
+    String participantId,
+  ) async {
+    final leagueRef = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId);
     final leagueSnapshot = await leagueRef.get();
     if (!leagueSnapshot.exists) {
       throw Exception('League not found');
@@ -289,17 +312,21 @@ extension GNFirestoreEsportLeague on GNFirestore {
     final league = GNEsportLeague.fromFirestore(leagueSnapshot);
     final updatedParticipants = List<String>.from(league.participants)
       ..add(participantId);
-    await leagueRef
-        .update({GNEsportLeague.fieldParticipants: updatedParticipants});
+    await leagueRef.update({
+      GNEsportLeague.fieldParticipants: updatedParticipants,
+    });
 
     // Add a new league stat for the participant
     await addLeagueStat(userId: participantId, leagueId: leagueId);
   }
 
   Future<void> addMultipleParticipantsToLeague(
-      String leagueId, List<String> participantIds) async {
-    final leagueRef =
-        firestore.collection(GNEsportLeague.collectionName).doc(leagueId);
+    String leagueId,
+    List<String> participantIds,
+  ) async {
+    final leagueRef = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId);
     final leagueSnapshot = await leagueRef.get();
     if (!leagueSnapshot.exists) {
       throw Exception('League not found');
@@ -307,16 +334,17 @@ extension GNFirestoreEsportLeague on GNFirestore {
 
     final league = GNEsportLeague.fromFirestore(leagueSnapshot);
     final updatedParticipants = List<String>.from(league.participants);
-    
+
     // Add participants that are not already in the league
     for (final participantId in participantIds) {
       if (!updatedParticipants.contains(participantId)) {
         updatedParticipants.add(participantId);
       }
     }
-    
-    await leagueRef
-        .update({GNEsportLeague.fieldParticipants: updatedParticipants});
+
+    await leagueRef.update({
+      GNEsportLeague.fieldParticipants: updatedParticipants,
+    });
 
     // Add league stats for all new participants
     for (final participantId in participantIds) {
@@ -327,14 +355,16 @@ extension GNFirestoreEsportLeague on GNFirestore {
   }
 
   Future<void> updateLeague(GNEsportLeague league) async {
-    final leagueRef =
-        firestore.collection(GNEsportLeague.collectionName).doc(league.id);
+    final leagueRef = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(league.id);
     await leagueRef.update(league.toMap());
   }
 
   Future<void> inactiveLeague(GNEsportLeague league) async {
-    final leagueRef =
-        firestore.collection(GNEsportLeague.collectionName).doc(league.id);
+    final leagueRef = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(league.id);
     await leagueRef.update({GNEsportLeague.fieldIsActive: false});
   }
 
@@ -409,10 +439,12 @@ extension GNFirestoreEsportLeague on GNFirestore {
     final oldStat = GNEsportLeagueStat.fromFirestore(oldStatDoc);
 
     final newStatQuery = await newStatFuture;
-    final newStatDoc =
-        newStatQuery.docs.isEmpty ? null : newStatQuery.docs.first;
-    final newStat =
-        newStatDoc != null ? GNEsportLeagueStat.fromFirestore(newStatDoc) : null;
+    final newStatDoc = newStatQuery.docs.isEmpty
+        ? null
+        : newStatQuery.docs.first;
+    final newStat = newStatDoc != null
+        ? GNEsportLeagueStat.fromFirestore(newStatDoc)
+        : null;
 
     final matchDocs = (await matchesFuture).docs;
 

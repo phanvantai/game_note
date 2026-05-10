@@ -3,6 +3,7 @@ import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/core/widgets/user_display.dart';
 import 'package:pes_arena/widgets/gn_circle_avatar.dart';
 
 import 'cost_calculator.dart';
@@ -26,8 +27,6 @@ class CostSummaryPanel extends StatelessWidget {
   /// Hiển thị `12k` (làm tròn xuống nghìn). Tham khảo input cũng dùng đơn vị k.
   String _fmtAbs(int amount) => '${amount.abs() ~/ 1000}k';
   String _fmt(int amount) => _fmtAbs(amount);
-
-  static const String _fallbackName = 'Người chơi';
 
   GNUser? _userById(String id) {
     for (final s in sortedStats) {
@@ -55,7 +54,10 @@ class CostSummaryPanel extends StatelessWidget {
     if (league.rankPayoutEnabled) {
       rankTransfers.addAll(
         isBracketMode
-            ? CostCalculator.bracketRankPayouts(knockoutMatches, league.rankPayouts)
+            ? CostCalculator.bracketRankPayouts(
+                knockoutMatches,
+                league.rankPayouts,
+              )
             : CostCalculator.rankPayouts(sortedStats, league.rankPayouts),
       );
     }
@@ -125,22 +127,26 @@ class CostSummaryPanel extends StatelessWidget {
             _SectionHeading(
               label: isBracketMode ? 'Theo bracket' : 'Theo thứ hạng',
             ),
-            ...mergedRank.map((t) => _TransferRow(
-                  transfer: t,
-                  fromUser: _userById(t.fromUserId),
-                  toUser: _userById(t.toUserId),
-                  amountText: _fmt(t.amount),
-                )),
+            ...mergedRank.map(
+              (t) => _TransferRow(
+                transfer: t,
+                fromUser: _userById(t.fromUserId),
+                toUser: _userById(t.toUserId),
+                amountText: _fmt(t.amount),
+              ),
+            ),
           ],
           if (mergedMatch.isNotEmpty) ...[
             if (mergedRank.isNotEmpty) const SizedBox(height: 6),
             const _SectionHeading(label: 'Theo trận'),
-            ...mergedMatch.map((t) => _TransferRow(
-                  transfer: t,
-                  fromUser: _userById(t.fromUserId),
-                  toUser: _userById(t.toUserId),
-                  amountText: _fmt(t.amount),
-                )),
+            ...mergedMatch.map(
+              (t) => _TransferRow(
+                transfer: t,
+                fromUser: _userById(t.fromUserId),
+                toUser: _userById(t.toUserId),
+                amountText: _fmt(t.amount),
+              ),
+            ),
           ],
           if (netEntries.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -168,7 +174,7 @@ class CostSummaryPanel extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        user?.displayName ?? _fallbackName,
+                        displayNameOrFallback(user),
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall,
                       ),
@@ -204,8 +210,7 @@ class CostSummaryPanel extends StatelessWidget {
     return byPair.entries.where((e) => e.value > 0).map((e) {
       final (from, to) = pairOrder[e.key]!;
       return CostTransfer(fromUserId: from, toUserId: to, amount: e.value);
-    }).toList()
-      ..sort((a, b) => b.amount.compareTo(a.amount));
+    }).toList()..sort((a, b) => b.amount.compareTo(a.amount));
   }
 }
 
@@ -254,7 +259,7 @@ class _TransferRow extends StatelessWidget {
           const SizedBox(width: 6),
           Flexible(
             child: Text(
-              fromUser?.displayName ?? CostSummaryPanel._fallbackName,
+              displayNameOrFallback(fromUser),
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall,
             ),
@@ -270,7 +275,7 @@ class _TransferRow extends StatelessWidget {
           const SizedBox(width: 6),
           Flexible(
             child: Text(
-              toUser?.displayName ?? CostSummaryPanel._fallbackName,
+              displayNameOrFallback(toUser),
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall,
             ),

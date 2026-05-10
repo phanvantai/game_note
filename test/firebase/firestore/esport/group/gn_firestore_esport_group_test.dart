@@ -46,7 +46,8 @@ void main() {
           .doc(groupId)
           .get();
       final deactivated = List<String>.from(
-          snap.data()?[GNEsportGroup.deactivatedMembersKey] ?? []);
+        snap.data()?[GNEsportGroup.deactivatedMembersKey] ?? [],
+      );
       expect(deactivated, contains('u1'));
     });
 
@@ -68,7 +69,8 @@ void main() {
           .doc(groupId)
           .get();
       final deactivated = List<String>.from(
-          snap.data()?[GNEsportGroup.deactivatedMembersKey] ?? []);
+        snap.data()?[GNEsportGroup.deactivatedMembersKey] ?? [],
+      );
       expect(deactivated, isNot(contains('u1')));
     });
   });
@@ -88,28 +90,78 @@ void main() {
           .doc(groupId)
           .get();
       final members = List<String>.from(
-          snap.data()?[GNEsportGroup.membersKey] ?? []);
+        snap.data()?[GNEsportGroup.membersKey] ?? [],
+      );
       final deactivated = List<String>.from(
-          snap.data()?[GNEsportGroup.deactivatedMembersKey] ?? []);
+        snap.data()?[GNEsportGroup.deactivatedMembersKey] ?? [],
+      );
       expect(members, isNot(contains('u1')));
       expect(deactivated, isNot(contains('u1')));
     });
 
-    test('xoá member active (không trong deactivated) chỉ xoá khỏi members',
-        () async {
+    test(
+      'xoá member active (không trong deactivated) chỉ xoá khỏi members',
+      () async {
+        final ref = await createGroup(members: ['owner', 'u1']);
+        final groupId = ref.id;
+
+        await fs.removeMemberFromGroup(groupId: groupId, memberId: 'u1');
+
+        final snap = await fakeFirestore
+            .collection(GNEsportGroup.collectionName)
+            .doc(groupId)
+            .get();
+        final members = List<String>.from(
+          snap.data()?[GNEsportGroup.membersKey] ?? [],
+        );
+        expect(members, isNot(contains('u1')));
+        expect(members, contains('owner'));
+      },
+    );
+  });
+
+  group('ownership', () {
+    test(
+      'getGroupsByOwnerId returns only active groups owned by user',
+      () async {
+        await createGroup();
+        await createGroup(members: ['owner'], deactivatedMembers: []);
+        await fakeFirestore.collection(GNEsportGroup.collectionName).add({
+          GNEsportGroup.groupNameKey: 'Inactive',
+          GNEsportGroup.ownerIdKey: 'owner',
+          GNEsportGroup.membersKey: ['owner'],
+          GNEsportGroup.deactivatedMembersKey: [],
+          GNEsportGroup.descriptionKey: '',
+          GNEsportGroup.createdAtKey: Timestamp.now(),
+          GNEsportGroup.updatedAtKey: Timestamp.now(),
+          GNEsportGroup.statusKey: 'inactive',
+        });
+        await fakeFirestore.collection(GNEsportGroup.collectionName).add({
+          GNEsportGroup.groupNameKey: 'Other',
+          GNEsportGroup.ownerIdKey: 'u2',
+          GNEsportGroup.membersKey: ['u2'],
+          GNEsportGroup.deactivatedMembersKey: [],
+          GNEsportGroup.descriptionKey: '',
+          GNEsportGroup.createdAtKey: Timestamp.now(),
+          GNEsportGroup.updatedAtKey: Timestamp.now(),
+          GNEsportGroup.statusKey: 'active',
+        });
+
+        final groups = await fs.getGroupsByOwnerId('owner');
+
+        expect(groups, hasLength(2));
+        expect(groups.every((g) => g.ownerId == 'owner'), true);
+        expect(groups.every((g) => g.status == 'active'), true);
+      },
+    );
+
+    test('transferGroupOwnership updates ownerId', () async {
       final ref = await createGroup(members: ['owner', 'u1']);
-      final groupId = ref.id;
 
-      await fs.removeMemberFromGroup(groupId: groupId, memberId: 'u1');
+      await fs.transferGroupOwnership(groupId: ref.id, newOwnerId: 'u1');
 
-      final snap = await fakeFirestore
-          .collection(GNEsportGroup.collectionName)
-          .doc(groupId)
-          .get();
-      final members = List<String>.from(
-          snap.data()?[GNEsportGroup.membersKey] ?? []);
-      expect(members, isNot(contains('u1')));
-      expect(members, contains('owner'));
+      final snap = await ref.get();
+      expect(snap.data()?[GNEsportGroup.ownerIdKey], 'u1');
     });
   });
 }

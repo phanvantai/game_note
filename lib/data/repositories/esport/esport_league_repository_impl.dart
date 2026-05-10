@@ -104,10 +104,30 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<LeaguesPage> getOtherLeagues({
-    Object? startAfter,
-    int limit = 20,
-  }) {
+  Future<List<GNEsportLeague>> getLeaguesByOwnerId(String ownerId) {
+    return getIt<GNFirestore>().getLeaguesByOwnerId(ownerId);
+  }
+
+  @override
+  Future<void> transferLeagueOwnership({
+    required String leagueId,
+    required String newOwnerId,
+  }) async {
+    final league = await getIt<GNFirestore>().getLeague(leagueId);
+    if (league == null) {
+      throw Exception('League not found');
+    }
+    if (!league.participants.contains(newOwnerId)) {
+      throw Exception('New owner must be a league participant');
+    }
+    return getIt<GNFirestore>().transferLeagueOwnership(
+      leagueId: leagueId,
+      newOwnerId: newOwnerId,
+    );
+  }
+
+  @override
+  Future<LeaguesPage> getOtherLeagues({Object? startAfter, int limit = 20}) {
     return getIt<GNFirestore>().getOtherLeagues(
       startAfter: startAfter is DocumentSnapshot ? startAfter : null,
       limit: limit,
@@ -125,22 +145,33 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<void> addParticipant(
-      {required String leagueId, required String userId}) {
+  Future<void> addParticipant({
+    required String leagueId,
+    required String userId,
+  }) {
     return getIt<GNFirestore>().addParticipantToLeague(leagueId, userId);
   }
 
   @override
-  Future<void> addMultipleParticipants(
-      {required String leagueId, required List<String> userIds}) {
-    return getIt<GNFirestore>().addMultipleParticipantsToLeague(leagueId, userIds);
+  Future<void> addMultipleParticipants({
+    required String leagueId,
+    required List<String> userIds,
+  }) {
+    return getIt<GNFirestore>().addMultipleParticipantsToLeague(
+      leagueId,
+      userIds,
+    );
   }
 
   @override
-  Future<void> generateRound(
-      {required String leagueId, required List<String> teamIds}) {
-    return getIt<GNFirestore>()
-        .generateRound(leagueId: leagueId, teamIds: teamIds);
+  Future<void> generateRound({
+    required String leagueId,
+    required List<String> teamIds,
+  }) {
+    return getIt<GNFirestore>().generateRound(
+      leagueId: leagueId,
+      teamIds: teamIds,
+    );
   }
 
   @override
@@ -255,7 +286,9 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
 
   @override
   Future<void> setMergeCompleted(String leagueId, {required bool completed}) {
-    return getIt<GNFirestore>().setMergeCompleted(leagueId, completed: completed);
+    return getIt<GNFirestore>().setMergeCompleted(
+      leagueId,
+      completed: completed,
+    );
   }
-
 }

@@ -36,14 +36,18 @@ extension GNFirestoreUser on GNFirestore {
     if (user == null) {
       throw Exception('User is not signed in');
     }
-    final userDoc =
-        await firestore.collection(GNUser.collectionName).doc(user.uid).get();
+    final userDoc = await firestore
+        .collection(GNUser.collectionName)
+        .doc(user.uid)
+        .get();
     return GNUser.fromFireStore(userDoc);
   }
 
   Future<GNUser?> getUserById(String userId) async {
-    final userDoc =
-        await firestore.collection(GNUser.collectionName).doc(userId).get();
+    final userDoc = await firestore
+        .collection(GNUser.collectionName)
+        .doc(userId)
+        .get();
     if (!userDoc.exists) {
       return null;
     }
@@ -55,7 +59,14 @@ extension GNFirestoreUser on GNFirestore {
     if (user == null) {
       throw Exception('User is not signed in');
     }
-    await firestore.collection(GNUser.collectionName).doc(user.uid).delete();
+    await firestore.collection(GNUser.collectionName).doc(user.uid).update({
+      GNUser.deletedKey: true,
+      GNUser.deletedAtKey: FieldValue.serverTimestamp(),
+      GNUser.emailKey: null,
+      GNUser.phoneNumberKey: null,
+      GNUser.fcmTokenKey: '',
+      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
+    });
     await user.delete();
   }
 
@@ -150,8 +161,11 @@ extension GNFirestoreUser on GNFirestore {
         .get();
 
     // Wait for all the queries to finish
-    final results =
-        await Future.wait([displayNameQuery, emailQuery, phoneNumberQuery]);
+    final results = await Future.wait([
+      displayNameQuery,
+      emailQuery,
+      phoneNumberQuery,
+    ]);
 
     // Create a map to hold unique documents by their document ID
     final Map<String, QueryDocumentSnapshot> uniqueDocs = {};
@@ -203,8 +217,11 @@ extension GNFirestoreUser on GNFirestore {
         .get();
 
     // Wait for all the queries to finish
-    final results =
-        await Future.wait([displayNameQuery, emailQuery, phoneNumberQuery]);
+    final results = await Future.wait([
+      displayNameQuery,
+      emailQuery,
+      phoneNumberQuery,
+    ]);
 
     // Create a map to hold unique documents by their document ID
     final Map<String, QueryDocumentSnapshot> uniqueDocs = {};
@@ -218,9 +235,11 @@ extension GNFirestoreUser on GNFirestore {
     }
     return uniqueDocs.values
         .map((doc) => GNUser.fromFireStore(doc))
-        .where((user) =>
-            group.members.contains(user.id) &&
-            !group.deactivatedMembers.contains(user.id))
+        .where(
+          (user) =>
+              group.members.contains(user.id) &&
+              !group.deactivatedMembers.contains(user.id),
+        )
         .toList();
   }
 
@@ -258,8 +277,10 @@ extension GNFirestoreUser on GNFirestore {
     if (user == null) {
       throw Exception('User is not signed in');
     }
-    final userDoc =
-        await firestore.collection(GNUser.collectionName).doc(user.uid).get();
+    final userDoc = await firestore
+        .collection(GNUser.collectionName)
+        .doc(user.uid)
+        .get();
     if (!userDoc.exists) {
       throw Exception('User not found');
     }

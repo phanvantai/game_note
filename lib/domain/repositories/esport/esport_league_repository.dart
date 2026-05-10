@@ -12,10 +12,7 @@ class LeagueDetailData {
   final List<GNEsportLeagueStat> participants;
   final List<GNEsportMatch> matches;
 
-  const LeagueDetailData({
-    required this.participants,
-    required this.matches,
-  });
+  const LeagueDetailData({required this.participants, required this.matches});
 }
 
 abstract class EsportLeagueRepository {
@@ -25,12 +22,16 @@ abstract class EsportLeagueRepository {
   /// Leagues the current user owns (ownerId == uid). Paginated.
   Future<LeaguesPage> getManagedLeagues({Object? startAfter, int limit});
 
+  Future<List<GNEsportLeague>> getLeaguesByOwnerId(String ownerId);
+
+  Future<void> transferLeagueOwnership({
+    required String leagueId,
+    required String newOwnerId,
+  });
+
   /// Leagues the current user is NOT in. Paginated; pass `startAfter` from
   /// the previous page's `lastDoc` to load the next page.
-  Future<LeaguesPage> getOtherLeagues({
-    Object? startAfter,
-    int limit,
-  });
+  Future<LeaguesPage> getOtherLeagues({Object? startAfter, int limit});
 
   /// Active leagues whose `groupId` is in [groupIds]. Used by the home
   /// banner to surface ongoing tournaments from groups the user has joined.
