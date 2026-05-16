@@ -90,31 +90,42 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     final results = await Future.wait([
       leagueRef.get(),
       statsCollection.get(),
-      matchesCollection
-          .where(GNEsportMatch.fieldIsFinished, isEqualTo: true)
-          .get(),
+      matchesCollection.get(),
     ]);
     final leagueSnap = results[0] as DocumentSnapshot<Map<String, dynamic>>;
     final statSnaps =
         (results[1] as QuerySnapshot<Map<String, dynamic>>).docs;
-    final matchSnaps =
+    final allMatchSnaps =
         (results[2] as QuerySnapshot<Map<String, dynamic>>).docs;
 
-    // Backfill: every participant on the league doc without any stat row
-    // gets a fresh league-wide stat. Restricted to users with zero stat
-    // docs so full-mode per-group stats are left alone.
+    final allMatches =
+        allMatchSnaps.map(GNEsportMatch.fromFirestore).toList();
+    final finishedMatches =
+        allMatches.where((m) => m.isFinished == true).toList();
+
+    // Backfill: any user referenced by the league (participants array or
+    // match home/away) without a stat row gets a fresh league-wide stat.
+    // Pulling user IDs from matches too rescues "orphan" players whose
+    // matches were generated when they were on the league but who got
+    // removed from `participants` later — `_statRefForUser` would otherwise
+    // still throw on every update of their old matches.
+    //
+    // Skip if the user already has any stat doc (group-scoped or otherwise)
+    // so full-mode per-group stats stay untouched.
     final userHasAnyStat = <String>{
       for (final s in statSnaps) GNEsportLeagueStat.fromFirestore(s).userId,
     };
-    final participants = leagueSnap.exists
-        ? GNEsportLeague.fromFirestore(leagueSnap).participants
-        : const <String>[];
-    final backfillFutures = <Future<void>>[];
-    for (final userId in participants) {
-      if (!userHasAnyStat.contains(userId)) {
-        backfillFutures.add(addLeagueStat(userId: userId, leagueId: leagueId));
-      }
-    }
+    final referencedUserIds = <String>{
+      if (leagueSnap.exists)
+        ...GNEsportLeague.fromFirestore(leagueSnap).participants,
+      for (final m in allMatches) ...[m.homeTeamId, m.awayTeamId],
+    }..removeWhere((id) => id.isEmpty);
+
+    final backfillFutures = <Future<void>>[
+      for (final userId in referencedUserIds)
+        if (!userHasAnyStat.contains(userId))
+          addLeagueStat(userId: userId, leagueId: leagueId),
+    ];
     if (backfillFutures.isNotEmpty) {
       await Future.wait(backfillFutures);
     }
@@ -133,8 +144,7 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
         GNEsportLeagueStat.fromFirestore(s).userId: _ReconcileTotals(),
     };
 
-    for (final m in matchSnaps) {
-      final match = GNEsportMatch.fromFirestore(m);
+    for (final match in finishedMatches) {
       final h = match.homeScore;
       final a = match.awayScore;
       if (h == null || a == null) continue;
