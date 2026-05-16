@@ -6,6 +6,7 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -76,6 +77,7 @@ class _GroupDetailViewState extends State<GroupDetailView>
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
+          leading: const SmartBackButton(),
           title: Text(
             state.group.groupName.isEmpty
                 ? 'Chi tiết nhóm'

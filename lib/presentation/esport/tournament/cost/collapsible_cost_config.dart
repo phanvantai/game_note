@@ -7,6 +7,8 @@ class CollapsibleCostConfig extends StatefulWidget {
   final bool initialRankPayoutEnabled;
   final List<int> initialRankPayouts;
   final int initialDefaultMatchCost;
+  final bool initialDefaultPerGoalEnabled;
+  final int initialDefaultCostPerGoal;
   final int participantCount;
   /// Widget rendered at the bottom when expanded (e.g. a save button).
   /// Pass null to omit (create flow).
@@ -21,6 +23,8 @@ class CollapsibleCostConfig extends StatefulWidget {
     this.initialRankPayoutEnabled = false,
     this.initialRankPayouts = const [],
     this.initialDefaultMatchCost = 50 * 1000,
+    this.initialDefaultPerGoalEnabled = false,
+    this.initialDefaultCostPerGoal = 50 * 1000,
     this.participantCount = 0,
     this.action,
     this.subtitle,
@@ -118,6 +122,10 @@ class _CollapsibleCostConfigState extends State<CollapsibleCostConfig> {
                     initialRankPayoutEnabled: widget.initialRankPayoutEnabled,
                     initialRankPayouts: widget.initialRankPayouts,
                     initialDefaultMatchCost: widget.initialDefaultMatchCost,
+                    initialDefaultPerGoalEnabled:
+                        widget.initialDefaultPerGoalEnabled,
+                    initialDefaultCostPerGoal:
+                        widget.initialDefaultCostPerGoal,
                     participantCount: widget.participantCount,
                   ),
                   if (widget.action != null) ...[

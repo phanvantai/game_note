@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 
 import '../../../injection_container.dart';
 
@@ -18,6 +19,7 @@ class VerifyView extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
+        leading: const SmartBackButton(),
         title: Text('Đăng nhập', style: textTheme.titleMedium),
         backgroundColor: Colors.transparent,
         elevation: 0,

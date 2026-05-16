@@ -81,6 +81,8 @@ OnAddLeagueCallback _noopCallback() => ({
       required rankPayoutEnabled,
       required rankPayouts,
       required defaultMatchCost,
+      required defaultPerGoalEnabled,
+      required defaultCostPerGoal,
       required mode,
       required participants,
       required groupCount,
@@ -234,6 +236,45 @@ void main() {
       expect(find.text('Full'), findsOneWidget);
     });
 
+    testWidgets(
+        'step 3: Cup và Full có badge "Sắp ra mắt", tap không đổi mode',
+        (tester) async {
+      // Tạm thời tắt 2 mode này — chỉ cho phép tạo league cho tới khi
+      // luồng cup/full ổn định. Bài test này đứng gác để khi ai bật lại
+      // phải xoá comingSoon flag và update lại assertion.
+      final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2', 'p3', 'p4'])];
+      await tester
+          .pumpWidget(_wrap(groups: groups, onAddLeague: _noopCallback()));
+
+      // → step 3
+      await tester.tap(find.text('Nhóm 1'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('p1'));
+      await tester.tap(find.text('p2'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+      await tester.pumpAndSettle();
+
+      // Badge "Sắp ra mắt" xuất hiện đúng 2 lần (Cup + Full).
+      expect(find.text('Sắp ra mắt'), findsNWidgets(2));
+
+      // Selected indicator (check_circle) ban đầu chỉ ở mode League
+      // (default selected). Tap Cup không được phép → không có thêm tick.
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      await tester.tap(find.text('Cup'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.check_circle), findsOneWidget,
+          reason: 'Cup bị disable → mode không đổi sang Cup');
+
+      // Tap Full cũng vô hiệu.
+      await tester.tap(find.text('Full'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.check_circle), findsOneWidget,
+          reason: 'Full bị disable → mode không đổi sang Full');
+    });
+
     testWidgets('chọn mode League → callback nhận mode=league', (tester) async {
       final captured = _Captured();
       final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2'])];
@@ -249,6 +290,8 @@ void main() {
             required rankPayoutEnabled,
             required rankPayouts,
             required defaultMatchCost,
+            required defaultPerGoalEnabled,
+            required defaultCostPerGoal,
             required mode,
             required participants,
             required groupCount,
@@ -321,6 +364,8 @@ void main() {
           required rankPayoutEnabled,
           required rankPayouts,
           required defaultMatchCost,
+          required defaultPerGoalEnabled,
+          required defaultCostPerGoal,
           required mode,
           required participants,
           required groupCount,

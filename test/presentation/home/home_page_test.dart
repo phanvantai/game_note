@@ -49,6 +49,7 @@ GNEsportLeague _league({
   required String name,
   required DateTime start,
   DateTime? end,
+  String? status,
 }) => GNEsportLeague(
   id: id,
   ownerId: 'u1',
@@ -62,6 +63,7 @@ GNEsportLeague _league({
   rankPayoutEnabled: false,
   rankPayouts: const [],
   defaultMatchCost: 0,
+  status: status,
 );
 
 DashboardState _emptyDashboard() => const DashboardState(
@@ -171,12 +173,14 @@ void main() {
               name: 'Đang chạy',
               start: now.subtract(const Duration(days: 2)),
               end: now.add(const Duration(days: 2)),
+              status: 'ongoing',
             ),
             _league(
               id: 'l2',
               name: 'Đã kết thúc',
               start: now.subtract(const Duration(days: 10)),
               end: now.subtract(const Duration(days: 5)),
+              status: 'finished',
             ),
           ],
         ),

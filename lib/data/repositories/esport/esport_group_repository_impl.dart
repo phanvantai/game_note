@@ -39,6 +39,34 @@ class EsportGroupRepositoryImpl implements EsportGroupRepository {
   }
 
   @override
+  Future<List<GNEsportGroup>> getGroupsByOwnerId(String ownerId) {
+    return getIt<GNFirestore>().getGroupsByOwnerId(ownerId);
+  }
+
+  @override
+  Future<void> transferGroupOwnership({
+    required String groupId,
+    required String newOwnerId,
+  }) async {
+    final group = await getIt<GNFirestore>().getGroupById(groupId);
+    if (group == null) {
+      throw Exception('Group not found');
+    }
+    if (!group.members.contains(newOwnerId)) {
+      throw Exception('New owner must be a group member');
+    }
+    return getIt<GNFirestore>().transferGroupOwnership(
+      groupId: groupId,
+      newOwnerId: newOwnerId,
+    );
+  }
+
+  @override
+  Future<void> deactivateGroup(String groupId) {
+    return getIt<GNFirestore>().deactivateGroup(groupId);
+  }
+
+  @override
   Future<GNEsportGroup?> getGroup(String groupId) {
     return getIt<GNFirestore>().getGroupById(groupId);
   }

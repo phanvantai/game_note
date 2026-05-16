@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/sync/bloc/sync_bloc.dart';
 import 'package:pes_arena/presentation/sync/widgets/step_nav_bar.dart';
 
@@ -20,7 +20,7 @@ class Step1SelectSource extends StatelessWidget {
               previousKey: const ValueKey('step1-prev'),
               nextKey: const ValueKey('step1-next'),
               nextLabel: 'Tiếp tục',
-              onPrevious: () => context.pop(),
+              onPrevious: () => context.smartBack(),
               onNext: state.canGoToMapping
                   ? () => context.read<SyncBloc>().add(
                       const SyncGoToStep(SyncStep.mapPlayers),

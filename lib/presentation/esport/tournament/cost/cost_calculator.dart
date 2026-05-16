@@ -48,10 +48,16 @@ class CostCalculator {
   }
 
   /// Tính tiền per-match. Với mỗi trận `isFinished == true`:
-  ///   - cost = match.matchCost (null hoặc <= 0 ⇒ skip — user chưa bật cho trận này)
+  ///   - base = match.matchCost (null hoặc <= 0 ⇒ skip — user chưa bật cho trận này)
+  ///   - addon = |homeScore - awayScore| * (match.costPerGoal ?? 0)
   ///   - hoà ⇒ skip
-  ///   - thua trả thắng cost
+  ///   - thua trả thắng (base + addon)
   /// Sau đó netting theo từng cặp (A↔B) để hiển thị gọn.
+  ///
+  /// **Per-goal định nghĩa theo HIỆU SỐ tuyệt đối** (chứ không phải số bàn
+  /// của bên thắng hay tổng bàn cả trận). Quy ước này khuyến khích trận
+  /// sát điểm. Đừng đổi sang `home + away` hay `winnerGoals` mà không
+  /// confirm intent — UI và test đều dựa trên hiệu số.
   static List<CostTransfer> matchCosts(List<GNEsportMatch> matches) {
     // pairKey → net amount (positive: low.id trả high.id, negative: ngược lại)
     final pairNet = <String, int>{};
@@ -62,8 +68,11 @@ class CostCalculator {
       final home = m.homeScore;
       final away = m.awayScore;
       if (home == null || away == null || home == away) continue;
-      final cost = m.matchCost ?? 0;
-      if (cost <= 0) continue;
+      final base = m.matchCost ?? 0;
+      if (base <= 0) continue;
+      final perGoal = m.costPerGoal ?? 0;
+      final goalDiff = (home - away).abs();
+      final cost = base + (perGoal > 0 ? goalDiff * perGoal : 0);
 
       final winner = home > away ? m.homeTeamId : m.awayTeamId;
       final loser = home > away ? m.awayTeamId : m.homeTeamId;

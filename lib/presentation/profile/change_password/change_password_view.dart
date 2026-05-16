@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/profile/change_password/bloc/change_password_bloc.dart';
 
 class ChangePasswordView extends StatefulWidget {
@@ -38,6 +39,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
         extendBodyBehindAppBar: true,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
+          leading: const SmartBackButton(),
           title: const Text('Đổi mật khẩu'),
         ),
         body: Container(
@@ -176,7 +178,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
         }
         if (state.viewStatus == ViewStatus.success) {
           showToast('Đổi mật khẩu thành công', gravity: ToastGravity.TOP);
-          Navigator.of(context).pop();
+          context.smartBack();
         }
       },
     );

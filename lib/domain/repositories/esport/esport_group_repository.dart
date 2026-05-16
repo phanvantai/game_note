@@ -17,7 +17,16 @@ abstract class EsportGroupRepository {
 
   Future<GNEsportGroup?> getGroup(String groupId);
 
+  Future<List<GNEsportGroup>> getGroupsByOwnerId(String ownerId);
+
   Future<List<GNUser>> getMembersOfGroup(String groupId);
+
+  Future<void> transferGroupOwnership({
+    required String groupId,
+    required String newOwnerId,
+  });
+
+  Future<void> deactivateGroup(String groupId);
 
   Future<void> removeMemberFromGroup({
     required String groupId,

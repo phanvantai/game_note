@@ -133,6 +133,8 @@ void main() {
         rankPayoutEnabled: true,
         rankPayouts: [50000],
         defaultMatchCost: 50000,
+        defaultPerGoalEnabled: false,
+        defaultCostPerGoal: 0,
       )),
       expect: () => const <TournamentDetailState>[],
       verify: (_) => verifyNever(() => repo.updateLeague(any())),
@@ -148,6 +150,8 @@ void main() {
         rankPayoutEnabled: true,
         rankPayouts: [50000, 100000],
         defaultMatchCost: 80000,
+        defaultPerGoalEnabled: true,
+        defaultCostPerGoal: 70000,
       )),
       expect: () => [
         // emit loading
@@ -166,6 +170,16 @@ void main() {
               (s) => s.league?.defaultMatchCost,
               'defaultMatchCost',
               80000,
+            )
+            .having(
+              (s) => s.league?.defaultPerGoalEnabled,
+              'defaultPerGoalEnabled',
+              true,
+            )
+            .having(
+              (s) => s.league?.defaultCostPerGoal,
+              'defaultCostPerGoal',
+              70000,
             ),
       ],
       verify: (_) {
@@ -176,6 +190,8 @@ void main() {
         expect(passed.rankPayoutEnabled, isTrue);
         expect(passed.rankPayouts, [50000, 100000]);
         expect(passed.defaultMatchCost, 80000);
+        expect(passed.defaultPerGoalEnabled, isTrue);
+        expect(passed.defaultCostPerGoal, 70000);
         expect(toasts, contains('Đã cập nhật chi phí giải đấu'));
       },
     );
@@ -191,6 +207,8 @@ void main() {
         rankPayoutEnabled: false,
         rankPayouts: [],
         defaultMatchCost: 50000,
+        defaultPerGoalEnabled: false,
+        defaultCostPerGoal: 0,
       )),
       expect: () => [
         isA<TournamentDetailState>().having(
@@ -508,17 +526,55 @@ void main() {
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'gọi updateMatch + toast thành công',
+      'gọi updateMatch + toast thành công + dispatch ApplyMatchStatDelta',
       build: () {
-        when(() => repo.updateMatch(any())).thenAnswer((_) async {});
+        final prev = _match();
+        final next = _match(homeScore: 2, awayScore: 1, isFinished: true);
+        when(() => repo.updateMatch(any())).thenAnswer(
+          (_) async => (previous: prev, updated: next),
+        );
+        when(() => repo.applyMatchStatDelta(
+              previous: any(named: 'previous'),
+              updated: any(named: 'updated'),
+            )).thenAnswer((_) async {});
         when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return buildWithLeague(_league());
       },
-      act: (bloc) => bloc.add(UpdateEsportMatch(_match(homeScore: 2, awayScore: 1))),
+      act: (bloc) =>
+          bloc.add(UpdateEsportMatch(_match(homeScore: 2, awayScore: 1))),
       verify: (_) {
         verify(() => repo.updateMatch(any())).called(1);
+        verify(() => repo.applyMatchStatDelta(
+              previous: any(named: 'previous'),
+              updated: any(named: 'updated'),
+            )).called(1);
         expect(toasts.any((t) => t.contains('Cập nhật trận đấu')), isTrue);
+      },
+    );
+
+    blocTest<TournamentDetailBloc, TournamentDetailState>(
+      'applyMatchStatDelta lỗi → swallow, không emit failure',
+      build: () {
+        final prev = _match();
+        final next = _match(homeScore: 2, awayScore: 1, isFinished: true);
+        when(() => repo.updateMatch(any())).thenAnswer(
+          (_) async => (previous: prev, updated: next),
+        );
+        when(() => repo.applyMatchStatDelta(
+              previous: any(named: 'previous'),
+              updated: any(named: 'updated'),
+            )).thenThrow(Exception('stats missing'));
+        when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
+        when(() => repo.getMatches(any())).thenAnswer((_) async => []);
+        return buildWithLeague(_league());
+      },
+      act: (bloc) =>
+          bloc.add(UpdateEsportMatch(_match(homeScore: 2, awayScore: 1))),
+      verify: (bloc) {
+        // Match save succeeded → state không được rơi vào failure dù
+        // stat delta throw.
+        expect(bloc.state.viewStatus, isNot(ViewStatus.failure));
       },
     );
   });

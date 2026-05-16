@@ -3,39 +3,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../routing.dart';
-import '../auth/auth_view.dart';
 import '../main/main_page.dart';
 import 'bloc/app_bloc.dart';
 
+/// Home route widget. The router's redirect callback guarantees that anyone
+/// reaching `/` has [AppStatus.authenticated], so this just renders the
+/// authed shell — the login bounce lives in `routing.dart`.
 class AppView extends StatelessWidget {
   const AppView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AppBloc, AppState>(
+    return BlocListener<AppBloc, AppState>(
       listenWhen: (previous, current) =>
           previous.enableFootballFeature != current.enableFootballFeature,
       listener: (context, state) {
-        // Do something
         context.go(Routing.app);
       },
-      buildWhen: (previous, current) => previous.status != current.status,
-      builder: (context, state) => AnimatedSwitcher(
-        duration: const Duration(milliseconds: 500),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return ScaleTransition(scale: animation, child: child);
-        },
-        child: _appView(context, state),
-      ),
+      child: const MainPage(),
     );
-  }
-
-  StatelessWidget _appView(BuildContext context, AppState state) {
-    switch (state.status) {
-      case AppStatus.authenticated:
-        return const MainPage();
-      case AppStatus.unknown:
-        return const AuthView();
-    }
   }
 }

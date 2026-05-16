@@ -16,6 +16,10 @@ class GNEsportMatch extends Equatable {
   // Override tiền cho riêng trận này (VND). null ⇒ dùng league.defaultMatchCost.
   // 0 ⇒ trận này không tính tiền.
   final int? matchCost;
+  // Tiền cộng thêm theo hiệu số bàn thắng (VND/bàn). null/0 ⇒ trận này
+  // không cộng tiền theo hiệu số. Snapshot per-match — đổi default ở league
+  // không ảnh hưởng các trận đã có giá trị.
+  final int? costPerGoal;
 
   /// Server-assigned timestamp of the last write. Used as an optimistic-lock
   /// version for concurrent score updates: the UI captures this when the
@@ -50,6 +54,7 @@ class GNEsportMatch extends Equatable {
   static const String fieldIsFinished = 'isFinished';
   static const String fieldLeagueId = 'leagueId';
   static const String fieldMatchCost = 'matchCost';
+  static const String fieldCostPerGoal = 'costPerGoal';
   static const String fieldUpdatedAt = 'updatedAt';
   static const String fieldPhase = 'phase';
   static const String fieldGroupId = 'groupId';
@@ -69,6 +74,7 @@ class GNEsportMatch extends Equatable {
     this.homeTeam,
     this.awayTeam,
     this.matchCost,
+    this.costPerGoal,
     this.updatedAt,
     this.phase,
     this.groupId,
@@ -88,6 +94,7 @@ class GNEsportMatch extends Equatable {
         isFinished,
         leagueId,
         matchCost,
+        costPerGoal,
         updatedAt,
         phase,
         groupId,
@@ -108,6 +115,7 @@ class GNEsportMatch extends Equatable {
     GNUser? homeTeam,
     GNUser? awayTeam,
     int? matchCost,
+    int? costPerGoal,
     Timestamp? updatedAt,
     String? phase,
     String? groupId,
@@ -127,6 +135,7 @@ class GNEsportMatch extends Equatable {
       homeTeam: homeTeam ?? this.homeTeam,
       awayTeam: awayTeam ?? this.awayTeam,
       matchCost: matchCost ?? this.matchCost,
+      costPerGoal: costPerGoal ?? this.costPerGoal,
       updatedAt: updatedAt ?? this.updatedAt,
       phase: phase ?? this.phase,
       groupId: groupId ?? this.groupId,
@@ -146,6 +155,7 @@ class GNEsportMatch extends Equatable {
       fieldIsFinished: isFinished,
       fieldLeagueId: leagueId,
       fieldMatchCost: matchCost,
+      fieldCostPerGoal: costPerGoal,
       if (phase != null) fieldPhase: phase,
       if (groupId != null) fieldGroupId: groupId,
       if (knockoutRound != null) fieldKnockoutRound: knockoutRound,
@@ -176,6 +186,7 @@ class GNEsportMatch extends Equatable {
       isFinished: data[fieldIsFinished],
       leagueId: data[fieldLeagueId],
       matchCost: (data[fieldMatchCost] as num?)?.toInt(),
+      costPerGoal: (data[fieldCostPerGoal] as num?)?.toInt(),
       updatedAt: data[fieldUpdatedAt] is Timestamp
           ? data[fieldUpdatedAt] as Timestamp
           : null,

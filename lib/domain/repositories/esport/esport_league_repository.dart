@@ -12,10 +12,7 @@ class LeagueDetailData {
   final List<GNEsportLeagueStat> participants;
   final List<GNEsportMatch> matches;
 
-  const LeagueDetailData({
-    required this.participants,
-    required this.matches,
-  });
+  const LeagueDetailData({required this.participants, required this.matches});
 }
 
 abstract class EsportLeagueRepository {
@@ -25,12 +22,16 @@ abstract class EsportLeagueRepository {
   /// Leagues the current user owns (ownerId == uid). Paginated.
   Future<LeaguesPage> getManagedLeagues({Object? startAfter, int limit});
 
+  Future<List<GNEsportLeague>> getLeaguesByOwnerId(String ownerId);
+
+  Future<void> transferLeagueOwnership({
+    required String leagueId,
+    required String newOwnerId,
+  });
+
   /// Leagues the current user is NOT in. Paginated; pass `startAfter` from
   /// the previous page's `lastDoc` to load the next page.
-  Future<LeaguesPage> getOtherLeagues({
-    Object? startAfter,
-    int limit,
-  });
+  Future<LeaguesPage> getOtherLeagues({Object? startAfter, int limit});
 
   /// Active leagues whose `groupId` is in [groupIds]. Used by the home
   /// banner to surface ongoing tournaments from groups the user has joined.
@@ -64,6 +65,8 @@ abstract class EsportLeagueRepository {
     bool rankPayoutEnabled = false,
     List<int> rankPayouts = const [],
     int defaultMatchCost = 50000,
+    bool defaultPerGoalEnabled = false,
+    int defaultCostPerGoal = 50000,
     TournamentMode mode,
     int groupCount,
     int advanceCount,
@@ -109,7 +112,22 @@ abstract class EsportLeagueRepository {
   });
 
   Future<List<GNEsportMatch>> getMatches(String leagueId);
-  Future<void> updateMatch(GNEsportMatch match);
+
+  /// Write the match score/cost. Does NOT touch stat docs — callers must
+  /// follow up with [applyMatchStatDelta] (typically fire-and-forget) to
+  /// reconcile player totals. Returns before/after match state for the
+  /// caller to feed into the delta.
+  Future<({GNEsportMatch previous, GNEsportMatch updated})> updateMatch(
+    GNEsportMatch match,
+  );
+
+  /// Apply the stat delta for a single match transition. Safe no-op for
+  /// knockout matches and TBD bracket slots.
+  Future<void> applyMatchStatDelta({
+    required GNEsportMatch previous,
+    required GNEsportMatch updated,
+  });
+
   Future<void> updateLeague(GNEsportLeague league);
   Future<void> inactiveLeague(GNEsportLeague league);
   Future<void> deleteLeague(String leagueId);

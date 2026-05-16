@@ -99,6 +99,11 @@ class GNEsportLeague extends Equatable {
   // Số tiền prefill cho ô "Tiền trận này" khi user bật cost cho 1 trận.
   // Không phải toggle bật/tắt feature — per-match cost luôn có thể bật từng trận.
   final int defaultMatchCost;
+  // Default cho tiền cộng thêm theo hiệu số bàn thắng (per-goal addon).
+  // Khi user bật cost cho 1 trận, dialog sẽ prefill 2 field này; per-match
+  // có thể override hoặc tắt riêng cho trận đó.
+  final bool defaultPerGoalEnabled;
+  final int defaultCostPerGoal;
 
   /// Admin đã xác nhận không còn cần merge/replace user nào nữa trong giải này.
   final bool mergeCompleted;
@@ -128,6 +133,8 @@ class GNEsportLeague extends Equatable {
   static const String fieldRankPayoutEnabled = 'rankPayoutEnabled';
   static const String fieldRankPayouts = 'rankPayouts';
   static const String fieldDefaultMatchCost = 'defaultMatchCost';
+  static const String fieldDefaultPerGoalEnabled = 'defaultPerGoalEnabled';
+  static const String fieldDefaultCostPerGoal = 'defaultCostPerGoal';
   static const String fieldMergeCompleted = 'mergeCompleted';
   static const String fieldMode = 'mode';
   static const String fieldGroupCount = 'groupCount';
@@ -155,6 +162,8 @@ class GNEsportLeague extends Equatable {
     this.rankPayoutEnabled = false,
     this.rankPayouts = const [],
     this.defaultMatchCost = 50000,
+    this.defaultPerGoalEnabled = false,
+    this.defaultCostPerGoal = 50000,
     this.mergeCompleted = false,
     this.mode = TournamentMode.league,
     this.groupCount = 1,
@@ -178,6 +187,8 @@ class GNEsportLeague extends Equatable {
         rankPayoutEnabled,
         rankPayouts,
         defaultMatchCost,
+        defaultPerGoalEnabled,
+        defaultCostPerGoal,
         mergeCompleted,
         mode,
         groupCount,
@@ -200,6 +211,8 @@ class GNEsportLeague extends Equatable {
     bool? rankPayoutEnabled,
     List<int>? rankPayouts,
     int? defaultMatchCost,
+    bool? defaultPerGoalEnabled,
+    int? defaultCostPerGoal,
     bool? mergeCompleted,
     TournamentMode? mode,
     int? groupCount,
@@ -221,6 +234,9 @@ class GNEsportLeague extends Equatable {
       rankPayoutEnabled: rankPayoutEnabled ?? this.rankPayoutEnabled,
       rankPayouts: rankPayouts ?? this.rankPayouts,
       defaultMatchCost: defaultMatchCost ?? this.defaultMatchCost,
+      defaultPerGoalEnabled:
+          defaultPerGoalEnabled ?? this.defaultPerGoalEnabled,
+      defaultCostPerGoal: defaultCostPerGoal ?? this.defaultCostPerGoal,
       mergeCompleted: mergeCompleted ?? this.mergeCompleted,
       mode: mode ?? this.mode,
       groupCount: groupCount ?? this.groupCount,
@@ -243,6 +259,8 @@ class GNEsportLeague extends Equatable {
       fieldRankPayoutEnabled: rankPayoutEnabled,
       fieldRankPayouts: rankPayouts,
       fieldDefaultMatchCost: defaultMatchCost,
+      fieldDefaultPerGoalEnabled: defaultPerGoalEnabled,
+      fieldDefaultCostPerGoal: defaultCostPerGoal,
       fieldMergeCompleted: mergeCompleted,
       fieldMode: mode.value,
       fieldGroupCount: groupCount,
@@ -282,6 +300,9 @@ class GNEsportLeague extends Equatable {
             const [],
       ),
       defaultMatchCost: (data[fieldDefaultMatchCost] as num?)?.toInt() ?? 50000,
+      defaultPerGoalEnabled: data[fieldDefaultPerGoalEnabled] ?? false,
+      defaultCostPerGoal:
+          (data[fieldDefaultCostPerGoal] as num?)?.toInt() ?? 50000,
       mergeCompleted: data[fieldMergeCompleted] ?? false,
       mode: TournamentModeExtension.fromString(data[fieldMode] as String?),
       groupCount: (data[fieldGroupCount] as num?)?.toInt() ?? 1,

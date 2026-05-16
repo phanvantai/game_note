@@ -50,10 +50,11 @@ class FeedbackItem extends StatelessWidget {
                 );
               }
               final user = userSnapshot.data;
-              if (user?.photoUrl != null) {
+              final photoUrl = user?.photoUrl;
+              if (photoUrl != null && photoUrl.isNotEmpty) {
                 return CircleAvatar(
                   radius: 20,
-                  backgroundImage: NetworkImage(user!.photoUrl!),
+                  backgroundImage: NetworkImage(photoUrl),
                 );
               }
               return CircleAvatar(

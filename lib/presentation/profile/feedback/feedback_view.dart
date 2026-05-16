@@ -5,6 +5,7 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/feedback/gn_firestore_feedback.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/profile/feedback/feedback_item.dart';
 
 import '../../../firebase/firestore/feedback/feedback_model.dart';
@@ -33,6 +34,7 @@ class _FeedbackViewState extends State<FeedbackView> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        leading: const SmartBackButton(),
         title: const Text('Góp ý'),
       ),
       body: Container(

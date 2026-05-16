@@ -21,6 +21,8 @@ typedef OnAddLeagueCallback =
       required bool rankPayoutEnabled,
       required List<int> rankPayouts,
       required int defaultMatchCost,
+      required bool defaultPerGoalEnabled,
+      required int defaultCostPerGoal,
       required TournamentMode mode,
       required List<String> participants,
       required int groupCount,
@@ -267,6 +269,8 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
       rankPayoutEnabled: cost.rankPayoutEnabled,
       rankPayouts: cost.rankPayouts,
       defaultMatchCost: cost.defaultMatchCost,
+      defaultPerGoalEnabled: cost.defaultPerGoalEnabled,
+      defaultCostPerGoal: cost.defaultCostPerGoal,
       mode: _mode,
       participants: participants,
       groupCount: _groupCount,
@@ -795,6 +799,7 @@ class _Step3ModeConfig extends StatelessWidget {
             subtitle: 'Loại trực tiếp — thua là out',
             icon: Icons.account_tree_outlined,
             onTap: () => onModeChange(TournamentMode.cup),
+            comingSoon: true,
           ),
           const SizedBox(height: 8),
           _ModeCard(
@@ -804,6 +809,7 @@ class _Step3ModeConfig extends StatelessWidget {
             subtitle: 'Đá bảng → knockout',
             icon: Icons.sports_soccer_outlined,
             onTap: () => onModeChange(TournamentMode.full),
+            comingSoon: true,
           ),
         ],
       ),
@@ -1135,6 +1141,7 @@ class _ModeCard extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final VoidCallback onTap;
+  final bool comingSoon;
 
   const _ModeCard({
     required this.mode,
@@ -1143,66 +1150,103 @@ class _ModeCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.onTap,
+    this.comingSoon = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isSelected = mode == selected;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.secondary.withValues(alpha: 0.1)
-              : colorScheme.surface.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
+    final isSelected = !comingSoon && mode == selected;
+    return Opacity(
+      opacity: comingSoon ? 0.55 : 1.0,
+      child: GestureDetector(
+        onTap: comingSoon ? null : onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
             color: isSelected
-                ? colorScheme.secondary
-                : colorScheme.outline.withValues(alpha: 0.28),
-            width: isSelected ? 2 : 1,
+                ? colorScheme.secondary.withValues(alpha: 0.1)
+                : colorScheme.surface.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.secondary
+                  : colorScheme.outline.withValues(alpha: 0.28),
+              width: isSelected ? 2 : 1,
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: colorScheme.secondary.withValues(
-                  alpha: isSelected ? 0.2 : 0.1,
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(
+                    alpha: isSelected ? 0.2 : 0.1,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                borderRadius: BorderRadius.circular(10),
+                child: Icon(icon, size: 20, color: colorScheme.secondary),
               ),
-              child: Icon(icon, size: 20, color: colorScheme.secondary),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: isSelected ? colorScheme.secondary : null,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: isSelected ? colorScheme.secondary : null,
+                            ),
+                          ),
+                        ),
+                        if (comingSoon) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.tertiary
+                                  .withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: colorScheme.tertiary
+                                    .withValues(alpha: 0.45),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              'Sắp ra mắt',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.tertiary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            if (isSelected)
-              Icon(Icons.check_circle, color: colorScheme.secondary, size: 22),
-          ],
+              if (isSelected)
+                Icon(Icons.check_circle, color: colorScheme.secondary, size: 22),
+            ],
+          ),
         ),
       ),
     );

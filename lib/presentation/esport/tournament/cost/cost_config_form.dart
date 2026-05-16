@@ -24,11 +24,15 @@ class CostConfigFormResult {
   final bool rankPayoutEnabled;
   final List<int> rankPayouts;
   final int defaultMatchCost;
+  final bool defaultPerGoalEnabled;
+  final int defaultCostPerGoal;
 
   const CostConfigFormResult({
     required this.rankPayoutEnabled,
     required this.rankPayouts,
     required this.defaultMatchCost,
+    required this.defaultPerGoalEnabled,
+    required this.defaultCostPerGoal,
   });
 }
 
@@ -46,6 +50,12 @@ class CostConfigForm extends StatefulWidget {
   /// VND.
   final int initialDefaultMatchCost;
 
+  /// Default toggle "tiền theo hiệu số bàn thắng".
+  final bool initialDefaultPerGoalEnabled;
+
+  /// VND/bàn — tiền cộng thêm theo hiệu số bàn thắng.
+  final int initialDefaultCostPerGoal;
+
   /// Số người tham gia giải đấu. Dùng để sinh preset gợi ý (0 = không gợi ý).
   final int participantCount;
 
@@ -57,6 +67,8 @@ class CostConfigForm extends StatefulWidget {
     this.initialRankPayoutEnabled = false,
     this.initialRankPayouts = const [],
     this.initialDefaultMatchCost = 50000,
+    this.initialDefaultPerGoalEnabled = false,
+    this.initialDefaultCostPerGoal = 50000,
     this.participantCount = 0,
     this.isBracketMode = false,
   });
@@ -77,11 +89,17 @@ class CostConfigFormState extends State<CostConfigForm> {
       TextEditingController(
     text: (widget.initialDefaultMatchCost ~/ 1000).toString(),
   );
+  late bool _defaultPerGoalEnabled = widget.initialDefaultPerGoalEnabled;
+  late final TextEditingController _defaultCostPerGoalController =
+      TextEditingController(
+    text: (widget.initialDefaultCostPerGoal ~/ 1000).toString(),
+  );
 
   @override
   void dispose() {
     _rankPayoutsController.dispose();
     _defaultMatchCostController.dispose();
+    _defaultCostPerGoalController.dispose();
     super.dispose();
   }
 
@@ -111,10 +129,16 @@ class CostConfigFormState extends State<CostConfigForm> {
             ) ??
             50) *
         1000;
+    final defaultCostPerGoal = _defaultPerGoalEnabled
+        ? (int.tryParse(_defaultCostPerGoalController.text.trim()) ?? 50) *
+            1000
+        : 0;
     return CostConfigFormResult(
       rankPayoutEnabled: _rankPayoutEnabled,
       rankPayouts: parsedRankPayouts,
       defaultMatchCost: defaultMatchCost,
+      defaultPerGoalEnabled: _defaultPerGoalEnabled,
+      defaultCostPerGoal: defaultCostPerGoal,
     );
   }
 
@@ -182,6 +206,33 @@ class CostConfigFormState extends State<CostConfigForm> {
           'Số này sẽ được điền sẵn khi bật cost cho từng trận lúc nhập kết quả.',
           style: textTheme.bodySmall,
         ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          title: const Text('Mặc định bật tiền theo hiệu số bàn thắng'),
+          subtitle: const Text(
+            'Người thua trả thêm theo hiệu số bàn thắng (VD: 3-1 → cộng 2 lần số này).',
+            style: TextStyle(fontSize: 11),
+          ),
+          value: _defaultPerGoalEnabled,
+          onChanged: (v) => setState(() => _defaultPerGoalEnabled = v),
+        ),
+        if (_defaultPerGoalEnabled) ...[
+          TextField(
+            controller: _defaultCostPerGoalController,
+            keyboardType: TextInputType.number,
+            decoration: appInputDecoration(
+              context: context,
+              hintText: 'Tiền mỗi bàn (k VND)',
+              prefixIcon: Icons.sports_soccer,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Cộng vào tiền per-match khi trận đó cũng bật tính tiền.',
+            style: textTheme.bodySmall,
+          ),
+        ],
       ],
     );
   }

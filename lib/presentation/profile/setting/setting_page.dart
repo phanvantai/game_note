@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pes_arena/domain/repositories/esport/esport_group_repository.dart';
+import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/routing.dart';
 import 'package:pes_arena/core/theme/theme_provider.dart';
 
 import '../../../firebase/auth/gn_auth.dart';
+import '../../common/smart_back.dart';
 import '../bloc/profile_bloc.dart';
+import 'ownership_resolution_page.dart';
 
 class SettingPage extends StatelessWidget {
   const SettingPage({super.key});
@@ -31,6 +35,7 @@ class _SettingView extends StatelessWidget {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        leading: const SmartBackButton(),
         title: const Text('Tuỳ chọn khác'),
       ),
       body: Container(
@@ -109,7 +114,54 @@ class _SettingView extends StatelessWidget {
     );
   }
 
-  void _deleteAccount(BuildContext context, ProfileBloc profileBloc) {
+  Future<void> _deleteAccount(
+    BuildContext context,
+    ProfileBloc profileBloc,
+  ) async {
+    final uid = getIt<GNAuth>().currentUser?.uid;
+    if (uid == null) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final results = await Future.wait([
+        getIt<EsportGroupRepository>().getGroupsByOwnerId(uid),
+        getIt<EsportLeagueRepository>().getLeaguesByOwnerId(uid),
+      ]);
+      if (!context.mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+
+      final groups = results[0] as List;
+      final leagues = results[1] as List;
+      if (groups.isNotEmpty || leagues.isNotEmpty) {
+        final resolved = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => OwnershipResolutionPage(
+              currentUserId: uid,
+              groups: groups.cast(),
+              leagues: leagues.cast(),
+            ),
+          ),
+        );
+        if (resolved == true && context.mounted) {
+          profileBloc.add(DeleteProfileEvent());
+        }
+        return;
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể kiểm tra quyền sở hữu: $e')),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext ctx) {

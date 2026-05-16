@@ -4,55 +4,60 @@ import 'package:pes_arena/presentation/home/widgets/ongoing_tournaments_banner.d
 
 GNEsportLeague _league({
   required String id,
-  required DateTime start,
-  DateTime? end,
+  String? status,
 }) => GNEsportLeague(
   id: id,
   ownerId: 'u1',
   groupId: 'g1',
   name: 'L $id',
-  startDate: start,
-  endDate: end,
+  startDate: DateTime(2026, 5, 1),
+  endDate: DateTime(2026, 5, 10),
   isActive: true,
   description: '',
   participants: const [],
   rankPayoutEnabled: false,
   rankPayouts: const [],
   defaultMatchCost: 0,
+  status: status,
 );
 
 void main() {
-  final now = DateTime(2026, 5, 4, 14, 30);
-
-  test('giữ giải đấu mà today nằm trong [startDate, endDate]', () {
+  test('giữ giải đấu có status = ongoing', () {
     final result = filterOngoingLeagues([
-      _league(
-        id: 'a',
-        start: DateTime(2026, 5, 1),
-        end: DateTime(2026, 5, 10),
-      ),
-      _league(id: 'b', start: DateTime(2026, 5, 4), end: DateTime(2026, 5, 4)),
-    ], now);
+      _league(id: 'a', status: 'ongoing'),
+      _league(id: 'b', status: 'ongoing'),
+    ]);
     expect(result.map((l) => l.id), ['a', 'b']);
   });
 
-  test('loại giải đấu đã kết thúc hoặc chưa bắt đầu', () {
+  test('loại giải đấu có status = finished dù endDate còn trong tương lai', () {
     final result = filterOngoingLeagues([
-      _league(
-        id: 'past',
-        start: DateTime(2026, 4, 1),
-        end: DateTime(2026, 4, 30),
-      ),
-      _league(id: 'future', start: DateTime(2026, 6, 1)),
-    ], now);
+      _league(id: 'done', status: 'finished'),
+    ]);
     expect(result, isEmpty);
   });
 
-  test('endDate null thì coi như cùng ngày với startDate', () {
+  test('loại giải đấu có status = upcoming', () {
     final result = filterOngoingLeagues([
-      _league(id: 'today', start: DateTime(2026, 5, 4)),
-      _league(id: 'yesterday', start: DateTime(2026, 5, 3)),
-    ], now);
-    expect(result.map((l) => l.id), ['today']);
+      _league(id: 'soon', status: 'upcoming'),
+    ]);
+    expect(result, isEmpty);
+  });
+
+  test('status null/legacy → coi như upcoming, không hiện trên banner', () {
+    final result = filterOngoingLeagues([
+      _league(id: 'legacy', status: null),
+    ]);
+    expect(result, isEmpty);
+  });
+
+  test('lọc đúng tập con khi mix status', () {
+    final result = filterOngoingLeagues([
+      _league(id: 'a', status: 'ongoing'),
+      _league(id: 'b', status: 'finished'),
+      _league(id: 'c', status: 'upcoming'),
+      _league(id: 'd', status: 'ongoing'),
+    ]);
+    expect(result.map((l) => l.id), ['a', 'd']);
   });
 }

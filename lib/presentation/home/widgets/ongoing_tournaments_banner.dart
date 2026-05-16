@@ -14,7 +14,7 @@ class OngoingTournamentsBanner extends StatelessWidget {
     return BlocBuilder<OngoingTournamentsBloc, OngoingTournamentsState>(
       buildWhen: (prev, curr) => prev.leagues != curr.leagues,
       builder: (context, state) {
-        final ongoing = _filterOngoing(state.leagues, DateTime.now());
+        final ongoing = _filterOngoing(state.leagues);
         if (ongoing.isEmpty) return const SizedBox.shrink();
         return _Banner(leagues: ongoing);
       },
@@ -23,26 +23,19 @@ class OngoingTournamentsBanner extends StatelessWidget {
 }
 
 @visibleForTesting
-List<GNEsportLeague> filterOngoingLeagues(
-  List<GNEsportLeague> leagues,
-  DateTime now,
-) => _filterOngoing(leagues, now);
+List<GNEsportLeague> filterOngoingLeagues(List<GNEsportLeague> leagues) =>
+    _filterOngoing(leagues);
 
-List<GNEsportLeague> _filterOngoing(
-  List<GNEsportLeague> leagues,
-  DateTime now,
-) {
-  final today = DateTime(now.year, now.month, now.day);
-  return leagues.where((l) {
-    final start = DateTime(
-      l.startDate.year,
-      l.startDate.month,
-      l.startDate.day,
-    );
-    final endRaw = l.endDate ?? l.startDate;
-    final end = DateTime(endRaw.year, endRaw.month, endRaw.day);
-    return !today.isBefore(start) && !today.isAfter(end);
-  }).toList();
+// Filter by admin-managed `status == ongoing` to match the "Live" badge on
+// the tournament list. Date-range filtering used to live here and let
+// finished leagues leak through whenever `endDate` was still in the future
+// or unset — status is the source of truth admins actually edit.
+List<GNEsportLeague> _filterOngoing(List<GNEsportLeague> leagues) {
+  return leagues
+      .where((l) =>
+          GNEsportLeagueStatusExtension.fromString(l.status) ==
+          GNEsportLeagueStatus.ongoing)
+      .toList();
 }
 
 class _Banner extends StatelessWidget {

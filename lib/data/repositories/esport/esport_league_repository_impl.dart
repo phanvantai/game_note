@@ -22,6 +22,8 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
     bool rankPayoutEnabled = false,
     List<int> rankPayouts = const [],
     int defaultMatchCost = 50000,
+    bool defaultPerGoalEnabled = false,
+    int defaultCostPerGoal = 50000,
     TournamentMode mode = TournamentMode.league,
     int groupCount = 1,
     int advanceCount = 2,
@@ -37,6 +39,8 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       rankPayoutEnabled: rankPayoutEnabled,
       rankPayouts: rankPayouts,
       defaultMatchCost: defaultMatchCost,
+      defaultPerGoalEnabled: defaultPerGoalEnabled,
+      defaultCostPerGoal: defaultCostPerGoal,
       mode: mode,
       groupCount: groupCount,
       advanceCount: advanceCount,
@@ -100,10 +104,30 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<LeaguesPage> getOtherLeagues({
-    Object? startAfter,
-    int limit = 20,
-  }) {
+  Future<List<GNEsportLeague>> getLeaguesByOwnerId(String ownerId) {
+    return getIt<GNFirestore>().getLeaguesByOwnerId(ownerId);
+  }
+
+  @override
+  Future<void> transferLeagueOwnership({
+    required String leagueId,
+    required String newOwnerId,
+  }) async {
+    final league = await getIt<GNFirestore>().getLeague(leagueId);
+    if (league == null) {
+      throw Exception('League not found');
+    }
+    if (!league.participants.contains(newOwnerId)) {
+      throw Exception('New owner must be a league participant');
+    }
+    return getIt<GNFirestore>().transferLeagueOwnership(
+      leagueId: leagueId,
+      newOwnerId: newOwnerId,
+    );
+  }
+
+  @override
+  Future<LeaguesPage> getOtherLeagues({Object? startAfter, int limit = 20}) {
     return getIt<GNFirestore>().getOtherLeagues(
       startAfter: startAfter is DocumentSnapshot ? startAfter : null,
       limit: limit,
@@ -121,22 +145,33 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<void> addParticipant(
-      {required String leagueId, required String userId}) {
+  Future<void> addParticipant({
+    required String leagueId,
+    required String userId,
+  }) {
     return getIt<GNFirestore>().addParticipantToLeague(leagueId, userId);
   }
 
   @override
-  Future<void> addMultipleParticipants(
-      {required String leagueId, required List<String> userIds}) {
-    return getIt<GNFirestore>().addMultipleParticipantsToLeague(leagueId, userIds);
+  Future<void> addMultipleParticipants({
+    required String leagueId,
+    required List<String> userIds,
+  }) {
+    return getIt<GNFirestore>().addMultipleParticipantsToLeague(
+      leagueId,
+      userIds,
+    );
   }
 
   @override
-  Future<void> generateRound(
-      {required String leagueId, required List<String> teamIds}) {
-    return getIt<GNFirestore>()
-        .generateRound(leagueId: leagueId, teamIds: teamIds);
+  Future<void> generateRound({
+    required String leagueId,
+    required List<String> teamIds,
+  }) {
+    return getIt<GNFirestore>().generateRound(
+      leagueId: leagueId,
+      teamIds: teamIds,
+    );
   }
 
   @override
@@ -158,7 +193,9 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<void> updateMatch(GNEsportMatch match) {
+  Future<({GNEsportMatch previous, GNEsportMatch updated})> updateMatch(
+    GNEsportMatch match,
+  ) {
     // The match instance the UI is submitting still carries the `updatedAt`
     // it had when the dialog opened — pass it down for the optimistic-lock
     // check inside the transaction.
@@ -169,6 +206,17 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       awayScore: match.awayScore,
       matchCost: match.matchCost,
       expectedUpdatedAt: match.updatedAt,
+    );
+  }
+
+  @override
+  Future<void> applyMatchStatDelta({
+    required GNEsportMatch previous,
+    required GNEsportMatch updated,
+  }) {
+    return getIt<GNFirestore>().applyMatchStatDelta(
+      previous: previous,
+      updated: updated,
     );
   }
 
@@ -251,7 +299,9 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
 
   @override
   Future<void> setMergeCompleted(String leagueId, {required bool completed}) {
-    return getIt<GNFirestore>().setMergeCompleted(leagueId, completed: completed);
+    return getIt<GNFirestore>().setMergeCompleted(
+      leagueId,
+      completed: completed,
+    );
   }
-
 }
