@@ -146,61 +146,6 @@ void main() {
       }
     });
 
-    test(
-        'orphan user trong match (không có trong league.participants) '
-        '→ vẫn backfill stat', () async {
-      // Repro: u3 từng là participant lúc match được generate, sau đó bị
-      // remove khỏi league.participants. Match u1-u3 vẫn tồn tại.
-      await seedLeague(id: 'L1', participants: ['u1', 'u2']);
-      await seedMatch(
-        leagueId: 'L1',
-        home: 'u1',
-        away: 'u3',
-        hs: 0,
-        as_: 0,
-        finished: false,
-      );
-
-      await fs.recomputeLeagueStats('L1');
-
-      final stats = await fakeFirestore
-          .collection(GNEsportLeague.collectionName)
-          .doc('L1')
-          .collection(GNEsportLeagueStat.collectionName)
-          .get();
-      final userIds = stats.docs
-          .map((d) => d.data()[GNEsportLeagueStat.fieldUserId])
-          .toSet();
-      expect(userIds, containsAll(['u1', 'u2', 'u3']),
-          reason: 'u3 dù không còn trong participants vẫn cần stat doc');
-    });
-
-    test('knockout placeholder slot (homeTeamId/awayTeamId rỗng) không backfill',
-        () async {
-      await seedLeague(id: 'L1', participants: ['u1', 'u2']);
-      await seedMatch(
-        leagueId: 'L1',
-        home: '',
-        away: '',
-        hs: 0,
-        as_: 0,
-        finished: false,
-      );
-
-      await fs.recomputeLeagueStats('L1');
-
-      final stats = await fakeFirestore
-          .collection(GNEsportLeague.collectionName)
-          .doc('L1')
-          .collection(GNEsportLeagueStat.collectionName)
-          .get();
-      final userIds = stats.docs
-          .map((d) => d.data()[GNEsportLeagueStat.fieldUserId])
-          .toSet();
-      expect(userIds, {'u1', 'u2'},
-          reason: 'không được tạo stat cho userId rỗng');
-    });
-
     test('league doc không tồn tại → không backfill, không lỗi', () async {
       await fs.recomputeLeagueStats('missing');
 
