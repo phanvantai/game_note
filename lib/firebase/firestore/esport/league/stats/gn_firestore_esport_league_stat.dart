@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
@@ -65,35 +66,70 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
   /// stats drifted from reality (e.g. legacy non-transactional update bugs,
   /// manually deleted matches in console). Idempotent — safe to re-run.
   ///
+  /// Also backfills missing stat docs: any participant on the league with no
+  /// stat doc gets a league-wide (groupId=null) row created before recompute.
+  /// This rescues legacy `league`-mode leagues created before generateRound
+  /// initialised stats, where every match update was throwing "No stats
+  /// found". Full-mode leagues are unaffected because participants already
+  /// have per-group stats.
+  ///
   /// Uses a single batched write rather than a transaction: queries (which
   /// we need for the stats + matches collections) aren't allowed inside
   /// Firestore transactions, and reconcile is a manual admin action with
   /// no concurrent contention to worry about. If an admin races a normal
   /// match update against a reconcile, just re-run reconcile after.
   Future<void> recomputeLeagueStats(String leagueId) async {
-    final statsCollection = firestore
+    final leagueRef = firestore
         .collection(GNEsportLeague.collectionName)
-        .doc(leagueId)
-        .collection(GNEsportLeagueStat.collectionName);
-    final matchesCollection = firestore
-        .collection(GNEsportLeague.collectionName)
-        .doc(leagueId)
-        .collection(GNEsportMatch.collectionName);
+        .doc(leagueId);
+    final statsCollection =
+        leagueRef.collection(GNEsportLeagueStat.collectionName);
+    final matchesCollection =
+        leagueRef.collection(GNEsportMatch.collectionName);
 
     final results = await Future.wait([
+      leagueRef.get(),
       statsCollection.get(),
       matchesCollection
           .where(GNEsportMatch.fieldIsFinished, isEqualTo: true)
           .get(),
     ]);
-    final statSnaps = results[0].docs;
-    final matchSnaps = results[1].docs;
+    final leagueSnap = results[0] as DocumentSnapshot<Map<String, dynamic>>;
+    final statSnaps =
+        (results[1] as QuerySnapshot<Map<String, dynamic>>).docs;
+    final matchSnaps =
+        (results[2] as QuerySnapshot<Map<String, dynamic>>).docs;
+
+    // Backfill: every participant on the league doc without any stat row
+    // gets a fresh league-wide stat. Restricted to users with zero stat
+    // docs so full-mode per-group stats are left alone.
+    final userHasAnyStat = <String>{
+      for (final s in statSnaps) GNEsportLeagueStat.fromFirestore(s).userId,
+    };
+    final participants = leagueSnap.exists
+        ? GNEsportLeague.fromFirestore(leagueSnap).participants
+        : const <String>[];
+    final backfillFutures = <Future<void>>[];
+    for (final userId in participants) {
+      if (!userHasAnyStat.contains(userId)) {
+        backfillFutures.add(addLeagueStat(userId: userId, leagueId: leagueId));
+      }
+    }
+    if (backfillFutures.isNotEmpty) {
+      await Future.wait(backfillFutures);
+    }
+
+    // Re-fetch stats only if we backfilled, so the recompute pass sees the
+    // freshly created docs.
+    final freshStatSnaps = backfillFutures.isEmpty
+        ? statSnaps
+        : (await statsCollection.get()).docs;
 
     // Initialise totals at zero for every existing stat doc — players with
     // no finished matches still need their docs reset (in case they were
     // stale).
     final totals = <String, _ReconcileTotals>{
-      for (final s in statSnaps)
+      for (final s in freshStatSnaps)
         GNEsportLeagueStat.fromFirestore(s).userId: _ReconcileTotals(),
     };
 
@@ -109,7 +145,7 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     }
 
     final batch = firestore.batch();
-    for (final s in statSnaps) {
+    for (final s in freshStatSnaps) {
       final userId = GNEsportLeagueStat.fromFirestore(s).userId;
       final t = totals[userId]!;
       batch.update(s.reference, {

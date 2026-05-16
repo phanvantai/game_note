@@ -39,45 +39,37 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     required String leagueId,
     required List<String> teamIds,
   }) async {
-    final batch = firestore.batch(); // To write multiple documents at once.
+    final matchPath =
+        '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
+    final docs = <MapEntry<String, Map<String, dynamic>>>[];
 
-    List<GNEsportMatch> matches = [];
-
-    // Generate matches for each team against every other team.
     for (int i = 0; i < teamIds.length; i++) {
       for (int j = i + 1; j < teamIds.length; j++) {
-        // Create a match with team i as home and team j as away
-        String matchId = firestore
-            .collection(
-                '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}')
-            .doc()
-            .id;
-
+        final matchId = firestore.collection(matchPath).doc().id;
         final match = GNEsportMatch(
           id: matchId,
           homeTeamId: teamIds[i],
           awayTeamId: teamIds[j],
-          homeScore: 0, // Default score, can be updated later
-          awayScore: 0, // Default score, can be updated later
-          date: DateTime.now(), // You can specify the match date if needed
-          isFinished: false, // Match is not finished when created
+          homeScore: 0,
+          awayScore: 0,
+          date: DateTime.now(),
+          isFinished: false,
           leagueId: leagueId,
         );
-
-        // Add match to Firestore batch
-        batch.set(
-          firestore.doc(
-              '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}/$matchId'),
-          match.toMap(),
-        );
-
-        // Add match to the local list for future reference
-        matches.add(match);
+        docs.add(MapEntry('$matchPath/$matchId', match.toMap()));
       }
     }
 
-    // Commit the batch write to Firestore
-    await batch.commit();
+    // Stat docs before match docs: matches reference stats during score
+    // entry via _statRefForUser; writing stats first means a partial stat
+    // failure leaves no orphan matches behind. addMultipleParticipants
+    // dedups stat creation against league.participants, which the create
+    // flow has already populated — so the generator owns stats here.
+    await Future.wait([
+      for (final userId in teamIds)
+        addLeagueStat(userId: userId, leagueId: leagueId),
+    ]);
+    await _writeBatched(docs);
   }
 
   /// Generate an additional round-robin round for a specific group in full mode.
@@ -540,28 +532,30 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     String userId, {
     String? groupId,
   }) async {
-    var query = firestore
+    // Filter groupId in code rather than via `isNull: true`, because
+    // GNEsportLeagueStat.toMap omits the field entirely when groupId is null
+    // (league-wide stats). Firestore's isNull predicate only matches docs
+    // where the field exists with value null — it does NOT match docs where
+    // the field is absent — so an isNull query against league-wide stats
+    // would silently miss every legacy doc and throw "No stats found" on
+    // every match update.
+    final snapshot = await firestore
         .collection(GNEsportLeague.collectionName)
         .doc(leagueId)
         .collection(GNEsportLeagueStat.collectionName)
-        .where(GNEsportLeagueStat.fieldUserId, isEqualTo: userId);
-    if (groupId != null) {
-      query =
-          query.where(GNEsportLeagueStat.fieldGroupId, isEqualTo: groupId);
-    } else {
-      query = query.where(
-        GNEsportLeagueStat.fieldGroupId,
-        isNull: true,
-      );
-    }
-    final snapshot = await query.limit(1).get();
-    if (snapshot.docs.isEmpty) {
+        .where(GNEsportLeagueStat.fieldUserId, isEqualTo: userId)
+        .get();
+    final match = snapshot.docs.where((doc) {
+      final docGroupId = doc.data()[GNEsportLeagueStat.fieldGroupId] as String?;
+      return docGroupId == groupId;
+    }).toList();
+    if (match.isEmpty) {
       throw Exception(
         'No stats found for user $userId in league $leagueId'
         '${groupId != null ? " group $groupId" : ""}',
       );
     }
-    return snapshot.docs.first.reference;
+    return match.first.reference;
   }
 
   /// Compute one team's contribution (or undo, when sign = -1) to its stats
