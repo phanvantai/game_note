@@ -5,6 +5,11 @@ import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import '../gn_esport_league.dart';
 import 'gn_esport_league_stat.dart';
 
+/// Composite key for a stat row: (userId, groupId). groupId is null for
+/// league-wide stats (league/cup mode) and 'A'/'B'/... for full-mode group
+/// stats.
+typedef _StatKey = ({String userId, String? groupId});
+
 extension GNFirestoreEsportLeagueStat on GNFirestore {
   // create a stat for a user in a league.
   // [groupId] is set for full-mode group-scoped stats; null for league-wide.
@@ -61,23 +66,28 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     return leagues;
   }
 
-  /// Recompute all stat docs for a league from its finished matches and
-  /// overwrite the stored values. Admin-only escape hatch for cases where
-  /// stats drifted from reality (e.g. legacy non-transactional update bugs,
-  /// manually deleted matches in console). Idempotent — safe to re-run.
+  /// Admin-only escape hatch: nuke every stat doc in the league and
+  /// recreate them from scratch by folding finished matches.
   ///
-  /// Also backfills missing stat docs: any participant on the league with no
-  /// stat doc gets a league-wide (groupId=null) row created before recompute.
-  /// This rescues legacy `league`-mode leagues created before generateRound
-  /// initialised stats, where every match update was throwing "No stats
-  /// found". Full-mode leagues are unaffected because participants already
-  /// have per-group stats.
+  /// Why delete-and-recreate instead of in-place update: legacy bugs (and
+  /// some manual data edits) have left leagues with duplicate stat rows
+  /// per user, orphan rows for removed participants, and rows with missing
+  /// fields. Any in-place reconcile is sensitive to which docs already
+  /// exist. Tearing down and rebuilding gives one deterministic shape:
   ///
-  /// Uses a single batched write rather than a transaction: queries (which
-  /// we need for the stats + matches collections) aren't allowed inside
-  /// Firestore transactions, and reconcile is a manual admin action with
-  /// no concurrent contention to worry about. If an admin races a normal
-  /// match update against a reconcile, just re-run reconcile after.
+  /// - league / cup mode: exactly one row per user (groupId = null).
+  ///   Users are the union of `league.participants` and any home/away
+  ///   team referenced by a match (rescues orphans).
+  /// - full mode: one row per (user, group) pair. Group membership is
+  ///   derived from group-phase matches' (groupId, homeTeamId, awayTeamId);
+  ///   if no group match references a user yet, their pre-existing
+  ///   stat doc's groupId is preserved as a fallback.
+  ///
+  /// Knockout matches contribute nothing — bracket rounds don't track stats.
+  ///
+  /// Not transactional (queries can't run inside Firestore transactions and
+  /// this is a manual admin action without concurrent contention to worry
+  /// about). If a user updates a match mid-reconcile, just re-run reconcile.
   Future<void> recomputeLeagueStats(String leagueId) async {
     final leagueRef = firestore
         .collection(GNEsportLeague.collectionName)
@@ -90,74 +100,109 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     final results = await Future.wait([
       leagueRef.get(),
       statsCollection.get(),
-      matchesCollection
-          .where(GNEsportMatch.fieldIsFinished, isEqualTo: true)
-          .get(),
+      matchesCollection.get(),
     ]);
     final leagueSnap = results[0] as DocumentSnapshot<Map<String, dynamic>>;
     final statSnaps =
         (results[1] as QuerySnapshot<Map<String, dynamic>>).docs;
-    final matchSnaps =
-        (results[2] as QuerySnapshot<Map<String, dynamic>>).docs;
+    final allMatches =
+        (results[2] as QuerySnapshot<Map<String, dynamic>>)
+            .docs
+            .map(GNEsportMatch.fromFirestore)
+            .toList();
 
-    // Backfill: every participant on the league doc without any stat row
-    // gets a fresh league-wide stat. Restricted to users with zero stat
-    // docs so full-mode per-group stats are left alone.
-    final userHasAnyStat = <String>{
-      for (final s in statSnaps) GNEsportLeagueStat.fromFirestore(s).userId,
-    };
+    final mode = leagueSnap.exists
+        ? GNEsportLeague.fromFirestore(leagueSnap).mode
+        : TournamentMode.league;
     final participants = leagueSnap.exists
         ? GNEsportLeague.fromFirestore(leagueSnap).participants
         : const <String>[];
-    final backfillFutures = <Future<void>>[];
-    for (final userId in participants) {
-      if (!userHasAnyStat.contains(userId)) {
-        backfillFutures.add(addLeagueStat(userId: userId, leagueId: leagueId));
+
+    // --- Step 1: determine which (user, group) rows should exist ---
+    final desiredRows = <_StatKey>{};
+    if (mode == TournamentMode.full) {
+      // Derive group membership from group-phase matches.
+      final groupOfUser = <String, String>{};
+      for (final m in allMatches) {
+        if (m.phase != 'group' || m.groupId == null) continue;
+        if (m.homeTeamId.isNotEmpty) groupOfUser[m.homeTeamId] = m.groupId!;
+        if (m.awayTeamId.isNotEmpty) groupOfUser[m.awayTeamId] = m.groupId!;
+      }
+      // Fallback to pre-existing stat docs' groupId for users not yet in any
+      // group match — preserves group assignment for newly-added players.
+      for (final s in statSnaps) {
+        final stat = GNEsportLeagueStat.fromFirestore(s);
+        if (stat.groupId != null && !groupOfUser.containsKey(stat.userId)) {
+          groupOfUser[stat.userId] = stat.groupId!;
+        }
+      }
+      for (final entry in groupOfUser.entries) {
+        desiredRows.add((userId: entry.key, groupId: entry.value));
+      }
+    } else {
+      // league / cup: one row per user. Pull from participants + match
+      // teams (covers orphans whose user was removed from participants).
+      final users = <String>{
+        ...participants,
+        for (final m in allMatches) ...[m.homeTeamId, m.awayTeamId],
+      }..removeWhere((id) => id.isEmpty);
+      for (final u in users) {
+        desiredRows.add((userId: u, groupId: null));
       }
     }
-    if (backfillFutures.isNotEmpty) {
-      await Future.wait(backfillFutures);
-    }
 
-    // Re-fetch stats only if we backfilled, so the recompute pass sees the
-    // freshly created docs.
-    final freshStatSnaps = backfillFutures.isEmpty
-        ? statSnaps
-        : (await statsCollection.get()).docs;
-
-    // Initialise totals at zero for every existing stat doc — players with
-    // no finished matches still need their docs reset (in case they were
-    // stale).
-    final totals = <String, _ReconcileTotals>{
-      for (final s in freshStatSnaps)
-        GNEsportLeagueStat.fromFirestore(s).userId: _ReconcileTotals(),
+    // --- Step 2: fold finished matches into per-row totals ---
+    final totals = <_StatKey, _ReconcileTotals>{
+      for (final row in desiredRows) row: _ReconcileTotals(),
     };
-
-    for (final m in matchSnaps) {
-      final match = GNEsportMatch.fromFirestore(m);
-      final h = match.homeScore;
-      final a = match.awayScore;
+    for (final m in allMatches) {
+      if (m.isFinished != true) continue;
+      if (m.phase == 'knockout') continue;
+      final h = m.homeScore;
+      final a = m.awayScore;
       if (h == null || a == null) continue;
-      // Silently ignore matches whose players don't have a stat doc — the
-      // audit log will already have flagged them as orphans.
-      totals[match.homeTeamId]?.apply(scoredFor: h, scoredAgainst: a);
-      totals[match.awayTeamId]?.apply(scoredFor: a, scoredAgainst: h);
+      final groupId = m.groupId;
+      totals[(userId: m.homeTeamId, groupId: groupId)]
+          ?.apply(scoredFor: h, scoredAgainst: a);
+      totals[(userId: m.awayTeamId, groupId: groupId)]
+          ?.apply(scoredFor: a, scoredAgainst: h);
     }
 
-    final batch = firestore.batch();
-    for (final s in freshStatSnaps) {
-      final userId = GNEsportLeagueStat.fromFirestore(s).userId;
-      final t = totals[userId]!;
-      batch.update(s.reference, {
-        GNEsportLeagueStat.fieldMatchesPlayed: t.mp,
-        GNEsportLeagueStat.fieldGoals: t.gf,
-        GNEsportLeagueStat.fieldGoalsConceded: t.ga,
-        GNEsportLeagueStat.fieldWins: t.w,
-        GNEsportLeagueStat.fieldDraws: t.d,
-        GNEsportLeagueStat.fieldLosses: t.l,
-      });
+    // --- Step 3: delete all existing rows + write fresh rows, in chunks ---
+    final ops = <_StatOp>[
+      for (final s in statSnaps) _StatOp.delete(s.reference),
+      for (final row in desiredRows)
+        _StatOp.write(
+          statsCollection.doc(),
+          GNEsportLeagueStat(
+            id: '', // ignored by toMap
+            userId: row.userId,
+            leagueId: leagueId,
+            matchesPlayed: totals[row]!.mp,
+            goals: totals[row]!.gf,
+            goalsConceded: totals[row]!.ga,
+            wins: totals[row]!.w,
+            draws: totals[row]!.d,
+            losses: totals[row]!.l,
+            groupId: row.groupId,
+          ).toMap(),
+        ),
+    ];
+
+    // Stay under Firestore's 500-write-per-batch ceiling.
+    const batchLimit = 499;
+    for (int i = 0; i < ops.length; i += batchLimit) {
+      final end = (i + batchLimit).clamp(0, ops.length);
+      final batch = firestore.batch();
+      for (final op in ops.sublist(i, end)) {
+        if (op.data == null) {
+          batch.delete(op.ref);
+        } else {
+          batch.set(op.ref, op.data!);
+        }
+      }
+      await batch.commit();
     }
-    await batch.commit();
   }
 
   // listen to updates of a league stat
@@ -173,6 +218,15 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
           .toList();
     });
   }
+}
+
+/// One delete-or-write op in the recompute teardown/rebuild plan. `data`
+/// null means delete; non-null means set.
+class _StatOp {
+  final DocumentReference<Map<String, dynamic>> ref;
+  final Map<String, dynamic>? data;
+  const _StatOp.delete(this.ref) : data = null;
+  const _StatOp.write(this.ref, Map<String, dynamic> this.data);
 }
 
 /// Mutable accumulator used by `recomputeLeagueStats` to fold finished

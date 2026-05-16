@@ -59,7 +59,7 @@ void main() {
     });
   }
 
-  group('recomputeLeagueStats — backfill', () {
+  group('recomputeLeagueStats — delete và tái tạo từ đầu', () {
     test('giải league cũ không có stat doc nào → backfill 1 stat/người chơi',
         () async {
       await seedLeague(id: 'L1', participants: ['u1', 'u2', 'u3']);
@@ -155,6 +155,138 @@ void main() {
           .collection(GNEsportLeagueStat.collectionName)
           .get();
       expect(stats.docs, isEmpty);
+    });
+
+    test('user có nhiều stat doc bị duplicate → bị clean về đúng 1 row',
+        () async {
+      // Repro bug user gặp: legacy data có 2+ stat doc cho cùng 1 user.
+      await seedLeague(id: 'L1', participants: ['u1', 'u2']);
+      await fs.addLeagueStat(userId: 'u1', leagueId: 'L1');
+      await fs.addLeagueStat(userId: 'u1', leagueId: 'L1'); // dup
+      await fs.addLeagueStat(userId: 'u2', leagueId: 'L1');
+
+      await fs.recomputeLeagueStats('L1');
+
+      final stats = await fakeFirestore
+          .collection(GNEsportLeague.collectionName)
+          .doc('L1')
+          .collection(GNEsportLeagueStat.collectionName)
+          .get();
+      expect(stats.docs, hasLength(2),
+          reason: 'mỗi user chỉ còn đúng 1 stat row');
+      final userIds = stats.docs
+          .map((d) => d.data()[GNEsportLeagueStat.fieldUserId])
+          .toList();
+      expect(userIds.toSet(), {'u1', 'u2'});
+    });
+
+    test('orphan user trong match (không có trong participants) → vẫn có stat',
+        () async {
+      await seedLeague(id: 'L1', participants: ['u1', 'u2']);
+      await seedMatch(
+          leagueId: 'L1', home: 'u1', away: 'u3', hs: 0, as_: 0,
+          finished: false);
+
+      await fs.recomputeLeagueStats('L1');
+
+      final stats = await fakeFirestore
+          .collection(GNEsportLeague.collectionName)
+          .doc('L1')
+          .collection(GNEsportLeagueStat.collectionName)
+          .get();
+      expect(
+        stats.docs
+            .map((d) => d.data()[GNEsportLeagueStat.fieldUserId])
+            .toSet(),
+        {'u1', 'u2', 'u3'},
+      );
+    });
+
+    test('full mode: tái dựng per-group stats từ group matches', () async {
+      await seedLeague(
+        id: 'L1',
+        participants: ['u1', 'u2', 'u3', 'u4'],
+        mode: TournamentMode.full,
+      );
+      // Group A: u1, u2; Group B: u3, u4
+      await fakeFirestore
+          .collection(GNEsportLeague.collectionName)
+          .doc('L1')
+          .collection(GNEsportMatch.collectionName)
+          .add({
+        GNEsportMatch.fieldHomeTeamId: 'u1',
+        GNEsportMatch.fieldAwayTeamId: 'u2',
+        GNEsportMatch.fieldHomeScore: 2,
+        GNEsportMatch.fieldAwayScore: 1,
+        GNEsportMatch.fieldDate: Timestamp.fromDate(DateTime(2026, 5, 10)),
+        GNEsportMatch.fieldIsFinished: true,
+        GNEsportMatch.fieldLeagueId: 'L1',
+        GNEsportMatch.fieldPhase: 'group',
+        GNEsportMatch.fieldGroupId: 'A',
+      });
+      await fakeFirestore
+          .collection(GNEsportLeague.collectionName)
+          .doc('L1')
+          .collection(GNEsportMatch.collectionName)
+          .add({
+        GNEsportMatch.fieldHomeTeamId: 'u3',
+        GNEsportMatch.fieldAwayTeamId: 'u4',
+        GNEsportMatch.fieldHomeScore: 0,
+        GNEsportMatch.fieldAwayScore: 0,
+        GNEsportMatch.fieldDate: Timestamp.fromDate(DateTime(2026, 5, 10)),
+        GNEsportMatch.fieldIsFinished: true,
+        GNEsportMatch.fieldLeagueId: 'L1',
+        GNEsportMatch.fieldPhase: 'group',
+        GNEsportMatch.fieldGroupId: 'B',
+      });
+
+      await fs.recomputeLeagueStats('L1');
+
+      final stats = await fakeFirestore
+          .collection(GNEsportLeague.collectionName)
+          .doc('L1')
+          .collection(GNEsportLeagueStat.collectionName)
+          .get();
+      expect(stats.docs, hasLength(4));
+      final byUserGroup = {
+        for (final d in stats.docs)
+          '${d.data()[GNEsportLeagueStat.fieldUserId]}/${d.data()[GNEsportLeagueStat.fieldGroupId]}':
+              d.data(),
+      };
+      expect(byUserGroup.keys.toSet(), {'u1/A', 'u2/A', 'u3/B', 'u4/B'});
+      expect(byUserGroup['u1/A']?[GNEsportLeagueStat.fieldGoals], 2);
+      expect(byUserGroup['u1/A']?[GNEsportLeagueStat.fieldWins], 1);
+      expect(byUserGroup['u3/B']?[GNEsportLeagueStat.fieldDraws], 1);
+    });
+
+    test('knockout match không tính vào stats', () async {
+      await seedLeague(id: 'L1', participants: ['u1', 'u2']);
+      await fakeFirestore
+          .collection(GNEsportLeague.collectionName)
+          .doc('L1')
+          .collection(GNEsportMatch.collectionName)
+          .add({
+        GNEsportMatch.fieldHomeTeamId: 'u1',
+        GNEsportMatch.fieldAwayTeamId: 'u2',
+        GNEsportMatch.fieldHomeScore: 5,
+        GNEsportMatch.fieldAwayScore: 0,
+        GNEsportMatch.fieldDate: Timestamp.fromDate(DateTime(2026, 5, 10)),
+        GNEsportMatch.fieldIsFinished: true,
+        GNEsportMatch.fieldLeagueId: 'L1',
+        GNEsportMatch.fieldPhase: 'knockout',
+      });
+
+      await fs.recomputeLeagueStats('L1');
+
+      final stats = await fakeFirestore
+          .collection(GNEsportLeague.collectionName)
+          .doc('L1')
+          .collection(GNEsportLeagueStat.collectionName)
+          .get();
+      for (final doc in stats.docs) {
+        expect(doc.data()[GNEsportLeagueStat.fieldMatchesPlayed], 0,
+            reason: 'knockout không track stats');
+      }
     });
   });
 }
