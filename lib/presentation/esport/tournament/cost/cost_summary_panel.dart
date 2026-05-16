@@ -24,8 +24,10 @@ class CostSummaryPanel extends StatelessWidget {
     this.knockoutMatches = const [],
   });
 
-  /// Hiển thị `12k` (làm tròn xuống nghìn). Tham khảo input cũng dùng đơn vị k.
-  String _fmtAbs(int amount) => '${amount.abs() ~/ 1000}k';
+  /// Hiển thị `12k` — làm tròn nửa lên đến nghìn để tổng row không lệch
+  /// với các sub-row khi cộng nhẩm. Ví dụ 49,500 → `50k` (không phải `49k`
+  /// như khi chia nguyên), 49,499 → `49k`.
+  String _fmtAbs(int amount) => '${(amount.abs() + 500) ~/ 1000}k';
   String _fmt(int amount) => _fmtAbs(amount);
 
   GNUser? _userById(String id) {
@@ -42,7 +44,11 @@ class CostSummaryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasMatchCost = matches.any((m) => (m.matchCost ?? 0) > 0);
+    // Chỉ tính các trận đã finished — trận chưa đá xong dù có matchCost
+    // prefill từ league default cũng không vào netting. Filter ở đây để
+    // section "Theo trận" không render trống.
+    final hasMatchCost =
+        matches.any((m) => m.isFinished && (m.matchCost ?? 0) > 0);
     if (!league.rankPayoutEnabled && !hasMatchCost) {
       return const SizedBox.shrink();
     }

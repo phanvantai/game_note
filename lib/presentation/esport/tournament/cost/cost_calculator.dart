@@ -53,6 +53,11 @@ class CostCalculator {
   ///   - hoà ⇒ skip
   ///   - thua trả thắng (base + addon)
   /// Sau đó netting theo từng cặp (A↔B) để hiển thị gọn.
+  ///
+  /// **Per-goal định nghĩa theo HIỆU SỐ tuyệt đối** (chứ không phải số bàn
+  /// của bên thắng hay tổng bàn cả trận). Quy ước này khuyến khích trận
+  /// sát điểm. Đừng đổi sang `home + away` hay `winnerGoals` mà không
+  /// confirm intent — UI và test đều dựa trên hiệu số.
   static List<CostTransfer> matchCosts(List<GNEsportMatch> matches) {
     // pairKey → net amount (positive: low.id trả high.id, negative: ngược lại)
     final pairNet = <String, int>{};

@@ -458,4 +458,69 @@ void main() {
       expect(find.text('Người chơi'), findsAtLeastNWidgets(2));
     },
   );
+
+  testWidgets(
+    'format amount round half-up: 49,500 → 50k (không phải 49k)',
+    (tester) async {
+      // Pre-fix: truncate ~/ 1000 → 49k. Sau fix: round half-up → 50k.
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(
+          rankPayoutEnabled: true,
+          rankPayouts: const [49500],
+          status: 'finished',
+        ),
+        sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
+        matches: const [],
+      )));
+
+      expect(find.text('50k'), findsOneWidget,
+          reason: '49,500 phải round lên 50k');
+      expect(find.text('49k'), findsNothing,
+          reason: 'không được hiện 49k cho 49,500');
+    },
+  );
+
+  testWidgets(
+    'format amount round half-up: 49,499 → 49k',
+    (tester) async {
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(
+          rankPayoutEnabled: true,
+          rankPayouts: const [49499],
+          status: 'finished',
+        ),
+        sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
+        matches: const [],
+      )));
+
+      expect(find.text('49k'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'hasMatchCost filter unfinished: trận chưa đá xong → không show section',
+    (tester) async {
+      // Pre-fix: matchCost > 0 dù chưa finished cũng làm hasMatchCost = true
+      // → panel render với section "Theo trận" trống.
+      // Sau fix: cần isFinished mới count → panel ẩn hoàn toàn nếu rank cũng
+      // disabled.
+      await tester.pumpWidget(_wrap(CostSummaryPanel(
+        league: _league(), // rankPayoutEnabled = false
+        sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
+        matches: [
+          _match(
+            home: 'A',
+            away: 'B',
+            homeScore: null,
+            awayScore: null,
+            isFinished: false,
+            matchCost: 50000,
+          ),
+        ],
+      )));
+
+      expect(find.text('Chi phí'), findsNothing,
+          reason: 'không trận nào đã finished + rank tắt → ẩn panel');
+    },
+  );
 }
