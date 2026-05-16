@@ -39,7 +39,7 @@ class GNAuth {
         }
         getIt<AppBloc>().add(user != null
             ? const AuthStatusChanged(AppStatus.authenticated)
-            : const AuthStatusChanged(AppStatus.unknown));
+            : const AuthStatusChanged(AppStatus.unauthenticated));
 
         // create user in Firestore if not exists
         if (user != null) {
