@@ -101,6 +101,20 @@ class UpdateEsportMatch extends TournamentDetailEvent {
   List<Object> get props => [match];
 }
 
+/// Internal: fired right after [UpdateEsportMatch] succeeds. Drives the
+/// stat-delta write on a separate handler so match save latency isn't
+/// coupled to stat I/O. Failures here are swallowed — manual "đồng bộ điểm
+/// số" reconciles drift.
+class ApplyMatchStatDelta extends TournamentDetailEvent {
+  final GNEsportMatch previous;
+  final GNEsportMatch updated;
+
+  const ApplyMatchStatDelta({required this.previous, required this.updated});
+
+  @override
+  List<Object> get props => [previous, updated];
+}
+
 // delete match
 class DeleteEsportMatch extends TournamentDetailEvent {
   final GNEsportMatch match;

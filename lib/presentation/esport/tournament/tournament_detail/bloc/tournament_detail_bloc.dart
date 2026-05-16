@@ -38,6 +38,7 @@ class TournamentDetailBloc
     on<GenerateRound>(_onGenerateRound);
     on<GenerateGroupRound>(_onGenerateGroupRound);
     on<UpdateEsportMatch>(_onUpdateMatch);
+    on<ApplyMatchStatDelta>(_onApplyMatchStatDelta);
 
     on<ChangeLeagueStatus>(_onChangeLeagueStatus);
     on<SubmitLeagueStatus>(_onSubmitLeagueStatus);
@@ -707,8 +708,14 @@ class TournamentDetailBloc
     }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.updateMatch(event.match);
-      add(GetParticipantStats(leagueId));
+      // Match write only — stats are reconciled on the ApplyMatchStatDelta
+      // handler below so this path stays fast (no stat queries, no extra
+      // transaction reads). UX returns as soon as the match doc is saved.
+      final result = await _esportLeagueRepository.updateMatch(event.match);
+      add(ApplyMatchStatDelta(
+        previous: result.previous,
+        updated: result.updated,
+      ));
       showToast('Cập nhật trận đấu thành công');
     } on ConcurrentMatchUpdateException {
       // Another admin updated this match while the dialog was open. The
@@ -725,6 +732,27 @@ class TournamentDetailBloc
           errorMessage: e.toString(),
         ),
       );
+    }
+  }
+
+  Future<void> _onApplyMatchStatDelta(
+    ApplyMatchStatDelta event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    final leagueId = state.league?.id;
+    if (leagueId == null) return;
+    try {
+      await _esportLeagueRepository.applyMatchStatDelta(
+        previous: event.previous,
+        updated: event.updated,
+      );
+      // Refresh leaderboard once stats settle. Failure path skips this —
+      // listenForLeagueStats will still surface any reconciled writes.
+      add(GetParticipantStats(leagueId));
+    } catch (e) {
+      // Don't surface to UI: the match save already succeeded, and stat
+      // drift is recoverable via the manual "đồng bộ điểm số" action.
+      debugPrint('ApplyMatchStatDelta failed: $e');
     }
   }
 

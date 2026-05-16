@@ -112,7 +112,22 @@ abstract class EsportLeagueRepository {
   });
 
   Future<List<GNEsportMatch>> getMatches(String leagueId);
-  Future<void> updateMatch(GNEsportMatch match);
+
+  /// Write the match score/cost. Does NOT touch stat docs — callers must
+  /// follow up with [applyMatchStatDelta] (typically fire-and-forget) to
+  /// reconcile player totals. Returns before/after match state for the
+  /// caller to feed into the delta.
+  Future<({GNEsportMatch previous, GNEsportMatch updated})> updateMatch(
+    GNEsportMatch match,
+  );
+
+  /// Apply the stat delta for a single match transition. Safe no-op for
+  /// knockout matches and TBD bracket slots.
+  Future<void> applyMatchStatDelta({
+    required GNEsportMatch previous,
+    required GNEsportMatch updated,
+  });
+
   Future<void> updateLeague(GNEsportLeague league);
   Future<void> inactiveLeague(GNEsportLeague league);
   Future<void> deleteLeague(String leagueId);

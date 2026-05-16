@@ -526,17 +526,55 @@ void main() {
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'gọi updateMatch + toast thành công',
+      'gọi updateMatch + toast thành công + dispatch ApplyMatchStatDelta',
       build: () {
-        when(() => repo.updateMatch(any())).thenAnswer((_) async {});
+        final prev = _match();
+        final next = _match(homeScore: 2, awayScore: 1, isFinished: true);
+        when(() => repo.updateMatch(any())).thenAnswer(
+          (_) async => (previous: prev, updated: next),
+        );
+        when(() => repo.applyMatchStatDelta(
+              previous: any(named: 'previous'),
+              updated: any(named: 'updated'),
+            )).thenAnswer((_) async {});
         when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return buildWithLeague(_league());
       },
-      act: (bloc) => bloc.add(UpdateEsportMatch(_match(homeScore: 2, awayScore: 1))),
+      act: (bloc) =>
+          bloc.add(UpdateEsportMatch(_match(homeScore: 2, awayScore: 1))),
       verify: (_) {
         verify(() => repo.updateMatch(any())).called(1);
+        verify(() => repo.applyMatchStatDelta(
+              previous: any(named: 'previous'),
+              updated: any(named: 'updated'),
+            )).called(1);
         expect(toasts.any((t) => t.contains('Cập nhật trận đấu')), isTrue);
+      },
+    );
+
+    blocTest<TournamentDetailBloc, TournamentDetailState>(
+      'applyMatchStatDelta lỗi → swallow, không emit failure',
+      build: () {
+        final prev = _match();
+        final next = _match(homeScore: 2, awayScore: 1, isFinished: true);
+        when(() => repo.updateMatch(any())).thenAnswer(
+          (_) async => (previous: prev, updated: next),
+        );
+        when(() => repo.applyMatchStatDelta(
+              previous: any(named: 'previous'),
+              updated: any(named: 'updated'),
+            )).thenThrow(Exception('stats missing'));
+        when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
+        when(() => repo.getMatches(any())).thenAnswer((_) async => []);
+        return buildWithLeague(_league());
+      },
+      act: (bloc) =>
+          bloc.add(UpdateEsportMatch(_match(homeScore: 2, awayScore: 1))),
+      verify: (bloc) {
+        // Match save succeeded → state không được rơi vào failure dù
+        // stat delta throw.
+        expect(bloc.state.viewStatus, isNot(ViewStatus.failure));
       },
     );
   });

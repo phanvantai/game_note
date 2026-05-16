@@ -193,7 +193,9 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<void> updateMatch(GNEsportMatch match) {
+  Future<({GNEsportMatch previous, GNEsportMatch updated})> updateMatch(
+    GNEsportMatch match,
+  ) {
     // The match instance the UI is submitting still carries the `updatedAt`
     // it had when the dialog opened — pass it down for the optimistic-lock
     // check inside the transaction.
@@ -204,6 +206,17 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
       awayScore: match.awayScore,
       matchCost: match.matchCost,
       expectedUpdatedAt: match.updatedAt,
+    );
+  }
+
+  @override
+  Future<void> applyMatchStatDelta({
+    required GNEsportMatch previous,
+    required GNEsportMatch updated,
+  }) {
+    return getIt<GNFirestore>().applyMatchStatDelta(
+      previous: previous,
+      updated: updated,
     );
   }
 
