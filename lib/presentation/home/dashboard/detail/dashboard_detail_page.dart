@@ -6,6 +6,7 @@ import 'package:pes_arena/core/cache/h2h_preferences.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/widgets/shimmer.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/routing.dart';
 
 import '../../../../../widgets/gn_circle_avatar.dart';
@@ -44,6 +45,7 @@ class _DashboardDetailScaffold extends StatelessWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        leading: const SmartBackButton(),
         title: const Text('Bảng thống kê'),
         actions: [
           BlocBuilder<DashboardBloc, DashboardState>(

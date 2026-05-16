@@ -8,6 +8,7 @@ import 'package:pes_arena/routing.dart';
 import 'package:pes_arena/core/theme/theme_provider.dart';
 
 import '../../../firebase/auth/gn_auth.dart';
+import '../../common/smart_back.dart';
 import '../bloc/profile_bloc.dart';
 import 'ownership_resolution_page.dart';
 
@@ -34,6 +35,7 @@ class _SettingView extends StatelessWidget {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        leading: const SmartBackButton(),
         title: const Text('Tuỳ chọn khác'),
       ),
       body: Container(

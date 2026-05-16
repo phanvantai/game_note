@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/sync/bloc/sync_bloc.dart';
 import 'package:pes_arena/presentation/sync/views/step1_select_source.dart';
 import 'package:pes_arena/presentation/sync/views/step2_map_players.dart';
@@ -32,7 +32,7 @@ class SyncView extends StatelessWidget {
             const SnackBar(content: Text('Đồng bộ thành công')),
           );
           Future.microtask(() {
-            if (context.mounted) context.pop();
+            if (context.mounted) context.smartBack();
           });
         }
       },
@@ -73,7 +73,7 @@ class SyncView extends StatelessWidget {
     final bloc = context.read<SyncBloc>();
     switch (state.step) {
       case SyncStep.selectSource:
-        context.pop();
+        context.smartBack();
       case SyncStep.mapPlayers:
         bloc.add(const SyncGoToStep(SyncStep.selectSource));
       case SyncStep.preview:

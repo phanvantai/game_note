@@ -7,6 +7,7 @@ import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 
 enum _ResolutionType { transfer, deactivate }
 
@@ -131,7 +132,10 @@ class _OwnershipResolutionPageState extends State<OwnershipResolutionPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Xử lý quyền sở hữu')),
+      appBar: AppBar(
+        leading: const SmartBackButton(),
+        title: const Text('Xử lý quyền sở hữu'),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
         children: [

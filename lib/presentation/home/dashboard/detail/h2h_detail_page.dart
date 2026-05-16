@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../widgets/gn_circle_avatar.dart';
+import '../../../common/smart_back.dart';
 import '../models/opponent_stat.dart';
 
 enum _SortMode { mostMatches, bestWinRate, worstWinRate }
@@ -40,6 +41,7 @@ class _H2HDetailPageState extends State<H2HDetailPage> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        leading: const SmartBackButton(),
         title: const Text('Lịch sử đối đầu'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/profile/update/bloc/update_profile_bloc.dart';
 
 import '../../../core/common/view_status.dart';
@@ -39,13 +40,14 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
         }
         if (state.viewStatus == ViewStatus.success) {
           showToast('Cập nhật thông tin thành công');
-          Navigator.of(context).pop();
+          context.smartBack();
         }
       },
       builder: (context, state) => Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
+          leading: const SmartBackButton(),
           title: const Text('Cập nhật thông tin'),
         ),
         body: Container(

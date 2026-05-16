@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/users/bloc/user_bloc.dart';
 
@@ -57,6 +58,7 @@ class _AddMemberScaffold extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
+        leading: const SmartBackButton(),
         title: const Text('Thêm thành viên'),
       ),
       body: Column(

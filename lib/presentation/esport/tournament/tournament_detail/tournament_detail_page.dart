@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/injection_container.dart';
-import 'package:pes_arena/routing.dart';
+import 'package:pes_arena/presentation/common/smart_back.dart';
 
 import 'bloc/tournament_detail_bloc.dart';
 import 'tournament_detail_view.dart';
@@ -23,24 +22,16 @@ class TournamentDetailPage extends StatelessWidget {
           }
           if (state.league != null && !state.league!.isActive) {
             showToast('Giải đấu đã kết thúc');
-            _safeLeave(context);
+            context.smartBack();
             return;
           }
           if (state.errorMessage == 'Không tìm thấy giải đấu') {
-            _safeLeave(context);
+            context.smartBack();
             return;
           }
         },
         child: const TournamentDetailView(),
       ),
     );
-  }
-}
-
-void _safeLeave(BuildContext context) {
-  if (context.canPop()) {
-    context.pop();
-  } else {
-    context.go(Routing.app);
   }
 }
