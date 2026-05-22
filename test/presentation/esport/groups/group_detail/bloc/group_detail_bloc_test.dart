@@ -31,59 +31,61 @@ class _FakeFirestore extends Fake implements GNFirestore {
 }
 
 GNEsportGroup _group({String ownerId = 'owner1'}) => GNEsportGroup(
-      id: 'G1',
-      groupName: 'Test Group',
-      ownerId: ownerId,
-      members: const ['owner1'],
-      description: '',
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-      status: 'active',
-    );
+  id: 'G1',
+  groupName: 'Test Group',
+  ownerId: ownerId,
+  members: const ['owner1'],
+  description: '',
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+  status: 'active',
+);
 
-GNEsportLeague _league(String id,
-        {int year = 2026,
-        String? status,
-        List<String> participants = const []}) =>
-    GNEsportLeague(
-      id: id,
-      ownerId: 'owner1',
-      groupId: 'G1',
-      name: 'League $id',
-      startDate: DateTime(year, 1, 1),
-      isActive: status != 'finished',
-      description: '',
-      participants: participants,
-      status: status,
-    );
+GNEsportLeague _league(
+  String id, {
+  int year = 2026,
+  String? status,
+  List<String> participants = const [],
+}) => GNEsportLeague(
+  id: id,
+  ownerId: 'owner1',
+  groupId: 'G1',
+  name: 'League $id',
+  startDate: DateTime(year, 1, 1),
+  isActive: status != 'finished',
+  description: '',
+  participants: participants,
+  status: status,
+);
 
-GNEsportLeagueStat _leagueStat(String leagueId, String userId,
-        {int wins = 1}) =>
-    GNEsportLeagueStat(
-      id: '$leagueId-$userId',
-      leagueId: leagueId,
-      userId: userId,
-      matchesPlayed: 3,
-      wins: wins,
-      draws: 0,
-      losses: 3 - wins,
-      goals: wins * 2,
-      goalsConceded: (3 - wins) * 2,
-    );
+GNEsportLeagueStat _leagueStat(
+  String leagueId,
+  String userId, {
+  int wins = 1,
+}) => GNEsportLeagueStat(
+  id: '$leagueId-$userId',
+  leagueId: leagueId,
+  userId: userId,
+  matchesPlayed: 3,
+  wins: wins,
+  draws: 0,
+  losses: 3 - wins,
+  goals: wins * 2,
+  goalsConceded: (3 - wins) * 2,
+);
 
 GNEsportGroupStatsSummary _summary({
   int totalLeagues = 1,
   int finishedLeagues = 1,
   List<GNEsportGroupPlayerEntry> players = const [],
-}) =>
-    GNEsportGroupStatsSummary(
-      groupId: 'G1',
-      totalLeagues: totalLeagues,
-      finishedLeagues: finishedLeagues,
-      playerStats: players,
-      updatedAt: null,
-      schemaVersion: GNEsportGroupStatsSummary.kCurrentSchemaVersion,
-    );
+}) => GNEsportGroupStatsSummary(
+  groupId: 'G1',
+  totalLeagues: totalLeagues,
+  finishedLeagues: finishedLeagues,
+  playerStats: players,
+  updatedAt: null,
+  schemaVersion: GNEsportGroupStatsSummary.kCurrentSchemaVersion,
+);
 
 void main() {
   late _MockGroupRepo groupRepo;
@@ -102,28 +104,32 @@ void main() {
   });
 
   GroupDetailBloc bloc() => GroupDetailBloc(
-        groupRepo,
-        leagueRepo,
-        statsRepo,
-        cache,
-        _FakeFirestore(),
-        _group(),
-        currentUserId: 'owner1',
-        recomputeTimeout: const Duration(seconds: 2),
-      );
+    groupRepo,
+    leagueRepo,
+    statsRepo,
+    cache,
+    _FakeFirestore(),
+    _group(),
+    currentUserId: 'owner1',
+    recomputeTimeout: const Duration(seconds: 2),
+  );
 
   group('LoadGroupLeagues', () {
     blocTest<GroupDetailBloc, GroupDetailState>(
       'phát ra leaguesStatus loading → success khi load thành công',
       build: bloc,
       setUp: () {
-        when(() => leagueRepo.getLeaguesByGroupId('G1'))
-            .thenAnswer((_) async => [_league('L1'), _league('L2')]);
+        when(
+          () => leagueRepo.getLeaguesByGroupId('G1'),
+        ).thenAnswer((_) async => [_league('L1'), _league('L2')]);
       },
       act: (b) => b.add(const LoadGroupLeagues('G1')),
       expect: () => [
-        isA<GroupDetailState>()
-            .having((s) => s.leaguesStatus, 'leaguesStatus', ViewStatus.loading),
+        isA<GroupDetailState>().having(
+          (s) => s.leaguesStatus,
+          'leaguesStatus',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
             .having((s) => s.leaguesStatus, 'leaguesStatus', ViewStatus.success)
             .having((s) => s.leagues.length, 'leagues.length', 2),
@@ -134,15 +140,22 @@ void main() {
       'phát ra leaguesStatus failure khi repo ném lỗi',
       build: bloc,
       setUp: () {
-        when(() => leagueRepo.getLeaguesByGroupId('G1'))
-            .thenThrow(Exception('network error'));
+        when(
+          () => leagueRepo.getLeaguesByGroupId('G1'),
+        ).thenThrow(Exception('network error'));
       },
       act: (b) => b.add(const LoadGroupLeagues('G1')),
       expect: () => [
-        isA<GroupDetailState>()
-            .having((s) => s.leaguesStatus, 'leaguesStatus', ViewStatus.loading),
-        isA<GroupDetailState>()
-            .having((s) => s.leaguesStatus, 'leaguesStatus', ViewStatus.failure),
+        isA<GroupDetailState>().having(
+          (s) => s.leaguesStatus,
+          'leaguesStatus',
+          ViewStatus.loading,
+        ),
+        isA<GroupDetailState>().having(
+          (s) => s.leaguesStatus,
+          'leaguesStatus',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -153,13 +166,12 @@ void main() {
       build: bloc,
       seed: () => GroupDetailState(group: _group(), leagues: [_league('L1')]),
       setUp: () {
-        when(() => leagueRepo.setMergeCompleted('L1', completed: true))
-            .thenAnswer((_) async {});
+        when(
+          () => leagueRepo.setMergeCompleted('L1', completed: true),
+        ).thenAnswer((_) async {});
       },
-      act: (b) => b.add(const SetLeagueMergeCompleted(
-        leagueId: 'L1',
-        completed: true,
-      )),
+      act: (b) =>
+          b.add(const SetLeagueMergeCompleted(leagueId: 'L1', completed: true)),
       expect: () => [
         isA<GroupDetailState>().having(
           (s) => s.leagues.first.mergeCompleted,
@@ -177,13 +189,13 @@ void main() {
         leagues: [_league('L1').copyWith(mergeCompleted: true)],
       ),
       setUp: () {
-        when(() => leagueRepo.setMergeCompleted('L1', completed: false))
-            .thenAnswer((_) async {});
+        when(
+          () => leagueRepo.setMergeCompleted('L1', completed: false),
+        ).thenAnswer((_) async {});
       },
-      act: (b) => b.add(const SetLeagueMergeCompleted(
-        leagueId: 'L1',
-        completed: false,
-      )),
+      act: (b) => b.add(
+        const SetLeagueMergeCompleted(leagueId: 'L1', completed: false),
+      ),
       expect: () => [
         isA<GroupDetailState>().having(
           (s) => s.leagues.first.mergeCompleted,
@@ -194,21 +206,84 @@ void main() {
     );
   });
 
+  group('RequestDeleteGroup', () {
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'success: emits loading → success and clears cached overview',
+      build: bloc,
+      setUp: () {
+        when(() => groupRepo.requestDeleteGroup('G1')).thenAnswer((_) async {});
+      },
+      act: (b) => b.add(const RequestDeleteGroup('G1')),
+      expect: () => [
+        isA<GroupDetailState>().having(
+          (s) => s.deleteGroupStatus,
+          'deleteGroupStatus',
+          ViewStatus.loading,
+        ),
+        isA<GroupDetailState>().having(
+          (s) => s.deleteGroupStatus,
+          'deleteGroupStatus',
+          ViewStatus.success,
+        ),
+      ],
+      verify: (_) async {
+        verify(() => groupRepo.requestDeleteGroup('G1')).called(1);
+        expect(await cache.read('G1'), isNull);
+      },
+    );
+
+    blocTest<GroupDetailBloc, GroupDetailState>(
+      'failure: emits loading → failure with error message',
+      build: bloc,
+      setUp: () {
+        when(
+          () => groupRepo.requestDeleteGroup('G1'),
+        ).thenThrow(Exception('denied'));
+      },
+      act: (b) => b.add(const RequestDeleteGroup('G1')),
+      expect: () => [
+        isA<GroupDetailState>().having(
+          (s) => s.deleteGroupStatus,
+          'deleteGroupStatus',
+          ViewStatus.loading,
+        ),
+        isA<GroupDetailState>()
+            .having(
+              (s) => s.deleteGroupStatus,
+              'deleteGroupStatus',
+              ViewStatus.failure,
+            )
+            .having(
+              (s) => s.deleteGroupErrorMessage,
+              'deleteGroupErrorMessage',
+              contains('denied'),
+            ),
+      ],
+    );
+  });
+
   group('LoadGroupOverview', () {
     blocTest<GroupDetailBloc, GroupDetailState>(
       'success path: đọc summary doc → emit overview',
       build: bloc,
       setUp: () {
-        when(() => statsRepo.getSummary('G1'))
-            .thenAnswer((_) async => _summary(totalLeagues: 3));
+        when(
+          () => statsRepo.getSummary('G1'),
+        ).thenAnswer((_) async => _summary(totalLeagues: 3));
       },
       act: (b) => b.add(const LoadGroupOverview('G1')),
       expect: () => [
         isA<GroupDetailState>().having(
-            (s) => s.overviewStatus, 'overviewStatus', ViewStatus.loading),
+          (s) => s.overviewStatus,
+          'overviewStatus',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
-            .having((s) => s.overviewStatus, 'overviewStatus',
-                ViewStatus.success)
+            .having(
+              (s) => s.overviewStatus,
+              'overviewStatus',
+              ViewStatus.success,
+            )
             .having((s) => s.overview?.totalLeagues, 'totalLeagues', 3)
             .having((s) => s.overviewIsStale, 'isStale', isFalse),
       ],
@@ -218,20 +293,25 @@ void main() {
       'lazy backfill: summary null → request recompute và chờ stream emit',
       build: bloc,
       setUp: () {
-        when(() => statsRepo.getSummary('G1'))
-            .thenAnswer((_) async => null);
-        when(() => statsRepo.requestRecompute('G1'))
-            .thenAnswer((_) async {});
-        when(() => statsRepo.listenSummary('G1')).thenAnswer((_) =>
-            Stream.value(_summary(totalLeagues: 5)));
+        when(() => statsRepo.getSummary('G1')).thenAnswer((_) async => null);
+        when(() => statsRepo.requestRecompute('G1')).thenAnswer((_) async {});
+        when(
+          () => statsRepo.listenSummary('G1'),
+        ).thenAnswer((_) => Stream.value(_summary(totalLeagues: 5)));
       },
       act: (b) => b.add(const LoadGroupOverview('G1')),
       expect: () => [
         isA<GroupDetailState>().having(
-            (s) => s.overviewStatus, 'overviewStatus', ViewStatus.loading),
+          (s) => s.overviewStatus,
+          'overviewStatus',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
-            .having((s) => s.overviewStatus, 'overviewStatus',
-                ViewStatus.success)
+            .having(
+              (s) => s.overviewStatus,
+              'overviewStatus',
+              ViewStatus.success,
+            )
             .having((s) => s.overview?.totalLeagues, 'totalLeagues', 5),
       ],
       verify: (_) {
@@ -243,22 +323,28 @@ void main() {
       'forceRefresh: skip first emission, lấy doc thứ 2 sau recompute',
       build: bloc,
       setUp: () {
-        when(() => statsRepo.requestRecompute('G1'))
-            .thenAnswer((_) async {});
+        when(() => statsRepo.requestRecompute('G1')).thenAnswer((_) async {});
         // First emit = stale; second emit = freshly computed
-        when(() => statsRepo.listenSummary('G1')).thenAnswer((_) =>
-            Stream.fromIterable([
-              _summary(totalLeagues: 1),
-              _summary(totalLeagues: 9),
-            ]));
+        when(() => statsRepo.listenSummary('G1')).thenAnswer(
+          (_) => Stream.fromIterable([
+            _summary(totalLeagues: 1),
+            _summary(totalLeagues: 9),
+          ]),
+        );
       },
       act: (b) => b.add(const LoadGroupOverview('G1', forceRefresh: true)),
       expect: () => [
         isA<GroupDetailState>().having(
-            (s) => s.overviewStatus, 'overviewStatus', ViewStatus.loading),
+          (s) => s.overviewStatus,
+          'overviewStatus',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
-            .having((s) => s.overviewStatus, 'overviewStatus',
-                ViewStatus.success)
+            .having(
+              (s) => s.overviewStatus,
+              'overviewStatus',
+              ViewStatus.success,
+            )
             .having((s) => s.overview?.totalLeagues, 'totalLeagues', 9),
       ],
       verify: (_) {
@@ -271,18 +357,26 @@ void main() {
       'failure path khi không có overview cũ → emit failure',
       build: bloc,
       setUp: () {
-        when(() => statsRepo.getSummary('G1'))
-            .thenThrow(Exception('boom'));
+        when(() => statsRepo.getSummary('G1')).thenThrow(Exception('boom'));
       },
       act: (b) => b.add(const LoadGroupOverview('G1')),
       expect: () => [
         isA<GroupDetailState>().having(
-            (s) => s.overviewStatus, 'overviewStatus', ViewStatus.loading),
+          (s) => s.overviewStatus,
+          'overviewStatus',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
-            .having((s) => s.overviewStatus, 'overviewStatus',
-                ViewStatus.failure)
-            .having((s) => s.overviewErrorMessage, 'errorMessage',
-                contains('boom')),
+            .having(
+              (s) => s.overviewStatus,
+              'overviewStatus',
+              ViewStatus.failure,
+            )
+            .having(
+              (s) => s.overviewErrorMessage,
+              'errorMessage',
+              contains('boom'),
+            ),
       ],
     );
 
@@ -295,54 +389,63 @@ void main() {
         return GroupDetailState(group: _group());
       },
       setUp: () {
-        when(() => statsRepo.getSummary('G1'))
-            .thenThrow(Exception('network down'));
+        when(
+          () => statsRepo.getSummary('G1'),
+        ).thenThrow(Exception('network down'));
       },
       act: (b) => b.add(const LoadGroupOverview('G1')),
       expect: () => [
         // Cache hydration first
         isA<GroupDetailState>()
-            .having((s) => s.overviewStatus, 'overviewStatus',
-                ViewStatus.success)
+            .having(
+              (s) => s.overviewStatus,
+              'overviewStatus',
+              ViewStatus.success,
+            )
             .having((s) => s.overviewIsStale, 'isStale', isTrue),
         // Then network fails — keep prior overview, still success but stale
         isA<GroupDetailState>()
-            .having((s) => s.overviewStatus, 'overviewStatus',
-                ViewStatus.success)
+            .having(
+              (s) => s.overviewStatus,
+              'overviewStatus',
+              ViewStatus.success,
+            )
             .having((s) => s.overviewIsStale, 'isStale', isTrue)
-            .having((s) => s.overviewErrorMessage, 'err',
-                contains('network down')),
+            .having(
+              (s) => s.overviewErrorMessage,
+              'err',
+              contains('network down'),
+            ),
       ],
     );
   });
 
   group('AddPlaceholderMember', () {
     GNUser placeholderUser() => GNUser(
-          id: 'placeholder_abc',
-          displayName: 'Tân thủ',
-          email: null,
-          phoneNumber: null,
-          photoUrl: null,
-          role: 'user',
-          fcmToken: '',
-          isPlaceholder: true,
-        );
+      id: 'placeholder_abc',
+      displayName: 'Tân thủ',
+      email: null,
+      phoneNumber: null,
+      photoUrl: null,
+      role: 'user',
+      fcmToken: '',
+      isPlaceholder: true,
+    );
 
     GroupDetailBloc blocWithPlaceholder({
       required Future<GNUser> Function({required String displayName})
-          createPlaceholderUser,
-    }) =>
-        GroupDetailBloc(
-          groupRepo,
-          leagueRepo,
-          statsRepo,
-          cache,
-          _FakeFirestore(),
-          _group(),
-          currentUserId: 'owner1',
-          recomputeTimeout: const Duration(seconds: 2),
-          createPlaceholderUser: createPlaceholderUser,
-        );
+      createPlaceholderUser,
+    }) => GroupDetailBloc(
+      groupRepo,
+      leagueRepo,
+      statsRepo,
+      cache,
+      _FakeFirestore(),
+      _group(),
+      currentUserId: 'owner1',
+      recomputeTimeout: const Duration(seconds: 2),
+      createPlaceholderUser: createPlaceholderUser,
+    );
 
     blocTest<GroupDetailBloc, GroupDetailState>(
       'success: tạo placeholder rồi thêm vào nhóm, emit loading đầu tiên, gọi addMember',
@@ -351,12 +454,15 @@ void main() {
             placeholderUser(),
       ),
       setUp: () {
-        when(() => groupRepo.addMemberToGroup(
-              groupId: 'G1',
-              memberId: 'placeholder_abc',
-            )).thenAnswer((_) async {});
-        when(() => groupRepo.getMembersOfGroup('G1'))
-            .thenAnswer((_) async => []);
+        when(
+          () => groupRepo.addMemberToGroup(
+            groupId: 'G1',
+            memberId: 'placeholder_abc',
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => groupRepo.getMembersOfGroup('G1'),
+        ).thenAnswer((_) async => []);
         when(() => groupRepo.getGroup('G1')).thenAnswer((_) async => _group());
       },
       act: (b) => b.add(const AddPlaceholderMember('G1', 'Tân thủ')),
@@ -375,10 +481,12 @@ void main() {
             isFalse,
           ),
       verify: (_) {
-        verify(() => groupRepo.addMemberToGroup(
-              groupId: 'G1',
-              memberId: 'placeholder_abc',
-            )).called(1);
+        verify(
+          () => groupRepo.addMemberToGroup(
+            groupId: 'G1',
+            memberId: 'placeholder_abc',
+          ),
+        ).called(1);
       },
     );
 
@@ -390,12 +498,18 @@ void main() {
       ),
       act: (b) => b.add(const AddPlaceholderMember('G1', 'Tân thủ')),
       expect: () => [
-        isA<GroupDetailState>()
-            .having((s) => s.viewStatus, 'viewStatus', ViewStatus.loading),
+        isA<GroupDetailState>().having(
+          (s) => s.viewStatus,
+          'viewStatus',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
             .having((s) => s.viewStatus, 'viewStatus', ViewStatus.failure)
-            .having((s) => s.errorMessage, 'errorMessage',
-                contains('firestore error')),
+            .having(
+              (s) => s.errorMessage,
+              'errorMessage',
+              contains('firestore error'),
+            ),
       ],
     );
 
@@ -406,19 +520,27 @@ void main() {
             placeholderUser(),
       ),
       setUp: () {
-        when(() => groupRepo.addMemberToGroup(
-              groupId: any(named: 'groupId'),
-              memberId: any(named: 'memberId'),
-            )).thenThrow(Exception('network error'));
+        when(
+          () => groupRepo.addMemberToGroup(
+            groupId: any(named: 'groupId'),
+            memberId: any(named: 'memberId'),
+          ),
+        ).thenThrow(Exception('network error'));
       },
       act: (b) => b.add(const AddPlaceholderMember('G1', 'Tân thủ')),
       expect: () => [
-        isA<GroupDetailState>()
-            .having((s) => s.viewStatus, 'viewStatus', ViewStatus.loading),
+        isA<GroupDetailState>().having(
+          (s) => s.viewStatus,
+          'viewStatus',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
             .having((s) => s.viewStatus, 'viewStatus', ViewStatus.failure)
-            .having((s) => s.errorMessage, 'errorMessage',
-                contains('network error')),
+            .having(
+              (s) => s.errorMessage,
+              'errorMessage',
+              contains('network error'),
+            ),
       ],
     );
   });
@@ -438,32 +560,45 @@ void main() {
       'phát ra replaceParticipantStatus loading → success và tự load lại leagues',
       build: bloc,
       setUp: () {
-        when(() => leagueRepo.replaceParticipant(
-              leagueId: 'L1',
-              oldUserId: 'old',
-              newUserId: 'new',
-            )).thenAnswer((_) async {});
-        when(() => leagueRepo.getLeaguesByGroupId('G1'))
-            .thenAnswer((_) async => [_league('L1')]);
+        when(
+          () => leagueRepo.replaceParticipant(
+            leagueId: 'L1',
+            oldUserId: 'old',
+            newUserId: 'new',
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => leagueRepo.getLeaguesByGroupId('G1'),
+        ).thenAnswer((_) async => [_league('L1')]);
       },
-      act: (b) => b.add(const ReplaceLeagueParticipant(
-        leagueId: 'L1',
-        oldUserId: 'old',
-        newUserId: 'new',
-      )),
+      act: (b) => b.add(
+        const ReplaceLeagueParticipant(
+          leagueId: 'L1',
+          oldUserId: 'old',
+          newUserId: 'new',
+        ),
+      ),
       expect: () => [
         isA<GroupDetailState>().having(
-            (s) => s.replaceParticipantStatus,
-            'status',
-            ViewStatus.loading),
+          (s) => s.replaceParticipantStatus,
+          'status',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>().having(
-            (s) => s.replaceParticipantStatus,
-            'status',
-            ViewStatus.success),
-        isA<GroupDetailState>()
-            .having((s) => s.leaguesStatus, 'leaguesStatus', ViewStatus.loading),
-        isA<GroupDetailState>()
-            .having((s) => s.leaguesStatus, 'leaguesStatus', ViewStatus.success),
+          (s) => s.replaceParticipantStatus,
+          'status',
+          ViewStatus.success,
+        ),
+        isA<GroupDetailState>().having(
+          (s) => s.leaguesStatus,
+          'leaguesStatus',
+          ViewStatus.loading,
+        ),
+        isA<GroupDetailState>().having(
+          (s) => s.leaguesStatus,
+          'leaguesStatus',
+          ViewStatus.success,
+        ),
       ],
     );
 
@@ -471,27 +606,38 @@ void main() {
       'phát ra replaceParticipantStatus failure khi repo ném lỗi',
       build: bloc,
       setUp: () {
-        when(() => leagueRepo.replaceParticipant(
-              leagueId: 'L1',
-              oldUserId: 'old',
-              newUserId: 'new',
-            )).thenThrow(Exception('replace failed'));
+        when(
+          () => leagueRepo.replaceParticipant(
+            leagueId: 'L1',
+            oldUserId: 'old',
+            newUserId: 'new',
+          ),
+        ).thenThrow(Exception('replace failed'));
       },
-      act: (b) => b.add(const ReplaceLeagueParticipant(
-        leagueId: 'L1',
-        oldUserId: 'old',
-        newUserId: 'new',
-      )),
+      act: (b) => b.add(
+        const ReplaceLeagueParticipant(
+          leagueId: 'L1',
+          oldUserId: 'old',
+          newUserId: 'new',
+        ),
+      ),
       expect: () => [
         isA<GroupDetailState>().having(
-            (s) => s.replaceParticipantStatus,
-            'status',
-            ViewStatus.loading),
+          (s) => s.replaceParticipantStatus,
+          'status',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
-            .having((s) => s.replaceParticipantStatus, 'status',
-                ViewStatus.failure)
-            .having((s) => s.replaceErrorMessage, 'replaceErrorMessage',
-                contains('replace failed')),
+            .having(
+              (s) => s.replaceParticipantStatus,
+              'status',
+              ViewStatus.failure,
+            )
+            .having(
+              (s) => s.replaceErrorMessage,
+              'replaceErrorMessage',
+              contains('replace failed'),
+            ),
       ],
     );
   });
@@ -502,19 +648,22 @@ void main() {
       build: bloc,
       seed: () => GroupDetailState(group: _group()),
       setUp: () {
-        when(() => groupRepo.toggleMemberDeactivation(
-              groupId: 'G1',
-              userId: 'u2',
-              deactivate: true,
-            )).thenAnswer((_) async {});
-        when(() => statsRepo.requestRecompute('G1'))
-            .thenAnswer((_) async {});
+        when(
+          () => groupRepo.toggleMemberDeactivation(
+            groupId: 'G1',
+            userId: 'u2',
+            deactivate: true,
+          ),
+        ).thenAnswer((_) async {});
+        when(() => statsRepo.requestRecompute('G1')).thenAnswer((_) async {});
       },
-      act: (b) => b.add(const ToggleMemberDeactivation(
-        groupId: 'G1',
-        userId: 'u2',
-        deactivate: true,
-      )),
+      act: (b) => b.add(
+        const ToggleMemberDeactivation(
+          groupId: 'G1',
+          userId: 'u2',
+          deactivate: true,
+        ),
+      ),
       expect: () => [
         isA<GroupDetailState>().having(
           (s) => s.group.deactivatedMembers,
@@ -523,11 +672,13 @@ void main() {
         ),
       ],
       verify: (_) {
-        verify(() => groupRepo.toggleMemberDeactivation(
-              groupId: 'G1',
-              userId: 'u2',
-              deactivate: true,
-            )).called(1);
+        verify(
+          () => groupRepo.toggleMemberDeactivation(
+            groupId: 'G1',
+            userId: 'u2',
+            deactivate: true,
+          ),
+        ).called(1);
       },
     );
 
@@ -538,19 +689,22 @@ void main() {
         group: _group().copyWith(deactivatedMembers: ['u2']),
       ),
       setUp: () {
-        when(() => groupRepo.toggleMemberDeactivation(
-              groupId: 'G1',
-              userId: 'u2',
-              deactivate: false,
-            )).thenAnswer((_) async {});
-        when(() => statsRepo.requestRecompute('G1'))
-            .thenAnswer((_) async {});
+        when(
+          () => groupRepo.toggleMemberDeactivation(
+            groupId: 'G1',
+            userId: 'u2',
+            deactivate: false,
+          ),
+        ).thenAnswer((_) async {});
+        when(() => statsRepo.requestRecompute('G1')).thenAnswer((_) async {});
       },
-      act: (b) => b.add(const ToggleMemberDeactivation(
-        groupId: 'G1',
-        userId: 'u2',
-        deactivate: false,
-      )),
+      act: (b) => b.add(
+        const ToggleMemberDeactivation(
+          groupId: 'G1',
+          userId: 'u2',
+          deactivate: false,
+        ),
+      ),
       expect: () => [
         isA<GroupDetailState>().having(
           (s) => s.group.deactivatedMembers,
@@ -568,19 +722,22 @@ void main() {
         yearlyOverviews: {2025: const GroupOverview.empty()},
       ),
       setUp: () {
-        when(() => groupRepo.toggleMemberDeactivation(
-              groupId: any(named: 'groupId'),
-              userId: any(named: 'userId'),
-              deactivate: any(named: 'deactivate'),
-            )).thenAnswer((_) async {});
-        when(() => statsRepo.requestRecompute(any()))
-            .thenAnswer((_) async {});
+        when(
+          () => groupRepo.toggleMemberDeactivation(
+            groupId: any(named: 'groupId'),
+            userId: any(named: 'userId'),
+            deactivate: any(named: 'deactivate'),
+          ),
+        ).thenAnswer((_) async {});
+        when(() => statsRepo.requestRecompute(any())).thenAnswer((_) async {});
       },
-      act: (b) => b.add(const ToggleMemberDeactivation(
-        groupId: 'G1',
-        userId: 'u2',
-        deactivate: true,
-      )),
+      act: (b) => b.add(
+        const ToggleMemberDeactivation(
+          groupId: 'G1',
+          userId: 'u2',
+          deactivate: true,
+        ),
+      ),
       expect: () => [
         isA<GroupDetailState>().having(
           (s) => s.yearlyOverviews,
@@ -595,17 +752,21 @@ void main() {
       build: bloc,
       seed: () => GroupDetailState(group: _group()),
       setUp: () {
-        when(() => groupRepo.toggleMemberDeactivation(
-              groupId: any(named: 'groupId'),
-              userId: any(named: 'userId'),
-              deactivate: any(named: 'deactivate'),
-            )).thenThrow(Exception('network error'));
+        when(
+          () => groupRepo.toggleMemberDeactivation(
+            groupId: any(named: 'groupId'),
+            userId: any(named: 'userId'),
+            deactivate: any(named: 'deactivate'),
+          ),
+        ).thenThrow(Exception('network error'));
       },
-      act: (b) => b.add(const ToggleMemberDeactivation(
-        groupId: 'G1',
-        userId: 'u2',
-        deactivate: true,
-      )),
+      act: (b) => b.add(
+        const ToggleMemberDeactivation(
+          groupId: 'G1',
+          userId: 'u2',
+          deactivate: true,
+        ),
+      ),
       expect: () => [
         // Optimistic update first
         isA<GroupDetailState>().having(
@@ -634,10 +795,10 @@ void main() {
     final league2024 = _league('L2', year: 2024, status: 'finished');
 
     GroupDetailState seedWithLeagues() => GroupDetailState(
-          group: _group(),
-          leagues: [league2025, league2024],
-          leaguesStatus: ViewStatus.success,
-        );
+      group: _group(),
+      leagues: [league2025, league2024],
+      leaguesStatus: ViewStatus.success,
+    );
 
     blocTest<GroupDetailBloc, GroupDetailState>(
       'year == null → reset selectedOverviewYear, giữ cache',
@@ -654,7 +815,10 @@ void main() {
         isA<GroupDetailState>()
             .having((s) => s.selectedOverviewYear, 'selectedYear', isNull)
             .having(
-                (s) => s.yearlyOverviews.containsKey(2025), 'cache kept', true),
+              (s) => s.yearlyOverviews.containsKey(2025),
+              'cache kept',
+              true,
+            ),
       ],
     );
 
@@ -671,11 +835,13 @@ void main() {
       expect: () => [
         isA<GroupDetailState>()
             .having((s) => s.selectedOverviewYear, 'selectedYear', 2025)
-            .having((s) => s.filteredOverviewStatus, 'filteredStatus',
-                ViewStatus.initial),
+            .having(
+              (s) => s.filteredOverviewStatus,
+              'filteredStatus',
+              ViewStatus.initial,
+            ),
       ],
-      verify: (_) =>
-          verifyNever(() => leagueRepo.getLeagueStats(any())),
+      verify: (_) => verifyNever(() => leagueRepo.getLeagueStats(any())),
     );
 
     blocTest<GroupDetailBloc, GroupDetailState>(
@@ -683,19 +849,25 @@ void main() {
       build: bloc,
       seed: seedWithLeagues,
       setUp: () {
-        when(() => leagueRepo.getLeagueStats('L1')).thenAnswer(
-          (_) async => [_leagueStat('L1', 'A', wins: 2)],
-        );
+        when(
+          () => leagueRepo.getLeagueStats('L1'),
+        ).thenAnswer((_) async => [_leagueStat('L1', 'A', wins: 2)]);
       },
       act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
       expect: () => [
         isA<GroupDetailState>()
             .having((s) => s.selectedOverviewYear, 'selectedYear', 2025)
-            .having((s) => s.filteredOverviewStatus, 'status',
-                ViewStatus.loading),
+            .having(
+              (s) => s.filteredOverviewStatus,
+              'status',
+              ViewStatus.loading,
+            ),
         isA<GroupDetailState>()
-            .having((s) => s.filteredOverviewStatus, 'status',
-                ViewStatus.success)
+            .having(
+              (s) => s.filteredOverviewStatus,
+              'status',
+              ViewStatus.success,
+            )
             .having((s) => s.yearlyOverviews.containsKey(2025), 'cached', true),
       ],
     );
@@ -705,9 +877,9 @@ void main() {
       build: bloc,
       seed: seedWithLeagues,
       setUp: () {
-        when(() => leagueRepo.getLeagueStats('L1')).thenAnswer(
-          (_) async => [_leagueStat('L1', 'A')],
-        );
+        when(
+          () => leagueRepo.getLeagueStats('L1'),
+        ).thenAnswer((_) async => [_leagueStat('L1', 'A')]);
       },
       act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
       verify: (_) {
@@ -721,17 +893,16 @@ void main() {
       build: bloc,
       seed: seedWithLeagues,
       setUp: () {
-        when(() => leagueRepo.getLeagueStats('L1')).thenAnswer(
-          (_) async => [_leagueStat('L1', 'A')],
-        );
+        when(
+          () => leagueRepo.getLeagueStats('L1'),
+        ).thenAnswer((_) async => [_leagueStat('L1', 'A')]);
       },
       act: (b) async {
         b.add(const FilterGroupOverviewByYear(2025));
         await Future.delayed(const Duration(milliseconds: 50));
         b.add(const FilterGroupOverviewByYear(2025));
       },
-      verify: (_) =>
-          verify(() => leagueRepo.getLeagueStats('L1')).called(1),
+      verify: (_) => verify(() => leagueRepo.getLeagueStats('L1')).called(1),
     );
 
     blocTest<GroupDetailBloc, GroupDetailState>(
@@ -740,12 +911,17 @@ void main() {
       seed: seedWithLeagues,
       act: (b) => b.add(const FilterGroupOverviewByYear(2023)),
       expect: () => [
+        isA<GroupDetailState>().having(
+          (s) => s.filteredOverviewStatus,
+          'status',
+          ViewStatus.loading,
+        ),
         isA<GroupDetailState>()
-            .having((s) => s.filteredOverviewStatus, 'status',
-                ViewStatus.loading),
-        isA<GroupDetailState>()
-            .having((s) => s.filteredOverviewStatus, 'status',
-                ViewStatus.success)
+            .having(
+              (s) => s.filteredOverviewStatus,
+              'status',
+              ViewStatus.success,
+            )
             .having(
               (s) => s.yearlyOverviews[2023]?.totalLeagues,
               'totalLeagues',
@@ -759,16 +935,22 @@ void main() {
       build: bloc,
       seed: seedWithLeagues,
       setUp: () {
-        when(() => leagueRepo.getLeagueStats('L1'))
-            .thenThrow(Exception('network'));
+        when(
+          () => leagueRepo.getLeagueStats('L1'),
+        ).thenThrow(Exception('network'));
       },
       act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
       expect: () => [
-        isA<GroupDetailState>()
-            .having((s) => s.filteredOverviewStatus, 'status',
-                ViewStatus.loading),
         isA<GroupDetailState>().having(
-            (s) => s.filteredOverviewStatus, 'status', ViewStatus.failure),
+          (s) => s.filteredOverviewStatus,
+          'status',
+          ViewStatus.loading,
+        ),
+        isA<GroupDetailState>().having(
+          (s) => s.filteredOverviewStatus,
+          'status',
+          ViewStatus.failure,
+        ),
       ],
     );
 
@@ -778,17 +960,25 @@ void main() {
       seed: () => GroupDetailState(
         group: _group().copyWith(deactivatedMembers: ['deactivated']),
         leagues: [
-          _league('L1', year: 2025, status: 'finished',
-              participants: ['owner1', 'A']),
-          _league('L2', year: 2025, status: 'finished',
-              participants: ['owner1', 'deactivated']),
+          _league(
+            'L1',
+            year: 2025,
+            status: 'finished',
+            participants: ['owner1', 'A'],
+          ),
+          _league(
+            'L2',
+            year: 2025,
+            status: 'finished',
+            participants: ['owner1', 'deactivated'],
+          ),
         ],
         leaguesStatus: ViewStatus.success,
       ),
       setUp: () {
-        when(() => leagueRepo.getLeagueStats('L1')).thenAnswer(
-          (_) async => [_leagueStat('L1', 'A')],
-        );
+        when(
+          () => leagueRepo.getLeagueStats('L1'),
+        ).thenAnswer((_) async => [_leagueStat('L1', 'A')]);
       },
       act: (b) => b.add(const FilterGroupOverviewByYear(2025)),
       verify: (_) {

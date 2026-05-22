@@ -14,6 +14,8 @@ class GroupDetailState extends Equatable {
   final GroupOverview? overview;
   final String overviewErrorMessage;
   final bool overviewIsStale;
+  final ViewStatus deleteGroupStatus;
+  final String deleteGroupErrorMessage;
 
   /// Năm đang được chọn để lọc overview. null = Tất cả (dùng summary doc).
   final int? selectedOverviewYear;
@@ -26,8 +28,9 @@ class GroupDetailState extends Equatable {
 
   /// Overview đang hiển thị: all-time khi [selectedOverviewYear] == null,
   /// ngược lại lấy từ [yearlyOverviews].
-  GroupOverview? get activeOverview =>
-      selectedOverviewYear == null ? overview : yearlyOverviews[selectedOverviewYear];
+  GroupOverview? get activeOverview => selectedOverviewYear == null
+      ? overview
+      : yearlyOverviews[selectedOverviewYear];
 
   const GroupDetailState({
     this.viewStatus = ViewStatus.initial,
@@ -43,6 +46,8 @@ class GroupDetailState extends Equatable {
     this.overview,
     this.overviewErrorMessage = '',
     this.overviewIsStale = false,
+    this.deleteGroupStatus = ViewStatus.initial,
+    this.deleteGroupErrorMessage = '',
     this.selectedOverviewYear,
     this.yearlyOverviews = const {},
     this.filteredOverviewStatus = ViewStatus.initial,
@@ -62,6 +67,8 @@ class GroupDetailState extends Equatable {
     GroupOverview? overview,
     String? overviewErrorMessage,
     bool? overviewIsStale,
+    ViewStatus? deleteGroupStatus,
+    String? deleteGroupErrorMessage,
     int? selectedOverviewYear,
     bool clearSelectedYear = false,
     Map<int, GroupOverview>? yearlyOverviews,
@@ -83,9 +90,14 @@ class GroupDetailState extends Equatable {
       overview: overview ?? this.overview,
       overviewErrorMessage: overviewErrorMessage ?? this.overviewErrorMessage,
       overviewIsStale: overviewIsStale ?? this.overviewIsStale,
-      selectedOverviewYear:
-          clearSelectedYear ? null : selectedOverviewYear ?? this.selectedOverviewYear,
-      yearlyOverviews: clearYearlyOverviewCache ? {} : yearlyOverviews ?? this.yearlyOverviews,
+      deleteGroupStatus: deleteGroupStatus ?? this.deleteGroupStatus,
+      deleteGroupErrorMessage: deleteGroupErrorMessage ?? '',
+      selectedOverviewYear: clearSelectedYear
+          ? null
+          : selectedOverviewYear ?? this.selectedOverviewYear,
+      yearlyOverviews: clearYearlyOverviewCache
+          ? {}
+          : yearlyOverviews ?? this.yearlyOverviews,
       filteredOverviewStatus:
           filteredOverviewStatus ?? this.filteredOverviewStatus,
     );
@@ -93,26 +105,27 @@ class GroupDetailState extends Equatable {
 
   bool get isOwner => group.ownerId == currentUserId;
 
-  bool get currentUserIsMember =>
-      members.any((m) => m.id == currentUserId);
+  bool get currentUserIsMember => members.any((m) => m.id == currentUserId);
 
   @override
   List<Object?> get props => [
-        viewStatus,
-        members,
-        group,
-        errorMessage,
-        leagues,
-        leaguesStatus,
-        replaceParticipantStatus,
-        replaceErrorMessage,
-        currentUserId,
-        overviewStatus,
-        overview,
-        overviewErrorMessage,
-        overviewIsStale,
-        selectedOverviewYear,
-        yearlyOverviews,
-        filteredOverviewStatus,
-      ];
+    viewStatus,
+    members,
+    group,
+    errorMessage,
+    leagues,
+    leaguesStatus,
+    replaceParticipantStatus,
+    replaceErrorMessage,
+    currentUserId,
+    overviewStatus,
+    overview,
+    overviewErrorMessage,
+    overviewIsStale,
+    deleteGroupStatus,
+    deleteGroupErrorMessage,
+    selectedOverviewYear,
+    yearlyOverviews,
+    filteredOverviewStatus,
+  ];
 }

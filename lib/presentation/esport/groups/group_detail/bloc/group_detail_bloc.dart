@@ -32,7 +32,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
   final GNFirestore _firestore;
   final Duration _recomputeTimeout;
   late final Future<GNUser> Function({required String displayName})
-      _createPlaceholderUser;
+  _createPlaceholderUser;
 
   GroupDetailBloc(
     this._groupRepository,
@@ -43,12 +43,16 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     GNEsportGroup group, {
     String? currentUserId,
     Duration recomputeTimeout = const Duration(seconds: 30),
-    Future<GNUser> Function({required String displayName})? createPlaceholderUser,
-  })  : _recomputeTimeout = recomputeTimeout,
-        super(GroupDetailState(
-          group: group,
-          currentUserId: currentUserId ?? FirebaseAuth.instance.currentUser?.uid,
-        )) {
+    Future<GNUser> Function({required String displayName})?
+    createPlaceholderUser,
+  }) : _recomputeTimeout = recomputeTimeout,
+       super(
+         GroupDetailState(
+           group: group,
+           currentUserId:
+               currentUserId ?? FirebaseAuth.instance.currentUser?.uid,
+         ),
+       ) {
     _createPlaceholderUser =
         createPlaceholderUser ?? _firestore.createPlaceholderUser;
     on<GetMembers>(_onGetMembers);
@@ -62,89 +66,131 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     on<SetLeagueMergeCompleted>(_onSetLeagueMergeCompleted);
     on<FilterGroupOverviewByYear>(_onFilterGroupOverviewByYear);
     on<ToggleMemberDeactivation>(_onToggleMemberDeactivation);
+    on<RequestDeleteGroup>(_onRequestDeleteGroup);
   }
 
   Future<void> _onGetGroupDetail(
-      GetGroupDetail event, Emitter<GroupDetailState> emit) async {
+    GetGroupDetail event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       final group = await _groupRepository.getGroup(event.groupId);
       emit(state.copyWith(viewStatus: ViewStatus.success, group: group));
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   Future<void> _onGetMembers(
-      GetMembers event, Emitter<GroupDetailState> emit) async {
+    GetMembers event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       final members = await _groupRepository.getMembersOfGroup(event.groupId);
       emit(state.copyWith(viewStatus: ViewStatus.success, members: members));
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   Future<void> _onAddMember(
-      AddMember event, Emitter<GroupDetailState> emit) async {
+    AddMember event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _groupRepository.addMemberToGroup(
-          groupId: event.groupId, memberId: event.userId);
+        groupId: event.groupId,
+        memberId: event.userId,
+      );
       add(GetMembers(state.group.id));
       add(GetGroupDetail(state.group.id));
       showToast('Thêm thành viên thành công');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   Future<void> _onAddPlaceholderMember(
-      AddPlaceholderMember event, Emitter<GroupDetailState> emit) async {
+    AddPlaceholderMember event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      final user =
-          await _createPlaceholderUser(displayName: event.displayName);
+      final user = await _createPlaceholderUser(displayName: event.displayName);
       await _groupRepository.addMemberToGroup(
-          groupId: event.groupId, memberId: user.id);
+        groupId: event.groupId,
+        memberId: user.id,
+      );
       add(GetMembers(state.group.id));
       add(GetGroupDetail(state.group.id));
       showToast('Đã thêm người chơi mới');
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   Future<void> _onRemoveMember(
-      RemoveMember event, Emitter<GroupDetailState> emit) async {
+    RemoveMember event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       await _groupRepository.removeMemberFromGroup(
-          groupId: event.groupId, memberId: event.userId);
+        groupId: event.groupId,
+        memberId: event.userId,
+      );
       add(GetMembers(state.group.id));
       add(GetGroupDetail(state.group.id));
     } catch (e) {
-      emit(state.copyWith(
-          viewStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   Future<void> _onLoadGroupLeagues(
-      LoadGroupLeagues event, Emitter<GroupDetailState> emit) async {
+    LoadGroupLeagues event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     emit(state.copyWith(leaguesStatus: ViewStatus.loading));
     try {
-      final leagues =
-          await _leagueRepository.getLeaguesByGroupId(event.groupId);
-      emit(state.copyWith(
-          leaguesStatus: ViewStatus.success, leagues: leagues));
+      final leagues = await _leagueRepository.getLeaguesByGroupId(
+        event.groupId,
+      );
+      emit(state.copyWith(leaguesStatus: ViewStatus.success, leagues: leagues));
     } catch (e) {
-      emit(state.copyWith(
-          leaguesStatus: ViewStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          leaguesStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -157,7 +203,9 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
   /// - Lazy backfill: if no summary doc exists yet, request a recompute
   ///   and wait for the first emission.
   Future<void> _onLoadGroupOverview(
-      LoadGroupOverview event, Emitter<GroupDetailState> emit) async {
+    LoadGroupOverview event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     final groupId = event.groupId;
 
     if (!event.forceRefresh && state.overview == null) {
@@ -165,16 +213,18 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       final cached = await _overviewCache.read(groupId);
       if (cached != null) {
         final cachedUsers = await _fetchUsersFor(cached);
-        emit(state.copyWith(
-          overviewStatus: ViewStatus.success,
-          overview: GroupOverviewCalculator.compute(
-            summary: cached,
-            users: cachedUsers,
-            deactivatedIds: Set<String>.from(state.group.deactivatedMembers),
+        emit(
+          state.copyWith(
+            overviewStatus: ViewStatus.success,
+            overview: GroupOverviewCalculator.compute(
+              summary: cached,
+              users: cachedUsers,
+              deactivatedIds: Set<String>.from(state.group.deactivatedMembers),
+            ),
+            overviewIsStale: true,
+            overviewErrorMessage: '',
           ),
-          overviewIsStale: true,
-          overviewErrorMessage: '',
-        ));
+        );
       } else {
         emit(state.copyWith(overviewStatus: ViewStatus.loading));
       }
@@ -223,31 +273,39 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       // Fire-and-forget: don't block the UI on a debug dump.
       // ignore: discarded_futures
       _debugDumpPlayerLeagues(groupId, summary);
-      emit(state.copyWith(
-        overviewStatus: ViewStatus.success,
-        overview: overview,
-        overviewIsStale: false,
-        overviewErrorMessage: '',
-      ));
+      emit(
+        state.copyWith(
+          overviewStatus: ViewStatus.success,
+          overview: overview,
+          overviewIsStale: false,
+          overviewErrorMessage: '',
+        ),
+      );
     } catch (e) {
       if (state.overview != null) {
         // Don't blow away cached overview on transient errors.
-        emit(state.copyWith(
-          overviewStatus: ViewStatus.success,
-          overviewIsStale: true,
-          overviewErrorMessage: e.toString(),
-        ));
+        emit(
+          state.copyWith(
+            overviewStatus: ViewStatus.success,
+            overviewIsStale: true,
+            overviewErrorMessage: e.toString(),
+          ),
+        );
       } else {
-        emit(state.copyWith(
-          overviewStatus: ViewStatus.failure,
-          overviewErrorMessage: e.toString(),
-        ));
+        emit(
+          state.copyWith(
+            overviewStatus: ViewStatus.failure,
+            overviewErrorMessage: e.toString(),
+          ),
+        );
       }
     }
   }
 
   Future<void> _onReplaceLeagueParticipant(
-      ReplaceLeagueParticipant event, Emitter<GroupDetailState> emit) async {
+    ReplaceLeagueParticipant event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     emit(state.copyWith(replaceParticipantStatus: ViewStatus.loading));
     try {
       await _leagueRepository.replaceParticipant(
@@ -258,15 +316,19 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       emit(state.copyWith(replaceParticipantStatus: ViewStatus.success));
       add(LoadGroupLeagues(state.group.id));
     } catch (e) {
-      emit(state.copyWith(
-        replaceParticipantStatus: ViewStatus.failure,
-        replaceErrorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          replaceParticipantStatus: ViewStatus.failure,
+          replaceErrorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   Future<void> _onSetLeagueMergeCompleted(
-      SetLeagueMergeCompleted event, Emitter<GroupDetailState> emit) async {
+    SetLeagueMergeCompleted event,
+    Emitter<GroupDetailState> emit,
+  ) async {
     try {
       await _leagueRepository.setMergeCompleted(
         event.leagueId,
@@ -302,18 +364,22 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       return;
     }
 
-    emit(state.copyWith(
-      selectedOverviewYear: year,
-      filteredOverviewStatus: ViewStatus.loading,
-    ));
+    emit(
+      state.copyWith(
+        selectedOverviewYear: year,
+        filteredOverviewStatus: ViewStatus.loading,
+      ),
+    );
 
     try {
       final deactivatedIds = Set<String>.from(state.group.deactivatedMembers);
       final eligibleLeagues = state.leagues
           .where((l) => l.startDate.year == year)
-          .where((l) =>
-              deactivatedIds.isEmpty ||
-              !l.participants.any(deactivatedIds.contains))
+          .where(
+            (l) =>
+                deactivatedIds.isEmpty ||
+                !l.participants.any(deactivatedIds.contains),
+          )
           .toList();
 
       final statsList = await Future.wait(
@@ -337,10 +403,12 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
         deactivatedIds: Set<String>.from(state.group.deactivatedMembers),
       );
 
-      emit(state.copyWith(
-        yearlyOverviews: {...state.yearlyOverviews, year: filteredOverview},
-        filteredOverviewStatus: ViewStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          yearlyOverviews: {...state.yearlyOverviews, year: filteredOverview},
+          filteredOverviewStatus: ViewStatus.success,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(filteredOverviewStatus: ViewStatus.failure));
     }
@@ -356,11 +424,13 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
         ? [...prevDeactivated, event.userId]
         : prevDeactivated.where((id) => id != event.userId).toList();
 
-    emit(state.copyWith(
-      group: priorState.group.copyWith(deactivatedMembers: newDeactivated),
-      overviewIsStale: true,
-      clearYearlyOverviewCache: true,
-    ));
+    emit(
+      state.copyWith(
+        group: priorState.group.copyWith(deactivatedMembers: newDeactivated),
+        overviewIsStale: true,
+        clearYearlyOverviewCache: true,
+      ),
+    );
 
     try {
       await _groupRepository.toggleMemberDeactivation(
@@ -373,6 +443,31 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       unawaited(_groupStatsRepository.requestRecompute(event.groupId));
     } catch (e) {
       emit(priorState.copyWith(errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onRequestDeleteGroup(
+    RequestDeleteGroup event,
+    Emitter<GroupDetailState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        deleteGroupStatus: ViewStatus.loading,
+        deleteGroupErrorMessage: '',
+      ),
+    );
+    try {
+      await _groupRepository.requestDeleteGroup(event.groupId);
+      await _overviewCache.clear(event.groupId);
+      emit(state.copyWith(deleteGroupStatus: ViewStatus.success));
+      showToast('Đã gửi yêu cầu xoá nhóm');
+    } catch (e) {
+      emit(
+        state.copyWith(
+          deleteGroupStatus: ViewStatus.failure,
+          deleteGroupErrorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -402,20 +497,25 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     GroupOverview overview,
   ) {
     if (!kDebugMode) return;
-    debugPrint('[GroupOverview] groupId=$groupId '
-        'totalLeagues=${overview.totalLeagues} '
-        'finishedLeagues=${overview.finishedLeagues} '
-        'players=${summary.playerStats.length}');
+    debugPrint(
+      '[GroupOverview] groupId=$groupId '
+      'totalLeagues=${overview.totalLeagues} '
+      'finishedLeagues=${overview.finishedLeagues} '
+      'players=${summary.playerStats.length}',
+    );
     void award(String tag, GroupAward? a) {
       if (a == null) {
         debugPrint('[GroupOverview]   $tag: -');
       } else {
-        debugPrint('[GroupOverview]   $tag: id=${a.player.id} '
-            'name="${a.player.displayName}" '
-            'value=${a.value.toStringAsFixed(3)} '
-            'numerator=${a.numerator} sample=${a.sampleSize}');
+        debugPrint(
+          '[GroupOverview]   $tag: id=${a.player.id} '
+          'name="${a.player.displayName}" '
+          'value=${a.value.toStringAsFixed(3)} '
+          'numerator=${a.numerator} sample=${a.sampleSize}',
+        );
       }
     }
+
     award('vô đối     ', overview.champion);
     award('về nhì     ', overview.runnerUpKing);
     award('hoà vương  ', overview.drawKing);
@@ -423,12 +523,14 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     award('hàng thủ thép', overview.ironDefense);
     debugPrint('[GroupOverview] playerStats (raw, server-maintained):');
     for (final p in summary.playerStats) {
-      debugPrint('[GroupOverview]   id=${p.userId} '
-          'name="${p.displayName}" '
-          'matches=${p.matches} W${p.wins}/D${p.draws}/L${p.losses} '
-          'goals=${p.goals}/-${p.goalsConceded} '
-          'champ=${p.championships} runnerUp=${p.runnerUps} '
-          'finishedJoined=${p.finishedLeaguesJoined}');
+      debugPrint(
+        '[GroupOverview]   id=${p.userId} '
+        'name="${p.displayName}" '
+        'matches=${p.matches} W${p.wins}/D${p.draws}/L${p.losses} '
+        'goals=${p.goals}/-${p.goalsConceded} '
+        'champ=${p.championships} runnerUp=${p.runnerUps} '
+        'finishedJoined=${p.finishedLeaguesJoined}',
+      );
     }
   }
 
@@ -442,18 +544,24 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     if (!kDebugMode) return;
     try {
       final leagues = await _leagueRepository.getLeaguesByGroupId(groupId);
-      debugPrint('[GroupOverview] league participation by userId '
-          '(${leagues.length} leagues in group):');
+      debugPrint(
+        '[GroupOverview] league participation by userId '
+        '(${leagues.length} leagues in group):',
+      );
       for (final p in summary.playerStats) {
         final mine = leagues
             .where((l) => l.participants.contains(p.userId))
             .toList();
-        debugPrint('[GroupOverview]   ${p.userId} ("${p.displayName}") '
-            '→ ${mine.length} leagues');
+        debugPrint(
+          '[GroupOverview]   ${p.userId} ("${p.displayName}") '
+          '→ ${mine.length} leagues',
+        );
         for (final l in mine) {
-          debugPrint('[GroupOverview]     ${l.id} | "${l.name}" | '
-              'status=${l.status} | isActive=${l.isActive} | '
-              'startDate=${l.startDate.toIso8601String()}');
+          debugPrint(
+            '[GroupOverview]     ${l.id} | "${l.name}" | '
+            'status=${l.status} | isActive=${l.isActive} | '
+            'startDate=${l.startDate.toIso8601String()}',
+          );
         }
       }
     } catch (e) {
