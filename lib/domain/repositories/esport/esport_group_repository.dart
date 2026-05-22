@@ -28,6 +28,8 @@ abstract class EsportGroupRepository {
 
   Future<void> deactivateGroup(String groupId);
 
+  Future<void> requestDeleteGroup(String groupId);
+
   Future<void> removeMemberFromGroup({
     required String groupId,
     required String memberId,

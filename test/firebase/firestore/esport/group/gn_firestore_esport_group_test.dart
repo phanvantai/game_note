@@ -164,4 +164,24 @@ void main() {
       expect(snap.data()?[GNEsportGroup.ownerIdKey], 'u1');
     });
   });
+
+  group('requestDeleteGroup', () {
+    test('creates deletion request with owner id', () async {
+      final ref = await createGroup(members: ['owner', 'u1']);
+
+      await fs.requestDeleteGroup(ref.id);
+
+      final snap = await fakeFirestore
+          .collection('group_deletion_requests')
+          .get();
+      expect(snap.docs, hasLength(1));
+      expect(snap.docs.single.data()['groupId'], ref.id);
+      expect(snap.docs.single.data()['requestedBy'], 'owner');
+      expect(snap.docs.single.data()['status'], 'requested');
+    });
+
+    test('throws when group does not exist', () {
+      expect(() => fs.requestDeleteGroup('missing'), throwsException);
+    });
+  });
 }
