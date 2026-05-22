@@ -30,6 +30,7 @@ class Routing {
   static const String splash = '/splash';
   static const String login = '/login';
   static const String offline = '/offline';
+  static const String groups = '/groups';
   static const String offlineLeague = '/offline/league';
   static const String league = '/league';
   static const String verify = '/verify';
@@ -218,6 +219,14 @@ final List<RouteBase> _appRoutes = [
     path: Routing.app,
     pageBuilder: (context, state) =>
         _slide(context: context, state: state, child: const AppView()),
+  ),
+  GoRoute(
+    path: Routing.groups,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: const AppView(initialTabIndex: 1),
+    ),
   ),
   GoRoute(
     path: Routing.offline,

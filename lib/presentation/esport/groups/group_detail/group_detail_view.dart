@@ -2,12 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
+import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
+import 'package:pes_arena/routing.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../../core/helpers/admob_helper.dart';
@@ -87,6 +90,34 @@ class _GroupDetailViewState extends State<GroupDetailView>
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           actions: [
+            if (state.isOwner)
+              PopupMenuButton<_GroupAction>(
+                enabled: state.deleteGroupStatus != ViewStatus.loading,
+                onSelected: (action) {
+                  if (action == _GroupAction.deleteGroup) {
+                    _deleteGroup(context, state);
+                  }
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: _GroupAction.deleteGroup,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_outline,
+                          color: colorScheme.error,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Xoá nhóm',
+                          style: TextStyle(color: colorScheme.error),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             if (state.currentUserIsMember && !state.isOwner)
               PopupMenuButton<_GroupAction>(
                 onSelected: (action) {
@@ -146,8 +177,12 @@ class _GroupDetailViewState extends State<GroupDetailView>
                         onRemoveMember: (userId) =>
                             _removeMember(false, context, state, userId),
                         onToggleDeactivation: (userId, deactivate) =>
-                            _toggleDeactivation(context, state, userId,
-                                deactivate),
+                            _toggleDeactivation(
+                              context,
+                              state,
+                              userId,
+                              deactivate,
+                            ),
                       ),
                     ],
                   ),
@@ -167,6 +202,18 @@ class _GroupDetailViewState extends State<GroupDetailView>
       listener: (context, state) {
         if (state.errorMessage.isNotEmpty) {
           showToast(state.errorMessage);
+        }
+        if (state.deleteGroupErrorMessage.isNotEmpty) {
+          showToast(state.deleteGroupErrorMessage);
+        }
+        if (state.deleteGroupStatus == ViewStatus.success) {
+          try {
+            context.read<GroupBloc>().add(GetEsportGroups());
+          } catch (_) {
+            // The detail route can be opened directly without the main shell's
+            // GroupBloc in scope. Navigating to /groups recreates it.
+          }
+          context.go(Routing.groups);
         }
       },
     );
@@ -220,11 +267,13 @@ class _GroupDetailViewState extends State<GroupDetailView>
     String userId,
     bool deactivate,
   ) {
-    BlocProvider.of<GroupDetailBloc>(context).add(ToggleMemberDeactivation(
-      groupId: state.group.id,
-      userId: userId,
-      deactivate: deactivate,
-    ));
+    BlocProvider.of<GroupDetailBloc>(context).add(
+      ToggleMemberDeactivation(
+        groupId: state.group.id,
+        userId: userId,
+        deactivate: deactivate,
+      ),
+    );
   }
 
   void _removeMember(
@@ -246,6 +295,69 @@ class _GroupDetailViewState extends State<GroupDetailView>
       BlocProvider.of<GroupDetailBloc>(
         context,
       ).add(RemoveMember(state.group.id, userId));
+    }
+  }
+
+  Future<void> _deleteGroup(
+    BuildContext context,
+    GroupDetailState state,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        String input = '';
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final canDelete = input.trim() == state.group.groupName;
+            return AlertDialog(
+              title: const Text('Xoá nhóm'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Thao tác này sẽ xoá vĩnh viễn nhóm, toàn bộ giải đấu, '
+                    'trận đấu, bảng điểm và thống kê liên quan. Dữ liệu không '
+                    'thể khôi phục.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    autofocus: true,
+                    decoration: appInputDecoration(
+                      context: context,
+                      hintText: state.group.groupName,
+                      prefixIcon: Icons.group_remove_outlined,
+                    ),
+                    onChanged: (value) => setDialogState(() => input = value),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Huỷ'),
+                ),
+                FilledButton(
+                  onPressed: canDelete
+                      ? () => Navigator.of(dialogContext).pop(true)
+                      : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    foregroundColor: Theme.of(context).colorScheme.onError,
+                  ),
+                  child: const Text('Xoá nhóm'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (confirmed == true && context.mounted) {
+      context.read<GroupDetailBloc>().add(RequestDeleteGroup(state.group.id));
     }
   }
 }
@@ -341,8 +453,7 @@ class _MembersTab extends StatelessWidget {
                             fontSize: 11,
                             color: colorScheme.onSurfaceVariant,
                           ),
-                          backgroundColor:
-                              colorScheme.surfaceContainerHighest,
+                          backgroundColor: colorScheme.surfaceContainerHighest,
                           padding: EdgeInsets.zero,
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
@@ -379,9 +490,11 @@ class _MembersTab extends StatelessWidget {
                                           size: 20,
                                         ),
                                         const SizedBox(width: 10),
-                                        Text(isDeactivated
-                                            ? 'Kích hoạt lại'
-                                            : 'Ngừng hoạt động'),
+                                        Text(
+                                          isDeactivated
+                                              ? 'Kích hoạt lại'
+                                              : 'Ngừng hoạt động',
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -398,7 +511,8 @@ class _MembersTab extends StatelessWidget {
                                         Text(
                                           'Xoá khỏi nhóm',
                                           style: TextStyle(
-                                              color: colorScheme.error),
+                                            color: colorScheme.error,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -446,6 +560,6 @@ class _MemberTile extends StatelessWidget {
   }
 }
 
-enum _GroupAction { leaveGroup }
+enum _GroupAction { leaveGroup, deleteGroup }
 
 enum _MemberAction { deactivate, reactivate, remove }

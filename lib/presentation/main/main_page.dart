@@ -12,7 +12,9 @@ import '../profile/bloc/profile_bloc.dart';
 import 'main_view.dart';
 
 class MainPage extends StatelessWidget {
-  const MainPage({super.key});
+  final int initialTabIndex;
+
+  const MainPage({super.key, this.initialTabIndex = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +29,7 @@ class MainPage extends StatelessWidget {
           value: getIt<NotificationBloc>()..add(NotificationEventFetch()),
         ),
       ],
-      child: const MainView(),
+      child: MainView(initialTabIndex: initialTabIndex),
     );
   }
 }

@@ -16,7 +16,9 @@ import '../notification/notification_view.dart';
 import '../profile/profile_view.dart';
 
 class MainView extends StatefulWidget {
-  const MainView({super.key});
+  final int initialTabIndex;
+
+  const MainView({super.key, this.initialTabIndex = 0});
 
   @override
   State<MainView> createState() => _MainViewState();
@@ -67,7 +69,11 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       ),
     ];
 
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(
+      length: _tabs.length,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, _tabs.length - 1).toInt(),
+    );
 
     context.read<GroupBloc>().add(GetEsportGroups());
 
