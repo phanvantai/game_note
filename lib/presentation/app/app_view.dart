@@ -10,7 +10,9 @@ import 'bloc/app_bloc.dart';
 /// reaching `/` has [AppStatus.authenticated], so this just renders the
 /// authed shell — the login bounce lives in `routing.dart`.
 class AppView extends StatelessWidget {
-  const AppView({super.key});
+  final int initialTabIndex;
+
+  const AppView({super.key, this.initialTabIndex = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class AppView extends StatelessWidget {
       listener: (context, state) {
         context.go(Routing.app);
       },
-      child: const MainPage(),
+      child: MainPage(initialTabIndex: initialTabIndex),
     );
   }
 }

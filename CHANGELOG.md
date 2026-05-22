@@ -2,6 +2,13 @@
 
 All notable changes to PES Arena are documented here.
 
+## [3.3.0+42] - 2026-05-22
+
+### Added
+
+- **Xoá nhóm (owner-initiated group deletion)**: the group owner can now permanently delete a group from the group detail menu after typing the group name to confirm. Server cascades the cleanup — every league, match, stat row, group-level stats doc, and related notification is removed, and every affected member's all-time summary is rebuilt so `tournamentsJoined` and recent matches stay honest.
+- **`/groups` deep link**: explicit route mounts the Groups tab directly so the post-deletion bounce (and future deep links) lands on the right tab.
+
 ## [3.2.0+41] - 2026-05-16
 
 ### Added

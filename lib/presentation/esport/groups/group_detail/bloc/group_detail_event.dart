@@ -126,3 +126,12 @@ class ToggleMemberDeactivation extends GroupDetailEvent {
   @override
   List<Object?> get props => [groupId, userId, deactivate];
 }
+
+class RequestDeleteGroup extends GroupDetailEvent {
+  final String groupId;
+
+  const RequestDeleteGroup(this.groupId);
+
+  @override
+  List<Object?> get props => [groupId];
+}

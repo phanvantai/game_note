@@ -67,6 +67,11 @@ class EsportGroupRepositoryImpl implements EsportGroupRepository {
   }
 
   @override
+  Future<void> requestDeleteGroup(String groupId) {
+    return getIt<GNFirestore>().requestDeleteGroup(groupId);
+  }
+
+  @override
   Future<GNEsportGroup?> getGroup(String groupId) {
     return getIt<GNFirestore>().getGroupById(groupId);
   }

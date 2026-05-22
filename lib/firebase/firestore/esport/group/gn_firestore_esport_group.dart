@@ -175,6 +175,23 @@ extension GNFirestoreEsportGroup on GNFirestore {
         });
   }
 
+  Future<void> requestDeleteGroup(String groupId) async {
+    final groupRef = firestore
+        .collection(GNEsportGroup.collectionName)
+        .doc(groupId);
+    final groupSnapshot = await groupRef.get();
+    if (!groupSnapshot.exists) {
+      throw Exception('Group not found');
+    }
+    final group = GNEsportGroup.fromFirestore(groupSnapshot);
+    await firestore.collection('group_deletion_requests').add({
+      'groupId': groupId,
+      'requestedBy': group.ownerId,
+      'status': 'requested',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   // Activate a group (set status to 'active')
   Future<void> activateGroup(String groupId) async {
     await firestore

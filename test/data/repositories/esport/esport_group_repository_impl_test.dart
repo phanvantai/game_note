@@ -68,6 +68,18 @@ void main() {
         .get();
     expect(snap.data()?[GNEsportGroup.statusKey], 'inactive');
   });
+
+  test('requestDeleteGroup writes group deletion request', () async {
+    await _createGroup('G1', ownerId: 'owner', members: ['owner']);
+
+    await repo.requestDeleteGroup('G1');
+
+    final snap = await firestore.collection('group_deletion_requests').get();
+    expect(snap.docs, hasLength(1));
+    expect(snap.docs.single.data()['groupId'], 'G1');
+    expect(snap.docs.single.data()['requestedBy'], 'owner');
+    expect(snap.docs.single.data()['status'], 'requested');
+  });
 }
 
 Future<void> _createGroup(

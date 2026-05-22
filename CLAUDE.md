@@ -76,7 +76,10 @@ The project follows **Clean Architecture** principles with clear layer separatio
 - **Features**: Tournament data, match results, player statistics
 
 ### Firebase Integration
-- **Collections**: `users`, `esportGroups`, `esportLeagues`, `esportChats`
+- **Collections**: `users`, `esportGroups`, `esportLeagues`, `esportChats`,
+  `group_deletion_requests` (owner-initiated group deletion, gated by
+  `isGroupOwner` + create-only rules), `group_deletion_league_tombstones`
+  (suppresses delta-stat triggers during cascade)
 - **Authentication**: Email/password and Google Sign-In
 - **Real-time**: Firestore listeners for live updates
 - **Storage**: Image uploads for avatars and tournament media

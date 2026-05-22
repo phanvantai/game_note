@@ -148,6 +148,8 @@ const RECENT_MATCHES_CAP = 20;
 const LEAGUE_HISTORY_CAP = 20;
 const SCHEMA_VERSION = 1;
 const EVENT_DEDUPE_CAP = 50;
+const GROUP_DELETION_LEAGUE_TOMBSTONES =
+  "group_deletion_league_tombstones";
 
 // Compute one user's contribution from a finished match. `sign` is +1 to
 // apply, -1 to undo (used to net out a previously-applied score before
@@ -376,6 +378,24 @@ function alreadyProcessed(prev, eventId) {
   return (prev.lastEventIds || []).includes(eventId);
 }
 
+/**
+ * Returns true when a league is being removed by a group deletion cascade.
+ *
+ * Delete triggers can run after their parent league document is already gone,
+ * so the durable tombstone is the only reliable way to distinguish cascade
+ * cleanup from a normal match/league delete.
+ *
+ * @param {string} leagueId League document id.
+ * @return {Promise<boolean>} Whether the league is part of group deletion.
+ */
+async function isGroupDeletionLeague(leagueId) {
+  if (!leagueId) return false;
+  const snap = await db.collection(GROUP_DELETION_LEAGUE_TOMBSTONES)
+      .doc(leagueId)
+      .get();
+  return snap.exists;
+}
+
 // ---------------------------------------------------------------------
 // Trigger: a match write fans out to summary + h2h for both players.
 // ---------------------------------------------------------------------
@@ -402,6 +422,10 @@ exports.onLeagueMatchWritten = onDocumentWritten(
       }
 
       const leagueId = event.params.leagueId;
+      if (await isGroupDeletionLeague(leagueId)) {
+        return null;
+      }
+
       const leagueDoc = await db.collection("esports_leagues").doc(leagueId).get();
       const leagueName = (leagueDoc.data() || {}).name || "";
 
@@ -702,6 +726,158 @@ function hasDeactivatedParticipant(leagueData, deactivatedIds) {
 // fresh summary doc + h2h docs. Used for users created before this feature
 // shipped, or after a schema bump.
 // ---------------------------------------------------------------------
+async function rebuildUserSummary(uid) {
+  const summary = emptySummary();
+  const h2hMap = new Map(); // opponentUid -> aggregate
+
+  // Find leagues this user participates in. Mirror the client-side
+  // `getMyLeagues()` filter: only count active leagues — a soft-deleted
+  // or hard-deleted league shouldn't show up in tournamentsJoined.
+  const leaguesSnap = await db
+      .collection("esports_leagues")
+      .where("isActive", "==", true)
+      .where("participants", "array-contains", uid)
+      .get();
+
+  summary.tournamentsJoined = leaguesSnap.size;
+
+  for (const leagueDoc of leaguesSnap.docs) {
+    const league = leagueDoc.data();
+    const leagueId = leagueDoc.id;
+    const leagueName = league.name || "";
+    const leaguePerf = emptyLeaguePerf(leagueId, leagueName);
+
+    const matchesSnap = await db
+        .collection("esports_leagues").doc(leagueId)
+        .collection("leagues_matches")
+        .where("isFinished", "==", true)
+        .get();
+
+    for (const matchDoc of matchesSnap.docs) {
+      const m = matchDoc.data();
+      const isHome = m.homeTeamId === uid;
+      if (!isHome && m.awayTeamId !== uid) continue;
+      const opponentUid = isHome ? m.awayTeamId : m.homeTeamId;
+      const userScore = isHome ? m.homeScore : m.awayScore;
+      const oppScore = isHome ? m.awayScore : m.homeScore;
+      const contrib = statContribution(userScore, oppScore, +1);
+      summary.matchesPlayed += contrib.matchesPlayed;
+      summary.wins += contrib.wins;
+      summary.draws += contrib.draws;
+      summary.losses += contrib.losses;
+      summary.goals += contrib.goals;
+      summary.goalsConceded += contrib.goalsConceded;
+
+      leaguePerf.matchesPlayed += contrib.matchesPlayed;
+      leaguePerf.wins += contrib.wins;
+      leaguePerf.draws += contrib.draws;
+      leaguePerf.losses += contrib.losses;
+      leaguePerf.goals += contrib.goals;
+      leaguePerf.goalsConceded += contrib.goalsConceded;
+      leaguePerf.lastPlayedAt =
+        maxDate(leaguePerf.lastPlayedAt, m.date || null);
+
+      const opponentName = await fetchUserDisplayName(opponentUid);
+      const entry = buildRecentEntry(
+          {...m, id: matchDoc.id, leagueId},
+          leagueName, uid, opponentName,
+      );
+      summary.recentMatches = mergeRecent(summary.recentMatches, entry);
+
+      const h2h = h2hMap.get(opponentUid) ||
+        emptyH2H(opponentUid, opponentName);
+      h2h.matchesPlayed += contrib.matchesPlayed;
+      h2h.wins += contrib.wins;
+      h2h.draws += contrib.draws;
+      h2h.losses += contrib.losses;
+      h2h.goals += contrib.goals;
+      h2h.goalsConceded += contrib.goalsConceded;
+      h2h.lastMetAt = maxDate(h2h.lastMetAt, m.date || null);
+      h2h.opponentDisplayName = opponentName || h2h.opponentDisplayName;
+      h2hMap.set(opponentUid, h2h);
+    }
+
+    // Standings → champion / runner-up
+    if (league.status === "finished") {
+      const statsSnap = await db
+          .collection("esports_leagues").doc(leagueId)
+          .collection("leagues_stats")
+          .get();
+      const stats = statsSnap.docs.map((d) => d.data());
+      stats.sort((a, b) => {
+        const ap = (a.wins || 0) * 3 + (a.draws || 0);
+        const bp = (b.wins || 0) * 3 + (b.draws || 0);
+        if (ap !== bp) return bp - ap;
+        const agd = (a.goals || 0) - (a.goalsConceded || 0);
+        const bgd = (b.goals || 0) - (b.goalsConceded || 0);
+        if (agd !== bgd) return bgd - agd;
+        return (b.goals || 0) - (a.goals || 0);
+      });
+      const rank = stats.findIndex((s) => s.userId === uid);
+      if (rank !== -1) {
+        summary.tournamentsFinished += 1;
+        if (rank === 0) {
+          summary.championCount += 1;
+          summary.lastChampionAt = maxDate(
+              summary.lastChampionAt,
+              league.endDate || league.startDate || null,
+          );
+        } else if (rank === 1) {
+          summary.runnerUpCount += 1;
+        }
+      }
+    }
+
+    if (leaguePerf.matchesPlayed > 0) {
+      summary.leagueHistory.push(leaguePerf);
+    }
+  }
+
+  // Sort by lastPlayedAt desc + cap.
+  summary.leagueHistory.sort((a, b) => {
+    const am = a.lastPlayedAt && a.lastPlayedAt.toMillis ?
+      a.lastPlayedAt.toMillis() :
+      (a.lastPlayedAt ? new Date(a.lastPlayedAt).getTime() : 0);
+    const bm = b.lastPlayedAt && b.lastPlayedAt.toMillis ?
+      b.lastPlayedAt.toMillis() :
+      (b.lastPlayedAt ? new Date(b.lastPlayedAt).getTime() : 0);
+    return bm - am;
+  });
+  summary.leagueHistory = summary.leagueHistory.slice(0, LEAGUE_HISTORY_CAP);
+
+  // Embedded compact h2h list for the dashboard "đối đầu" section.
+  summary.h2hSummary = [];
+  for (const [opponentUid, agg] of h2hMap.entries()) {
+    if ((agg.matchesPlayed || 0) <= 0) continue;
+    summary.h2hSummary.push({
+      opponentId: opponentUid,
+      opponentDisplayName: agg.opponentDisplayName || "",
+      matchesPlayed: agg.matchesPlayed || 0,
+      wins: agg.wins || 0,
+      draws: agg.draws || 0,
+      losses: agg.losses || 0,
+    });
+  }
+
+  summary.updatedAt = FieldValue.serverTimestamp();
+  summary.schemaVersion = SCHEMA_VERSION;
+
+  const h2hSnap = await db.collection("users").doc(uid).collection("h2h").get();
+  const freshOpponentIds = new Set(h2hMap.keys());
+  const ops = [{type: "set", ref: summaryRef(uid), data: summary}];
+  for (const [opponentUid, agg] of h2hMap.entries()) {
+    agg.updatedAt = FieldValue.serverTimestamp();
+    ops.push({type: "set", ref: h2hRef(uid, opponentUid), data: agg});
+  }
+  for (const doc of h2hSnap.docs) {
+    if (!freshOpponentIds.has(doc.id)) {
+      ops.push({type: "delete", ref: doc.ref});
+    }
+  }
+  await commitOpsInBatches(ops);
+  return {matchesPlayed: summary.matchesPlayed, h2hCount: h2hMap.size};
+}
+
 exports.onRecomputeUserSummaryRequest = onDocumentCreated(
     "users/{uid}/stats/_recompute_request",
     async (event) => {
@@ -709,156 +885,232 @@ exports.onRecomputeUserSummaryRequest = onDocumentCreated(
       log(`recomputeUserSummary: start uid=${uid}`);
 
       try {
-        const summary = emptySummary();
-        const h2hMap = new Map(); // opponentUid -> aggregate
-
-        // Find leagues this user participates in. Mirror the client-side
-        // `getMyLeagues()` filter: only count active leagues — a
-        // soft-deleted league shouldn't show up in tournamentsJoined.
-        const leaguesSnap = await db
-            .collection("esports_leagues")
-            .where("isActive", "==", true)
-            .where("participants", "array-contains", uid)
-            .get();
-
-        summary.tournamentsJoined = leaguesSnap.size;
-
-        for (const leagueDoc of leaguesSnap.docs) {
-          const league = leagueDoc.data();
-          const leagueId = leagueDoc.id;
-          const leagueName = league.name || "";
-          const leaguePerf = emptyLeaguePerf(leagueId, leagueName);
-
-          const matchesSnap = await db
-              .collection("esports_leagues").doc(leagueId)
-              .collection("leagues_matches")
-              .where("isFinished", "==", true)
-              .get();
-
-          for (const matchDoc of matchesSnap.docs) {
-            const m = matchDoc.data();
-            const isHome = m.homeTeamId === uid;
-            if (!isHome && m.awayTeamId !== uid) continue;
-            const opponentUid = isHome ? m.awayTeamId : m.homeTeamId;
-            const userScore = isHome ? m.homeScore : m.awayScore;
-            const oppScore = isHome ? m.awayScore : m.homeScore;
-            const contrib = statContribution(userScore, oppScore, +1);
-            summary.matchesPlayed += contrib.matchesPlayed;
-            summary.wins += contrib.wins;
-            summary.draws += contrib.draws;
-            summary.losses += contrib.losses;
-            summary.goals += contrib.goals;
-            summary.goalsConceded += contrib.goalsConceded;
-
-            leaguePerf.matchesPlayed += contrib.matchesPlayed;
-            leaguePerf.wins += contrib.wins;
-            leaguePerf.draws += contrib.draws;
-            leaguePerf.losses += contrib.losses;
-            leaguePerf.goals += contrib.goals;
-            leaguePerf.goalsConceded += contrib.goalsConceded;
-            leaguePerf.lastPlayedAt =
-              maxDate(leaguePerf.lastPlayedAt, m.date || null);
-
-            const opponentName = await fetchUserDisplayName(opponentUid);
-            const entry = buildRecentEntry(
-                {...m, id: matchDoc.id, leagueId},
-                leagueName, uid, opponentName,
-            );
-            summary.recentMatches = mergeRecent(summary.recentMatches, entry);
-
-            const h2h = h2hMap.get(opponentUid) || emptyH2H(opponentUid, opponentName);
-            h2h.matchesPlayed += contrib.matchesPlayed;
-            h2h.wins += contrib.wins;
-            h2h.draws += contrib.draws;
-            h2h.losses += contrib.losses;
-            h2h.goals += contrib.goals;
-            h2h.goalsConceded += contrib.goalsConceded;
-            h2h.lastMetAt = maxDate(h2h.lastMetAt, m.date || null);
-            h2h.opponentDisplayName = opponentName || h2h.opponentDisplayName;
-            h2hMap.set(opponentUid, h2h);
-          }
-
-          // Standings → champion / runner-up
-          if (league.status === "finished") {
-            const statsSnap = await db
-                .collection("esports_leagues").doc(leagueId)
-                .collection("leagues_stats")
-                .get();
-            const stats = statsSnap.docs.map((d) => d.data());
-            stats.sort((a, b) => {
-              const ap = (a.wins || 0) * 3 + (a.draws || 0);
-              const bp = (b.wins || 0) * 3 + (b.draws || 0);
-              if (ap !== bp) return bp - ap;
-              const agd = (a.goals || 0) - (a.goalsConceded || 0);
-              const bgd = (b.goals || 0) - (b.goalsConceded || 0);
-              if (agd !== bgd) return bgd - agd;
-              return (b.goals || 0) - (a.goals || 0);
-            });
-            const rank = stats.findIndex((s) => s.userId === uid);
-            if (rank !== -1) {
-              summary.tournamentsFinished += 1;
-              if (rank === 0) {
-                summary.championCount += 1;
-                summary.lastChampionAt = maxDate(
-                    summary.lastChampionAt,
-                    league.endDate || league.startDate || null,
-                );
-              } else if (rank === 1) {
-                summary.runnerUpCount += 1;
-              }
-            }
-          }
-
-          if (leaguePerf.matchesPlayed > 0) {
-            summary.leagueHistory.push(leaguePerf);
-          }
-        }
-
-        // Sort by lastPlayedAt desc + cap.
-        summary.leagueHistory.sort((a, b) => {
-          const am = a.lastPlayedAt && a.lastPlayedAt.toMillis
-            ? a.lastPlayedAt.toMillis()
-            : (a.lastPlayedAt ? new Date(a.lastPlayedAt).getTime() : 0);
-          const bm = b.lastPlayedAt && b.lastPlayedAt.toMillis
-            ? b.lastPlayedAt.toMillis()
-            : (b.lastPlayedAt ? new Date(b.lastPlayedAt).getTime() : 0);
-          return bm - am;
-        });
-        summary.leagueHistory =
-          summary.leagueHistory.slice(0, LEAGUE_HISTORY_CAP);
-
-        // Embedded compact h2h list for the dashboard "đối đầu" section.
-        summary.h2hSummary = [];
-        for (const [opponentUid, agg] of h2hMap.entries()) {
-          if ((agg.matchesPlayed || 0) <= 0) continue;
-          summary.h2hSummary.push({
-            opponentId: opponentUid,
-            opponentDisplayName: agg.opponentDisplayName || "",
-            matchesPlayed: agg.matchesPlayed || 0,
-            wins: agg.wins || 0,
-            draws: agg.draws || 0,
-            losses: agg.losses || 0,
-          });
-        }
-
-        summary.updatedAt = FieldValue.serverTimestamp();
-        summary.schemaVersion = SCHEMA_VERSION;
-
+        const result = await rebuildUserSummary(uid);
         const batch = db.batch();
-        batch.set(summaryRef(uid), summary);
-        for (const [opponentUid, agg] of h2hMap.entries()) {
-          agg.updatedAt = FieldValue.serverTimestamp();
-          batch.set(h2hRef(uid, opponentUid), agg);
-        }
         // Consume the request.
         batch.delete(
             db.collection("users").doc(uid).collection("stats").doc(RECOMPUTE_REQ_DOC_ID),
         );
         await batch.commit();
-        log(`recomputeUserSummary: done uid=${uid} matches=${summary.matchesPlayed}`);
+        log(`recomputeUserSummary: done uid=${uid} matches=${result.matchesPlayed}`);
       } catch (err) {
         error(`recomputeUserSummary failed for uid=${uid}`, err);
       // Leave the request doc in place so a retry / manual re-run can pick it up.
+      }
+      return null;
+    },
+);
+
+const DELETE_BATCH_LIMIT = 450;
+
+async function deleteRefsInBatches(refs) {
+  let deleted = 0;
+  for (let i = 0; i < refs.length; i += DELETE_BATCH_LIMIT) {
+    const batch = db.batch();
+    const chunk = refs.slice(i, i + DELETE_BATCH_LIMIT);
+    for (const ref of chunk) {
+      batch.delete(ref);
+    }
+    await batch.commit();
+    deleted += chunk.length;
+  }
+  return deleted;
+}
+
+async function commitOpsInBatches(ops) {
+  for (let i = 0; i < ops.length; i += DELETE_BATCH_LIMIT) {
+    const batch = db.batch();
+    const chunk = ops.slice(i, i + DELETE_BATCH_LIMIT);
+    for (const op of chunk) {
+      if (op.type === "delete") {
+        batch.delete(op.ref);
+      } else {
+        batch.set(op.ref, op.data);
+      }
+    }
+    await batch.commit();
+  }
+}
+
+async function deleteNotificationsFor(type, relatedId) {
+  const snap = await db.collectionGroup("notifications")
+      .where("relatedId", "==", relatedId)
+      .get();
+  const refs = snap.docs
+      .filter((doc) => (doc.data() || {}).type === type)
+      .map((doc) => doc.ref);
+  return deleteRefsInBatches(refs);
+}
+
+/**
+ * Writes a tombstone before deleting league children so async triggers skip
+ * incremental stat deltas and let the final rebuild be authoritative.
+ *
+ * @param {object} params Function parameters.
+ * @param {FirebaseFirestore.QueryDocumentSnapshot} params.leagueDoc League.
+ * @param {string} params.groupId Group id being deleted.
+ * @param {string} params.requestedBy User who requested deletion.
+ * @param {string} params.requestId Deletion request document id.
+ * @return {Promise<void>} Resolves after the tombstone is written.
+ */
+async function markLeagueForGroupDeletion(
+    {leagueDoc, groupId, requestedBy, requestId},
+) {
+  await db.collection(GROUP_DELETION_LEAGUE_TOMBSTONES)
+      .doc(leagueDoc.id)
+      .set({
+        groupId,
+        requestedBy,
+        requestId,
+        createdAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+}
+
+async function deleteLeagueTree(
+    {leagueDoc, affectedUserIds, groupId, requestedBy, requestId},
+) {
+  const league = leagueDoc.data() || {};
+  const leagueRef = leagueDoc.ref;
+  const matchSnap = await leagueRef.collection("leagues_matches").get();
+  const statSnap = await leagueRef.collection("leagues_stats").get();
+
+  for (const uid of league.participants || []) {
+    if (uid) affectedUserIds.add(uid);
+  }
+  for (const statDoc of statSnap.docs) {
+    const uid = (statDoc.data() || {}).userId;
+    if (uid) affectedUserIds.add(uid);
+  }
+  for (const matchDoc of matchSnap.docs) {
+    const match = matchDoc.data() || {};
+    if (match.homeTeamId) affectedUserIds.add(match.homeTeamId);
+    if (match.awayTeamId) affectedUserIds.add(match.awayTeamId);
+  }
+
+  await markLeagueForGroupDeletion({
+    leagueDoc,
+    groupId,
+    requestedBy,
+    requestId,
+  });
+
+  const matchesDeleted =
+    await deleteRefsInBatches(matchSnap.docs.map((doc) => doc.ref));
+  const statsDeleted =
+    await deleteRefsInBatches(statSnap.docs.map((doc) => doc.ref));
+  await leagueRef.delete();
+
+  return {
+    leagueId: leagueDoc.id,
+    matchesDeleted,
+    statsDeleted,
+  };
+}
+
+// ---------------------------------------------------------------------
+// Trigger: owner requests hard deletion of an online group. Clients only
+// create the request doc; Admin SDK performs the cascade delete.
+// ---------------------------------------------------------------------
+exports.onGroupDeletionRequestCreated = onDocumentCreated(
+    "group_deletion_requests/{requestId}",
+    async (event) => {
+      const requestRef = event.data.ref;
+      const request = event.data.data() || {};
+      const groupId = request.groupId;
+      const requestedBy = request.requestedBy;
+
+      // Idempotency: only act on freshly-created requests. Eventarc retries
+      // or manual status flips must not re-run the cascade.
+      if (request.status && request.status !== "requested") {
+        log(`groupDeletion: skipping requestId=` +
+            `${event.params.requestId} status=${request.status}`);
+        return null;
+      }
+
+      try {
+        if (!groupId || !requestedBy) {
+          throw new Error("Invalid group deletion request");
+        }
+
+        await requestRef.set({
+          status: "processing",
+          startedAt: FieldValue.serverTimestamp(),
+        }, {merge: true});
+
+        const groupRef = db.collection("esports_groups").doc(groupId);
+        const groupSnap = await groupRef.get();
+        if (!groupSnap.exists) {
+          throw new Error("Group not found");
+        }
+        const group = groupSnap.data() || {};
+        if (group.ownerId !== requestedBy) {
+          throw new Error("Only the group owner can delete this group");
+        }
+
+        const affectedUserIds = new Set(group.members || []);
+        const leagueSnap = await db.collection("esports_leagues")
+            .where("groupId", "==", groupId)
+            .get();
+
+        const deletedLeagueIds = [];
+        let matchesDeleted = 0;
+        let leagueStatsDeleted = 0;
+        for (const leagueDoc of leagueSnap.docs) {
+          const result = await deleteLeagueTree({
+            leagueDoc,
+            affectedUserIds,
+            groupId,
+            requestedBy,
+            requestId: event.params.requestId,
+          });
+          deletedLeagueIds.push(result.leagueId);
+          matchesDeleted += result.matchesDeleted;
+          leagueStatsDeleted += result.statsDeleted;
+        }
+
+        const groupStatsSnap = await groupRef.collection("stats").get();
+        const groupStatsDeleted =
+          await deleteRefsInBatches(groupStatsSnap.docs.map((doc) => doc.ref));
+
+        let notificationsDeleted =
+          await deleteNotificationsFor("esport_group", groupId);
+        for (const leagueId of deletedLeagueIds) {
+          notificationsDeleted +=
+            await deleteNotificationsFor("esport_league", leagueId);
+        }
+
+        await groupRef.delete();
+
+        let usersRecomputed = 0;
+        for (const uid of affectedUserIds) {
+          if (!uid) continue;
+          await rebuildUserSummary(uid);
+          usersRecomputed += 1;
+        }
+
+        await requestRef.set({
+          status: "completed",
+          completedAt: FieldValue.serverTimestamp(),
+          deletedCounts: {
+            groups: 1,
+            leagues: deletedLeagueIds.length,
+            matches: matchesDeleted,
+            leagueStats: leagueStatsDeleted,
+            groupStats: groupStatsDeleted,
+            notifications: notificationsDeleted,
+          },
+          affectedUserCount: affectedUserIds.size,
+          usersRecomputed,
+        }, {merge: true});
+        log(`groupDeletion: completed groupId=${groupId} ` +
+            `leagues=${deletedLeagueIds.length}`);
+      } catch (err) {
+        error(`groupDeletion failed groupId=${groupId}`, err);
+        await requestRef.set({
+          status: "failed",
+          failedAt: FieldValue.serverTimestamp(),
+          error: err && err.message ? err.message : "Unknown error",
+        }, {merge: true});
       }
       return null;
     },
@@ -1077,6 +1329,7 @@ exports.onEsportLeagueWritten = onDocumentWritten(
       // Deleted (hard delete) — only decrement if the league was active
       // when it disappeared. Inactive leagues weren't counted anyway.
       if (before && !after) {
+        if (await isGroupDeletionLeague(leagueId)) return null;
         if (!before.groupId || before.isActive === false) return null;
         const deactivatedIds = await fetchDeactivatedIds(before.groupId);
         if (hasDeactivatedParticipant(before, deactivatedIds)) return null;
