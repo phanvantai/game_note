@@ -25,6 +25,12 @@ service cloud.firestore {
           && request.auth.uid in getAfter(groupPath(groupId)).data.members;
     }
 
+    function isGroupOwner(groupId) {
+      return signedIn()
+          && exists(groupPath(groupId))
+          && get(groupPath(groupId)).data.ownerId == request.auth.uid;
+    }
+
     function isLeagueGroupMember(leagueId) {
       return signedIn()
           && exists(leaguePath(leagueId))
@@ -102,6 +108,17 @@ service cloud.firestore {
             && docId == '_recompute_request';
         allow update, delete: if false;
       }
+    }
+
+    match /group_deletion_requests/{requestId} {
+      allow create: if signedIn()
+          && request.resource.data.groupId is string
+          && request.resource.data.requestedBy == request.auth.uid
+          && request.resource.data.status == 'requested'
+          && isGroupOwner(request.resource.data.groupId);
+      allow read: if signedIn()
+          && resource.data.requestedBy == request.auth.uid;
+      allow update, delete: if false;
     }
 
     match /esports_leagues/{leagueId} {
