@@ -107,6 +107,17 @@ Existing repo guidance targets very high coverage for production code under `lib
 - For Firebase/Firestore changes, update tests and related model mapping together.
 - For SQLite schema changes, inspect the offline database managers carefully before editing.
 
+## Release / PR Guardrails
+
+- Pull requests targeting `main` trigger the production mobile release flow, including build and Play Store deployment.
+- Before creating or updating a PR that targets `main`, explicitly confirm the intended release target with the user.
+- Use this checklist before opening a `main` PR:
+  - Confirm the PR is intended to release to production.
+  - Confirm `pubspec.yaml` app version/build number has been reviewed and bumped if needed.
+  - Confirm release notes or PR notes mention any production-impacting changes.
+  - Confirm `flutter analyze` and the relevant test suite have passed.
+- If the work is not ready for production release, target `develop` or keep the branch unmerged instead of opening a PR to `main`.
+
 ## Area-Specific Tips
 
 ### Flutter App
