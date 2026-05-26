@@ -83,10 +83,7 @@ class CreateCustomMatch extends TournamentDetailEvent {
   final GNUser homeTeam;
   final GNUser awayTeam;
 
-  const CreateCustomMatch({
-    required this.homeTeam,
-    required this.awayTeam,
-  });
+  const CreateCustomMatch({required this.homeTeam, required this.awayTeam});
 
   @override
   List<Object> get props => [homeTeam, awayTeam];
@@ -166,12 +163,12 @@ class UpdateLeagueCostConfig extends TournamentDetailEvent {
 
   @override
   List<Object> get props => [
-        rankPayoutEnabled,
-        rankPayouts,
-        defaultMatchCost,
-        defaultPerGoalEnabled,
-        defaultCostPerGoal,
-      ];
+    rankPayoutEnabled,
+    rankPayouts,
+    defaultMatchCost,
+    defaultPerGoalEnabled,
+    defaultCostPerGoal,
+  ];
 }
 
 class UpdateMatches extends TournamentDetailEvent {
@@ -209,10 +206,7 @@ class GenerateFull extends TournamentDetailEvent {
   final List<List<String>> groups;
   final int advanceCount;
 
-  const GenerateFull({
-    required this.groups,
-    required this.advanceCount,
-  });
+  const GenerateFull({required this.groups, required this.advanceCount});
 
   @override
   List<Object> get props => [groups, advanceCount];

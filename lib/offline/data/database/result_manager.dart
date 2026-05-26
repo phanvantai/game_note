@@ -15,8 +15,10 @@ extension ResultManager on DatabaseManager {
 
   Future<List<ResultModel>> getResults(int matchId) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(playerMatchTable,
-        where: '${DBTableColumn.matchId} = $matchId');
+    final List<Map<String, dynamic>> maps = await db.query(
+      playerMatchTable,
+      where: '${DBTableColumn.matchId} = $matchId',
+    );
     List<ResultModel> list = [];
     for (var element in maps) {
       int playerId = element[DBTableColumn.playerId];
@@ -39,8 +41,10 @@ extension ResultManager on DatabaseManager {
 
   Future<ResultModel?> getResult(int resultId) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(playerMatchTable,
-        where: '${DBTableColumn.playerMatchId} = $resultId');
+    final List<Map<String, dynamic>> maps = await db.query(
+      playerMatchTable,
+      where: '${DBTableColumn.playerMatchId} = $resultId',
+    );
     if (maps.isEmpty) {
       return null;
     }
@@ -52,7 +56,8 @@ extension ResultManager on DatabaseManager {
             id: maps.first[DBTableColumn.playerMatchId],
             matchId: maps.first[DBTableColumn.matchId],
             score: maps.first[DBTableColumn.playerMatchPlayerScore],
-            playerModel: playerModel);
+            playerModel: playerModel,
+          );
   }
 
   Future<void> updateResult(ResultModel resultModel) async {

@@ -75,7 +75,8 @@ class GNFirebaseMessaging {
           if (apnsToken == null) {
             if (kDebugMode) {
               print(
-                  'APNS token still not available, skipping FCM token retrieval');
+                'APNS token still not available, skipping FCM token retrieval',
+              );
             }
             return;
           }
@@ -118,7 +119,6 @@ class GNFirebaseMessaging {
       }
     });
   }
-
 }
 
 @pragma('vm:entry-point')

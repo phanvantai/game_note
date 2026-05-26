@@ -10,7 +10,9 @@ class GNCircleAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final initial = name?.trim().isNotEmpty == true ? name!.trim()[0].toUpperCase() : null;
+    final initial = name?.trim().isNotEmpty == true
+        ? name!.trim()[0].toUpperCase()
+        : null;
     return SizedBox(
       width: size,
       height: size,
@@ -20,19 +22,19 @@ class GNCircleAvatar extends StatelessWidget {
             : null,
         child: photoUrl == null
             ? initial != null
-                ? Text(
-                    initial,
-                    style: TextStyle(
-                      fontSize: size * 0.42,
-                      fontWeight: FontWeight.w700,
+                  ? Text(
+                      initial,
+                      style: TextStyle(
+                        fontSize: size * 0.42,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                    )
+                  : Icon(
+                      Icons.person,
+                      size: size * 0.6,
                       color: colorScheme.onSurface,
-                    ),
-                  )
-                : Icon(
-                    Icons.person,
-                    size: size * 0.6,
-                    color: colorScheme.onSurface,
-                  )
+                    )
             : null,
       ),
     );

@@ -49,13 +49,7 @@ class MatchModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        id,
-        status,
-        roundId,
-        home,
-        away,
-      ];
+  List<Object?> get props => [id, status, roundId, home, away];
 }
 
 enum ResultType { win, draw, lost, unknown }

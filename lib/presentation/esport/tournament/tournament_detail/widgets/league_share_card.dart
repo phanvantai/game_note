@@ -73,7 +73,8 @@ class LeagueShareCard extends StatelessWidget {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   Color get _tableHeaderBg => isDark ? _dkTableHeaderBg : _ltTableHeaderBg;
-  Color get _tableHeaderText => isDark ? _dkTableHeaderText : _ltTableHeaderText;
+  Color get _tableHeaderText =>
+      isDark ? _dkTableHeaderText : _ltTableHeaderText;
   Color get _rowAlt => isDark ? _dkRowAlt : _ltRowAlt;
   Color get _namePrimary => isDark ? _dkNamePrimary : _ltNamePrimary;
   Color get _nameSecondary => isDark ? _dkNameSecondary : _ltNameSecondary;
@@ -86,8 +87,11 @@ class LeagueShareCard extends StatelessWidget {
   Color get _footerLine => isDark ? _dkFooterLine : _ltFooterLine;
   Color get _headerText => isDark ? Colors.white : _ltNamePrimary;
 
-  Color _rankAccent(int index) =>
-      index == 0 ? _gold : index == 1 ? _silver : _bronze;
+  Color _rankAccent(int index) => index == 0
+      ? _gold
+      : index == 1
+      ? _silver
+      : _bronze;
 
   @override
   Widget build(BuildContext context) {
@@ -190,8 +194,8 @@ class LeagueShareCard extends StatelessWidget {
     final rowBg = isTop3
         ? accent!.withValues(alpha: isDark ? 0.06 : 0.05)
         : index % 2 != 0
-            ? _rowAlt
-            : Colors.transparent;
+        ? _rowAlt
+        : Colors.transparent;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
@@ -200,9 +204,7 @@ class LeagueShareCard extends StatelessWidget {
         color: rowBg,
         borderRadius: BorderRadius.circular(8),
         border: isTop3
-            ? Border(
-                left: BorderSide(color: accent!, width: 3),
-              )
+            ? Border(left: BorderSide(color: accent!, width: 3))
             : null,
       ),
       child: Row(
@@ -227,8 +229,7 @@ class LeagueShareCard extends StatelessWidget {
                     style: TextStyle(
                       color: isTop3 ? _namePrimary : _nameSecondary,
                       fontSize: 11,
-                      fontWeight:
-                          isTop3 ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isTop3 ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),
                 ),
@@ -238,9 +239,7 @@ class LeagueShareCard extends StatelessWidget {
           for (int ci = 2; ci < _headers.length; ci++)
             Expanded(
               flex: _flexes[ci],
-              child: Center(
-                child: _buildStatCell(_headers[ci], stats),
-              ),
+              child: Center(child: _buildStatCell(_headers[ci], stats)),
             ),
         ],
       ),
@@ -303,10 +302,18 @@ class LeagueShareCard extends StatelessWidget {
 
     if (header == 'GD') {
       final gd = stats.goalDifference;
-      final color = gd > 0 ? _gdPos : gd < 0 ? _gdNeg : _statText;
+      final color = gd > 0
+          ? _gdPos
+          : gd < 0
+          ? _gdNeg
+          : _statText;
       return Text(
         gd > 0 ? '+$gd' : '$gd',
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
       );
     }
 
@@ -352,9 +359,10 @@ class LeagueShareCard extends StatelessWidget {
       'L' => '${stats.losses}',
       'F' => '${stats.goals}',
       'A' => '${stats.goalsConceded}',
-      'GD' => stats.goalDifference > 0
-          ? '+${stats.goalDifference}'
-          : '${stats.goalDifference}',
+      'GD' =>
+        stats.goalDifference > 0
+            ? '+${stats.goalDifference}'
+            : '${stats.goalDifference}',
       'PTS' => '${stats.points}',
       _ => '—',
     };

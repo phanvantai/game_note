@@ -27,4 +27,3 @@ class LoadMoreOtherLeagues extends TournamentEvent {}
 
 /// Pull-to-refresh: reload both tabs in parallel and reset cursor.
 class RefreshTournaments extends TournamentEvent {}
-

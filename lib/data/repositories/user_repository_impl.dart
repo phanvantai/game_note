@@ -53,8 +53,11 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<void> updateProfile(
-      {String? displayName, String? phoneNumber, String? email}) {
+  Future<void> updateProfile({
+    String? displayName,
+    String? phoneNumber,
+    String? email,
+  }) {
     return getIt<GNFirestore>().updateProfile(
       displayName: displayName,
       phoneNumber: phoneNumber,

@@ -25,8 +25,9 @@ class GNInvitation {
       GNInvitationFields.userId: userId,
       GNInvitationFields.status: status,
       GNInvitationFields.sentAt: sentAt,
-      GNInvitationFields.respondedAt:
-          respondedAt != null ? Timestamp.fromDate(respondedAt!) : null,
+      GNInvitationFields.respondedAt: respondedAt != null
+          ? Timestamp.fromDate(respondedAt!)
+          : null,
       GNInvitationFields.message: message,
     };
   }

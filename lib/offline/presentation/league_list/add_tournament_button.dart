@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import 'bloc/league_list_bloc.dart';
 import 'components/add_league_dialog.dart';
@@ -21,7 +22,7 @@ class AddTournamentButton extends StatelessWidget {
           ),
         );
       },
-      tooltip: 'Thêm giải đấu mới',
+      tooltip: context.l10n.offlineAddLeagueTooltip,
       child: const Icon(Icons.add),
     );
   }

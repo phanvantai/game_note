@@ -9,6 +9,7 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/l10n/app_text.dart';
 
 import '../../../../../domain/repositories/esport/esport_league_repository.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_esport_match.dart';
@@ -57,10 +58,12 @@ class TournamentDetailBloc
     on<GenerateCup>(_onGenerateCup);
     on<GenerateFull>(_onGenerateFull);
     on<SelectGroup>((event, emit) {
-      emit(state.copyWith(
-        selectedGroupId: event.groupId,
-        clearSelectedGroupId: event.groupId == null,
-      ));
+      emit(
+        state.copyWith(
+          selectedGroupId: event.groupId,
+          clearSelectedGroupId: event.groupId == null,
+        ),
+      );
     });
     on<LoadLeagueError>((event, emit) {
       emit(
@@ -87,7 +90,9 @@ class TournamentDetailBloc
     _participantsSubscription?.cancel();
     _participantsSubscription = _esportLeagueRepository
         .listenForLeagueStats(event.leagueId)
-        .skip(1) // skip initial snapshot — initial load is fired explicitly below
+        .skip(
+          1,
+        ) // skip initial snapshot — initial load is fired explicitly below
         .listen((_) {
           add(GetParticipantsAndMatches(event.leagueId));
         });
@@ -191,7 +196,8 @@ class TournamentDetailBloc
     if (!kDebugMode || !_enableStatsAudit) {
       return;
     }
-    final tag = '[AUDIT][${league?.name.isNotEmpty == true ? league!.name : league?.id ?? "?"}]';
+    final tag =
+        '[AUDIT][${league?.name.isNotEmpty == true ? league!.name : league?.id ?? "?"}]';
     final finished = matches.where((m) => m.isFinished).toList();
     debugPrint(
       '$tag matches=${matches.length} finished=${finished.length} '
@@ -231,7 +237,8 @@ class TournamentDetailBloc
     var anyMismatch = false;
     for (final p in participants) {
       final c = computed[p.userId]!;
-      final ok = p.matchesPlayed == c.mp &&
+      final ok =
+          p.matchesPlayed == c.mp &&
           p.goals == c.gf &&
           p.goalsConceded == c.ga &&
           p.wins == c.w &&
@@ -279,7 +286,7 @@ class TournamentDetailBloc
       // The participants stream will also catch the writes, but pulling
       // explicitly avoids relying on stream timing.
       add(GetParticipantsAndMatches(leagueId));
-      showToast('Đã đồng bộ lại điểm số');
+      showToast(appText.tournamentStatsSynced);
     } catch (e) {
       emit(
         state.copyWith(
@@ -318,7 +325,7 @@ class TournamentDetailBloc
       );
       await _esportLeagueRepository.updateLeague(updated);
       emit(state.copyWith(viewStatus: ViewStatus.success, league: updated));
-      showToast('Đã cập nhật chi phí giải đấu');
+      showToast(appText.tournamentCostUpdated);
     } catch (e) {
       emit(
         state.copyWith(
@@ -373,7 +380,7 @@ class TournamentDetailBloc
       );
       await _esportLeagueRepository.createCustomMatch(match);
       add(GetMatches(leagueId));
-      showToast('Tạo trận đấu thành công');
+      showToast(appText.tournamentCustomMatchCreated);
     } catch (e) {
       emit(
         state.copyWith(
@@ -396,7 +403,7 @@ class TournamentDetailBloc
     try {
       await _esportLeagueRepository.deleteMatch(event.match);
       add(GetParticipantStats(leagueId));
-      showToast('Xoá trận đấu thành công');
+      showToast(appText.tournamentMatchDeleted);
     } catch (e) {
       emit(
         state.copyWith(
@@ -419,7 +426,7 @@ class TournamentDetailBloc
     try {
       await _esportLeagueRepository.inactiveLeague(league);
       emit(state.copyWith(viewStatus: ViewStatus.success));
-      showToast('Đã xoá giải đấu');
+      showToast(appText.tournamentDeleted);
     } catch (e) {
       emit(
         state.copyWith(
@@ -450,7 +457,7 @@ class TournamentDetailBloc
     try {
       await _esportLeagueRepository.updateLeague(league);
       emit(state.copyWith(viewStatus: ViewStatus.success));
-      showToast('Cập nhật trạng thái giải đấu thành công');
+      showToast(appText.tournamentStatusUpdated);
     } catch (e) {
       emit(
         state.copyWith(
@@ -597,7 +604,7 @@ class TournamentDetailBloc
         userId: event.userId,
       );
       add(GetParticipantStats(leagueId));
-      showToast('Thêm người chơi thành công');
+      showToast(appText.tournamentPlayerAdded);
     } catch (e) {
       emit(
         state.copyWith(
@@ -626,7 +633,7 @@ class TournamentDetailBloc
         userIds: event.userIds,
       );
       add(GetParticipantStats(leagueId));
-      showToast('Thêm ${event.userIds.length} người chơi thành công');
+      showToast(appText.tournamentPlayersAdded(event.userIds.length));
     } catch (e) {
       emit(
         state.copyWith(
@@ -648,7 +655,7 @@ class TournamentDetailBloc
         .map((p) => p.userId)
         .toList();
     if (teamIds.length < 2) {
-      showToast('Bảng cần ít nhất 2 người chơi để tạo vòng đấu');
+      showToast(appText.tournamentGroupRoundMinimum);
       return;
     }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
@@ -659,12 +666,14 @@ class TournamentDetailBloc
         teamIds: teamIds,
       );
       add(GetParticipantsAndMatches(leagueId));
-      showToast('Tạo vòng đấu thành công');
+      showToast(appText.tournamentRoundCreated);
     } catch (e) {
-      emit(state.copyWith(
-        viewStatus: ViewStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -687,7 +696,7 @@ class TournamentDetailBloc
         teamIds: state.participants.map((e) => e.userId).toList(),
       );
       add(GetMatches(leagueId));
-      showToast('Tạo vòng đấu thành công');
+      showToast(appText.tournamentRoundCreated);
     } catch (e) {
       emit(
         state.copyWith(
@@ -712,18 +721,15 @@ class TournamentDetailBloc
       // handler below so this path stays fast (no stat queries, no extra
       // transaction reads). UX returns as soon as the match doc is saved.
       final result = await _esportLeagueRepository.updateMatch(event.match);
-      add(ApplyMatchStatDelta(
-        previous: result.previous,
-        updated: result.updated,
-      ));
-      showToast('Cập nhật trận đấu thành công');
+      add(
+        ApplyMatchStatDelta(previous: result.previous, updated: result.updated),
+      );
+      showToast(appText.tournamentMatchUpdated);
     } on ConcurrentMatchUpdateException {
       // Another admin updated this match while the dialog was open. The
       // listener stream has already pulled the new values into state, so
       // the user just needs to be told their submission was rejected.
-      showToast(
-        'Trận này vừa được người khác cập nhật. Vui lòng kiểm tra lại.',
-      );
+      showToast(appText.tournamentMatchConcurrentUpdate);
       emit(state.copyWith(viewStatus: ViewStatus.success));
     } catch (e) {
       emit(
@@ -769,12 +775,14 @@ class TournamentDetailBloc
         seededTeamIds: event.seededTeamIds,
       );
       add(GetMatches(leagueId));
-      showToast('Tạo bracket thành công');
+      showToast(appText.tournamentBracketCreated);
     } catch (e) {
-      emit(state.copyWith(
-        viewStatus: ViewStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -792,12 +800,14 @@ class TournamentDetailBloc
         advanceCount: event.advanceCount,
       );
       add(GetParticipantsAndMatches(leagueId));
-      showToast('Tạo giải Full thành công');
+      showToast(appText.tournamentFullCreated);
     } catch (e) {
-      emit(state.copyWith(
-        viewStatus: ViewStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          viewStatus: ViewStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 

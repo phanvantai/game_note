@@ -121,7 +121,7 @@ class _MatchItem extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        match.result.label,
+                        match.result.localizedLabel(context),
                         style: TextStyle(
                           color: resultColor,
                           fontWeight: FontWeight.w900,

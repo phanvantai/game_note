@@ -16,17 +16,21 @@ extension RoundManager on DatabaseManager {
 
   Future<List<RoundModel>> getRounds(int leagueId) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(roundsTable,
-        where: '${DBTableColumn.leagueId} = $leagueId');
+    final List<Map<String, dynamic>> maps = await db.query(
+      roundsTable,
+      where: '${DBTableColumn.leagueId} = $leagueId',
+    );
     List<RoundModel> list = [];
     for (var element in maps) {
       var id = element[DBTableColumn.roundId];
       List<MatchModel> matches = await getMatches(id);
-      list.add(RoundModel(
-        leagueId: element[DBTableColumn.leagueId],
-        id: id,
-        matches: matches,
-      ));
+      list.add(
+        RoundModel(
+          leagueId: element[DBTableColumn.leagueId],
+          id: id,
+          matches: matches,
+        ),
+      );
     }
     return list;
   }

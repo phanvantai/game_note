@@ -27,19 +27,26 @@ class GNAuth {
       if (kDebugMode) {
         print('🔧 GNAuth: Initializing Google Sign-In with $googleClientId');
       }
-      _googleSignInInitialized =
-          GoogleSignIn.instance.initialize(serverClientId: googleClientId);
+      _googleSignInInitialized = GoogleSignIn.instance.initialize(
+        serverClientId: googleClientId,
+      );
     }
 
     // Listen to auth state changes
     _auth.authStateChanges().listen(
       (User? user) async {
         if (kDebugMode) {
-          print('Auth state changed: ${user?.uid}');
+          debugPrint(
+            '[AuthFlow] FirebaseAuth.authStateChanges: '
+            'uid=${user?.uid} email=${user?.email} '
+            'dispatch=${user != null ? AppStatus.authenticated : AppStatus.unauthenticated}',
+          );
         }
-        getIt<AppBloc>().add(user != null
-            ? const AuthStatusChanged(AppStatus.authenticated)
-            : const AuthStatusChanged(AppStatus.unauthenticated));
+        getIt<AppBloc>().add(
+          user != null
+              ? const AuthStatusChanged(AppStatus.authenticated)
+              : const AuthStatusChanged(AppStatus.unauthenticated),
+        );
 
         // create user in Firestore if not exists
         if (user != null) {
@@ -79,7 +86,8 @@ class GNAuth {
       codeSent: (String verificationId, int? resendToken) {
         if (kDebugMode) {
           print(
-              'Code sent to $phoneNumber with verificationId: $verificationId and resendToken: $resendToken');
+            'Code sent to $phoneNumber with verificationId: $verificationId and resendToken: $resendToken',
+          );
         }
         _verificationId = verificationId;
       },
@@ -113,12 +121,14 @@ class GNAuth {
 
       await _googleSignInInitialized!;
 
-      final GoogleSignInAccount googleSignInAccount =
-          await GoogleSignIn.instance.authenticate();
+      final GoogleSignInAccount googleSignInAccount = await GoogleSignIn
+          .instance
+          .authenticate();
 
       if (kDebugMode) {
         print(
-            '✅ GNAuth: Google account selected: ${googleSignInAccount.email}');
+          '✅ GNAuth: Google account selected: ${googleSignInAccount.email}',
+        );
         print('🔑 GNAuth: Getting authentication tokens...');
       }
 
@@ -128,7 +138,8 @@ class GNAuth {
       if (kDebugMode) {
         print('🎫 GNAuth: Tokens received');
         print(
-            '   - ID Token: ${googleSignInAuthentication.idToken != null ? "✅" : "❌"}');
+          '   - ID Token: ${googleSignInAuthentication.idToken != null ? "✅" : "❌"}',
+        );
 
         if (googleSignInAuthentication.idToken == null) {
           print('⚠️ GNAuth: Missing ID token!');
@@ -176,7 +187,8 @@ class GNAuth {
         }
         if (kDebugMode) {
           print(
-              '⚠️ GNAuth: code=canceled but has description → likely config error, not real cancel');
+            '⚠️ GNAuth: code=canceled but has description → likely config error, not real cancel',
+          );
         }
       }
       rethrow;
@@ -189,7 +201,8 @@ class GNAuth {
       }
       // Web signInWithPopup throws these when the user closes/blocks the popup.
       // Normalise to the same code native flow uses so callers handle uniformly.
-      if (e.code == 'popup-closed-by-user' || e.code == 'cancelled-popup-request') {
+      if (e.code == 'popup-closed-by-user' ||
+          e.code == 'cancelled-popup-request') {
         throw FirebaseAuthException(
           code: 'ERROR_ABORTED_BY_USER',
           message: 'Sign in aborted by user',
@@ -214,7 +227,9 @@ class GNAuth {
 
   // create user with email and password
   Future<UserCredential> createUserWithEmailAndPassword(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     return _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -225,7 +240,9 @@ class GNAuth {
   /// if user not exists, create new user
   /// return UserCredential
   Future<UserCredential> signInOrCreateUserWithEmailAndPassword(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
       return await signInWithEmailAndPassword(email, password);
     } on FirebaseAuthException catch (e) {
@@ -240,11 +257,10 @@ class GNAuth {
 
   // sign in with email and password
   Future<UserCredential> signInWithEmailAndPassword(
-      String email, String password) async {
-    return _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    String email,
+    String password,
+  ) async {
+    return _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
   // sign out
@@ -256,9 +272,8 @@ class GNAuth {
 
   void checkLoginMethod() {
     final user = FirebaseAuth.instance.currentUser;
-    _isSignInWithEmailAndPassword = user?.providerData
-            .any((p) => p.providerId == 'password') ??
-        false;
+    _isSignInWithEmailAndPassword =
+        user?.providerData.any((p) => p.providerId == 'password') ?? false;
   }
 
   // change password

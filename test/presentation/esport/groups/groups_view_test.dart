@@ -200,6 +200,7 @@ void main() {
     );
 
     expect(find.text('Group One'), findsOneWidget);
+    expect(find.text('1 thành viên'), findsOneWidget);
     await tester.tap(find.text('Group One'));
     await tester.pumpAndSettle();
     expect(find.text('group g1'), findsOneWidget);

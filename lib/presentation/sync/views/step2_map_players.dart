@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/data/sync/mapping_target.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/offline/domain/entities/player_model.dart';
 import 'package:pes_arena/presentation/sync/bloc/sync_bloc.dart';
 import 'package:pes_arena/presentation/sync/widgets/step_nav_bar.dart';
@@ -15,7 +16,7 @@ class Step2MapPlayers extends StatelessWidget {
       builder: (context, state) {
         final league = state.selectedLeague;
         if (league == null) {
-          return const Center(child: Text('Chưa chọn league'));
+          return Center(child: Text(context.l10n.syncNoLeagueSelected));
         }
         final players = league.players.map((p) => p.playerModel).toList();
         final dupUid = _findDuplicateUid(state);
@@ -38,26 +39,27 @@ class Step2MapPlayers extends StatelessWidget {
             ),
             if (dupUid != null)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Text(
-                  'Lỗi: 2 người chơi cùng map vào 1 user',
+                  context.l10n.syncDuplicateMapping,
                   key: const ValueKey('dup-warning'),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
             StepNavBar(
               previousKey: const ValueKey('step2-prev'),
               nextKey: const ValueKey('step2-next'),
-              nextLabel: 'Xem trước',
-              onPrevious: () => context
-                  .read<SyncBloc>()
-                  .add(const SyncGoToStep(SyncStep.selectSource)),
+              nextLabel: context.l10n.syncPreview,
+              onPrevious: () => context.read<SyncBloc>().add(
+                const SyncGoToStep(SyncStep.selectSource),
+              ),
               onNext: state.canGoToPreview
-                  ? () => context
-                      .read<SyncBloc>()
-                      .add(const SyncGoToStep(SyncStep.preview))
+                  ? () => context.read<SyncBloc>().add(
+                      const SyncGoToStep(SyncStep.preview),
+                    )
                   : null,
             ),
           ],
@@ -92,32 +94,29 @@ class _PlayerRow extends StatelessWidget {
     return ListTile(
       key: ValueKey('player-${player.id}'),
       title: Text(player.fullname),
-      subtitle: Text(_describeTarget(target, members)),
+      subtitle: Text(_describeTarget(context, target, members)),
       trailing: TextButton(
         key: ValueKey('map-btn-${player.id}'),
         onPressed: () => _openPicker(context),
-        child: const Text('Chọn'),
+        child: Text(context.l10n.syncChoose),
       ),
     );
   }
 
-  String _describeTarget(MappingTarget? t, List<GNUser> members) {
+  String _describeTarget(
+    BuildContext context,
+    MappingTarget? t,
+    List<GNUser> members,
+  ) {
     return switch (t) {
-      null => 'Chưa map',
+      null => context.l10n.syncNotMapped,
       MapToExisting(uid: final uid) =>
         '→ ${members.firstWhere(
               (m) => m.id == uid,
-              orElse: () => GNUser(
-                id: uid,
-                displayName: uid,
-                phoneNumber: null,
-                email: null,
-                photoUrl: null,
-                role: 'user',
-                fcmToken: '',
-              ),
+              orElse: () => GNUser(id: uid, displayName: uid, phoneNumber: null, email: null, photoUrl: null, role: 'user', fcmToken: ''),
             ).displayName ?? uid}',
-      CreatePlaceholder(displayName: final n) => '→ $n (mới)',
+      CreatePlaceholder(displayName: final n) =>
+        '→ $n (${context.l10n.syncNewTargetSuffix})',
     };
   }
 
@@ -135,14 +134,14 @@ class _PlayerRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Map "${player.fullname}"',
+                  sheetContext.l10n.syncMapPlayerTitle(player.fullname),
                   style: Theme.of(sheetContext).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 12),
                 if (members.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Text('Group chưa có thành viên nào'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(sheetContext.l10n.syncNoGroupMembers),
                   ),
                 for (final m in members)
                   ListTile(
@@ -156,10 +155,15 @@ class _PlayerRow extends StatelessWidget {
                 ListTile(
                   key: const ValueKey('pick-create-placeholder'),
                   leading: const Icon(Icons.person_add_alt_1),
-                  title: const Text('Tạo user mới (placeholder)'),
+                  title: Text(sheetContext.l10n.syncCreatePlaceholderUser),
                   onTap: () async {
-                    final name = await _promptName(sheetContext, player.fullname);
-                    if (name != null && name.isNotEmpty && sheetContext.mounted) {
+                    final name = await _promptName(
+                      sheetContext,
+                      player.fullname,
+                    );
+                    if (name != null &&
+                        name.isNotEmpty &&
+                        sheetContext.mounted) {
                       Navigator.of(sheetContext).pop(CreatePlaceholder(name));
                     }
                   },
@@ -181,22 +185,24 @@ class _PlayerRow extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Tên người chơi mới'),
+          title: Text(context.l10n.syncNewPlayerName),
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(hintText: 'Tên hiển thị'),
+            decoration: InputDecoration(
+              hintText: context.l10n.syncDisplayNameHint,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Huỷ'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               key: const ValueKey('placeholder-confirm'),
               onPressed: () =>
                   Navigator.of(dialogContext).pop(controller.text.trim()),
-              child: const Text('Tạo'),
+              child: Text(context.l10n.commonCreate),
             ),
           ],
         );

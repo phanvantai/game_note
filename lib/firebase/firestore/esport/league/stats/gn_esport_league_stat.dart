@@ -45,18 +45,18 @@ class GNEsportLeagueStat extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        leagueId,
-        matchesPlayed,
-        goals,
-        goalsConceded,
-        wins,
-        draws,
-        losses,
-        groupId,
-        user,
-      ];
+    id,
+    userId,
+    leagueId,
+    matchesPlayed,
+    goals,
+    goalsConceded,
+    wins,
+    draws,
+    losses,
+    groupId,
+    user,
+  ];
 
   GNEsportLeagueStat copyWith({
     String? id,

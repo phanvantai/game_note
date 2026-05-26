@@ -15,8 +15,9 @@ extension GNFirestoreTeam on GNFirestore {
 
   Future<List<GNTeam>> getTeamsByUser(String userId) async {
     CollectionReference teamsRef = firestore.collection(GNCollection.teams);
-    QuerySnapshot querySnapshot =
-        await teamsRef.where(GNTeamFields.members, arrayContains: userId).get();
+    QuerySnapshot querySnapshot = await teamsRef
+        .where(GNTeamFields.members, arrayContains: userId)
+        .get();
 
     return querySnapshot.docs.map((doc) => GNTeam.fromSnapshot(doc)).toList();
   }
@@ -39,7 +40,10 @@ extension GNFirestoreTeam on GNFirestore {
   }
 
   Future<void> inviteUserToTeam(
-      String message, String teamId, String userId) async {
+    String message,
+    String teamId,
+    String userId,
+  ) async {
     CollectionReference teamsRef = firestore.collection(GNCollection.teams);
     DocumentReference docRef = teamsRef.doc(teamId);
 
@@ -56,8 +60,6 @@ extension GNFirestoreTeam on GNFirestore {
     final members = team.members;
     members.add(userId);
 
-    await docRef.update({
-      GNTeamFields.members: members,
-    });
+    await docRef.update({GNTeamFields.members: members});
   }
 }

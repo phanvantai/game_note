@@ -6,7 +6,10 @@ import 'feedback_model.dart';
 
 extension GNFirestoreFeedback on GNFirestore {
   Future<void> createFeedback(
-      String title, String detail, String userId) async {
+    String title,
+    String detail,
+    String userId,
+  ) async {
     await firestore.collection(GNCollection.feedbacks).add({
       GNFeedbackFields.status: 0,
       GNFeedbackFields.title: title,
@@ -18,15 +21,15 @@ extension GNFirestoreFeedback on GNFirestore {
   }
 
   Future<void> updateFeedbackStatus(String feedbackId, int status) async {
-    await firestore
-        .collection(GNCollection.feedbacks)
-        .doc(feedbackId)
-        .update({GNFeedbackFields.status: status});
+    await firestore.collection(GNCollection.feedbacks).doc(feedbackId).update({
+      GNFeedbackFields.status: status,
+    });
   }
 
   Future<List<FeedbackModel>> getAllFeedback() async {
-    QuerySnapshot querySnapshot =
-        await firestore.collection(GNCollection.feedbacks).get();
+    QuerySnapshot querySnapshot = await firestore
+        .collection(GNCollection.feedbacks)
+        .get();
 
     return querySnapshot.docs
         .map((doc) => FeedbackModel.fromFirestore(doc))

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/sync/bloc/sync_bloc.dart';
 import 'package:pes_arena/presentation/sync/widgets/step_nav_bar.dart';
@@ -16,10 +17,10 @@ class Step1SelectSource extends StatelessWidget {
           children: [
             Expanded(child: body),
             StepNavBar(
-              previousLabel: 'Thoát',
+              previousLabel: context.l10n.syncExit,
               previousKey: const ValueKey('step1-prev'),
               nextKey: const ValueKey('step1-next'),
-              nextLabel: 'Tiếp tục',
+              nextLabel: context.l10n.syncContinue,
               onPrevious: () => context.smartBack(),
               onNext: state.canGoToMapping
                   ? () => context.read<SyncBloc>().add(
@@ -41,14 +42,12 @@ class Step1SelectSource extends StatelessWidget {
       return _ErrorView(message: state.errorMessage ?? '');
     }
     if (state.offlineLeagues.isEmpty) {
-      return const Center(
-        child: Text('Không có league offline nào để đồng bộ'),
-      );
+      return Center(child: Text(context.l10n.syncNoOfflineLeague));
     }
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const _SectionHeader('League offline'),
+        _SectionHeader(context.l10n.syncOfflineLeagueSection),
         RadioGroup<int>(
           groupValue: state.selectedLeague?.id,
           onChanged: (v) {
@@ -62,18 +61,18 @@ class Step1SelectSource extends StatelessWidget {
                 RadioListTile<int>(
                   key: ValueKey('offline-${l.id}'),
                   title: Text(l.name),
-                  subtitle: Text(_describeLeague(l)),
+                  subtitle: Text(_describeLeague(context, l)),
                   value: l.id!,
                 ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        const _SectionHeader('Group online'),
+        _SectionHeader(context.l10n.syncOnlineGroupSection),
         if (state.myGroups.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text('Bạn chưa tham gia group nào'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text(context.l10n.syncNoGroup),
           ),
         RadioGroup<String>(
           groupValue: state.selectedGroup?.id,
@@ -97,9 +96,10 @@ class Step1SelectSource extends StatelessWidget {
     );
   }
 
-  String _describeLeague(dynamic league) {
+  String _describeLeague(BuildContext context, dynamic league) {
     final players = league.players.length;
-    return '$players người chơi · ${league.dateTime.toString().split(" ").first}';
+    final date = league.dateTime.toString().split(" ").first;
+    return context.l10n.syncLeagueDescription(players, date);
   }
 }
 

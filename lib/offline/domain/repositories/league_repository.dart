@@ -8,10 +8,12 @@ import 'package:pes_arena/offline/domain/entities/player_model.dart';
 abstract class LeagueRepository {
   Future<Either<Failure, LeagueModel>> createLeague(CreateLeagueParams params);
   Future<Either<Failure, List<LeagueModel>>> getLeagues(
-      GetLeaguesParams params);
+    GetLeaguesParams params,
+  );
   Future<Either<Failure, LeagueModel>> getLeague(GetLeagueParams params);
   Future<Either<Failure, LeagueModel>> setPlayersForLeague(
-      SetPlayersForLeagueParams params);
+    SetPlayersForLeagueParams params,
+  );
   Future<Either<Failure, LeagueModel>> createRounds(CreateRoundsParams params);
   Future<Either<Failure, LeagueModel>> updateMatch(UpdateMatchParams params);
   Future<Either<Failure, int>> deleteLeauge(GetLeagueParams params);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 class AddLeagueDialog extends StatefulWidget {
   final Function(String)? callback;
@@ -22,7 +23,7 @@ class _AddLeagueDialogState extends State<AddLeagueDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Tạo giải đấu'),
+      title: Text(context.l10n.offlineCreateLeagueTitle),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -31,7 +32,7 @@ class _AddLeagueDialogState extends State<AddLeagueDialog> {
               autofocus: true,
               decoration: appInputDecoration(
                 context: context,
-                hintText: 'Tên giải đấu',
+                hintText: context.l10n.offlineLeagueNameHint,
                 prefixIcon: Icons.emoji_events_outlined,
               ),
               controller: controller,
@@ -47,7 +48,7 @@ class _AddLeagueDialogState extends State<AddLeagueDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () async {
@@ -56,7 +57,7 @@ class _AddLeagueDialogState extends State<AddLeagueDialog> {
               widget.callback!(controller.text);
             }
           },
-          child: const Text('Tạo'),
+          child: Text(context.l10n.commonCreate),
         ),
       ],
     );

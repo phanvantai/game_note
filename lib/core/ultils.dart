@@ -99,10 +99,7 @@ void _platformShowToast(
 ToastImpl _toastImpl = _platformShowToast;
 
 // Show toast message
-void showToast(
-  String message, {
-  ToastGravity gravity = ToastGravity.BOTTOM,
-}) {
+void showToast(String message, {ToastGravity gravity = ToastGravity.BOTTOM}) {
   _toastImpl(message, gravity: gravity);
 }
 

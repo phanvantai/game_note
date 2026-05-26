@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import '../models/recent_match_summary.dart';
 
@@ -11,7 +12,7 @@ class FormDotsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     if (matches.isEmpty) {
       return Text(
-        'Chưa có trận nào',
+        context.l10n.dashboardNoMatches,
         style: Theme.of(context).textTheme.bodyMedium,
       );
     }
@@ -66,6 +67,17 @@ extension MatchResultColor on MatchResult {
         return 'H';
       case MatchResult.loss:
         return 'B';
+    }
+  }
+
+  String localizedLabel(BuildContext context) {
+    switch (this) {
+      case MatchResult.win:
+        return context.l10n.dashboardWdlWinShort;
+      case MatchResult.draw:
+        return context.l10n.dashboardWdlDrawShort;
+      case MatchResult.loss:
+        return context.l10n.dashboardWdlLossShort;
     }
   }
 }

@@ -25,10 +25,7 @@ class AppState extends Equatable {
     this.enableFootballFeature = false,
   });
 
-  AppState copyWith({
-    AppStatus? status,
-    bool? enableFootballFeature,
-  }) {
+  AppState copyWith({AppStatus? status, bool? enableFootballFeature}) {
     return AppState(
       status: status ?? this.status,
       enableFootballFeature:

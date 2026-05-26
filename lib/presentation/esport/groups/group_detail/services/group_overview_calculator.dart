@@ -35,26 +35,31 @@ class GroupOverviewCalculator {
 
     GNUser toUser(GNEsportGroupPlayerEntry e) => _toUser(e, users);
 
-    final playerStats = activePlayers
-        .map((e) => GroupPlayerStats(
-              player: toUser(e),
-              matches: e.matches,
-              wins: e.wins,
-              draws: e.draws,
-              losses: e.losses,
-              goals: e.goals,
-              goalsConceded: e.goalsConceded,
-            ))
-        .toList()
-      ..sort((a, b) {
-        if (a.winRate != b.winRate) return b.winRate.compareTo(a.winRate);
-        if (a.matches != b.matches) return b.matches.compareTo(a.matches);
-        return _displayName(a.player).compareTo(_displayName(b.player));
-      });
+    final playerStats =
+        activePlayers
+            .map(
+              (e) => GroupPlayerStats(
+                player: toUser(e),
+                matches: e.matches,
+                wins: e.wins,
+                draws: e.draws,
+                losses: e.losses,
+                goals: e.goals,
+                goalsConceded: e.goalsConceded,
+              ),
+            )
+            .toList()
+          ..sort((a, b) {
+            if (a.winRate != b.winRate) return b.winRate.compareTo(a.winRate);
+            if (a.matches != b.matches) return b.matches.compareTo(a.matches);
+            return _displayName(a.player).compareTo(_displayName(b.player));
+          });
 
     // Aggregate from ALL players to preserve group history accuracy.
-    final totalPlayerMatches =
-        allPlayers.fold<int>(0, (acc, e) => acc + e.matches);
+    final totalPlayerMatches = allPlayers.fold<int>(
+      0,
+      (acc, e) => acc + e.matches,
+    );
     final totalGoals = allPlayers.fold<int>(0, (acc, e) => acc + e.goals);
 
     return GroupOverview(
@@ -212,10 +217,7 @@ class GroupOverviewCalculator {
   /// collection); fall back to the summary entry when the user doc
   /// hasn't been fetched yet (cache hit before the bloc completes
   /// the user lookup).
-  static GNUser _toUser(
-    GNEsportGroupPlayerEntry e,
-    Map<String, GNUser> users,
-  ) {
+  static GNUser _toUser(GNEsportGroupPlayerEntry e, Map<String, GNUser> users) {
     final fresh = users[e.userId];
     if (fresh != null) return fresh;
     return GNUser(

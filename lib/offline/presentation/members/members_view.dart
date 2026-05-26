@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/offline/domain/entities/player_model.dart';
 import 'package:pes_arena/offline/presentation/components/player_view.dart';
 import 'package:pes_arena/offline/data/database/database_manager.dart';
@@ -33,15 +34,16 @@ class _MembersViewState extends State<MembersView>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     super.build(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Người chơi')),
+      appBar: AppBar(title: Text(l10n.offlinePlayersTitle)),
       body: SafeArea(
         child: players.isEmpty
-            ? const AppEmptyState(
+            ? AppEmptyState(
                 icon: Icons.person_outline,
-                title: 'Chưa có người chơi nào.',
-                subtitle: 'Bấm nút + bên dưới để thêm người chơi.',
+                title: l10n.offlineNoPlayersTitle,
+                subtitle: l10n.offlineNoPlayersSubtitle,
               )
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
@@ -58,7 +60,9 @@ class _MembersViewState extends State<MembersView>
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Đã xóa ${players[index].fullname}',
+                                  l10n.offlinePlayerDeleted(
+                                    players[index].fullname,
+                                  ),
                                 ),
                               ),
                             );
@@ -94,7 +98,7 @@ class _MembersViewState extends State<MembersView>
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_player',
         onPressed: _addNewPlayer,
-        tooltip: 'Thêm người chơi',
+        tooltip: l10n.offlineAddPlayerTooltip,
         child: const Icon(Icons.add),
       ),
     );

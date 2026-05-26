@@ -28,7 +28,9 @@ extension GNFirestoreNotification on GNFirestore {
 
   // Function to set a notification as read
   Future<void> setNotificationAsRead(
-      String userId, String notificationId) async {
+    String userId,
+    String notificationId,
+  ) async {
     // Get the notification document
     DocumentReference notificationDoc = firestore
         .collection(GNUser.collectionName)
@@ -50,9 +52,11 @@ extension GNFirestoreNotification on GNFirestore {
         // Sort by time
         .orderBy(GNNotification.fieldTimestamp, descending: true)
         .snapshots()
-        .map((querySnapshot) => querySnapshot.docs
-            .map((doc) => GNNotification.fromFirestore(doc))
-            .toList());
+        .map(
+          (querySnapshot) => querySnapshot.docs
+              .map((doc) => GNNotification.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   // mark all notifications as read

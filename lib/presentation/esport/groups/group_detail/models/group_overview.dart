@@ -1,13 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
-enum GroupAwardKind {
-  champion,
-  runnerUp,
-  drawKing,
-  ironDefense,
-  master,
-}
+enum GroupAwardKind { champion, runnerUp, drawKing, ironDefense, master }
 
 class GroupAward extends Equatable {
   final GroupAwardKind kind;
@@ -67,14 +61,14 @@ class GroupPlayerStats extends Equatable {
 
   @override
   List<Object?> get props => [
-        player.id,
-        matches,
-        wins,
-        draws,
-        losses,
-        goals,
-        goalsConceded,
-      ];
+    player.id,
+    matches,
+    wins,
+    draws,
+    losses,
+    goals,
+    goalsConceded,
+  ];
 }
 
 class GroupOverview extends Equatable {
@@ -106,16 +100,16 @@ class GroupOverview extends Equatable {
   });
 
   const GroupOverview.empty()
-      : totalLeagues = 0,
-        finishedLeagues = 0,
-        totalMatchesPlayed = 0,
-        totalGoals = 0,
-        champion = null,
-        runnerUpKing = null,
-        drawKing = null,
-        ironDefense = null,
-        master = null,
-        playerStats = const [];
+    : totalLeagues = 0,
+      finishedLeagues = 0,
+      totalMatchesPlayed = 0,
+      totalGoals = 0,
+      champion = null,
+      runnerUpKing = null,
+      drawKing = null,
+      ironDefense = null,
+      master = null,
+      playerStats = const [];
 
   bool get hasAnyAward =>
       champion != null ||
@@ -126,15 +120,15 @@ class GroupOverview extends Equatable {
 
   @override
   List<Object?> get props => [
-        totalLeagues,
-        finishedLeagues,
-        totalMatchesPlayed,
-        totalGoals,
-        champion,
-        runnerUpKing,
-        drawKing,
-        ironDefense,
-        master,
-        playerStats,
-      ];
+    totalLeagues,
+    finishedLeagues,
+    totalMatchesPlayed,
+    totalGoals,
+    champion,
+    runnerUpKing,
+    drawKing,
+    ironDefense,
+    master,
+    playerStats,
+  ];
 }

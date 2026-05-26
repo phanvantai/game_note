@@ -73,9 +73,6 @@ extension GNFirestoreUserStats on GNFirestore {
         .doc(uid)
         .collection(GNUserStatsSummary.subCollectionName)
         .doc(recomputeRequestDocId);
-    await ref.set({
-      'requestedAt': FieldValue.serverTimestamp(),
-      'uid': uid,
-    });
+    await ref.set({'requestedAt': FieldValue.serverTimestamp(), 'uid': uid});
   }
 }

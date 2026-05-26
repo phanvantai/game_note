@@ -26,11 +26,15 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   }
 
   Future<void> _onSearchUserByGroup(
-      SearchUserByEsportGroup event, Emitter<UserState> emit) async {
+    SearchUserByEsportGroup event,
+    Emitter<UserState> emit,
+  ) async {
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      final users =
-          await _userRepository.searchUserByGroup(event.groupId, event.query);
+      final users = await _userRepository.searchUserByGroup(
+        event.groupId,
+        event.query,
+      );
       emit(state.copyWith(viewStatus: ViewStatus.success, users: users));
     } catch (e) {
       emit(state.copyWith(viewStatus: ViewStatus.failure));

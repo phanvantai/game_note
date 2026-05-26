@@ -85,23 +85,23 @@ class GNEsportMatch extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        homeTeamId,
-        awayTeamId,
-        homeScore,
-        awayScore,
-        date,
-        isFinished,
-        leagueId,
-        matchCost,
-        costPerGoal,
-        updatedAt,
-        phase,
-        groupId,
-        knockoutRound,
-        knockoutSlot,
-        nextMatchId,
-      ];
+    id,
+    homeTeamId,
+    awayTeamId,
+    homeScore,
+    awayScore,
+    date,
+    isFinished,
+    leagueId,
+    matchCost,
+    costPerGoal,
+    updatedAt,
+    phase,
+    groupId,
+    knockoutRound,
+    knockoutSlot,
+    nextMatchId,
+  ];
 
   GNEsportMatch copyWith({
     String? id,

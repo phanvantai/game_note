@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 void showAlertDialog(BuildContext context, String content) {
   showDialog(
@@ -8,7 +9,7 @@ void showAlertDialog(BuildContext context, String content) {
       content: Text(content),
       actions: [
         CupertinoDialogAction(
-          child: const Text('OK'),
+          child: Text(context.l10n.commonOk),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],

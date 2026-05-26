@@ -6,6 +6,7 @@ import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_item.dart';
 
@@ -145,7 +146,7 @@ class _TournamentHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tournament arena',
+                      context.l10n.tournamentHeroEyebrow,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: colorScheme.secondary,
                         fontWeight: FontWeight.w800,
@@ -153,7 +154,7 @@ class _TournamentHero extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Quản lý giải đấu PES',
+                      context.l10n.tournamentHeroTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -164,7 +165,7 @@ class _TournamentHero extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onCreatePressed,
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Tạo giải đấu'),
+                label: Text(context.l10n.tournamentCreateButton),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -179,7 +180,7 @@ class _TournamentHero extends StatelessWidget {
             children: [
               Expanded(
                 child: _HeroStat(
-                  label: 'Của tôi',
+                  label: context.l10n.tournamentMyStat,
                   value: state.myHasMore
                       ? '${state.myLeagues.length}+'
                       : '${state.myLeagues.length}',
@@ -187,12 +188,15 @@ class _TournamentHero extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _HeroStat(label: 'Live', value: '$ongoingCount'),
+                child: _HeroStat(
+                  label: context.l10n.tournamentLiveStat,
+                  value: '$ongoingCount',
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _HeroStat(
-                  label: 'Player',
+                  label: context.l10n.tournamentPlayersStat,
                   value: '$participantCount',
                 ),
               ),
@@ -273,10 +277,10 @@ class _TournamentTabBar extends StatelessWidget {
         labelStyle: Theme.of(
           context,
         ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
-        tabs: const [
-          Tab(text: 'Tham gia'),
-          Tab(text: 'Quản lý'),
-          Tab(text: 'Khác'),
+        tabs: [
+          Tab(text: context.l10n.tournamentJoinedTab),
+          Tab(text: context.l10n.tournamentManagedTab),
+          Tab(text: context.l10n.tournamentOtherTab),
         ],
       ),
     );
@@ -286,89 +290,100 @@ class _TournamentTabBar extends StatelessWidget {
 Future<void> openCreateTournament(BuildContext context) async {
   final groups = context.read<GroupBloc>().state.userGroups;
   if (groups.isEmpty) {
-    showToast('Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước');
+    showToast(context.l10n.tournamentJoinGroupFirst);
     return;
   }
   final tournamentBloc = context.read<TournamentBloc>();
   final repo = GetIt.instance<EsportLeagueRepository>();
+  final createSuccessMessage = context.l10n.tournamentCreateSuccess;
 
   final leagueId = await Navigator.of(context).push<String>(
     MaterialPageRoute(
       builder: (ctx) => CreateEsportLeaguePage(
         groups: groups,
-        onAddLeague: ({
-          required name,
-          required groupId,
-          startDate,
-          endDate,
-          required description,
-          required rankPayoutEnabled,
-          required rankPayouts,
-          required defaultMatchCost,
-          required defaultPerGoalEnabled,
-          required defaultCostPerGoal,
-          required mode,
-          required participants,
-          required groupCount,
-          required advanceCount,
-          required knockoutSeeding,
-          required groupAssignment,
-        }) async {
-          final id = await repo.addLeague(
-            name: name,
-            groupId: groupId,
-            startDate: startDate,
-            endDate: endDate,
-            description: description,
-            rankPayoutEnabled: rankPayoutEnabled,
-            rankPayouts: rankPayouts,
-            defaultMatchCost: defaultMatchCost,
-            defaultPerGoalEnabled: defaultPerGoalEnabled,
-            defaultCostPerGoal: defaultCostPerGoal,
-            mode: mode,
-            groupCount: groupCount,
-            advanceCount: advanceCount,
-            participants: participants,
-            knockoutSeeding: knockoutSeeding,
-          );
-          try {
-            if (participants.isNotEmpty) {
-              await repo.addMultipleParticipants(
-                leagueId: id,
-                userIds: participants,
+        onAddLeague:
+            ({
+              required name,
+              required groupId,
+              startDate,
+              endDate,
+              required description,
+              required rankPayoutEnabled,
+              required rankPayouts,
+              required defaultMatchCost,
+              required defaultPerGoalEnabled,
+              required defaultCostPerGoal,
+              required mode,
+              required participants,
+              required groupCount,
+              required advanceCount,
+              required knockoutSeeding,
+              required groupAssignment,
+            }) async {
+              final id = await repo.addLeague(
+                name: name,
+                groupId: groupId,
+                startDate: startDate,
+                endDate: endDate,
+                description: description,
+                rankPayoutEnabled: rankPayoutEnabled,
+                rankPayouts: rankPayouts,
+                defaultMatchCost: defaultMatchCost,
+                defaultPerGoalEnabled: defaultPerGoalEnabled,
+                defaultCostPerGoal: defaultCostPerGoal,
+                mode: mode,
+                groupCount: groupCount,
+                advanceCount: advanceCount,
+                participants: participants,
+                knockoutSeeding: knockoutSeeding,
               );
-            }
-            if (participants.length >= 2) {
-              switch (mode) {
-                case TournamentMode.league:
-                  await repo.generateRound(leagueId: id, teamIds: participants);
-                case TournamentMode.cup:
-                  await repo.generateCupBracket(leagueId: id, seededTeamIds: participants);
-                case TournamentMode.full:
-                  final groups = List.generate(groupCount, (_) => <String>[]);
-                  for (final entry in groupAssignment.entries) {
-                    if (entry.value < groups.length) {
-                      groups[entry.value].add(entry.key);
-                    }
-                  }
-                  await repo.generateFullTournament(
+              try {
+                if (participants.isNotEmpty) {
+                  await repo.addMultipleParticipants(
                     leagueId: id,
-                    groups: groups,
-                    advanceCount: advanceCount,
-                    knockoutSeeding: knockoutSeeding,
+                    userIds: participants,
                   );
+                }
+                if (participants.length >= 2) {
+                  switch (mode) {
+                    case TournamentMode.league:
+                      await repo.generateRound(
+                        leagueId: id,
+                        teamIds: participants,
+                      );
+                    case TournamentMode.cup:
+                      await repo.generateCupBracket(
+                        leagueId: id,
+                        seededTeamIds: participants,
+                      );
+                    case TournamentMode.full:
+                      final groups = List.generate(
+                        groupCount,
+                        (_) => <String>[],
+                      );
+                      for (final entry in groupAssignment.entries) {
+                        if (entry.value < groups.length) {
+                          groups[entry.value].add(entry.key);
+                        }
+                      }
+                      await repo.generateFullTournament(
+                        leagueId: id,
+                        groups: groups,
+                        advanceCount: advanceCount,
+                        knockoutSeeding: knockoutSeeding,
+                      );
+                  }
+                }
+              } catch (e) {
+                // Roll back the league document so no zombie league is left behind.
+                await repo.deleteLeague(id);
+                rethrow;
               }
-            }
-          } catch (e) {
-            // Roll back the league document so no zombie league is left behind.
-            await repo.deleteLeague(id);
-            rethrow;
-          }
-          tournamentBloc.add(LoadMyLeagues());
-          tournamentBloc.add(LoadManagedLeagues());
-          showToast('Tạo giải đấu thành công');
-          return id;
-        },
+              tournamentBloc.add(LoadMyLeagues());
+              tournamentBloc.add(LoadManagedLeagues());
+              showToast(createSuccessMessage);
+              return id;
+            },
       ),
     ),
   );
@@ -435,9 +450,9 @@ class _MyLeaguesTabState extends State<_MyLeaguesTab> {
                 if (state.myStatus.isLoading)
                   const _TournamentLoadingCard()
                 else
-                  const _TournamentEmptyState(
-                    title: 'Không có giải đấu nào',
-                    subtitle: 'Tạo giải đấu mới để bắt đầu',
+                  _TournamentEmptyState(
+                    title: context.l10n.tournamentEmptyTitle,
+                    subtitle: context.l10n.tournamentEmptySubtitle,
                   ),
               ],
             )
@@ -477,7 +492,7 @@ class _MyLeaguesTabState extends State<_MyLeaguesTab> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
-            'Đã hết',
+            context.l10n.commonListEnd,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(
                 context,
@@ -548,9 +563,9 @@ class _ManagedLeaguesTabState extends State<_ManagedLeaguesTab> {
                 if (state.managedStatus.isLoading)
                   const _TournamentLoadingCard()
                 else
-                  const _TournamentEmptyState(
-                    title: 'Chưa có giải đấu nào',
-                    subtitle: 'Tạo giải đấu mới để bắt đầu quản lý',
+                  _TournamentEmptyState(
+                    title: context.l10n.tournamentEmptyTitle,
+                    subtitle: context.l10n.tournamentManagedEmptySubtitle,
                   ),
               ],
             )
@@ -569,9 +584,7 @@ class _ManagedLeaguesTabState extends State<_ManagedLeaguesTab> {
                   onTap: () async {
                     await context.push(Routing.tournamentDetailPath(league.id));
                     if (context.mounted) {
-                      context
-                          .read<TournamentBloc>()
-                          .add(LoadManagedLeagues());
+                      context.read<TournamentBloc>().add(LoadManagedLeagues());
                     }
                   },
                 );
@@ -592,7 +605,7 @@ class _ManagedLeaguesTabState extends State<_ManagedLeaguesTab> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
-            'Đã hết',
+            context.l10n.commonListEnd,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(
                 context,
@@ -665,7 +678,9 @@ class _OtherLeaguesTabState extends State<_OtherLeaguesTab> {
                 if (state.otherStatus.isLoading)
                   const _TournamentLoadingCard()
                 else
-                  const _TournamentEmptyState(title: 'Không có giải đấu nào'),
+                  _TournamentEmptyState(
+                    title: context.l10n.tournamentEmptyTitle,
+                  ),
               ],
             )
           : ListView.builder(
@@ -701,7 +716,7 @@ class _OtherLeaguesTabState extends State<_OtherLeaguesTab> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
-            'Đã hết',
+            context.l10n.commonListEnd,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(
                 context,

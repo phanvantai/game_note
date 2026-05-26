@@ -7,6 +7,7 @@ import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/cost/collapsible_cost_config.dart';
 import 'package:pes_arena/presentation/esport/tournament/cost/cost_config_form.dart';
 import 'package:pes_arena/widgets/gn_circle_avatar.dart';
@@ -170,11 +171,11 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
 
   void _goNext() {
     if (_currentStep == 0 && _selectedGroup == null) {
-      showToast('Bạn cần chọn nhóm');
+      showToast(context.l10n.tournamentSelectGroupRequired);
       return;
     }
     if (_currentStep == 1 && _selectedParticipantIds.length < 2) {
-      showToast('Cần chọn ít nhất 2 người tham gia');
+      showToast(context.l10n.tournamentParticipantsMinimum);
       return;
     }
     if (_currentStep == 2) {
@@ -188,14 +189,14 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
             ? _selectedParticipantIds.length
             : _seededOrder.length;
         if (n < 2 || (n & (n - 1)) != 0) {
-          showToast('Cup cần số người là lũy thừa của 2 (2, 4, 8, 16...)');
+          showToast(context.l10n.tournamentCupPowerOfTwoRequired);
           return;
         }
       }
       if (_mode == TournamentMode.full) {
         final knockoutSize = _groupCount * _advanceCount;
         if (knockoutSize < 2 || (knockoutSize & (knockoutSize - 1)) != 0) {
-          showToast('Số bảng × số lên knockout phải là lũy thừa của 2');
+          showToast(context.l10n.tournamentFullKnockoutPowerOfTwoRequired);
           return;
         }
       }
@@ -227,13 +228,13 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
 
   Future<void> _submit() async {
     if (_nameController.text.trim().isEmpty) {
-      showToast('Bạn cần nhập tên giải đấu');
+      showToast(context.l10n.tournamentNameRequired);
       return;
     }
     if (_startDate != null &&
         _endDate != null &&
         _startDate!.isAfter(_endDate!)) {
-      showToast('Ngày bắt đầu phải trước ngày kết thúc');
+      showToast(context.l10n.tournamentStartBeforeEndRequired);
       return;
     }
     final cost = _costFormKey.currentState?.validateAndCollect();
@@ -255,7 +256,7 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
     if (_mode == TournamentMode.cup) {
       final n = participants.length;
       if (n < 2 || (n & (n - 1)) != 0) {
-        showToast('Cup cần số người là lũy thừa của 2 (2, 4, 8, 16...)');
+        showToast(context.l10n.tournamentCupPowerOfTwoRequired);
         return;
       }
     }
@@ -460,9 +461,7 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
           IconButton(
             onPressed: () => Navigator.of(context).maybePop(),
             icon: const Icon(Icons.close),
-            style: IconButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-            ),
+            style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
         ],
       ),
@@ -574,7 +573,7 @@ class _Step1SelectGroup extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Bạn chưa tham gia nhóm nào',
+                context.l10n.tournamentNoGroupsTitle,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -582,7 +581,7 @@ class _Step1SelectGroup extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Hãy tạo hoặc tham gia một nhóm trước khi tạo giải đấu',
+                context.l10n.tournamentNoGroupsSubtitle,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -601,8 +600,8 @@ class _Step1SelectGroup extends StatelessWidget {
         children: [
           _StepTitle(
             icon: Icons.group_outlined,
-            title: 'Chọn nhóm',
-            subtitle: 'Giải đấu sẽ thuộc về nhóm này',
+            title: context.l10n.tournamentSelectGroupTitle,
+            subtitle: context.l10n.tournamentSelectGroupSubtitle,
           ),
           const SizedBox(height: 12),
           ...groups.map((g) {
@@ -645,7 +644,9 @@ class _Step1SelectGroup extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${g.members.length} thành viên',
+                            context.l10n.tournamentMembersCount(
+                              g.members.length,
+                            ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -695,8 +696,10 @@ class _Step2AddParticipants extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: _StepTitle(
             icon: Icons.people_outline,
-            title: 'Thêm người chơi',
-            subtitle: 'Chọn ít nhất 2 người (${selected.length} đã chọn)',
+            title: context.l10n.tournamentAddPlayersTitle,
+            subtitle: context.l10n.tournamentAddPlayersSubtitle(
+              selected.length,
+            ),
           ),
         ),
         Expanded(
@@ -779,15 +782,15 @@ class _Step3ModeConfig extends StatelessWidget {
         children: [
           _StepTitle(
             icon: Icons.emoji_events_outlined,
-            title: 'Chế độ giải đấu',
-            subtitle: 'Chọn kiểu thi đấu',
+            title: context.l10n.tournamentModeTitle,
+            subtitle: context.l10n.tournamentModeSubtitle,
           ),
           const SizedBox(height: 12),
           _ModeCard(
             mode: TournamentMode.league,
             selected: mode,
-            title: 'League',
-            subtitle: 'Đấu vòng tròn, mọi người gặp nhau',
+            title: context.l10n.tournamentModeLeague,
+            subtitle: context.l10n.tournamentModeLeagueSubtitle,
             icon: Icons.table_chart_outlined,
             onTap: () => onModeChange(TournamentMode.league),
           ),
@@ -795,8 +798,8 @@ class _Step3ModeConfig extends StatelessWidget {
           _ModeCard(
             mode: TournamentMode.cup,
             selected: mode,
-            title: 'Cup',
-            subtitle: 'Loại trực tiếp — thua là out',
+            title: context.l10n.tournamentModeCup,
+            subtitle: context.l10n.tournamentModeCupSubtitle,
             icon: Icons.account_tree_outlined,
             onTap: () => onModeChange(TournamentMode.cup),
             comingSoon: true,
@@ -805,8 +808,8 @@ class _Step3ModeConfig extends StatelessWidget {
           _ModeCard(
             mode: TournamentMode.full,
             selected: mode,
-            title: 'Full',
-            subtitle: 'Đá bảng → knockout',
+            title: context.l10n.tournamentModeFull,
+            subtitle: context.l10n.tournamentModeFullSubtitle,
             icon: Icons.sports_soccer_outlined,
             onTap: () => onModeChange(TournamentMode.full),
             comingSoon: true,
@@ -861,8 +864,8 @@ class _Step4ConfigPreview extends StatelessWidget {
         children: [
           _StepTitle(
             icon: Icons.tune_outlined,
-            title: 'Cấu hình & Xem trước',
-            subtitle: 'Tuỳ chỉnh trước khi tạo giải',
+            title: context.l10n.tournamentConfigPreviewTitle,
+            subtitle: context.l10n.tournamentConfigPreviewSubtitle,
           ),
           const SizedBox(height: 12),
           if (mode == TournamentMode.league)
@@ -1213,12 +1216,14 @@ class _ModeCard extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: colorScheme.tertiary
-                                  .withValues(alpha: 0.18),
+                              color: colorScheme.tertiary.withValues(
+                                alpha: 0.18,
+                              ),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                color: colorScheme.tertiary
-                                    .withValues(alpha: 0.45),
+                                color: colorScheme.tertiary.withValues(
+                                  alpha: 0.45,
+                                ),
                                 width: 0.8,
                               ),
                             ),
@@ -1244,7 +1249,11 @@ class _ModeCard extends StatelessWidget {
                 ),
               ),
               if (isSelected)
-                Icon(Icons.check_circle, color: colorScheme.secondary, size: 22),
+                Icon(
+                  Icons.check_circle,
+                  color: colorScheme.secondary,
+                  size: 22,
+                ),
             ],
           ),
         ),
@@ -1513,13 +1522,13 @@ class _Step4Info extends StatelessWidget {
           children: [
             _StepTitle(
               icon: Icons.edit_outlined,
-              title: 'Thông tin giải',
-              subtitle: 'Đặt tên và thời gian',
+              title: context.l10n.tournamentInfoTitle,
+              subtitle: context.l10n.tournamentInfoSubtitle,
             ),
             const SizedBox(height: 12),
             _FormSectionCard(
               icon: Icons.emoji_events_outlined,
-              title: 'Tên & mô tả',
+              title: context.l10n.tournamentNameDescriptionTitle,
               child: Column(
                 children: [
                   TextField(
@@ -1527,7 +1536,7 @@ class _Step4Info extends StatelessWidget {
                     textInputAction: TextInputAction.next,
                     decoration: appInputDecoration(
                       context: context,
-                      hintText: 'Tên giải đấu',
+                      hintText: context.l10n.tournamentNameHint,
                       prefixIcon: Icons.edit_outlined,
                     ),
                   ),
@@ -1537,7 +1546,7 @@ class _Step4Info extends StatelessWidget {
                     maxLines: 2,
                     decoration: appInputDecoration(
                       context: context,
-                      hintText: 'Mô tả (tuỳ chọn)',
+                      hintText: context.l10n.tournamentDescriptionHint,
                       prefixIcon: Icons.description_outlined,
                     ),
                   ),
@@ -1547,12 +1556,12 @@ class _Step4Info extends StatelessWidget {
             const SizedBox(height: 10),
             _FormSectionCard(
               icon: Icons.calendar_today_outlined,
-              title: 'Thời gian',
+              title: context.l10n.tournamentTimeTitle,
               child: Row(
                 children: [
                   Expanded(
                     child: _DatePickerField(
-                      hintText: 'Ngày bắt đầu',
+                      hintText: context.l10n.tournamentStartDateHint,
                       value: startDate,
                       onPicked: onStartDatePicked,
                     ),
@@ -1560,11 +1569,13 @@ class _Step4Info extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _DatePickerField(
-                      hintText: 'Ngày kết thúc',
+                      hintText: context.l10n.tournamentEndDateHint,
                       value: endDate,
                       onPicked: (d) {
                         if (startDate != null && d.isBefore(startDate!)) {
-                          showToast('Ngày kết thúc phải sau ngày bắt đầu');
+                          showToast(
+                            context.l10n.tournamentEndAfterStartRequired,
+                          );
                           return;
                         }
                         onEndDatePicked(d);
@@ -1578,7 +1589,7 @@ class _Step4Info extends StatelessWidget {
             CollapsibleCostConfig(
               formKey: costFormKey,
               isBracketMode: isBracketMode,
-              subtitle: 'Có thể cấu hình sau',
+              subtitle: context.l10n.tournamentCostSubtitle,
             ),
           ],
         ),

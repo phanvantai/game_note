@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import '../../../core/common/view_status.dart';
 import '../../../core/ultils.dart';
@@ -38,7 +39,7 @@ class GroupsView extends StatelessWidget {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          title: const Text('Tạo nhóm mới'),
+          title: Text(ctx.l10n.groupCreateTitle),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -47,7 +48,7 @@ class GroupsView extends StatelessWidget {
                   onChanged: (value) => groupName = value,
                   decoration: appInputDecoration(
                     context: context,
-                    hintText: 'Tên nhóm',
+                    hintText: ctx.l10n.groupNameHint,
                     prefixIcon: Icons.group_outlined,
                   ),
                 ),
@@ -56,7 +57,7 @@ class GroupsView extends StatelessWidget {
                   onChanged: (value) => groupDescription = value,
                   decoration: appInputDecoration(
                     context: context,
-                    hintText: 'Mô tả nhóm',
+                    hintText: ctx.l10n.groupDescriptionHint,
                     prefixIcon: Icons.description_outlined,
                   ),
                   maxLines: 3,
@@ -67,12 +68,12 @@ class GroupsView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Huỷ'),
+              child: Text(ctx.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () {
                 if (groupName.isEmpty) {
-                  showToast('Tên nhóm không được để trống');
+                  showToast(ctx.l10n.groupNameRequired);
                   return;
                 }
                 BlocProvider.of<GroupBloc>(context).add(
@@ -83,7 +84,7 @@ class GroupsView extends StatelessWidget {
                 );
                 Navigator.of(context).pop();
               },
-              child: const Text('Tạo nhóm'),
+              child: Text(ctx.l10n.groupCreateButton),
             ),
           ],
         );
@@ -128,13 +129,13 @@ class _GroupsBody extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   state.userGroups.isEmpty
-                      ? const _GroupsEmptyState(
-                          title: 'Không có nhóm nào',
-                          subtitle: 'Tạo nhóm mới để bắt đầu',
+                      ? _GroupsEmptyState(
+                          title: context.l10n.groupEmptyTitle,
+                          subtitle: context.l10n.groupEmptySubtitle,
                         )
                       : _GroupsList(groups: state.userGroups),
                   state.otherGroups.isEmpty
-                      ? const _GroupsEmptyState(title: 'Không có nhóm nào')
+                      ? _GroupsEmptyState(title: context.l10n.groupEmptyTitle)
                       : _GroupsList(groups: state.otherGroups),
                 ],
               ),
@@ -203,7 +204,7 @@ class _GroupsHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Community hub',
+                      context.l10n.groupHeroEyebrow,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: colorScheme.secondary,
                         fontWeight: FontWeight.w800,
@@ -211,7 +212,7 @@ class _GroupsHero extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Quản lý đội nhóm PES',
+                      context.l10n.groupHeroTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -220,11 +221,11 @@ class _GroupsHero extends StatelessWidget {
                 ),
               ),
               Tooltip(
-                message: 'Tạo nhóm',
+                message: context.l10n.groupCreateButton,
                 child: FilledButton.icon(
                   onPressed: onCreatePressed,
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Tạo mới'),
+                  label: Text(context.l10n.groupCreateNew),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -239,18 +240,24 @@ class _GroupsHero extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _HeroStat(label: 'Của tôi', value: '$myGroups'),
+                child: _HeroStat(
+                  label: context.l10n.groupMineStat,
+                  value: '$myGroups',
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _HeroStat(
-                  label: 'Khám phá',
+                  label: context.l10n.groupDiscoverStat,
                   value: '$discoverGroups',
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _HeroStat(label: 'Member', value: '$members'),
+                child: _HeroStat(
+                  label: context.l10n.groupMembersStat,
+                  value: '$members',
+                ),
               ),
             ],
           ),
@@ -329,9 +336,9 @@ class _GroupsTabBar extends StatelessWidget {
         labelStyle: Theme.of(
           context,
         ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
-        tabs: const [
-          Tab(text: 'Nhóm của tôi'),
-          Tab(text: 'Nhóm khác'),
+        tabs: [
+          Tab(text: context.l10n.groupMyGroupsTab),
+          Tab(text: context.l10n.groupOtherGroupsTab),
         ],
       ),
     );

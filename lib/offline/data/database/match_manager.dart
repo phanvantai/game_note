@@ -28,22 +28,26 @@ extension MatchManager on DatabaseManager {
       if (results.length < 2) {
         continue;
       }
-      list.add(MatchModel(
-        id: id,
-        roundId: roundId,
-        status: element[DBTableColumn.matchStatus] == 1 ? true : false,
-        created: element[DBTableColumn.datetime],
-        home: results[0],
-        away: results[1],
-      ));
+      list.add(
+        MatchModel(
+          id: id,
+          roundId: roundId,
+          status: element[DBTableColumn.matchStatus] == 1 ? true : false,
+          created: element[DBTableColumn.datetime],
+          home: results[0],
+          away: results[1],
+        ),
+      );
     }
     return list;
   }
 
   Future<MatchModel> getMatch(int matchId) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(matchesTable,
-        where: '${DBTableColumn.matchId} = $matchId');
+    final List<Map<String, dynamic>> maps = await db.query(
+      matchesTable,
+      where: '${DBTableColumn.matchId} = $matchId',
+    );
     if (maps.isEmpty) {
       throw 'empty data from database';
     }
@@ -75,8 +79,11 @@ extension MatchManager on DatabaseManager {
     final db = await database;
     // delete player match
     await deletePlayersMatchWithMatchId(matchId);
-    return db.delete(matchesTable,
-        where: '${DBTableColumn.matchId} = ?', whereArgs: [matchId]);
+    return db.delete(
+      matchesTable,
+      where: '${DBTableColumn.matchId} = ?',
+      whereArgs: [matchId],
+    );
   }
 
   Future<void> deleteMatchsWithRoundId(int roundId) async {

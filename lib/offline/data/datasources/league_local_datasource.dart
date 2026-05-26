@@ -17,7 +17,10 @@ abstract class LeagueLocalDatasource {
   Future<LeagueModel> setPlayersForLeague(List<PlayerModel> players);
   Future<LeagueModel> createRounds();
   Future<LeagueModel> updateMatch(
-      MatchModel matchModel, int homeScore, int awayScore);
+    MatchModel matchModel,
+    int homeScore,
+    int awayScore,
+  );
   Future<int> deleteLeague(int leagueId);
 }
 
@@ -86,7 +89,10 @@ class LeagueLocalDatasourceImpl implements LeagueLocalDatasource {
 
   @override
   Future<LeagueModel> updateMatch(
-      MatchModel matchModel, int homeScore, int awayScore) async {
+    MatchModel matchModel,
+    int homeScore,
+    int awayScore,
+  ) async {
     try {
       LeagueManager leagueManager = getIt();
       await leagueManager.updateMatch(matchModel, homeScore, awayScore);

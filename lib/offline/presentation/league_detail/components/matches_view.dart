@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/offline/domain/entities/match_model.dart';
 import 'package:pes_arena/offline/presentation/components/update_match_dialog.dart';
 
@@ -15,11 +16,11 @@ class MatchesView extends StatelessWidget {
       length: 2,
       child: Column(
         children: [
-          const TabBar(
+          TabBar(
             indicatorSize: TabBarIndicatorSize.tab,
             tabs: [
-              Tab(child: Text('Lịch thi đấu')),
-              Tab(child: Text('Kết quả')),
+              Tab(child: Text(context.l10n.offlineSchedule)),
+              Tab(child: Text(context.l10n.offlineResults)),
             ],
           ),
           const SizedBox(height: 8),

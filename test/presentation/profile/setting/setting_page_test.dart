@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:pes_arena/core/helpers/shared_preferences_helper.dart';
+import 'package:pes_arena/core/localization/locale_notifier.dart';
 import 'package:pes_arena/core/theme/theme_provider.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_group_repository.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
@@ -15,6 +17,7 @@ import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/profile/bloc/profile_bloc.dart';
 import 'package:pes_arena/presentation/profile/setting/ownership_resolution_page.dart';
 import 'package:pes_arena/presentation/profile/setting/setting_page.dart';
@@ -164,7 +167,7 @@ void main() {
   testWidgets('theme switch and tile toggle theme mode', (tester) async {
     final prefs = await SharedPreferences.getInstance();
     final themeNotifier = ThemeNotifier(prefs);
-    await tester.pumpWidget(_appWithNotifier(themeNotifier));
+    await tester.pumpWidget(await _appWithNotifier(themeNotifier));
 
     await tester.tap(find.byType(Switch).first);
     await tester.pumpAndSettle();
@@ -173,6 +176,19 @@ void main() {
     await tester.tap(find.text('Chế độ tối'));
     await tester.pumpAndSettle();
     expect(themeNotifier.isDark, false);
+  });
+
+  testWidgets('language tile saves selected locale', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeNotifier = ThemeNotifier(prefs);
+    await tester.pumpWidget(await _appWithNotifier(themeNotifier));
+
+    await tester.tap(find.text('Ngôn ngữ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English').last);
+    await tester.pumpAndSettle();
+
+    expect(prefs.getString(SharedPreferencesHelper.currentLocale), 'en');
   });
 
   testWidgets('settings navigation tiles use configured routes', (
@@ -185,7 +201,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Update profile route'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Back'));
+    await tester.tap(find.byIcon(Icons.arrow_back));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Đổi mật khẩu'));
     await tester.pumpAndSettle();
@@ -198,10 +214,20 @@ Future<Widget> _app() async {
   return _appWithNotifier(ThemeNotifier(prefs));
 }
 
-Widget _appWithNotifier(ThemeNotifier themeNotifier) {
-  return ChangeNotifierProvider.value(
-    value: themeNotifier,
-    child: const MaterialApp(home: SettingPage()),
+Future<Widget> _appWithNotifier(ThemeNotifier themeNotifier) async {
+  final prefs = await SharedPreferences.getInstance();
+  final localeNotifier = LocaleNotifier(SharedPreferencesHelper(prefs));
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<ThemeNotifier>.value(value: themeNotifier),
+      ChangeNotifierProvider<LocaleNotifier>.value(value: localeNotifier),
+    ],
+    child: const MaterialApp(
+      locale: Locale('vi'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: SettingPage(),
+    ),
   );
 }
 
@@ -226,9 +252,19 @@ Future<Widget> _routerApp() async {
       ),
     ],
   );
-  return ChangeNotifierProvider(
-    create: (_) => ThemeNotifier(prefs),
-    child: MaterialApp.router(routerConfig: router),
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => ThemeNotifier(prefs)),
+      ChangeNotifierProvider(
+        create: (_) => LocaleNotifier(SharedPreferencesHelper(prefs)),
+      ),
+    ],
+    child: MaterialApp.router(
+      locale: const Locale('vi'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      routerConfig: router,
+    ),
   );
 }
 

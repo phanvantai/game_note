@@ -23,12 +23,12 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     required SyncRemoteGateway gateway,
     required OfflineToOnlineMigrator migrator,
     CurrentUidResolver? currentUid,
-  })  : _offlineRepo = offlineLeagueRepository,
-        _gateway = gateway,
-        _migrator = migrator,
-        _currentUid =
-            currentUid ?? (() => FirebaseAuth.instance.currentUser?.uid),
-        super(const SyncState()) {
+  }) : _offlineRepo = offlineLeagueRepository,
+       _gateway = gateway,
+       _migrator = migrator,
+       _currentUid =
+           currentUid ?? (() => FirebaseAuth.instance.currentUser?.uid),
+       super(const SyncState()) {
     on<SyncLoadInitialData>(_onLoad);
     on<SyncSelectOfflineLeague>(_onSelectLeague);
     on<SyncSelectGroup>(_onSelectGroup);
@@ -43,7 +43,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   final OfflineToOnlineMigrator _migrator;
   final CurrentUidResolver _currentUid;
 
-  Future<void> _onLoad(SyncLoadInitialData event, Emitter<SyncState> emit) async {
+  Future<void> _onLoad(
+    SyncLoadInitialData event,
+    Emitter<SyncState> emit,
+  ) async {
     emit(state.copyWith(status: SyncStatus.loading, clearError: true));
     try {
       final leaguesResult = await _offlineRepo.getLeagues(GetLeaguesParams());
@@ -52,16 +55,20 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         (l) => l,
       );
       final myGroups = await _gateway.getMyGroups();
-      emit(state.copyWith(
-        status: SyncStatus.ready,
-        offlineLeagues: offlineLeagues,
-        myGroups: myGroups,
-      ));
+      emit(
+        state.copyWith(
+          status: SyncStatus.ready,
+          offlineLeagues: offlineLeagues,
+          myGroups: myGroups,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: SyncStatus.error,
-        errorMessage: 'Không tải được dữ liệu: $e',
-      ));
+      emit(
+        state.copyWith(
+          status: SyncStatus.error,
+          errorMessage: 'Không tải được dữ liệu: $e',
+        ),
+      );
     }
   }
 
@@ -71,26 +78,33 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   ) async {
     emit(state.copyWith(status: SyncStatus.loading, clearError: true));
     try {
-      final result =
-          await _offlineRepo.getLeague(GetLeagueParams(event.leagueId));
+      final result = await _offlineRepo.getLeague(
+        GetLeagueParams(event.leagueId),
+      );
       result.fold(
-        (failure) => emit(state.copyWith(
-          status: SyncStatus.error,
-          errorMessage: 'Không tải được league offline',
-        )),
-        (league) => emit(state.copyWith(
-          status: SyncStatus.ready,
-          selectedLeague: league,
-          mappings: const {},
-          plan: null,
-          clearPlan: true,
-        )),
+        (failure) => emit(
+          state.copyWith(
+            status: SyncStatus.error,
+            errorMessage: 'Không tải được league offline',
+          ),
+        ),
+        (league) => emit(
+          state.copyWith(
+            status: SyncStatus.ready,
+            selectedLeague: league,
+            mappings: const {},
+            plan: null,
+            clearPlan: true,
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        status: SyncStatus.error,
-        errorMessage: 'Không tải được league offline: $e',
-      ));
+      emit(
+        state.copyWith(
+          status: SyncStatus.error,
+          errorMessage: 'Không tải được league offline: $e',
+        ),
+      );
     }
   }
 
@@ -103,24 +117,25 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       orElse: () => GNEsportGroup.placeholder(event.groupId),
     );
     final isDifferent = state.selectedGroup?.id != event.groupId;
-    emit(state.copyWith(
-      status: SyncStatus.loading,
-      selectedGroup: group,
-      mappings: isDifferent ? const {} : state.mappings,
-      clearPlan: isDifferent,
-      clearError: true,
-    ));
+    emit(
+      state.copyWith(
+        status: SyncStatus.loading,
+        selectedGroup: group,
+        mappings: isDifferent ? const {} : state.mappings,
+        clearPlan: isDifferent,
+        clearError: true,
+      ),
+    );
     try {
       final members = await _gateway.getGroupMembers(event.groupId);
-      emit(state.copyWith(
-        status: SyncStatus.ready,
-        groupMembers: members,
-      ));
+      emit(state.copyWith(status: SyncStatus.ready, groupMembers: members));
     } catch (e) {
-      emit(state.copyWith(
-        status: SyncStatus.error,
-        errorMessage: 'Không tải được thành viên group: $e',
-      ));
+      emit(
+        state.copyWith(
+          status: SyncStatus.error,
+          errorMessage: 'Không tải được thành viên group: $e',
+        ),
+      );
     }
   }
 
@@ -143,10 +158,12 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       final group = state.selectedGroup;
       final uid = _currentUid();
       if (league == null || group == null || uid == null) {
-        emit(state.copyWith(
-          status: SyncStatus.error,
-          errorMessage: 'Thiếu dữ liệu để tạo kế hoạch',
-        ));
+        emit(
+          state.copyWith(
+            status: SyncStatus.error,
+            errorMessage: 'Thiếu dữ liệu để tạo kế hoạch',
+          ),
+        );
         return;
       }
       try {
@@ -156,25 +173,27 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
           currentUserUid: uid,
           mappings: state.mappings,
         );
-        emit(state.copyWith(
-          step: SyncStep.preview,
-          plan: plan,
-          clearError: true,
-        ));
+        emit(
+          state.copyWith(step: SyncStep.preview, plan: plan, clearError: true),
+        );
       } on PlanTooLargeException catch (e) {
-        emit(state.copyWith(
-          step: SyncStep.mapPlayers,
-          status: SyncStatus.error,
-          errorMessage:
-              'League quá lớn: ${e.totalOps} thao tác (giới hạn ${MigrationPlan.batchLimit}). '
-              'Hãy chia nhỏ league trước khi sync.',
-        ));
+        emit(
+          state.copyWith(
+            step: SyncStep.mapPlayers,
+            status: SyncStatus.error,
+            errorMessage:
+                'League quá lớn: ${e.totalOps} thao tác (giới hạn ${MigrationPlan.batchLimit}). '
+                'Hãy chia nhỏ league trước khi sync.',
+          ),
+        );
       } catch (e) {
-        emit(state.copyWith(
-          step: SyncStep.mapPlayers,
-          status: SyncStatus.error,
-          errorMessage: 'Không build được kế hoạch: $e',
-        ));
+        emit(
+          state.copyWith(
+            step: SyncStep.mapPlayers,
+            status: SyncStatus.error,
+            errorMessage: 'Không build được kế hoạch: $e',
+          ),
+        );
       }
       return;
     }
@@ -185,38 +204,46 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     final league = state.selectedLeague;
     final plan = state.plan;
     if (league == null || plan == null) {
-      emit(state.copyWith(
-        status: SyncStatus.error,
-        errorMessage: 'Thiếu kế hoạch sync',
-      ));
+      emit(
+        state.copyWith(
+          status: SyncStatus.error,
+          errorMessage: 'Thiếu kế hoạch sync',
+        ),
+      );
       return;
     }
-    emit(state.copyWith(
-      step: SyncStep.executing,
-      status: SyncStatus.running,
-      progress: 0,
-      progressLabel: 'Đang ghi ${plan.totalOps} bản ghi lên server...',
-      clearError: true,
-    ));
+    emit(
+      state.copyWith(
+        step: SyncStep.executing,
+        status: SyncStatus.running,
+        progress: 0,
+        progressLabel: 'Đang ghi ${plan.totalOps} bản ghi lên server...',
+        clearError: true,
+      ),
+    );
     try {
       await _migrator.commit(plan);
       if (isClosed) return;
       // Delete offline league last — only after successful online write.
       await _offlineRepo.deleteLeauge(GetLeagueParams(league.id!));
       if (isClosed) return;
-      emit(state.copyWith(
-        status: SyncStatus.success,
-        createdLeagueId: plan.leagueId,
-        progress: 1.0,
-        progressLabel: 'Hoàn tất',
-      ));
+      emit(
+        state.copyWith(
+          status: SyncStatus.success,
+          createdLeagueId: plan.leagueId,
+          progress: 1.0,
+          progressLabel: 'Hoàn tất',
+        ),
+      );
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(
-        status: SyncStatus.error,
-        errorMessage:
-            'Sync thất bại: $e\nKhông có dữ liệu nào được tạo trên server.',
-      ));
+      emit(
+        state.copyWith(
+          status: SyncStatus.error,
+          errorMessage:
+              'Sync thất bại: $e\nKhông có dữ liệu nào được tạo trên server.',
+        ),
+      );
     }
   }
 }

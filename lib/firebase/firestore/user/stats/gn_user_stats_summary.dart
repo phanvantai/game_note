@@ -104,17 +104,13 @@ class GNUserStatsSummary extends Equatable {
     final history = rawHistory
         .whereType<Map<dynamic, dynamic>>()
         .map(
-          (e) => GNUserLeaguePerformance.fromMap(
-            Map<String, dynamic>.from(e),
-          ),
+          (e) => GNUserLeaguePerformance.fromMap(Map<String, dynamic>.from(e)),
         )
         .toList();
     final rawH2H = map[fieldH2hSummary] as List<dynamic>? ?? const [];
     final h2h = rawH2H
         .whereType<Map<dynamic, dynamic>>()
-        .map(
-          (e) => GNUserOpponentStat.fromMap(Map<String, dynamic>.from(e)),
-        )
+        .map((e) => GNUserOpponentStat.fromMap(Map<String, dynamic>.from(e)))
         .toList();
     return GNUserStatsSummary(
       userId: userId,
@@ -296,8 +292,9 @@ class GNUserLeaguePerformance extends Equatable {
     return {
       'leagueId': leagueId,
       'leagueName': leagueName,
-      'lastPlayedAt':
-          lastPlayedAt == null ? null : Timestamp.fromDate(lastPlayedAt!),
+      'lastPlayedAt': lastPlayedAt == null
+          ? null
+          : Timestamp.fromDate(lastPlayedAt!),
       'matchesPlayed': matchesPlayed,
       'wins': wins,
       'draws': draws,
@@ -387,8 +384,7 @@ class GNUserRecentMatch extends Equatable {
       'opponentId': opponentId,
       'opponentDisplayName': opponentDisplayName,
       'result': _resultToString(result),
-      'updatedAt':
-          updatedAt == null ? null : Timestamp.fromDate(updatedAt!),
+      'updatedAt': updatedAt == null ? null : Timestamp.fromDate(updatedAt!),
     };
   }
 

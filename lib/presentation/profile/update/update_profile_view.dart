@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/profile/update/bloc/update_profile_bloc.dart';
 
@@ -39,7 +40,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
           showToast(state.error);
         }
         if (state.viewStatus == ViewStatus.success) {
-          showToast('Cập nhật thông tin thành công');
+          showToast(context.l10n.profileUpdateSuccess);
           context.smartBack();
         }
       },
@@ -48,7 +49,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           leading: const SmartBackButton(),
-          title: const Text('Cập nhật thông tin'),
+          title: Text(context.l10n.profileUpdateTitle),
         ),
         body: Container(
           decoration: BoxDecoration(
@@ -75,9 +76,9 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
                     children: [
                       _FormHero(
                         icon: Icons.manage_accounts_outlined,
-                        eyebrow: 'Profile setup',
-                        title: 'Thông tin hiển thị',
-                        subtitle: 'Cập nhật tên, số điện thoại và email.',
+                        eyebrow: context.l10n.profileSetupEyebrow,
+                        title: context.l10n.profileDisplayInfoTitle,
+                        subtitle: context.l10n.profileDisplayInfoSubtitle,
                       ),
                       const SizedBox(height: 16),
                       _FormCard(
@@ -87,7 +88,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
                             controller: _displayNameController,
                             decoration: appInputDecoration(
                               context: context,
-                              hintText: 'Họ và tên',
+                              hintText: context.l10n.profileFullNameHint,
                               prefixIcon: Icons.person_outline,
                             ),
                           ),
@@ -96,7 +97,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
                             controller: _phoneNumberController,
                             decoration: appInputDecoration(
                               context: context,
-                              hintText: 'Số điện thoại',
+                              hintText: context.l10n.profilePhoneHint,
                               prefixIcon: Icons.phone_outlined,
                             ),
                             keyboardType: TextInputType.phone,
@@ -107,7 +108,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
                             controller: _emailController,
                             decoration: appInputDecoration(
                               context: context,
-                              hintText: 'Email',
+                              hintText: context.l10n.authEmailHint,
                               prefixIcon: Icons.email_outlined,
                             ),
                             keyboardType: TextInputType.emailAddress,

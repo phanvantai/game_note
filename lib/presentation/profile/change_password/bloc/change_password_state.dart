@@ -51,13 +51,13 @@ class ChangePasswordState extends Equatable {
 
   @override
   List<Object?> get props => [
-        viewStatus,
-        errorMessage,
-        oldPassword,
-        errorOldPassword,
-        newPassword,
-        errorNewPassword,
-        confirmPassword,
-        errorConfirmPassword,
-      ];
+    viewStatus,
+    errorMessage,
+    oldPassword,
+    errorOldPassword,
+    newPassword,
+    errorNewPassword,
+    confirmPassword,
+    errorConfirmPassword,
+  ];
 }

@@ -9,10 +9,7 @@ class UserState extends Equatable {
     this.users = const [],
   });
 
-  UserState copyWith({
-    ViewStatus? viewStatus,
-    List<GNUser>? users,
-  }) {
+  UserState copyWith({ViewStatus? viewStatus, List<GNUser>? users}) {
     return UserState(
       viewStatus: viewStatus ?? this.viewStatus,
       users: users ?? this.users,

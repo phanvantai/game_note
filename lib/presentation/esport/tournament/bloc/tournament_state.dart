@@ -78,8 +78,9 @@ class TournamentState extends Equatable {
           ? this.managedCursor
           : managedCursor,
       managedHasMore: managedHasMore ?? this.managedHasMore,
-      otherCursor:
-          identical(otherCursor, _sentinel) ? this.otherCursor : otherCursor,
+      otherCursor: identical(otherCursor, _sentinel)
+          ? this.otherCursor
+          : otherCursor,
       otherHasMore: otherHasMore ?? this.otherHasMore,
       errorMessage: errorMessage ?? this.errorMessage,
       refreshTick: refreshTick ?? this.refreshTick,
@@ -88,19 +89,19 @@ class TournamentState extends Equatable {
 
   @override
   List<Object?> get props => [
-        myStatus,
-        managedStatus,
-        otherStatus,
-        myLeagues,
-        managedLeagues,
-        otherLeagues,
-        myCursor,
-        myHasMore,
-        managedCursor,
-        managedHasMore,
-        otherCursor,
-        otherHasMore,
-        errorMessage,
-        refreshTick,
-      ];
+    myStatus,
+    managedStatus,
+    otherStatus,
+    myLeagues,
+    managedLeagues,
+    otherLeagues,
+    myCursor,
+    myHasMore,
+    managedCursor,
+    managedHasMore,
+    otherCursor,
+    otherHasMore,
+    errorMessage,
+    refreshTick,
+  ];
 }

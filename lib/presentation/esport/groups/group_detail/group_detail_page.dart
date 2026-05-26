@@ -20,16 +20,17 @@ class GroupDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final group = initialGroup ?? GNEsportGroup.placeholder(groupId);
     return BlocProvider(
-      create: (_) => GroupDetailBloc(
-        getIt<EsportGroupRepository>(),
-        getIt<EsportLeagueRepository>(),
-        getIt<EsportGroupStatsRepository>(),
-        getIt<GroupOverviewCache>(),
-        getIt<GNFirestore>(),
-        group,
-      )
-        ..add(GetGroupDetail(groupId))
-        ..add(GetMembers(groupId)),
+      create: (_) =>
+          GroupDetailBloc(
+              getIt<EsportGroupRepository>(),
+              getIt<EsportLeagueRepository>(),
+              getIt<EsportGroupStatsRepository>(),
+              getIt<GroupOverviewCache>(),
+              getIt<GNFirestore>(),
+              group,
+            )
+            ..add(GetGroupDetail(groupId))
+            ..add(GetMembers(groupId)),
       child: const GroupDetailView(),
     );
   }

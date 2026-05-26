@@ -19,10 +19,11 @@ class LeagueListState extends Equatable {
     this.newLeague,
   });
 
-  LeagueListState copyWith(
-      {LeagueListStatus? status,
-      List<LeagueModel>? leagues,
-      LeagueModel? newLeague}) {
+  LeagueListState copyWith({
+    LeagueListStatus? status,
+    List<LeagueModel>? leagues,
+    LeagueModel? newLeague,
+  }) {
     return LeagueListState(
       status: status ?? this.status,
       leagues: leagues ?? this.leagues,

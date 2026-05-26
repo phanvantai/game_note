@@ -12,19 +12,29 @@ class TournamentHelper {
     }
 
     // create first round matches
-    listRounds.add(createMaps(players)
-        .where((element) =>
-            element.keys.first != virtual && element.values.first != virtual)
-        .toList());
+    listRounds.add(
+      createMaps(players)
+          .where(
+            (element) =>
+                element.keys.first != virtual &&
+                element.values.first != virtual,
+          )
+          .toList(),
+    );
     // // rotate n-2 times
     for (int i = 0; i < players.length - 2; i++) {
       // rotate list
       players = rotateList(players);
       // create matches
-      listRounds.add(createMaps(players)
-          .where((element) =>
-              element.keys.first != virtual && element.values.first != virtual)
-          .toList());
+      listRounds.add(
+        createMaps(players)
+            .where(
+              (element) =>
+                  element.keys.first != virtual &&
+                  element.values.first != virtual,
+            )
+            .toList(),
+      );
     }
     // remove virtual player
     players.remove(virtual);
@@ -50,13 +60,17 @@ class TournamentHelper {
     players.remove(virtual);
     // remove matches have virtual player
     return matches
-        .where((element) =>
-            element.keys.first != virtual && element.values.first != virtual)
+        .where(
+          (element) =>
+              element.keys.first != virtual && element.values.first != virtual,
+        )
         .toList();
   }
 
   static PlayerStatsModel updateStats(
-      PlayerStatsModel statsModel, MatchModel matchModel) {
+    PlayerStatsModel statsModel,
+    MatchModel matchModel,
+  ) {
     var player = statsModel.playerModel;
     var result = ResultTypeX.result(player, matchModel);
     return PlayerStatsModel(
@@ -72,8 +86,8 @@ class TournamentHelper {
       points: result.isWin
           ? statsModel.points + 3
           : result.isDraw
-              ? statsModel.points + 1
-              : statsModel.points,
+          ? statsModel.points + 1
+          : statsModel.points,
     );
   }
 

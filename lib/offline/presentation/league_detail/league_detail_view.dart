@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/offline/presentation/components/select_player_view.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -53,11 +54,11 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'confirm',
               child: ListTile(
-                leading: Icon(Icons.done),
-                title: Text('Xác nhận'),
+                leading: const Icon(Icons.done),
+                title: Text(context.l10n.commonConfirm),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -70,15 +71,15 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
         PopupMenuButton<String>(
           onSelected: (value) {
             if (value == 'share') {
-              _shareStandings(state.model?.name ?? '');
+              _shareStandings(context, state.model?.name ?? '');
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'share',
               child: ListTile(
-                leading: Icon(Icons.share),
-                title: Text('Chia sẻ BXH'),
+                leading: const Icon(Icons.share),
+                title: Text(context.l10n.offlineShareStandings),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -89,7 +90,8 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
     return [];
   }
 
-  Future<void> _shareStandings(String leagueName) async {
+  Future<void> _shareStandings(BuildContext context, String leagueName) async {
+    final shareText = context.l10n.offlineShareStandingsTitle(leagueName);
     final boundary =
         _tableKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) return;
@@ -104,20 +106,17 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
     await file.writeAsBytes(pngBytes);
 
     await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(file.path)],
-        text: 'Bảng xếp hạng - $leagueName',
-      ),
+      ShareParams(files: [XFile(file.path)], text: shareText),
     );
   }
 
   Widget _leagueDetail(BuildContext context, LeagueDetailState state) {
     final colorScheme = Theme.of(context).colorScheme;
     if (state.status.isEmpty) {
-      return const AppEmptyState(
+      return AppEmptyState(
         icon: Icons.group_add_outlined,
-        title: 'Giải đấu chưa được thiết lập.',
-        subtitle: 'Bấm nút + bên dưới để thêm người chơi và bắt đầu giải đấu',
+        title: context.l10n.offlineLeagueNotSetupTitle,
+        subtitle: context.l10n.offlineLeagueNotSetupSubtitle,
       );
     }
     if (state.status.isAddingPlayer) {
@@ -128,10 +127,10 @@ class _LeagueDetailViewState extends State<LeagueDetailView> {
       );
     }
     if (state.status.isError) {
-      return const AppEmptyState(
+      return AppEmptyState(
         icon: Icons.error_outline,
-        title: 'Đã xảy ra lỗi',
-        subtitle: 'Không thể tải dữ liệu giải đấu',
+        title: context.l10n.commonErrorTitle,
+        subtitle: context.l10n.offlineLoadLeagueFailed,
       );
     }
     if (state.status.isLoaded || state.status.isUpdating) {

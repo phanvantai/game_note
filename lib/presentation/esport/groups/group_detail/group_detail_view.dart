@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
@@ -310,15 +311,13 @@ class _GroupDetailViewState extends State<GroupDetailView>
           builder: (context, setDialogState) {
             final canDelete = input.trim() == state.group.groupName;
             return AlertDialog(
-              title: const Text('Xoá nhóm'),
+              title: Text(context.l10n.groupDeleteTitle),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Thao tác này sẽ xoá vĩnh viễn nhóm, toàn bộ giải đấu, '
-                    'trận đấu, bảng điểm và thống kê liên quan. Dữ liệu không '
-                    'thể khôi phục.',
+                    context.l10n.groupDeleteWarning,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
                     ),
@@ -338,7 +337,7 @@ class _GroupDetailViewState extends State<GroupDetailView>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Huỷ'),
+                  child: Text(context.l10n.commonCancel),
                 ),
                 FilledButton(
                   onPressed: canDelete
@@ -348,7 +347,7 @@ class _GroupDetailViewState extends State<GroupDetailView>
                     backgroundColor: Theme.of(context).colorScheme.error,
                     foregroundColor: Theme.of(context).colorScheme.onError,
                   ),
-                  child: const Text('Xoá nhóm'),
+                  child: Text(context.l10n.groupDeleteTitle),
                 ),
               ],
             );
@@ -393,9 +392,9 @@ class _GroupDetailTabBar extends StatelessWidget {
         labelStyle: Theme.of(
           context,
         ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
-        tabs: const [
-          Tab(text: 'Tổng quan'),
-          Tab(text: 'Thành viên'),
+        tabs: [
+          Tab(text: context.l10n.groupOverviewTab),
+          Tab(text: context.l10n.groupMembersTab),
         ],
       ),
     );
@@ -428,7 +427,7 @@ class _MembersTab extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: onAddMember,
                 icon: const Icon(Icons.person_add_outlined, size: 18),
-                label: const Text('Thêm thành viên'),
+                label: Text(context.l10n.groupAddMemberTitle),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(double.infinity, 44),
                 ),
@@ -448,7 +447,7 @@ class _MembersTab extends StatelessWidget {
                   user: user,
                   subtitle: isDeactivated
                       ? Chip(
-                          label: const Text('Không hoạt động'),
+                          label: Text(context.l10n.groupInactive),
                           labelStyle: TextStyle(
                             fontSize: 11,
                             color: colorScheme.onSurfaceVariant,

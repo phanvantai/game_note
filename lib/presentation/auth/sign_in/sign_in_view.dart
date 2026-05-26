@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import 'bloc/sign_in_bloc.dart';
 
@@ -25,7 +26,7 @@ class _SignInViewState extends State<SignInView> {
           showToast(state.error);
         }
         if (state.status == SignInStatus.success) {
-          showToast("Đăng nhập thành công");
+          showToast(context.l10n.authSignInSuccess);
         }
       },
       child: Column(
@@ -37,7 +38,7 @@ class _SignInViewState extends State<SignInView> {
             builder: (context, state) {
               return TextField(
                 decoration: InputDecoration(
-                  hintText: 'Email',
+                  hintText: context.l10n.authEmailHint,
                   hintStyle: TextStyle(
                     color: colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
@@ -94,7 +95,7 @@ class _SignInViewState extends State<SignInView> {
                 previous.password != current.password,
             builder: (context, state) => TextField(
               decoration: InputDecoration(
-                hintText: 'Mật khẩu',
+                hintText: context.l10n.authPasswordHint,
                 hintStyle: TextStyle(
                   color: colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
@@ -187,8 +188,8 @@ class _SignInViewState extends State<SignInView> {
                           ),
                         ),
                       )
-                    : const Text(
-                        'Đăng nhập',
+                    : Text(
+                        context.l10n.authSignIn,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,

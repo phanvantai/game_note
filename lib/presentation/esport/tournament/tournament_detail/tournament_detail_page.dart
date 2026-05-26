@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 
 import 'bloc/tournament_detail_bloc.dart';
@@ -21,7 +22,7 @@ class TournamentDetailPage extends StatelessWidget {
             showToast(state.errorMessage);
           }
           if (state.league != null && !state.league!.isActive) {
-            showToast('Giải đấu đã kết thúc');
+            showToast(context.l10n.tournamentEnded);
             context.smartBack();
             return;
           }

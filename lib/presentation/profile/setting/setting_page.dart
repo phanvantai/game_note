@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_group_repository.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/core/localization/locale_notifier.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/routing.dart';
 import 'package:pes_arena/core/theme/theme_provider.dart';
 
@@ -30,13 +32,14 @@ class _SettingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = getIt<GNAuth>();
+    final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: const SmartBackButton(),
-        title: const Text('Tuỳ chọn khác'),
+        title: Text(l10n.settingsTitle),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -62,13 +65,13 @@ class _SettingView extends StatelessWidget {
                 children: [
                   _SettingActionTile(
                     icon: Icons.person_outline,
-                    title: 'Cập nhật thông tin',
+                    title: l10n.settingsUpdateProfile,
                     onTap: () => context.push(Routing.updateProfile),
                   ),
                   if (auth.isSignInWithEmailAndPassword)
                     _SettingActionTile(
                       icon: Icons.lock_outline,
-                      title: 'Đổi mật khẩu',
+                      title: l10n.settingsChangePassword,
                       onTap: () => context.push(Routing.changePassword),
                     ),
                   Builder(
@@ -76,7 +79,7 @@ class _SettingView extends StatelessWidget {
                       final themeNotifier = context.watch<ThemeNotifier>();
                       return _SettingActionTile(
                         icon: Icons.dark_mode_outlined,
-                        title: 'Chế độ tối',
+                        title: l10n.settingsDarkMode,
                         trailing: Switch.adaptive(
                           value: themeNotifier.isDark,
                           onChanged: (value) {
@@ -96,8 +99,22 @@ class _SettingView extends StatelessWidget {
                     },
                   ),
                   _SettingActionTile(
+                    icon: Icons.language_outlined,
+                    title: l10n.settingsLanguage,
+                    trailing: Text(
+                      _languageName(
+                        context,
+                        context.watch<LocaleNotifier>().currentLocale,
+                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    onTap: () => _showLanguageSheet(context),
+                  ),
+                  _SettingActionTile(
                     icon: Icons.delete_outline,
-                    title: 'Xoá tài khoản',
+                    title: l10n.settingsDeleteAccount,
                     iconColor: colorScheme.error,
                     textColor: colorScheme.error,
                     showChevron: false,
@@ -157,7 +174,7 @@ class _SettingView extends StatelessWidget {
       if (!context.mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể kiểm tra quyền sở hữu: $e')),
+        SnackBar(content: Text(context.l10n.ownershipCheckFailed('$e'))),
       );
       return;
     }
@@ -166,16 +183,14 @@ class _SettingView extends StatelessWidget {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          title: const Text('Xác nhận'),
-          content: const Text(
-            'Bạn có chắc chắn muốn xoá tài khoản không?\n\nTất cả dữ liệu cá nhân của bạn sẽ bị xoá và không thể khôi phục. Một số dữ liệu liên quan đến nhóm và các người chơi khác sẽ vẫn được giữ lại.',
-          ),
+          title: Text(context.l10n.settingsDeleteConfirmTitle),
+          content: Text(context.l10n.settingsDeleteConfirmMessage),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Huỷ'),
+              child: Text(context.l10n.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -183,7 +198,7 @@ class _SettingView extends StatelessWidget {
                 Navigator.of(context).pop();
               },
               child: Text(
-                'Xoá tài khoản',
+                context.l10n.settingsDeleteAccount,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.error,
@@ -195,6 +210,55 @@ class _SettingView extends StatelessWidget {
       },
     );
   }
+
+  String _languageName(BuildContext context, Locale? locale) {
+    return switch (locale?.languageCode) {
+      'vi' => context.l10n.languageVietnamese,
+      _ => context.l10n.languageEnglish,
+    };
+  }
+
+  void _showLanguageSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final localeNotifier = sheetContext.watch<LocaleNotifier>();
+        final selected = localeNotifier.currentLocale ?? const Locale('en');
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(sheetContext.l10n.languageEnglish),
+                trailing: selected.languageCode == 'en'
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () async {
+                  await sheetContext.read<LocaleNotifier>().setLocale(
+                    const Locale('en'),
+                  );
+                  if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+                },
+              ),
+              ListTile(
+                title: Text(sheetContext.l10n.languageVietnamese),
+                trailing: selected.languageCode == 'vi'
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () async {
+                  await sheetContext.read<LocaleNotifier>().setLocale(
+                    const Locale('vi'),
+                  );
+                  if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _SettingsHero extends StatelessWidget {
@@ -202,6 +266,7 @@ class _SettingsHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -228,7 +293,7 @@ class _SettingsHero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Preferences',
+                  l10n.settingsHeroEyebrow,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: colorScheme.secondary,
                     fontWeight: FontWeight.w800,
@@ -236,14 +301,14 @@ class _SettingsHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Tuỳ chọn khác',
+                  l10n.settingsTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Bảo mật, giao diện và tài khoản.',
+                  l10n.settingsHeroSubtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

@@ -29,27 +29,28 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         .collection(GNEsportMatch.collectionName)
         .snapshots() // This will return a stream of snapshots in real-time
         .map((querySnapshot) {
-      return querySnapshot.docs
-          .map((doc) => GNEsportMatch.fromFirestore(doc))
-          .toList();
-    });
+          return querySnapshot.docs
+              .map((doc) => GNEsportMatch.fromFirestore(doc))
+              .toList();
+        });
   }
 
   Future<void> generateRound({
     required String leagueId,
     required List<String> teamIds,
   }) async {
+    final uniqueTeamIds = _uniqueTeamIds(teamIds);
     final matchPath =
         '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
     final docs = <MapEntry<String, Map<String, dynamic>>>[];
 
-    for (int i = 0; i < teamIds.length; i++) {
-      for (int j = i + 1; j < teamIds.length; j++) {
+    for (int i = 0; i < uniqueTeamIds.length; i++) {
+      for (int j = i + 1; j < uniqueTeamIds.length; j++) {
         final matchId = firestore.collection(matchPath).doc().id;
         final match = GNEsportMatch(
           id: matchId,
-          homeTeamId: teamIds[i],
-          awayTeamId: teamIds[j],
+          homeTeamId: uniqueTeamIds[i],
+          awayTeamId: uniqueTeamIds[j],
           homeScore: 0,
           awayScore: 0,
           date: DateTime.now(),
@@ -60,15 +61,10 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       }
     }
 
-    // Stat docs before match docs: matches reference stats during score
-    // entry via _statRefForUser; writing stats first means a partial stat
-    // failure leaves no orphan matches behind. addMultipleParticipants
-    // dedups stat creation against league.participants, which the create
-    // flow has already populated — so the generator owns stats here.
-    await Future.wait([
-      for (final userId in teamIds)
-        addLeagueStat(userId: userId, leagueId: leagueId),
-    ]);
+    // Ensure stat docs before match docs: matches reference stats during score
+    // entry via _statRefForUser. Only missing rows are created so extra
+    // round generation preserves existing totals instead of adding zero rows.
+    await _ensureLeagueStats(leagueId: leagueId, teamIds: uniqueTeamIds);
     await _writeBatched(docs);
   }
 
@@ -141,8 +137,9 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       final slotsInRound = r0SlotCount >> r;
       for (int s = 0; s < slotsInRound; s++) {
         final matchId = roundIds[r][s];
-        final nextMatchId =
-            r < totalRounds - 1 ? roundIds[r + 1][s ~/ 2] : null;
+        final nextMatchId = r < totalRounds - 1
+            ? roundIds[r + 1][s ~/ 2]
+            : null;
 
         final String homeId;
         final String awayId;
@@ -254,8 +251,9 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       final slotsInRound = r0SlotCount >> r;
       for (int s = 0; s < slotsInRound; s++) {
         final matchId = roundIds[r][s];
-        final nextMatchId =
-            r < totalRounds - 1 ? roundIds[r + 1][s ~/ 2] : null;
+        final nextMatchId = r < totalRounds - 1
+            ? roundIds[r + 1][s ~/ 2]
+            : null;
         final String homeId;
         final String awayId;
         if (r == 0 && useSeeding) {
@@ -300,8 +298,9 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
 
     // Extract all unique user IDs from matches
     final userIds = <String>{};
-    final matchDocs =
-        snapshot.docs.map((doc) => GNEsportMatch.fromFirestore(doc)).toList();
+    final matchDocs = snapshot.docs
+        .map((doc) => GNEsportMatch.fromFirestore(doc))
+        .toList();
 
     for (final match in matchDocs) {
       if (match.homeTeamId.isNotEmpty) userIds.add(match.homeTeamId);
@@ -315,10 +314,7 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     for (final match in matchDocs) {
       final homeTeam = usersMap[match.homeTeamId];
       final awayTeam = usersMap[match.awayTeamId];
-      matches.add(match.copyWith(
-        homeTeam: homeTeam,
-        awayTeam: awayTeam,
-      ));
+      matches.add(match.copyWith(homeTeam: homeTeam, awayTeam: awayTeam));
     }
     return matches;
   }
@@ -388,8 +384,9 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         final isEvenSlot = (current.knockoutSlot ?? 0).isEven;
         txn.update(nextRef, {
           isEvenSlot
-              ? GNEsportMatch.fieldHomeTeamId
-              : GNEsportMatch.fieldAwayTeamId: winnerId,
+                  ? GNEsportMatch.fieldHomeTeamId
+                  : GNEsportMatch.fieldAwayTeamId:
+              winnerId,
         });
       }
     });
@@ -445,10 +442,16 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     if (!homeDelta.isNotEmpty && !awayDelta.isNotEmpty) return;
 
     final refs = await Future.wait([
-      _statRefForUser(previous.leagueId, previous.homeTeamId,
-          groupId: previous.groupId),
-      _statRefForUser(previous.leagueId, previous.awayTeamId,
-          groupId: previous.groupId),
+      _statRefForUser(
+        previous.leagueId,
+        previous.homeTeamId,
+        groupId: previous.groupId,
+      ),
+      _statRefForUser(
+        previous.leagueId,
+        previous.awayTeamId,
+        groupId: previous.groupId,
+      ),
     ]);
     final homeStatRef = refs[0];
     final awayStatRef = refs[1];
@@ -472,7 +475,8 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
   Future<void> createCustomMatch(GNEsportMatch match) async {
     final matchId = firestore
         .collection(
-            '${GNEsportLeague.collectionName}/${match.leagueId}/${GNEsportMatch.collectionName}')
+          '${GNEsportLeague.collectionName}/${match.leagueId}/${GNEsportMatch.collectionName}',
+        )
         .doc()
         .id;
 
@@ -480,12 +484,13 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
 
     await firestore
         .collection(
-            '${GNEsportLeague.collectionName}/${match.leagueId}/${GNEsportMatch.collectionName}')
+          '${GNEsportLeague.collectionName}/${match.leagueId}/${GNEsportMatch.collectionName}',
+        )
         .doc(matchId)
         .set({
-      ...matchWithId.toMap(),
-      GNEsportMatch.fieldUpdatedAt: FieldValue.serverTimestamp(),
-    });
+          ...matchWithId.toMap(),
+          GNEsportMatch.fieldUpdatedAt: FieldValue.serverTimestamp(),
+        });
   }
 
   /// Delete a match atomically. If the match was finished, reverses its
@@ -550,6 +555,43 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
       }
       await batch.commit();
     }
+  }
+
+  List<String> _uniqueTeamIds(List<String> teamIds) {
+    final seen = <String>{};
+    final unique = <String>[];
+    for (final id in teamIds) {
+      if (id.isEmpty || !seen.add(id)) continue;
+      unique.add(id);
+    }
+    return unique;
+  }
+
+  Future<void> _ensureLeagueStats({
+    required String leagueId,
+    required List<String> teamIds,
+  }) async {
+    final statsCollection = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId)
+        .collection(GNEsportLeagueStat.collectionName);
+
+    await Future.wait([
+      for (final userId in teamIds)
+        () async {
+          final snapshot = await statsCollection
+              .where(GNEsportLeagueStat.fieldUserId, isEqualTo: userId)
+              .get();
+          final hasLeagueWideStat = snapshot.docs.any((doc) {
+            final groupId =
+                doc.data()[GNEsportLeagueStat.fieldGroupId] as String?;
+            return groupId == null;
+          });
+          if (!hasLeagueWideStat) {
+            await addLeagueStat(userId: userId, leagueId: leagueId);
+          }
+        }(),
+    ]);
   }
 
   Future<DocumentReference<Map<String, dynamic>>> _statRefForUser(
@@ -654,13 +696,13 @@ class _StatDelta {
       losses != 0;
 
   _StatDelta operator +(_StatDelta other) => _StatDelta(
-        matchesPlayed: matchesPlayed + other.matchesPlayed,
-        goals: goals + other.goals,
-        goalsConceded: goalsConceded + other.goalsConceded,
-        wins: wins + other.wins,
-        draws: draws + other.draws,
-        losses: losses + other.losses,
-      );
+    matchesPlayed: matchesPlayed + other.matchesPlayed,
+    goals: goals + other.goals,
+    goalsConceded: goalsConceded + other.goalsConceded,
+    wins: wins + other.wins,
+    draws: draws + other.draws,
+    losses: losses + other.losses,
+  );
 }
 
 class _MatchStatPair {

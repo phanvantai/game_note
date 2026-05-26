@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/helpers/app_helper.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/main.dart';
 import 'package:pes_arena/presentation/app/online_button.dart';
 import 'package:share_plus/share_plus.dart';
@@ -18,6 +19,7 @@ class MenuView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(centerTitle: true, actions: const [OnlineButton()]),
@@ -28,7 +30,7 @@ class MenuView extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                'DỮ LIỆU',
+                l10n.offlineDataTitle,
                 style: textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.45),
                   fontWeight: FontWeight.w600,
@@ -45,7 +47,10 @@ class MenuView extends StatelessWidget {
                       Icons.download_outlined,
                       color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
-                    title: Text('Nhập dữ liệu', style: textTheme.bodyLarge),
+                    title: Text(
+                      l10n.offlineImportData,
+                      style: textTheme.bodyLarge,
+                    ),
                     trailing: Icon(
                       Icons.chevron_right,
                       color: colorScheme.onSurface.withValues(alpha: 0.3),
@@ -62,7 +67,10 @@ class MenuView extends StatelessWidget {
                       Icons.upload_outlined,
                       color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
-                    title: Text('Xuất dữ liệu', style: textTheme.bodyLarge),
+                    title: Text(
+                      l10n.offlineExportData,
+                      style: textTheme.bodyLarge,
+                    ),
                     trailing: Icon(
                       Icons.chevron_right,
                       color: colorScheme.onSurface.withValues(alpha: 0.3),
@@ -87,10 +95,7 @@ class MenuView extends StatelessWidget {
         if (!result.files.single.path!.endsWith(
           DatabaseManager.databaseFileName,
         )) {
-          showAlertDialog(
-            context,
-            'Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db',
-          );
+          showAlertDialog(context, context.l10n.offlineInvalidImportFile);
           return;
         }
         await getIt<DatabaseManager>().close();
@@ -98,7 +103,7 @@ class MenuView extends StatelessWidget {
         await file.copy(dataFile);
         await getIt<DatabaseManager>().open().then(
           // ignore: use_build_context_synchronously
-          (_) => showAlertDialog(context, 'Dữ liệu đã được nhập thành công'),
+          (_) => showAlertDialog(context, context.l10n.offlineImportSuccess),
         );
       }
     } catch (e) {

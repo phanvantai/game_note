@@ -11,10 +11,8 @@ import 'package:pes_arena/offline/domain/entities/match_model.dart';
 typedef IdGenerator = String Function();
 
 class OfflineToOnlineMigrator {
-  OfflineToOnlineMigrator(
-    this._gateway, {
-    IdGenerator? idGenerator,
-  }) : _newId = idGenerator ?? _defaultIdGenerator;
+  OfflineToOnlineMigrator(this._gateway, {IdGenerator? idGenerator})
+    : _newId = idGenerator ?? _defaultIdGenerator;
 
   final SyncRemoteGateway _gateway;
   final IdGenerator _newId;
@@ -45,9 +43,7 @@ class OfflineToOnlineMigrator {
           playerIdToUid[entry.key] = uid;
         case CreatePlaceholder(displayName: final name):
           final id = 'placeholder_${_newId()}';
-          placeholderUsers.add(
-            PlannedPlaceholder(id: id, displayName: name),
-          );
+          placeholderUsers.add(PlannedPlaceholder(id: id, displayName: name));
           playerIdToUid[entry.key] = id;
       }
     }
@@ -61,8 +57,7 @@ class OfflineToOnlineMigrator {
       GNEsportLeague.fieldOwnerId: currentUserUid,
       GNEsportLeague.fieldGroupId: groupId,
       GNEsportLeague.fieldName: offlineLeague.name,
-      GNEsportLeague.fieldStartDate:
-          Timestamp.fromDate(offlineLeague.dateTime),
+      GNEsportLeague.fieldStartDate: Timestamp.fromDate(offlineLeague.dateTime),
       GNEsportLeague.fieldEndDate: Timestamp.fromDate(offlineLeague.dateTime),
       GNEsportLeague.fieldIsActive: true,
       GNEsportLeague.fieldDescription:
@@ -124,9 +119,7 @@ class OfflineToOnlineMigrator {
     final mappingKeys = mappings.keys.toSet();
     final missing = offlinePlayerIds.difference(mappingKeys);
     if (missing.isNotEmpty) {
-      throw ArgumentError(
-        'Thiếu mapping cho offline player ids: $missing',
-      );
+      throw ArgumentError('Thiếu mapping cho offline player ids: $missing');
     }
     final unknown = mappingKeys.difference(offlinePlayerIds);
     if (unknown.isNotEmpty) {

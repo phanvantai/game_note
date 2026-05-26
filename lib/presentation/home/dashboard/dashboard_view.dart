@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/widgets/shimmer.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/routing.dart';
 
 import 'bloc/dashboard_bloc.dart';
@@ -39,7 +40,7 @@ class _DashboardViewState extends State<DashboardView> {
         if (state.viewStatus == ViewStatus.failure && state.stats == null) {
           return _DashboardError(
             message: state.errorMessage.isEmpty
-                ? 'Lỗi tải dữ liệu'
+                ? context.l10n.dashboardLoadError
                 : state.errorMessage,
           );
         }
@@ -56,20 +57,20 @@ class _DashboardViewState extends State<DashboardView> {
             StatCardGrid(stats: stats),
             const SizedBox(height: 20),
             _SectionCard(
-              title: 'Phong độ 10 trận gần nhất',
+              title: context.l10n.dashboardRecentForm10,
               icon: Icons.timeline_outlined,
               child: FormDotsRow(matches: stats.recentMatches),
             ),
             const SizedBox(height: 14),
             _SectionCard(
-              title: 'Trận gần đây',
+              title: context.l10n.dashboardRecentMatches,
               icon: Icons.sports_soccer_outlined,
               child: RecentMatchesList(matches: stats.recentMatches),
             ),
             if (stats.recentMatches.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text('Chưa có trận nào'),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(context.l10n.dashboardNoMatches),
               ),
           ],
         );
@@ -129,7 +130,7 @@ class _DashboardHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Control room',
+                      context.l10n.dashboardHeroEyebrow,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: colorScheme.secondary,
                         fontWeight: FontWeight.w800,
@@ -137,7 +138,7 @@ class _DashboardHero extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Theo dõi phong độ thi đấu',
+                      context.l10n.dashboardHeroTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -148,7 +149,7 @@ class _DashboardHero extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () => context.push(Routing.dashboardDetail),
                 icon: const Icon(Icons.bar_chart_outlined, size: 18),
-                label: const Text('Xem chi tiết'),
+                label: Text(context.l10n.dashboardViewDetail),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -163,7 +164,7 @@ class _DashboardHero extends StatelessWidget {
             children: [
               Expanded(
                 child: _HeroMetric(
-                  label: 'Tỉ lệ thắng',
+                  label: context.l10n.dashboardWinRate,
                   value: winRate,
                   icon: Icons.trending_up,
                 ),
@@ -171,7 +172,7 @@ class _DashboardHero extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HeroMetric(
-                  label: 'Hiệu số',
+                  label: context.l10n.dashboardGoalDifference,
                   value: _signed(stats.goalDifference),
                   icon: Icons.swap_vert,
                 ),
@@ -179,7 +180,7 @@ class _DashboardHero extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HeroMetric(
-                  label: 'Trận',
+                  label: context.l10n.dashboardMatches,
                   value: '${stats.matchesPlayed}',
                   icon: Icons.sports_soccer,
                 ),
@@ -358,7 +359,7 @@ class _DashboardError extends StatelessWidget {
                 context.read<DashboardBloc>().add(LoadDashboard());
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
+              label: Text(context.l10n.commonRetry),
             ),
           ],
         ),

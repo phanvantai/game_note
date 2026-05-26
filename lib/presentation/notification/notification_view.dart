@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import 'bloc/notification_bloc.dart';
 import 'notification_item.dart';
@@ -134,7 +135,7 @@ class _NotificationHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Activity feed',
+                      context.l10n.notificationActivityEyebrow,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: colorScheme.secondary,
                         fontWeight: FontWeight.w800,
@@ -143,8 +144,8 @@ class _NotificationHero extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       unread == 0
-                          ? 'Tất cả đã được đọc'
-                          : '$unread thông báo mới',
+                          ? context.l10n.notificationAllRead
+                          : context.l10n.notificationUnreadCount(unread),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -153,7 +154,7 @@ class _NotificationHero extends StatelessWidget {
                 ),
               ),
               Tooltip(
-                message: 'Đánh dấu tất cả đã đọc',
+                message: context.l10n.notificationMarkAllRead,
                 child: FilledButton.icon(
                   onPressed: () {
                     context.read<NotificationBloc>().add(
@@ -161,7 +162,7 @@ class _NotificationHero extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.done_all_outlined, size: 18),
-                  label: const Text('Đã đọc'),
+                  label: Text(context.l10n.notificationRead),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,

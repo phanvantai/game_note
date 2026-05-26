@@ -56,8 +56,9 @@ class GNEsportGroupStatsSummary extends Equatable {
     final raw = map[fieldPlayerStats] as List<dynamic>? ?? const [];
     final players = raw
         .whereType<Map<dynamic, dynamic>>()
-        .map((e) =>
-            GNEsportGroupPlayerEntry.fromMap(Map<String, dynamic>.from(e)))
+        .map(
+          (e) => GNEsportGroupPlayerEntry.fromMap(Map<String, dynamic>.from(e)),
+        )
         .toList();
     final updatedAtRaw = map[fieldUpdatedAt];
     return GNEsportGroupStatsSummary(
@@ -79,13 +80,13 @@ class GNEsportGroupStatsSummary extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'groupId': groupId,
-        fieldTotalLeagues: totalLeagues,
-        fieldFinishedLeagues: finishedLeagues,
-        fieldPlayerStats: playerStats.map((p) => p.toJson()).toList(),
-        fieldSchemaVersion: schemaVersion,
-        fieldUpdatedAt: updatedAt?.millisecondsSinceEpoch,
-      };
+    'groupId': groupId,
+    fieldTotalLeagues: totalLeagues,
+    fieldFinishedLeagues: finishedLeagues,
+    fieldPlayerStats: playerStats.map((p) => p.toJson()).toList(),
+    fieldSchemaVersion: schemaVersion,
+    fieldUpdatedAt: updatedAt?.millisecondsSinceEpoch,
+  };
 
   factory GNEsportGroupStatsSummary.fromJson(Map<String, dynamic> map) {
     final raw = map[fieldPlayerStats] as List<dynamic>? ?? const [];
@@ -96,24 +97,26 @@ class GNEsportGroupStatsSummary extends Equatable {
       finishedLeagues: (map[fieldFinishedLeagues] as num?)?.toInt() ?? 0,
       playerStats: raw
           .whereType<Map>()
-          .map((e) => GNEsportGroupPlayerEntry.fromMap(
-              Map<String, dynamic>.from(e)))
+          .map(
+            (e) =>
+                GNEsportGroupPlayerEntry.fromMap(Map<String, dynamic>.from(e)),
+          )
           .toList(),
       updatedAt: ts == null ? null : DateTime.fromMillisecondsSinceEpoch(ts),
-      schemaVersion: (map[fieldSchemaVersion] as num?)?.toInt() ??
-          kCurrentSchemaVersion,
+      schemaVersion:
+          (map[fieldSchemaVersion] as num?)?.toInt() ?? kCurrentSchemaVersion,
     );
   }
 
   @override
   List<Object?> get props => [
-        groupId,
-        totalLeagues,
-        finishedLeagues,
-        playerStats,
-        updatedAt,
-        schemaVersion,
-      ];
+    groupId,
+    totalLeagues,
+    finishedLeagues,
+    playerStats,
+    updatedAt,
+    schemaVersion,
+  ];
 }
 
 class GNEsportGroupPlayerEntry extends Equatable {
@@ -164,33 +167,33 @@ class GNEsportGroupPlayerEntry extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'userId': userId,
-        'displayName': displayName,
-        'photoUrl': photoUrl,
-        'matches': matches,
-        'wins': wins,
-        'draws': draws,
-        'losses': losses,
-        'goals': goals,
-        'goalsConceded': goalsConceded,
-        'championships': championships,
-        'runnerUps': runnerUps,
-        'finishedLeaguesJoined': finishedLeaguesJoined,
-      };
+    'userId': userId,
+    'displayName': displayName,
+    'photoUrl': photoUrl,
+    'matches': matches,
+    'wins': wins,
+    'draws': draws,
+    'losses': losses,
+    'goals': goals,
+    'goalsConceded': goalsConceded,
+    'championships': championships,
+    'runnerUps': runnerUps,
+    'finishedLeaguesJoined': finishedLeaguesJoined,
+  };
 
   @override
   List<Object?> get props => [
-        userId,
-        displayName,
-        photoUrl,
-        matches,
-        wins,
-        draws,
-        losses,
-        goals,
-        goalsConceded,
-        championships,
-        runnerUps,
-        finishedLeaguesJoined,
-      ];
+    userId,
+    displayName,
+    photoUrl,
+    matches,
+    wins,
+    draws,
+    losses,
+    goals,
+    goalsConceded,
+    championships,
+    runnerUps,
+    finishedLeaguesJoined,
+  ];
 }

@@ -24,22 +24,22 @@ class GroupState extends Equatable {
   }
 
   List<GNEsportGroup> get userGroups => groups.where((group) {
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          return group.members.contains(user.uid);
-        } else {
-          return false;
-        }
-      }).toList();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return group.members.contains(user.uid);
+    } else {
+      return false;
+    }
+  }).toList();
 
   List<GNEsportGroup> get otherGroups => groups.where((group) {
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          return !group.members.contains(user.uid);
-        } else {
-          return false;
-        }
-      }).toList();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return !group.members.contains(user.uid);
+    } else {
+      return false;
+    }
+  }).toList();
 
   @override
   List<Object?> get props => [viewStatus, groups, errorMessage];

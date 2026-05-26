@@ -6,7 +6,7 @@ enum LeagueDetailStatus {
   empty,
   addingPlayer,
   loaded,
-  updating
+  updating,
 }
 
 extension LeagueDetailStatusX on LeagueDetailStatus {

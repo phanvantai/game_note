@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/offline/domain/entities/match_model.dart';
 
 class UpdateMatchDialog extends StatefulWidget {
@@ -23,7 +24,7 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return AlertDialog(
-      title: const Text('Cập nhật tỉ số'),
+      title: Text(context.l10n.offlineUpdateScoreTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -133,7 +134,7 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () {
@@ -145,7 +146,7 @@ class _UpdateMatchDialogState extends State<UpdateMatchDialog> {
             widget.callback(widget.model, home, away);
             Navigator.of(context).pop();
           },
-          child: const Text('Xác nhận'),
+          child: Text(context.l10n.commonConfirm),
         ),
       ],
     );

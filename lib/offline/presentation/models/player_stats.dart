@@ -26,19 +26,27 @@ class PlayerStats extends Equatable {
   });
 
   @override
-  List<Object?> get props =>
-      [rank, name, played, wins, draws, losses, goalsDifference, points];
+  List<Object?> get props => [
+    rank,
+    name,
+    played,
+    wins,
+    draws,
+    losses,
+    goalsDifference,
+    points,
+  ];
 
   static PlayerStats get virtualStats => const PlayerStats(
-        rank: '#',
-        name: "PLAYER",
-        played: "P",
-        wins: "W",
-        draws: "D",
-        losses: "L",
-        goalsDifference: -10000,
-        points: -10000,
-      );
+    rank: '#',
+    name: "PLAYER",
+    played: "P",
+    wins: "W",
+    draws: "D",
+    losses: "L",
+    goalsDifference: -10000,
+    points: -10000,
+  );
 
   static PlayerStats fromModel(int index, PlayerStatsModel model) {
     return PlayerStats(

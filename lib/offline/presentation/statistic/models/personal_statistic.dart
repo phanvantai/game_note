@@ -56,17 +56,17 @@ class PersonalStatistic extends Equatable {
 
   @override
   List<Object?> get props => [
-        playerModel,
-        countWinsLeague,
-        countRunnerUp,
-        countJoin,
-        countMatches,
-        countPoints,
-        countWins,
-        countDraws,
-        countLoses,
-        countGD,
-      ];
+    playerModel,
+    countWinsLeague,
+    countRunnerUp,
+    countJoin,
+    countMatches,
+    countPoints,
+    countWins,
+    countDraws,
+    countLoses,
+    countGD,
+  ];
 
   PersonalStatistic getStatisticWithLeague(LeagueModel leagueModel) {
     final playerStats = leagueModel.statsWithPlayer(playerModel);
@@ -141,8 +141,9 @@ class PersonalStatistic extends Equatable {
 
 extension LeagueModelX on LeagueModel {
   PlayerStatsModel? statsWithPlayer(PlayerModel playerModel) {
-    final filter =
-        players.where((element) => element.playerModel.id == playerModel.id);
+    final filter = players.where(
+      (element) => element.playerModel.id == playerModel.id,
+    );
     return filter.isNotEmpty ? filter.first : null;
   }
 
