@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/data/sync/migration_plan.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/offline/domain/entities/league_model.dart';
 import 'package:pes_arena/offline/domain/entities/match_model.dart';
 import 'package:pes_arena/presentation/sync/bloc/sync_bloc.dart';
@@ -17,9 +18,9 @@ class Step3Preview extends StatelessWidget {
         final group = state.selectedGroup;
         final plan = state.plan;
         if (league == null || group == null || plan == null) {
-          return const Center(child: Text('Thiếu dữ liệu'));
+          return Center(child: Text(context.l10n.syncMissingData));
         }
-        final uidToName = _buildUidToNameMap(state);
+        final uidToName = _buildUidToNameMap(context, state);
 
         return DefaultTabController(
           length: 2,
@@ -31,15 +32,15 @@ class Step3Preview extends StatelessWidget {
                 groupName: group.groupName,
                 totalOps: plan.totalOps,
               ),
-              const TabBar(
+              TabBar(
                 tabs: [
                   Tab(
                     key: ValueKey('tab-offline'),
-                    text: 'Offline (gốc)',
+                    text: context.l10n.syncOriginalOfflineTab,
                   ),
                   Tab(
                     key: ValueKey('tab-online'),
-                    text: 'Online (sẽ tạo)',
+                    text: context.l10n.syncOnlineWillCreateTab,
                   ),
                 ],
               ),
@@ -54,10 +55,10 @@ class Step3Preview extends StatelessWidget {
               StepNavBar(
                 previousKey: const ValueKey('step3-prev'),
                 nextKey: const ValueKey('confirm-sync'),
-                nextLabel: 'Đồng bộ',
-                onPrevious: () => context
-                    .read<SyncBloc>()
-                    .add(const SyncGoToStep(SyncStep.mapPlayers)),
+                nextLabel: context.l10n.syncRun,
+                onPrevious: () => context.read<SyncBloc>().add(
+                  const SyncGoToStep(SyncStep.mapPlayers),
+                ),
                 onNext: () => context.read<SyncBloc>().add(const SyncRun()),
               ),
             ],
@@ -67,14 +68,17 @@ class Step3Preview extends StatelessWidget {
     );
   }
 
-  Map<String, String> _buildUidToNameMap(SyncState state) {
+  Map<String, String> _buildUidToNameMap(
+    BuildContext context,
+    SyncState state,
+  ) {
     final map = <String, String>{};
     for (final m in state.groupMembers) {
       map[m.id] = m.displayName ?? m.id;
     }
     if (state.plan != null) {
       for (final p in state.plan!.placeholderUsers) {
-        map[p.id] = '${p.displayName} (mới)';
+        map[p.id] = '${p.displayName} (${context.l10n.syncNewSuffix})';
       }
     }
     return map;
@@ -109,14 +113,14 @@ class _LeagueHeader extends StatelessWidget {
             children: [
               Text(name, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 4),
-              Text('Ngày: $dateText'),
-              Text('Group đích: $groupName'),
+              Text(context.l10n.syncDateLabel(dateText)),
+              Text(context.l10n.syncTargetGroupLabel(groupName)),
               Text(
-                'Sẽ ghi $totalOps bản ghi lên server',
+                context.l10n.syncWritesCount(totalOps),
                 key: const ValueKey('ops-count'),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontStyle: FontStyle.italic,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
               ),
             ],
           ),
@@ -262,25 +266,22 @@ class _PreviewBody extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         Text(
-          'Bảng xếp hạng',
+          context.l10n.syncStandingsTitle,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
         _StandingsTable(rows: rows),
         const SizedBox(height: 24),
         Text(
-          'Kết quả trận đấu (${matches.length})',
+          context.l10n.syncMatchResultsTitle(matches.length),
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
         if (matches.isEmpty)
-          const Text('Không có trận nào đã đấu')
+          Text(context.l10n.syncNoPlayedMatches)
         else
           _MatchesList(matches: matches),
-        if (footer != null) ...[
-          const SizedBox(height: 24),
-          footer!,
-        ],
+        if (footer != null) ...[const SizedBox(height: 24), footer!],
       ],
     );
   }
@@ -318,7 +319,8 @@ class _StandingsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sorted = [...rows]..sort((a, b) {
+    final sorted = [...rows]
+      ..sort((a, b) {
         final p = b.points.compareTo(a.points);
         if (p != 0) return p;
         final g = b.gd.compareTo(a.gd);
@@ -336,17 +338,38 @@ class _StandingsTable extends StatelessWidget {
           headingRowHeight: 36,
           dataRowMinHeight: 32,
           dataRowMaxHeight: 36,
-          columns: const [
-            DataColumn(label: Text('#')),
-            DataColumn(label: Text('Người chơi')),
-            DataColumn(label: Text('MP'), numeric: true),
-            DataColumn(label: Text('W'), numeric: true),
-            DataColumn(label: Text('D'), numeric: true),
-            DataColumn(label: Text('L'), numeric: true),
-            DataColumn(label: Text('GF'), numeric: true),
-            DataColumn(label: Text('GA'), numeric: true),
-            DataColumn(label: Text('GD'), numeric: true),
-            DataColumn(label: Text('Pts'), numeric: true),
+          columns: [
+            const DataColumn(label: Text('#')),
+            DataColumn(label: Text(context.l10n.tablePlayer)),
+            DataColumn(
+              label: Text(context.l10n.tableMatchesPlayedShort),
+              numeric: true,
+            ),
+            DataColumn(label: Text(context.l10n.tableWinsShort), numeric: true),
+            DataColumn(
+              label: Text(context.l10n.tableDrawsShort),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(context.l10n.tableLossesShort),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(context.l10n.tableGoalsForShort),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(context.l10n.tableGoalsAgainstShort),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(context.l10n.tableGoalDifferenceShort),
+              numeric: true,
+            ),
+            DataColumn(
+              label: Text(context.l10n.tablePointsShort),
+              numeric: true,
+            ),
           ],
           rows: [
             for (var i = 0; i < sorted.length; i++)
@@ -362,10 +385,12 @@ class _StandingsTable extends StatelessWidget {
                   DataCell(Text('${sorted[i].goals}')),
                   DataCell(Text('${sorted[i].goalsConceded}')),
                   DataCell(Text(_signed(sorted[i].gd))),
-                  DataCell(Text(
-                    '${sorted[i].points}',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  )),
+                  DataCell(
+                    Text(
+                      '${sorted[i].points}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
                 ],
               ),
           ],
@@ -412,13 +437,14 @@ class _MatchesList extends StatelessWidget {
               ),
             Padding(
               key: ValueKey('match-${matches[i].id}'),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
                   Expanded(
-                    child:
-                        Text(matches[i].homeName, textAlign: TextAlign.right),
+                    child: Text(
+                      matches[i].homeName,
+                      textAlign: TextAlign.right,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -448,7 +474,7 @@ class _PlaceholdersFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Người chơi mới sẽ được tạo (${placeholders.length})',
+          context.l10n.syncNewPlayersWillBeCreated(placeholders.length),
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 
 /// Hero card sit at the top of the Tổng quan tab — shows group avatar,
@@ -80,7 +81,9 @@ class GroupDetailHero extends StatelessWidget {
                   children: [
                     _HeroChip(
                       icon: Icons.people_alt_outlined,
-                      label: '${state.members.length} thành viên',
+                      label: context.l10n.groupMemberCount(
+                        state.members.length,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     if (state.isOwner)

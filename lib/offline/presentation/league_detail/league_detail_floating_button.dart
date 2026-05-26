@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import 'bloc/league_detail_bloc.dart';
 
@@ -17,7 +18,7 @@ class LeagueDetailFloatingButton extends StatelessWidget {
                 context,
               ).add(AddPlayersStarted());
             },
-            tooltip: 'Thêm người chơi',
+            tooltip: context.l10n.offlineAddPlayerTooltip,
             child: const Icon(Icons.add),
           );
         }
@@ -26,7 +27,7 @@ class LeagueDetailFloatingButton extends StatelessWidget {
             onPressed: () {
               BlocProvider.of<LeagueDetailBloc>(context).add(AddNewRounds());
             },
-            tooltip: 'Thêm vòng đấu',
+            tooltip: context.l10n.offlineAddRoundTooltip,
             child: const Icon(Icons.add),
           );
         }

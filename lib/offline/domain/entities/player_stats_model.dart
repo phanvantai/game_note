@@ -65,14 +65,14 @@ class PlayerStatsModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        playerModel,
-        leagueId,
-        totalPlayed,
-        wins,
-        draws,
-        losses,
-        goalDifferent,
-        points
-      ];
+    id,
+    playerModel,
+    leagueId,
+    totalPlayed,
+    wins,
+    draws,
+    losses,
+    goalDifferent,
+    points,
+  ];
 }

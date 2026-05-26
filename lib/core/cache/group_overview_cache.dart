@@ -30,8 +30,7 @@ class GroupOverviewCache {
     }
   }
 
-  Future<void> write(
-      String groupId, GNEsportGroupStatsSummary summary) async {
+  Future<void> write(String groupId, GNEsportGroupStatsSummary summary) async {
     final encoded = jsonEncode(summary.toJson());
     await _prefs.setString(_key(groupId), encoded);
   }

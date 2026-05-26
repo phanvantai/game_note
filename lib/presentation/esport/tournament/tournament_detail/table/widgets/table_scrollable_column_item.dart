@@ -25,11 +25,11 @@ class TableScrollableColumnItem extends StatelessWidget {
   static const _bronze = Color(0xFFCD853F);
 
   Color? _rankAccent() => switch (rank) {
-        1 => _gold,
-        2 => _silver,
-        3 => _bronze,
-        _ => null,
-      };
+    1 => _gold,
+    2 => _silver,
+    3 => _bronze,
+    _ => null,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -110,8 +110,8 @@ class TableScrollableColumnItem extends StatelessWidget {
       final color = value > 0
           ? const Color(0xFF16A34A)
           : value < 0
-              ? colorScheme.error
-              : colorScheme.onSurface.withValues(alpha: 0.45);
+          ? colorScheme.error
+          : colorScheme.onSurface.withValues(alpha: 0.45);
       return Text(
         value > 0 ? '+$value' : value.toString(),
         style: TextStyle(

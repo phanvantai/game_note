@@ -6,6 +6,7 @@ import 'package:pes_arena/core/cache/h2h_preferences.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/widgets/shimmer.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/routing.dart';
 
@@ -46,13 +47,13 @@ class _DashboardDetailScaffold extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: const SmartBackButton(),
-        title: const Text('Bảng thống kê'),
+        title: Text(context.l10n.dashboardStatsTitle),
         actions: [
           BlocBuilder<DashboardBloc, DashboardState>(
             builder: (context, state) {
               final loading = state.viewStatus == ViewStatus.loading;
               return IconButton(
-                tooltip: 'Cập nhật từ máy chủ',
+                tooltip: context.l10n.dashboardRefreshTooltip,
                 onPressed: loading ? null : () => _confirmAndRefresh(context),
                 icon: loading
                     ? const SizedBox(
@@ -75,7 +76,7 @@ class _DashboardDetailScaffold extends StatelessWidget {
             }
             return _ErrorState(
               message: state.errorMessage.isEmpty
-                  ? 'Lỗi tải dữ liệu'
+                  ? context.l10n.dashboardLoadError
                   : state.errorMessage,
             );
           }
@@ -98,13 +99,13 @@ class _DashboardDetailScaffold extends StatelessWidget {
                   children: [
                     _DetailHero(stats: stats),
                     const SizedBox(height: 14),
-                    _SectionHeader('Tổng quan'),
+                    _SectionHeader(context.l10n.dashboardOverview),
                     _OverviewBlock(stats: stats),
                     const SizedBox(height: 16),
                     _HeadToHeadSection(opponents: stats.opponents),
                     const SizedBox(height: 18),
                     _SectionShell(
-                      title: 'Phong độ 5 giải gần nhất',
+                      title: context.l10n.dashboardRecentLeagueForm5,
                       icon: Icons.show_chart_outlined,
                       child: LeaguePerformanceChart(
                         points: stats.leaguePerformance,
@@ -112,20 +113,20 @@ class _DashboardDetailScaffold extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     _SectionShell(
-                      title: 'Phong độ 10 trận gần nhất',
+                      title: context.l10n.dashboardRecentForm10,
                       icon: Icons.timeline_outlined,
                       child: FormDotsRow(matches: stats.recentMatches),
                     ),
                     const SizedBox(height: 24),
                     _SectionShell(
-                      title: 'Trận gần đây',
+                      title: context.l10n.dashboardRecentMatches,
                       icon: Icons.sports_soccer_outlined,
                       child: _DetailedMatchList(matches: stats.recentMatches),
                     ),
                     if (stats.recentMatches.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 8),
-                        child: Text('Chưa có trận nào'),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(context.l10n.dashboardNoMatches),
                       ),
                   ],
                 ),
@@ -155,7 +156,7 @@ class _DetailHero extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final winRate = stats.winRate == null
-        ? 'Chưa có'
+        ? context.l10n.dashboardNoData
         : '${(stats.winRate! * 100).round()}%';
     return Container(
       padding: const EdgeInsets.all(14),
@@ -196,7 +197,7 @@ class _DetailHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Dashboard detail',
+                      context.l10n.dashboardDetailEyebrow,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: colorScheme.secondary,
                         fontWeight: FontWeight.w800,
@@ -204,7 +205,7 @@ class _DetailHero extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Toàn cảnh thành tích thi đấu',
+                      context.l10n.dashboardDetailSubtitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -219,7 +220,7 @@ class _DetailHero extends StatelessWidget {
             children: [
               Expanded(
                 child: _HeroPill(
-                  label: 'Win rate',
+                  label: context.l10n.dashboardWinRate,
                   value: winRate,
                   color: Colors.green,
                 ),
@@ -227,7 +228,7 @@ class _DetailHero extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HeroPill(
-                  label: 'Hiệu số',
+                  label: context.l10n.dashboardGoalDifference,
                   value: _signed(stats.goalDifference),
                   color: colorScheme.secondary,
                 ),
@@ -235,8 +236,10 @@ class _DetailHero extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HeroPill(
-                  label: 'Đã đấu',
-                  value: '${stats.matchesPlayed} trận',
+                  label: context.l10n.dashboardMatches,
+                  value: context.l10n.dashboardMatchesCount(
+                    stats.matchesPlayed,
+                  ),
                   color: const Color(0xFF2563EB),
                 ),
               ),
@@ -344,19 +347,16 @@ Future<void> _confirmAndRefresh(BuildContext context) async {
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Cập nhật thống kê?'),
-      content: const Text(
-        'Hệ thống sẽ tính lại toàn bộ thống kê từ dữ liệu trận đấu. '
-        'Thao tác này có thể mất vài giây.',
-      ),
+      title: Text(context.l10n.dashboardRefreshTitle),
+      content: Text(context.l10n.dashboardRefreshMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(false),
-          child: const Text('Huỷ'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(ctx).pop(true),
-          child: const Text('Cập nhật'),
+          child: Text(context.l10n.commonUpdate),
         ),
       ],
     ),
@@ -460,21 +460,24 @@ class _OverviewBlock extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           children: [
-            _MetricRow('Số giải tham gia', '${stats.tournamentsJoined}'),
-            _MetricRow('Số trận', '$played'),
             _MetricRow(
-              'Vô địch gần nhất',
-              _lastChampionLabel(stats.lastChampionAt),
+              context.l10n.dashboardMetricTournamentsJoined,
+              '${stats.tournamentsJoined}',
             ),
-            _MetricRow('Thắng / Hoà / Thua', wdlCount),
-            _MetricRow('Tỉ lệ T / H / T', wdlPct),
-            _MetricRow('BT / BB / Hiệu số', goalsLine),
+            _MetricRow(context.l10n.dashboardMetricMatches, '$played'),
             _MetricRow(
-              'Vô địch',
+              context.l10n.dashboardMetricLatestChampion,
+              _lastChampionLabel(context, stats.lastChampionAt),
+            ),
+            _MetricRow(context.l10n.dashboardMetricWdlCount, wdlCount),
+            _MetricRow(context.l10n.dashboardMetricWdlRate, wdlPct),
+            _MetricRow(context.l10n.dashboardMetricGoals, goalsLine),
+            _MetricRow(
+              context.l10n.dashboardMetricChampion,
               _countAndRate(stats.championCount, stats.championRate),
             ),
             _MetricRow(
-              'Á quân',
+              context.l10n.dashboardMetricRunnerUp,
               _countAndRate(stats.runnerUpCount, stats.runnerUpRate),
             ),
           ],
@@ -556,10 +559,13 @@ class _HeadToHeadSectionState extends State<_HeadToHeadSection> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Đối đầu', style: theme.textTheme.titleMedium),
+                    Text(
+                      context.l10n.dashboardH2HSectionTitle,
+                      style: theme.textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 2),
                     Text(
-                      'Khắc tinh và mồi ngon theo lịch sử gặp nhau',
+                      context.l10n.dashboardH2HSectionSubtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -579,7 +585,7 @@ class _HeadToHeadSectionState extends State<_HeadToHeadSection> {
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
-                  '(≥ $_minMatches trận)',
+                  context.l10n.dashboardMinMatchesChip(_minMatches),
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: colorScheme.secondary,
                     fontWeight: FontWeight.w800,
@@ -589,7 +595,7 @@ class _HeadToHeadSectionState extends State<_HeadToHeadSection> {
               const SizedBox(width: 4),
               IconButton(
                 icon: const Icon(Icons.tune, size: 20),
-                tooltip: 'Tuỳ chỉnh ngưỡng',
+                tooltip: context.l10n.dashboardThresholdTooltip,
                 onPressed: _openSettings,
               ),
             ],
@@ -603,12 +609,11 @@ class _HeadToHeadSectionState extends State<_HeadToHeadSection> {
             child: OutlinedButton.icon(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) =>
-                      H2HDetailPage(opponents: widget.opponents),
+                  builder: (_) => H2HDetailPage(opponents: widget.opponents),
                 ),
               ),
               icon: const Icon(Icons.groups_2_outlined, size: 18),
-              label: const Text('Xem tất cả đối thủ'),
+              label: Text(context.l10n.dashboardViewAllOpponents),
             ),
           ),
         ],
@@ -649,12 +654,13 @@ class _MinMatchesSheetState extends State<_MinMatchesSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Ngưỡng số trận tối thiểu', style: theme.textTheme.titleMedium),
+          Text(
+            context.l10n.dashboardMinMatchesTitle,
+            style: theme.textTheme.titleMedium,
+          ),
           const SizedBox(height: 4),
           Text(
-            'Đối thủ phải có ít nhất $intValue trận đối đầu mới được tính '
-            'vào "Khắc tinh" / "Mồi ngon". Đặt cao hơn để loại bớt nhiễu khi '
-            'mẫu nhỏ.',
+            context.l10n.dashboardMinMatchesDescription(intValue),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -669,7 +675,10 @@ class _MinMatchesSheetState extends State<_MinMatchesSheet> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text('trận', style: theme.textTheme.bodyMedium),
+              Text(
+                context.l10n.dashboardMatchesUnit,
+                style: theme.textTheme.bodyMedium,
+              ),
             ],
           ),
           Slider(
@@ -688,12 +697,12 @@ class _MinMatchesSheetState extends State<_MinMatchesSheet> {
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Huỷ'),
+                child: Text(context.l10n.commonCancel),
               ),
               const SizedBox(width: 8),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(intValue),
-                child: const Text('Lưu'),
+                child: Text(context.l10n.commonSave),
               ),
             ],
           ),
@@ -729,8 +738,8 @@ class _HeadToHeadBlock extends StatelessWidget {
       children: [
         Expanded(
           child: _H2HCard(
-            label: 'Khắc tinh',
-            metricName: 'thua',
+            label: context.l10n.dashboardNemesis,
+            metricName: context.l10n.dashboardLossMetric,
             opponent: nemesis,
             count: (o) => o.losses,
             accent: colorScheme.error,
@@ -741,8 +750,8 @@ class _HeadToHeadBlock extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _H2HCard(
-            label: 'Mồi ngon',
-            metricName: 'thắng',
+            label: context.l10n.dashboardFavorableOpponent,
+            metricName: context.l10n.dashboardWinMetric,
             opponent: prey,
             count: (o) => o.wins,
             accent: Colors.green,
@@ -882,7 +891,11 @@ class _H2HCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '$n / ${opponent!.matchesPlayed} trận $metricName',
+                    context.l10n.dashboardOpponentRecordLine(
+                      n,
+                      opponent!.matchesPlayed,
+                      metricName,
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -900,17 +913,17 @@ class _H2HCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _WDLCell(
-                  label: 'Thắng',
+                  label: context.l10n.dashboardWdlWin,
                   value: opponent!.wins,
                   color: const Color(0xFF16A34A),
                 ),
                 _WDLCell(
-                  label: 'Hoà',
+                  label: context.l10n.dashboardWdlDraw,
                   value: opponent!.draws,
                   color: colorScheme.secondary,
                 ),
                 _WDLCell(
-                  label: 'Thua',
+                  label: context.l10n.dashboardWdlLoss,
                   value: opponent!.losses,
                   color: colorScheme.error,
                 ),
@@ -922,14 +935,10 @@ class _H2HCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Column(
                   children: [
-                    Icon(
-                      icon,
-                      size: 32,
-                      color: accent.withValues(alpha: 0.3),
-                    ),
+                    Icon(icon, size: 32, color: accent.withValues(alpha: 0.3)),
                     const SizedBox(height: 8),
                     Text(
-                      'Cần ≥ $minMatches trận\nđối đầu cùng người',
+                      context.l10n.dashboardNeedMoreH2H(minMatches),
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
@@ -1134,7 +1143,7 @@ class _DetailedMatchList extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            m.result.label,
+                            m.result.localizedLabel(context),
                             style: TextStyle(
                               color: resultColor,
                               fontWeight: FontWeight.w900,
@@ -1230,7 +1239,7 @@ class _ErrorState extends StatelessWidget {
               onPressed: () =>
                   context.read<DashboardBloc>().add(LoadDashboard()),
               icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
+              label: Text(context.l10n.commonRetry),
             ),
           ],
         ),
@@ -1258,7 +1267,7 @@ String _signed(int n) {
   return '$n';
 }
 
-String _lastChampionLabel(DateTime? date) {
-  if (date == null) return '—';
+String _lastChampionLabel(BuildContext context, DateTime? date) {
+  if (date == null) return context.l10n.dashboardNoValue;
   return DateFormat('dd/MM/yyyy').format(date);
 }

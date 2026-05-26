@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/constants/assets_path.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/app/offline_button.dart';
 
 import 'sign_in/sign_in_page.dart';
@@ -32,7 +33,7 @@ class AuthView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'PES Arena',
+                context.l10n.appName,
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -41,7 +42,7 @@ class AuthView extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Đăng nhập để tiếp tục',
+                context.l10n.authContinue,
                 style: TextStyle(
                   fontSize: 15,
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -60,7 +61,7 @@ class AuthView extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      'Hoặc',
+                      context.l10n.or,
                       style: TextStyle(
                         fontSize: 13,
                         color: colorScheme.onSurface.withValues(alpha: 0.5),

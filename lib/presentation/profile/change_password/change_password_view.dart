@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/profile/change_password/bloc/change_password_bloc.dart';
 
@@ -40,7 +41,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           leading: const SmartBackButton(),
-          title: const Text('Đổi mật khẩu'),
+          title: Text(context.l10n.profileChangePasswordTitle),
         ),
         body: Container(
           decoration: BoxDecoration(
@@ -77,7 +78,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                                 .add(OldPasswordChanged(value)),
                             decoration: appInputDecoration(
                               context: context,
-                              hintText: 'Mật khẩu hiện tại',
+                              hintText: context.l10n.profileCurrentPasswordHint,
                               prefixIcon: Icons.lock_outline,
                               suffixIcon: _buildVisibilityToggle(
                                 _isObscureOld,
@@ -99,7 +100,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                                 .add(NewPasswordChanged(value)),
                             decoration: appInputDecoration(
                               context: context,
-                              hintText: 'Mật khẩu mới',
+                              hintText: context.l10n.profileNewPasswordHint,
                               prefixIcon: Icons.lock_outline,
                               suffixIcon: _buildVisibilityToggle(
                                 _isObscureNew,
@@ -121,7 +122,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                                 .add(ConfirmPasswordChanged(value)),
                             decoration: appInputDecoration(
                               context: context,
-                              hintText: 'Xác nhận mật khẩu mới',
+                              hintText:
+                                  context.l10n.profileConfirmNewPasswordHint,
                               prefixIcon: Icons.lock_outline,
                               suffixIcon: _buildVisibilityToggle(
                                 _isObscureConfirm,
@@ -155,8 +157,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          child: const Text(
-                            'Đổi mật khẩu',
+                          child: Text(
+                            context.l10n.profileChangePasswordTitle,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
@@ -177,7 +179,10 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
           showToast(state.errorMessage, gravity: ToastGravity.TOP);
         }
         if (state.viewStatus == ViewStatus.success) {
-          showToast('Đổi mật khẩu thành công', gravity: ToastGravity.TOP);
+          showToast(
+            context.l10n.profileChangePasswordSuccess,
+            gravity: ToastGravity.TOP,
+          );
           context.smartBack();
         }
       },
@@ -216,7 +221,7 @@ class _SecurityHero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Security',
+                  context.l10n.profileSecurityEyebrow,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: colorScheme.secondary,
                     fontWeight: FontWeight.w800,
@@ -224,14 +229,14 @@ class _SecurityHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Đổi mật khẩu',
+                  context.l10n.profileChangePasswordTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Cập nhật mật khẩu để bảo vệ tài khoản.',
+                  context.l10n.profileSecuritySubtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

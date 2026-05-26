@@ -50,6 +50,13 @@ class GNTeam extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [teamId, name, ownerId, members, managers, createdAt, updatedAt];
+  List<Object?> get props => [
+    teamId,
+    name,
+    ownerId,
+    members,
+    managers,
+    createdAt,
+    updatedAt,
+  ];
 }

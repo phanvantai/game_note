@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import '../models/league_performance_point.dart';
 
@@ -23,15 +24,13 @@ class LeaguePerformanceChart extends StatelessWidget {
         .where((p) => p.matchesPlayed > 0 && p.pointsPerMatch != null)
         .toList();
     if (played.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 80,
-        child: Center(child: Text('Chưa đủ dữ liệu để vẽ biểu đồ')),
+        child: Center(child: Text(context.l10n.dashboardInsufficientChartData)),
       );
     }
 
-    final start = played.length > windowSize
-        ? played.length - windowSize
-        : 0;
+    final start = played.length > windowSize ? played.length - windowSize : 0;
     final window = played.sublist(start);
 
     final ppmSpots = <FlSpot>[];
@@ -64,8 +63,14 @@ class LeaguePerformanceChart extends StatelessWidget {
           child: Wrap(
             spacing: 16,
             children: [
-              _LegendDot(color: ppmColor, label: 'Điểm / trận'),
-              _LegendDot(color: gdColor, label: 'Hiệu số / trận'),
+              _LegendDot(
+                color: ppmColor,
+                label: context.l10n.dashboardPointsPerMatch,
+              ),
+              _LegendDot(
+                color: gdColor,
+                label: context.l10n.dashboardGoalDifferencePerMatch,
+              ),
             ],
           ),
         ),
@@ -108,10 +113,7 @@ class LeaguePerformanceChart extends StatelessWidget {
                           : name;
                       return Padding(
                         padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          short,
-                          style: theme.textTheme.bodySmall,
-                        ),
+                        child: Text(short, style: theme.textTheme.bodySmall),
                       );
                     },
                   ),
@@ -125,10 +127,10 @@ class LeaguePerformanceChart extends StatelessWidget {
                     // touched X. Render the league header (name + W/D/L)
                     // only on the first spot; the second spot just shows
                     // its own metric line. Avoids the duplicated header.
-                    final base =
-                        theme.textTheme.bodySmall ?? const TextStyle();
-                    final headerStyle =
-                        base.copyWith(fontWeight: FontWeight.w700);
+                    final base = theme.textTheme.bodySmall ?? const TextStyle();
+                    final headerStyle = base.copyWith(
+                      fontWeight: FontWeight.w700,
+                    );
                     return [
                       for (var i = 0; i < spots.length; i++)
                         _tooltipFor(

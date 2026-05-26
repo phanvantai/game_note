@@ -5,6 +5,7 @@ import 'package:pes_arena/core/helpers/admob_helper.dart';
 import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -39,32 +40,32 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       _TabSpec(
         icon: Icons.sports_esports_outlined,
         activeIcon: Icons.sports_esports,
-        label: 'Arena',
+        tab: _MainTab.arena,
         page: HomePage(),
       ),
       _TabSpec(
         icon: Icons.group_outlined,
         activeIcon: Icons.group,
-        label: 'Nhóm',
+        tab: _MainTab.groups,
         page: GroupsView(),
       ),
       _TabSpec(
         icon: Icons.emoji_events_outlined,
         activeIcon: Icons.emoji_events,
-        label: 'Giải đấu',
+        tab: _MainTab.tournaments,
         page: TournamentView(),
       ),
       _TabSpec(
         icon: Icons.notifications_outlined,
         activeIcon: Icons.notifications,
-        label: 'Thông báo',
+        tab: _MainTab.notifications,
         page: NotificationView(),
         showUnreadBadge: true,
       ),
       _TabSpec(
         icon: Icons.person_outline,
         activeIcon: Icons.person,
-        label: 'Cá nhân',
+        tab: _MainTab.profile,
         page: ProfileView(),
       ),
     ];
@@ -123,7 +124,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
                               t.showUnreadBadge &&
                               notificationState.unreadNotificationsCount > 0,
                         ),
-                        label: t.label,
+                        label: _labelFor(context, t.tab),
                       ),
                     )
                     .toList(),
@@ -191,19 +192,32 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
     )..load();
     // coverage:ignore-end
   }
+
+  String _labelFor(BuildContext context, _MainTab tab) {
+    final l10n = context.l10n;
+    return switch (tab) {
+      _MainTab.arena => l10n.mainTabArena,
+      _MainTab.groups => l10n.mainTabGroups,
+      _MainTab.tournaments => l10n.mainTabTournaments,
+      _MainTab.notifications => l10n.mainTabNotifications,
+      _MainTab.profile => l10n.mainTabProfile,
+    };
+  }
 }
+
+enum _MainTab { arena, groups, tournaments, notifications, profile }
 
 class _TabSpec {
   final IconData icon;
   final IconData activeIcon;
-  final String label;
+  final _MainTab tab;
   final Widget page;
   final bool showUnreadBadge;
 
   const _TabSpec({
     required this.icon,
     required this.activeIcon,
-    required this.label,
+    required this.tab,
     required this.page,
     this.showUnreadBadge = false,
   });

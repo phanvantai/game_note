@@ -46,10 +46,7 @@ class OngoingTournamentsBloc
       );
     } catch (e) {
       emit(
-        state.copyWith(
-          status: ViewStatus.failure,
-          errorMessage: e.toString(),
-        ),
+        state.copyWith(status: ViewStatus.failure, errorMessage: e.toString()),
       );
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import '../../cost/collapsible_cost_config.dart';
 import '../../cost/cost_config_form.dart';
 import '../../cost/cost_summary_panel.dart';
@@ -24,7 +25,8 @@ class CostSplitView extends StatelessWidget {
     return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
       builder: (context, state) {
         final league = state.league;
-        final isBracketMode = league?.mode == TournamentMode.cup ||
+        final isBracketMode =
+            league?.mode == TournamentMode.cup ||
             league?.mode == TournamentMode.full;
         final knockoutMatches = state.knockoutMatches;
         if (league == null) {
@@ -32,12 +34,12 @@ class CostSplitView extends StatelessWidget {
             onRefresh: () => _refresh(context),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
+              children: [
                 SizedBox(
                   height: 400,
                   child: AppEmptyState(
                     icon: Icons.payments_outlined,
-                    title: 'Đang tải chi phí',
+                    title: context.l10n.tournamentLoadingCost,
                   ),
                 ),
               ],
@@ -70,13 +72,12 @@ class CostSplitView extends StatelessWidget {
               ),
               if (!league.rankPayoutEnabled &&
                   !state.matches.any((m) => (m.matchCost ?? 0) > 0))
-                const SizedBox(
+                SizedBox(
                   height: 320,
                   child: AppEmptyState(
                     icon: Icons.payments_outlined,
-                    title: 'Chưa có chi phí',
-                    subtitle:
-                        'Bật cấu hình chi phí hoặc nhập tiền trong từng trận',
+                    title: context.l10n.tournamentNoCostTitle,
+                    subtitle: context.l10n.tournamentNoCostSubtitle,
                   ),
                 ),
             ],
@@ -91,7 +92,11 @@ class _CostConfigWrapper extends StatefulWidget {
   final GNEsportLeague league;
   final bool isBracketMode;
 
-  const _CostConfigWrapper({super.key, required this.league, this.isBracketMode = false});
+  const _CostConfigWrapper({
+    super.key,
+    required this.league,
+    this.isBracketMode = false,
+  });
 
   @override
   State<_CostConfigWrapper> createState() => _CostConfigWrapperState();
@@ -130,10 +135,12 @@ class _CostConfigWrapperState extends State<_CostConfigWrapper> {
       action: FilledButton.icon(
         onPressed: _save,
         icon: const Icon(Icons.save_outlined, size: 17),
-        label: const Text('Lưu'),
+        label: Text(context.l10n.commonSave),
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
     );

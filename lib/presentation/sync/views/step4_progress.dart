@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/sync/bloc/sync_bloc.dart';
 
 /// Step cuối: commit batch lên Firestore. UI bị freeze trong lúc chạy
@@ -44,13 +45,13 @@ class _RunningView extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             state.progressLabel.isEmpty
-                ? 'Đang ghi dữ liệu lên server...'
+                ? context.l10n.syncWritingData
                 : state.progressLabel,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
-            'Vui lòng không đóng app cho đến khi hoàn tất',
+            context.l10n.syncDoNotClose,
             style: Theme.of(context).textTheme.bodySmall,
             textAlign: TextAlign.center,
           ),
@@ -74,21 +75,21 @@ class _ErrorView extends StatelessWidget {
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
           Text(
-            state.errorMessage ?? 'Đã xảy ra lỗi',
+            state.errorMessage ?? context.l10n.commonErrorTitle,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           FilledButton(
             key: const ValueKey('retry'),
             onPressed: () => context.read<SyncBloc>().add(const SyncRun()),
-            child: const Text('Thử lại'),
+            child: Text(context.l10n.syncRetry),
           ),
           const SizedBox(height: 8),
           TextButton(
-            onPressed: () => context
-                .read<SyncBloc>()
-                .add(const SyncGoToStep(SyncStep.preview)),
-            child: const Text('Quay lại'),
+            onPressed: () => context.read<SyncBloc>().add(
+              const SyncGoToStep(SyncStep.preview),
+            ),
+            child: Text(context.l10n.syncBack),
           ),
         ],
       ),

@@ -37,11 +37,11 @@ class UpdateProfileState extends Equatable {
 
   @override
   List<Object?> get props => [
-        viewStatus,
-        user,
-        error,
-        userDisplayName,
-        userPhoneNumber,
-        userEmail,
-      ];
+    viewStatus,
+    user,
+    error,
+    userDisplayName,
+    userPhoneNumber,
+    userEmail,
+  ];
 }

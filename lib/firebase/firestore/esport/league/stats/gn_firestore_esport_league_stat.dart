@@ -92,10 +92,12 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
     final leagueRef = firestore
         .collection(GNEsportLeague.collectionName)
         .doc(leagueId);
-    final statsCollection =
-        leagueRef.collection(GNEsportLeagueStat.collectionName);
-    final matchesCollection =
-        leagueRef.collection(GNEsportMatch.collectionName);
+    final statsCollection = leagueRef.collection(
+      GNEsportLeagueStat.collectionName,
+    );
+    final matchesCollection = leagueRef.collection(
+      GNEsportMatch.collectionName,
+    );
 
     final results = await Future.wait([
       leagueRef.get(),
@@ -103,13 +105,10 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
       matchesCollection.get(),
     ]);
     final leagueSnap = results[0] as DocumentSnapshot<Map<String, dynamic>>;
-    final statSnaps =
-        (results[1] as QuerySnapshot<Map<String, dynamic>>).docs;
-    final allMatches =
-        (results[2] as QuerySnapshot<Map<String, dynamic>>)
-            .docs
-            .map(GNEsportMatch.fromFirestore)
-            .toList();
+    final statSnaps = (results[1] as QuerySnapshot<Map<String, dynamic>>).docs;
+    final allMatches = (results[2] as QuerySnapshot<Map<String, dynamic>>).docs
+        .map(GNEsportMatch.fromFirestore)
+        .toList();
 
     final mode = leagueSnap.exists
         ? GNEsportLeague.fromFirestore(leagueSnap).mode
@@ -162,10 +161,14 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
       final a = m.awayScore;
       if (h == null || a == null) continue;
       final groupId = m.groupId;
-      totals[(userId: m.homeTeamId, groupId: groupId)]
-          ?.apply(scoredFor: h, scoredAgainst: a);
-      totals[(userId: m.awayTeamId, groupId: groupId)]
-          ?.apply(scoredFor: a, scoredAgainst: h);
+      totals[(userId: m.homeTeamId, groupId: groupId)]?.apply(
+        scoredFor: h,
+        scoredAgainst: a,
+      );
+      totals[(userId: m.awayTeamId, groupId: groupId)]?.apply(
+        scoredFor: a,
+        scoredAgainst: h,
+      );
     }
 
     // --- Step 3: delete all existing rows + write fresh rows, in chunks ---
@@ -213,10 +216,10 @@ extension GNFirestoreEsportLeagueStat on GNFirestore {
         .collection(GNEsportLeagueStat.collectionName)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => GNEsportLeagueStat.fromFirestore(doc))
-          .toList();
-    });
+          return snapshot.docs
+              .map((doc) => GNEsportLeagueStat.fromFirestore(doc))
+              .toList();
+        });
   }
 }
 

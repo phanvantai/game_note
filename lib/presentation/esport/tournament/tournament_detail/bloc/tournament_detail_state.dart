@@ -54,15 +54,15 @@ class TournamentDetailState extends Equatable {
 
   @override
   List<Object?> get props => [
-        viewStatus,
-        league,
-        participants,
-        matches,
-        errorMessage,
-        users,
-        refreshTick,
-        selectedGroupId,
-      ];
+    viewStatus,
+    league,
+    participants,
+    matches,
+    errorMessage,
+    users,
+    refreshTick,
+    selectedGroupId,
+  ];
 
   bool get currentUserIsMember {
     try {
@@ -100,7 +100,9 @@ class TournamentDetailState extends Equatable {
   }
 
   List<GNEsportMatch> groupMatches(String groupId) {
-    return matches.where((m) => m.phase == 'group' && m.groupId == groupId).toList();
+    return matches
+        .where((m) => m.phase == 'group' && m.groupId == groupId)
+        .toList();
   }
 
   List<GNEsportLeagueStat> groupStats(String groupId) {

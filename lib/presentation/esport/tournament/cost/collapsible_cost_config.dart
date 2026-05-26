@@ -10,9 +10,11 @@ class CollapsibleCostConfig extends StatefulWidget {
   final bool initialDefaultPerGoalEnabled;
   final int initialDefaultCostPerGoal;
   final int participantCount;
+
   /// Widget rendered at the bottom when expanded (e.g. a save button).
   /// Pass null to omit (create flow).
   final Widget? action;
+
   /// Subtitle shown in the header when collapsed. Pass null to omit.
   final String? subtitle;
 
@@ -78,8 +80,9 @@ class _CollapsibleCostConfigState extends State<CollapsibleCostConfig> {
                       children: [
                         Text(
                           'Cấu hình chi phí',
-                          style: theme.textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w900),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         if (!_expanded && widget.subtitle != null)
                           Text(
@@ -124,8 +127,7 @@ class _CollapsibleCostConfigState extends State<CollapsibleCostConfig> {
                     initialDefaultMatchCost: widget.initialDefaultMatchCost,
                     initialDefaultPerGoalEnabled:
                         widget.initialDefaultPerGoalEnabled,
-                    initialDefaultCostPerGoal:
-                        widget.initialDefaultCostPerGoal,
+                    initialDefaultCostPerGoal: widget.initialDefaultCostPerGoal,
                     participantCount: widget.participantCount,
                   ),
                   if (widget.action != null) ...[
@@ -138,8 +140,9 @@ class _CollapsibleCostConfigState extends State<CollapsibleCostConfig> {
                 ],
               ),
             ),
-            crossFadeState:
-                _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState: _expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 200),
           ),
         ],

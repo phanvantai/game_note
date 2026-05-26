@@ -36,7 +36,9 @@ class SyncState extends Equatable {
   final String? createdLeagueId;
 
   bool get canGoToMapping =>
-      selectedLeague != null && selectedGroup != null && status != SyncStatus.loading;
+      selectedLeague != null &&
+      selectedGroup != null &&
+      status != SyncStatus.loading;
 
   bool get canGoToPreview {
     final league = selectedLeague;
@@ -80,10 +82,12 @@ class SyncState extends Equatable {
       status: status ?? this.status,
       offlineLeagues: offlineLeagues ?? this.offlineLeagues,
       myGroups: myGroups ?? this.myGroups,
-      selectedLeague:
-          clearSelectedLeague ? null : (selectedLeague ?? this.selectedLeague),
-      selectedGroup:
-          clearSelectedGroup ? null : (selectedGroup ?? this.selectedGroup),
+      selectedLeague: clearSelectedLeague
+          ? null
+          : (selectedLeague ?? this.selectedLeague),
+      selectedGroup: clearSelectedGroup
+          ? null
+          : (selectedGroup ?? this.selectedGroup),
       groupMembers: groupMembers ?? this.groupMembers,
       mappings: mappings ?? this.mappings,
       plan: clearPlan ? null : (plan ?? this.plan),
@@ -96,18 +100,18 @@ class SyncState extends Equatable {
 
   @override
   List<Object?> get props => [
-        step,
-        status,
-        offlineLeagues,
-        myGroups,
-        selectedLeague,
-        selectedGroup,
-        groupMembers,
-        mappings,
-        plan,
-        progress,
-        progressLabel,
-        errorMessage,
-        createdLeagueId,
-      ];
+    step,
+    status,
+    offlineLeagues,
+    myGroups,
+    selectedLeague,
+    selectedGroup,
+    groupMembers,
+    mappings,
+    plan,
+    progress,
+    progressLabel,
+    errorMessage,
+    createdLeagueId,
+  ];
 }

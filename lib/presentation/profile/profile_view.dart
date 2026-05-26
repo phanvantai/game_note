@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -85,40 +86,40 @@ class _ProfileViewState extends State<ProfileView>
                 ),
                 const SizedBox(height: 16),
                 _ProfileSection(
-                  title: 'Ứng dụng',
+                  title: context.l10n.profileAppSection,
                   icon: Icons.tune_outlined,
                   children: [
                     if (!kIsWeb) ...[
                       _buildMenuItem(
                         context,
                         icon: Icons.wifi_off_outlined,
-                        title: 'Chế độ offline',
+                        title: context.l10n.profileOfflineMode,
                         onTap: () => _switchToOffline(context),
                       ),
                       _buildMenuItem(
                         context,
                         icon: Icons.sync_outlined,
-                        title: 'Đồng bộ dữ liệu offline',
+                        title: context.l10n.profileSyncOfflineData,
                         onTap: () => context.push(Routing.syncOfflineData),
                       ),
                     ],
                     _buildMenuItem(
                       context,
                       icon: Icons.settings_outlined,
-                      title: 'Tuỳ chọn khác',
+                      title: context.l10n.profileOtherOptions,
                       onTap: () => context.push(Routing.setting),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 _ProfileSection(
-                  title: 'Thông tin',
+                  title: context.l10n.profileInfoSection,
                   icon: Icons.info_outline,
                   children: [
                     _buildMenuItem(
                       context,
                       icon: Icons.star_outline,
-                      title: 'Đánh giá',
+                      title: context.l10n.profileRateApp,
                       onTap: () {
                         final url =
                             defaultTargetPlatform == TargetPlatform.android
@@ -130,7 +131,7 @@ class _ProfileViewState extends State<ProfileView>
                     _buildMenuItem(
                       context,
                       icon: Icons.chat_bubble_outline,
-                      title: 'Nhận xét góp ý',
+                      title: context.l10n.profileFeedback,
                       onTap: () => context.push(Routing.feedback),
                     ),
                     _VersionMenuItem(onTap: _incrementCounter),
@@ -138,13 +139,13 @@ class _ProfileViewState extends State<ProfileView>
                 ),
                 const SizedBox(height: 16),
                 _ProfileSection(
-                  title: 'Phiên làm việc',
+                  title: context.l10n.profileSessionSection,
                   icon: Icons.logout,
                   children: [
                     _buildMenuItem(
                       context,
                       icon: Icons.logout,
-                      title: 'Đăng xuất',
+                      title: context.l10n.profileSignOut,
                       iconColor: colorScheme.error,
                       textColor: colorScheme.error,
                       showChevron: false,
@@ -208,7 +209,7 @@ class _ProfileViewState extends State<ProfileView>
               const SizedBox(height: 16),
               _SheetAction(
                 icon: Icons.image_outlined,
-                title: 'Thay đổi ảnh đại diện',
+                title: context.l10n.profileChangeAvatar,
                 onTap: () {
                   context.read<ProfileBloc>().add(ChangeAvatarProfileEvent());
                   Navigator.of(sheetContext).pop();
@@ -217,7 +218,7 @@ class _ProfileViewState extends State<ProfileView>
               const SizedBox(height: 8),
               _SheetAction(
                 icon: Icons.delete_outline,
-                title: 'Xoá ảnh đại diện',
+                title: context.l10n.profileDeleteAvatar,
                 color: colorScheme.error,
                 onTap: () {
                   context.read<ProfileBloc>().add(DeleteAvatarProfileEvent());
@@ -244,10 +245,9 @@ class _ProfileViewState extends State<ProfileView>
   void _switchToOffline(BuildContext context) async {
     final confirmed = await showAppConfirmDialog(
       context: context,
-      title: 'Chế độ Offline',
-      message:
-          'Chế độ offline là bạn tự tạo dữ liệu trên máy và dữ liệu sẽ chỉ được lưu trên máy của bạn, không được đồng bộ.\n\nBạn có chắc chắn muốn chuyển sang chế độ offline không?',
-      confirmText: 'Chấp nhận',
+      title: context.l10n.profileOfflineModeTitle,
+      message: context.l10n.profileOfflineModeMessage,
+      confirmText: context.l10n.profileAccept,
     );
     if (confirmed == true && context.mounted) {
       context.go(Routing.offline);
@@ -257,9 +257,9 @@ class _ProfileViewState extends State<ProfileView>
   void _signOut(BuildContext context) async {
     final confirmed = await showAppConfirmDialog(
       context: context,
-      title: 'Đăng xuất',
-      message: 'Bạn có chắc chắn muốn đăng xuất không?',
-      confirmText: 'Đăng xuất',
+      title: context.l10n.profileSignOut,
+      message: context.l10n.profileSignOutMessage,
+      confirmText: context.l10n.profileSignOut,
       isDestructive: true,
     );
     if (confirmed == true && context.mounted) {

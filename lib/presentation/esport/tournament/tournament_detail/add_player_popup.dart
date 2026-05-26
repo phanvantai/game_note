@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/users/bloc/user_bloc.dart';
 import 'package:pes_arena/presentation/users/user_item.dart';
 import 'bloc/tournament_detail_bloc.dart';
@@ -42,14 +43,16 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
     return BlocBuilder<UserBloc, UserState>(
       bloc: userBloc,
       builder: (userContext, userState) => AlertDialog(
-        title: const Text('Thêm người chơi'),
+        title: Text(context.l10n.tournamentAddPlayersTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (selectedUserIds.isNotEmpty) ...[
               Text(
-                'Đã chọn ${selectedUserIds.length} người:',
+                context.l10n.tournamentSelectedPlayersCount(
+                  selectedUserIds.length,
+                ),
                 style: textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -70,7 +73,7 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                       user.displayName ??
                           user.email ??
                           user.phoneNumber ??
-                          'Unknown',
+                          context.l10n.commonUnknown,
                       style: textTheme.labelSmall,
                     ),
                     deleteIcon: const Icon(Icons.close, size: 14),
@@ -129,7 +132,7 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Hủy'),
+            child: Text(context.l10n.commonCancel),
           ),
           if (selectedUserIds.isNotEmpty)
             FilledButton(
@@ -142,7 +145,9 @@ class _AddPlayerPopupState extends State<AddPlayerPopup> {
                 );
                 Navigator.of(context).pop();
               },
-              child: Text('Thêm ${selectedUserIds.length} người'),
+              child: Text(
+                context.l10n.tournamentAddPlayersCount(selectedUserIds.length),
+              ),
             ),
         ],
       ),

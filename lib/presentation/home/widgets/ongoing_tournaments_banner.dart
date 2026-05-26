@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_item.dart';
 import 'package:pes_arena/presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
 import 'package:pes_arena/routing.dart';
@@ -32,9 +33,11 @@ List<GNEsportLeague> filterOngoingLeagues(List<GNEsportLeague> leagues) =>
 // or unset — status is the source of truth admins actually edit.
 List<GNEsportLeague> _filterOngoing(List<GNEsportLeague> leagues) {
   return leagues
-      .where((l) =>
-          GNEsportLeagueStatusExtension.fromString(l.status) ==
-          GNEsportLeagueStatus.ongoing)
+      .where(
+        (l) =>
+            GNEsportLeagueStatusExtension.fromString(l.status) ==
+            GNEsportLeagueStatus.ongoing,
+      )
       .toList();
 }
 
@@ -78,7 +81,7 @@ class _Banner extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Giải đấu đang diễn ra',
+                  context.l10n.homeOngoingTournamentsTitle,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),

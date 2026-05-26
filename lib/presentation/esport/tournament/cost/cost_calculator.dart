@@ -38,11 +38,13 @@ class CostCalculator {
     for (int i = 1; i < sortedStats.length; i++) {
       final amount = i - 1 < rankPayouts.length ? rankPayouts[i - 1] : 0;
       if (amount <= 0) continue;
-      transfers.add(CostTransfer(
-        fromUserId: sortedStats[i].userId,
-        toUserId: winnerId,
-        amount: amount,
-      ));
+      transfers.add(
+        CostTransfer(
+          fromUserId: sortedStats[i].userId,
+          toUserId: winnerId,
+          amount: amount,
+        ),
+      );
     }
     return transfers;
   }
@@ -92,17 +94,13 @@ class CostCalculator {
       if (net == 0) return;
       final (low, high) = pairLowHigh[key]!;
       if (net > 0) {
-        transfers.add(CostTransfer(
-          fromUserId: low,
-          toUserId: high,
-          amount: net,
-        ));
+        transfers.add(
+          CostTransfer(fromUserId: low, toUserId: high, amount: net),
+        );
       } else {
-        transfers.add(CostTransfer(
-          fromUserId: high,
-          toUserId: low,
-          amount: -net,
-        ));
+        transfers.add(
+          CostTransfer(fromUserId: high, toUserId: low, amount: -net),
+        );
       }
     });
     return transfers;
@@ -139,8 +137,9 @@ class CostCalculator {
     final awayScore = finalMatch.awayScore ?? 0;
     if (homeScore == awayScore) return const [];
 
-    final championId =
-        homeScore > awayScore ? finalMatch.homeTeamId : finalMatch.awayTeamId;
+    final championId = homeScore > awayScore
+        ? finalMatch.homeTeamId
+        : finalMatch.awayTeamId;
 
     final transfers = <CostTransfer>[];
     for (int i = 0; i < rankPayouts.length; i++) {
@@ -150,8 +149,9 @@ class CostCalculator {
       final round = maxRound - i;
       if (round < 0) break;
 
-      final roundMatches = knockoutMatches
-          .where((m) => (m.knockoutRound ?? 0) == round && m.isFinished);
+      final roundMatches = knockoutMatches.where(
+        (m) => (m.knockoutRound ?? 0) == round && m.isFinished,
+      );
 
       for (final m in roundMatches) {
         final home = m.homeScore ?? 0;
@@ -160,7 +160,11 @@ class CostCalculator {
         final loserId = home > away ? m.awayTeamId : m.homeTeamId;
         if (loserId.isEmpty || loserId == championId) continue;
         transfers.add(
-          CostTransfer(fromUserId: loserId, toUserId: championId, amount: amount),
+          CostTransfer(
+            fromUserId: loserId,
+            toUserId: championId,
+            amount: amount,
+          ),
         );
       }
     }

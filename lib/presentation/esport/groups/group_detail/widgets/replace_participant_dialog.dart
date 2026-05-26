@@ -6,6 +6,7 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/users/user_item.dart';
 
@@ -46,7 +47,9 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
 
   Future<void> _loadStats() async {
     try {
-      final stats = await widget.leagueRepository.getLeagueStats(widget.league.id);
+      final stats = await widget.leagueRepository.getLeagueStats(
+        widget.league.id,
+      );
       if (mounted) setState(() => _stats = stats);
     } finally {
       if (mounted) setState(() => _loadingStats = false);
@@ -61,11 +64,13 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
       listener: (context, state) {
         if (state.replaceParticipantStatus == ViewStatus.success) {
           Navigator.of(context).pop();
-          showToast('Đã thay thế thành công');
+          showToast(context.l10n.groupReplaceSuccess);
         } else if (state.replaceParticipantStatus == ViewStatus.failure) {
-          showToast(state.replaceErrorMessage.isNotEmpty
-              ? state.replaceErrorMessage
-              : 'Có lỗi xảy ra, vui lòng thử lại');
+          showToast(
+            state.replaceErrorMessage.isNotEmpty
+                ? state.replaceErrorMessage
+                : context.l10n.groupReplaceError,
+          );
         }
       },
       child: BlocBuilder<GroupDetailBloc, GroupDetailState>(
@@ -93,9 +98,9 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
 
   Widget _buildTitle() {
     final titles = [
-      'Chọn người cần thay',
-      'Chọn người thay thế',
-      'Xác nhận thay thế',
+      context.l10n.groupReplaceSelectOld,
+      context.l10n.groupReplaceSelectNew,
+      context.l10n.groupReplaceConfirm,
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,11 +109,10 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
         Text(
           widget.league.name,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
-              ),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -134,11 +138,13 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
       return const Center(child: CircularProgressIndicator());
     }
     final filtered = _stats
-        .where((s) =>
-            _searchText.isEmpty ||
-            (s.user?.displayName ?? s.userId)
-                .toLowerCase()
-                .contains(_searchText.toLowerCase()))
+        .where(
+          (s) =>
+              _searchText.isEmpty ||
+              (s.user?.displayName ?? s.userId).toLowerCase().contains(
+                _searchText.toLowerCase(),
+              ),
+        )
         .toList();
 
     return Column(
@@ -146,7 +152,7 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
         TextField(
           decoration: appInputDecoration(
             context: context,
-            hintText: 'Tìm theo tên',
+            hintText: context.l10n.commonSearchByName,
             prefixIcon: Icons.search,
           ),
           onChanged: (v) => setState(() => _searchText = v),
@@ -156,7 +162,7 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
           child: filtered.isEmpty
               ? Center(
                   child: Text(
-                    'Không tìm thấy',
+                    context.l10n.groupNoSearchResults,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 )
@@ -171,30 +177,30 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
                           ? _buildAvatar(user)
                           : const Icon(Icons.person),
                       title: Text(
-                          user?.displayName ?? user?.email ?? stat.userId),
+                        user?.displayName ?? user?.email ?? stat.userId,
+                      ),
                       subtitle: user?.isPlaceholder == true
-                          ? const Text('Placeholder')
+                          ? Text(context.l10n.groupPlaceholder)
                           : null,
                       trailing: user?.isPlaceholder == true
                           ? Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .secondary
-                                    .withValues(alpha: 0.12),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.secondary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                'Placeholder',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
+                                context.l10n.groupPlaceholder,
+                                style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.secondary,
                                     ),
                               ),
                             )
@@ -216,12 +222,14 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
 
   Widget _buildSelectNewUser(BuildContext context) {
     final filtered = widget.groupMembers
-        .where((u) =>
-            u.id != _selectedOldStat?.userId &&
-            (_searchText.isEmpty ||
-                (u.displayName ?? u.email ?? u.id)
-                    .toLowerCase()
-                    .contains(_searchText.toLowerCase())))
+        .where(
+          (u) =>
+              u.id != _selectedOldStat?.userId &&
+              (_searchText.isEmpty ||
+                  (u.displayName ?? u.email ?? u.id).toLowerCase().contains(
+                    _searchText.toLowerCase(),
+                  )),
+        )
         .toList();
 
     return Column(
@@ -229,7 +237,7 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
         TextField(
           decoration: appInputDecoration(
             context: context,
-            hintText: 'Tìm theo tên',
+            hintText: context.l10n.commonSearchByName,
             prefixIcon: Icons.search,
           ),
           onChanged: (v) => setState(() => _searchText = v),
@@ -239,7 +247,7 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
           child: filtered.isEmpty
               ? Center(
                   child: Text(
-                    'Không tìm thấy',
+                    context.l10n.groupNoSearchResults,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 )
@@ -274,21 +282,28 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _ConfirmRow(
-            label: 'Thay',
-            name: oldUser?.displayName ?? oldUser?.email ?? _selectedOldStat?.userId ?? '',
+            label: context.l10n.groupReplaceOldLabel,
+            name:
+                oldUser?.displayName ??
+                oldUser?.email ??
+                _selectedOldStat?.userId ??
+                '',
             photoUrl: oldUser?.photoUrl,
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               const SizedBox(width: 12),
-              Icon(Icons.arrow_downward,
-                  color: Theme.of(context).colorScheme.primary, size: 20),
+              Icon(
+                Icons.arrow_downward,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
             ],
           ),
           const SizedBox(height: 8),
           _ConfirmRow(
-            label: 'Bằng',
+            label: context.l10n.groupReplaceNewLabel,
             name: newUser?.displayName ?? newUser?.email ?? '',
             photoUrl: newUser?.photoUrl,
           ),
@@ -297,26 +312,25 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .errorContainer
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_outlined,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.onErrorContainer),
+                  Icon(
+                    Icons.warning_amber_outlined,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Người này đã có trong giải. Thống kê của 2 người sẽ được cộng gộp lại.',
+                      context.l10n.groupReplaceMergeWarning,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onErrorContainer,
-                          ),
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
                     ),
                   ),
                 ],
@@ -325,14 +339,13 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
           ],
           const SizedBox(height: 16),
           Text(
-            'Hành động này không thể hoàn tác.',
+            context.l10n.groupActionIrreversible,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.5),
-                  fontStyle: FontStyle.italic,
-                ),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
       ),
@@ -360,20 +373,22 @@ class _ReplaceParticipantDialogState extends State<ReplaceParticipantDialog> {
             });
           }
         },
-        child: Text(_step == 0 ? 'Đóng' : 'Quay lại'),
+        child: Text(
+          _step == 0 ? context.l10n.groupClose : context.l10n.commonBack,
+        ),
       ),
       if (_step == 2)
         FilledButton(
           onPressed: _selectedOldStat != null && _selectedNewUser != null
               ? () => context.read<GroupDetailBloc>().add(
-                    ReplaceLeagueParticipant(
-                      leagueId: widget.league.id,
-                      oldUserId: _selectedOldStat!.userId,
-                      newUserId: _selectedNewUser!.id,
-                    ),
-                  )
+                  ReplaceLeagueParticipant(
+                    leagueId: widget.league.id,
+                    oldUserId: _selectedOldStat!.userId,
+                    newUserId: _selectedNewUser!.id,
+                  ),
+                )
               : null,
-          child: const Text('Xác nhận'),
+          child: Text(context.l10n.commonConfirm),
         ),
     ];
   }
@@ -399,11 +414,7 @@ class _ConfirmRow extends StatelessWidget {
   final String name;
   final String? photoUrl;
 
-  const _ConfirmRow({
-    required this.label,
-    required this.name,
-    this.photoUrl,
-  });
+  const _ConfirmRow({required this.label, required this.name, this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -414,9 +425,10 @@ class _ConfirmRow extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -426,16 +438,16 @@ class _ConfirmRow extends StatelessWidget {
           CircleAvatar(
             radius: 16,
             child: Text(
-                name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?'),
+              name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
+            ),
           ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             name,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

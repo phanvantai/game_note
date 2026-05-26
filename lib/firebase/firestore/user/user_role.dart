@@ -1,7 +1,4 @@
-enum UserRole {
-  admin,
-  user,
-}
+enum UserRole { admin, user }
 
 extension ParseToString on UserRole {
   String get name {

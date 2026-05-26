@@ -7,9 +7,12 @@ import 'package:go_router/go_router.dart';
 import 'firebase/firestore/esport/group/gn_esport_group.dart';
 import 'firebase/firestore/user/gn_user.dart';
 import 'injection_container.dart';
+import 'core/localization/locale_notifier.dart';
+import 'l10n/l10n.dart';
 import 'offline/presentation/offline_view.dart';
 import 'presentation/app/app_view.dart';
 import 'presentation/app/bloc/app_bloc.dart';
+import 'presentation/app/language_selection_page.dart';
 import 'presentation/app/splash_page.dart';
 import 'presentation/auth/auth_view.dart';
 import 'presentation/auth/verify/verify_page.dart';
@@ -28,6 +31,7 @@ import 'presentation/sync/sync_page.dart';
 class Routing {
   static const String app = '/';
   static const String splash = '/splash';
+  static const String language = '/language';
   static const String login = '/login';
   static const String offline = '/offline';
   static const String groups = '/groups';
@@ -60,6 +64,8 @@ class Routing {
 
   // sync offline → online
   static const String syncOfflineData = '/sync-offline-data';
+
+  static String safeNextLocation(String? next) => _safeNextLocation(next);
 }
 
 CustomTransitionPage<T> _slide<T>({
@@ -97,11 +103,11 @@ class _NotFoundPage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Không tìm thấy trang'),
+            Text(context.l10n.pageNotFound),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => GoRouter.of(context).go(Routing.app),
-              child: const Text('Về trang chủ'),
+              child: Text(context.l10n.backHome),
             ),
           ],
         ),
@@ -110,41 +116,127 @@ class _NotFoundPage extends StatelessWidget {
   }
 }
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: Routing.app,
-  redirect: _appRedirect,
-  refreshListenable: _AppBlocListenable(getIt<AppBloc>()),
-  errorBuilder: (context, state) => const _NotFoundPage(),
-  routes: _appRoutes,
-);
+GoRouter createAppRouter({String initialLocation = Routing.app}) {
+  return GoRouter(
+    initialLocation: initialLocation,
+    redirect: _appRedirect,
+    refreshListenable: _AppBlocListenable(getIt<AppBloc>()),
+    errorBuilder: (context, state) => const _NotFoundPage(),
+    routes: _appRoutes,
+  );
+}
+
+final GoRouter appRouter = createAppRouter();
 
 // Paths that anyone can visit without auth. /login is the obvious one;
 // /splash is the holding screen while Firebase Auth restores the session.
-const _publicPaths = <String>{Routing.login, Routing.splash};
+const _publicPaths = <String>{Routing.language, Routing.login, Routing.splash};
+int _redirectCount = 0;
+
+void _logRouteFlow(String message) {
+  if (kDebugMode) {
+    debugPrint('[RouteFlow] $message');
+  }
+}
+
+String? _redirectResult(int seq, String reason, String? target) {
+  _logRouteFlow('#$seq result=$reason -> ${target ?? 'allow'}');
+  return target;
+}
+
+String _safeNextLocation(String? next) {
+  if (next == null || next.isEmpty) return Routing.app;
+
+  final uri = Uri.tryParse(next);
+  if (uri == null || uri.hasScheme || uri.hasAuthority) return Routing.app;
+
+  final path = uri.path.isEmpty ? Routing.app : uri.path;
+  if (_isKnownRoutePath(path)) return uri.toString();
+  return Routing.app;
+}
+
+bool _isKnownRoutePath(String path) {
+  if (_publicPaths.contains(path)) return true;
+
+  const fixedPaths = <String>{
+    Routing.app,
+    Routing.offline,
+    Routing.offlineLeague,
+    Routing.groups,
+    Routing.verify,
+    Routing.updateProfile,
+    Routing.setting,
+    Routing.changePassword,
+    Routing.dashboardDetail,
+    Routing.notification,
+    Routing.feedback,
+    Routing.syncOfflineData,
+  };
+  if (fixedPaths.contains(path)) return true;
+
+  final segments = Uri(path: path).pathSegments;
+  if (segments.length == 2 &&
+      segments.first == 'group' &&
+      segments.last.isNotEmpty) {
+    return true;
+  }
+  if (segments.length == 2 &&
+      segments.first == 'tournament' &&
+      segments.last.isNotEmpty) {
+    return true;
+  }
+  return false;
+}
 
 String? _appRedirect(BuildContext context, GoRouterState state) {
-  if (kIsWeb) {
-    final loc = state.matchedLocation;
-    if (loc == Routing.offline ||
-        loc == Routing.offlineLeague ||
-        loc == Routing.syncOfflineData) {
-      return Routing.app;
+  final seq = ++_redirectCount;
+  final location = state.matchedLocation;
+  final fullUri = state.uri.toString();
+  final appStatus = getIt<AppBloc>().state.status;
+  final localeNotifier = getIt.isRegistered<LocaleNotifier>()
+      ? getIt<LocaleNotifier>()
+      : null;
+
+  _logRouteFlow(
+    '#$seq enter uri=$fullUri matched=$location '
+    'status=$appStatus '
+    'hasLocale=${localeNotifier?.hasSavedLocale} '
+    'locale=${localeNotifier?.currentLocale?.languageCode}',
+  );
+
+  if (localeNotifier != null) {
+    if (!localeNotifier.hasSavedLocale && location == Routing.language) {
+      return _redirectResult(seq, 'missing-locale-language', null);
+    }
+    if (!localeNotifier.hasSavedLocale) {
+      final target = Uri(
+        path: Routing.language,
+        queryParameters: {'next': _safeNextLocation(fullUri)},
+      ).toString();
+      return _redirectResult(seq, 'missing-locale', target);
     }
   }
 
-  final status = getIt<AppBloc>().state.status;
-  final location = state.matchedLocation;
-  final fullUri = state.uri.toString();
+  if (kIsWeb) {
+    if (location == Routing.offline ||
+        location == Routing.offlineLeague ||
+        location == Routing.syncOfflineData) {
+      return _redirectResult(seq, 'web-blocked-route', Routing.app);
+    }
+  }
 
   // Auth not yet known — park every protected route on /splash with the
   // intended URL preserved, so the bounceback after auth resolves can land
   // the user exactly where they wanted to go.
-  if (status == AppStatus.initializing) {
-    if (location == Routing.splash) return null;
-    return Uri(
+  if (appStatus == AppStatus.initializing) {
+    if (location == Routing.splash || location == Routing.language) {
+      return _redirectResult(seq, 'initializing-public', null);
+    }
+    final target = Uri(
       path: Routing.splash,
       queryParameters: {'next': fullUri},
     ).toString();
+    return _redirectResult(seq, 'initializing-protected', target);
   }
 
   // Definitely signed out. /login is the destination; if we're already
@@ -152,30 +244,37 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
   // forward its `next` to /login so the post-login bounce still lands on
   // the originally-requested URL. Anything else: send to /login carrying
   // the current URL as `next`.
-  if (status == AppStatus.unauthenticated) {
-    if (location == Routing.login) return null;
+  if (appStatus == AppStatus.unauthenticated) {
+    if (location == Routing.language) {
+      return _redirectResult(seq, 'unauth-language', null);
+    }
+    if (location == Routing.login) {
+      return _redirectResult(seq, 'unauth-login', null);
+    }
     final origNext = location == Routing.splash
         ? state.uri.queryParameters['next']
         : fullUri;
-    if (origNext == null || origNext.isEmpty) return Routing.login;
-    return Uri(
+    final safeNext = _safeNextLocation(origNext);
+    if (safeNext == Routing.app) {
+      return _redirectResult(seq, 'unauth-login-no-next', Routing.login);
+    }
+    final target = Uri(
       path: Routing.login,
-      queryParameters: {'next': origNext},
+      queryParameters: {'next': safeNext},
     ).toString();
+    return _redirectResult(seq, 'unauth-protected', target);
   }
 
   // Signed in. If we're sitting on /login or /splash, bounce to whatever
   // the user originally asked for; otherwise let them through.
   if (_publicPaths.contains(location)) {
-    final next = state.uri.queryParameters['next'];
-    if (next != null &&
-        next.isNotEmpty &&
-        !_publicPaths.contains(Uri.parse(next).path)) {
-      return next;
+    final safeNext = _safeNextLocation(state.uri.queryParameters['next']);
+    if (!_publicPaths.contains(Uri.parse(safeNext).path)) {
+      return _redirectResult(seq, 'auth-public-next', safeNext);
     }
-    return Routing.app;
+    return _redirectResult(seq, 'auth-public-home', Routing.app);
   }
-  return null;
+  return _redirectResult(seq, 'auth-protected', null);
 }
 
 /// Adapts the AppBloc auth-state stream into a [ChangeNotifier] so
@@ -185,8 +284,10 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
 class _AppBlocListenable extends ChangeNotifier {
   _AppBlocListenable(this._bloc) {
     _last = _bloc.state.status;
+    _logRouteFlow('AppBlocListenable.init status=$_last');
     _sub = _bloc.stream.listen((state) {
       if (state.status != _last) {
+        _logRouteFlow('AppBlocListenable.notify $_last -> ${state.status}');
         _last = state.status;
         notifyListeners();
       }
@@ -205,6 +306,16 @@ class _AppBlocListenable extends ChangeNotifier {
 }
 
 final List<RouteBase> _appRoutes = [
+  GoRoute(
+    path: Routing.language,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: LanguageSelectionPage(
+        nextLocation: state.uri.queryParameters['next'],
+      ),
+    ),
+  ),
   GoRoute(
     path: Routing.splash,
     pageBuilder: (context, state) =>

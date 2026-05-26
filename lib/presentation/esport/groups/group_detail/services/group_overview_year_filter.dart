@@ -26,11 +26,13 @@ class GroupOverviewYearFilter {
     Set<String> deactivatedIds = const {},
   }) {
     final inYear = leagues.where((l) => l.startDate.year == year);
-    final filtered = (deactivatedIds.isEmpty
-            ? inYear
-            : inYear.where(
-                (l) => !l.participants.any(deactivatedIds.contains)))
-        .toList();
+    final filtered =
+        (deactivatedIds.isEmpty
+                ? inYear
+                : inYear.where(
+                    (l) => !l.participants.any(deactivatedIds.contains),
+                  ))
+            .toList();
     if (filtered.isEmpty) {
       return GNEsportGroupStatsSummary.empty(
         filtered.isEmpty ? '' : filtered.first.groupId,
@@ -38,8 +40,9 @@ class GroupOverviewYearFilter {
     }
 
     final groupId = filtered.first.groupId;
-    final finishedLeagues =
-        filtered.where((l) => l.status == 'finished').toList();
+    final finishedLeagues = filtered
+        .where((l) => l.status == 'finished')
+        .toList();
 
     // Accumulate per-player stats across all leagues in the selected year.
     final acc = <String, _Acc>{};
@@ -62,12 +65,12 @@ class GroupOverviewYearFilter {
     // leagues only. Standings are sorted the same way as TournamentDetailBloc:
     // wins desc → goal-diff desc → matches-played desc → userId asc.
     for (final league in finishedLeagues) {
-      final stats =
-          statsByLeague[league.id] ?? const <GNEsportLeagueStat>[];
+      final stats = statsByLeague[league.id] ?? const <GNEsportLeagueStat>[];
       if (stats.isEmpty) continue;
 
       for (final stat in stats) {
-        acc.putIfAbsent(stat.userId, () => _Acc(stat.userId))
+        acc
+            .putIfAbsent(stat.userId, () => _Acc(stat.userId))
             .finishedLeaguesJoined++;
       }
 
@@ -84,11 +87,13 @@ class GroupOverviewYearFilter {
         });
 
       if (sorted.isNotEmpty) {
-        acc.putIfAbsent(sorted[0].userId, () => _Acc(sorted[0].userId))
+        acc
+            .putIfAbsent(sorted[0].userId, () => _Acc(sorted[0].userId))
             .championships++;
       }
       if (sorted.length >= 2) {
-        acc.putIfAbsent(sorted[1].userId, () => _Acc(sorted[1].userId))
+        acc
+            .putIfAbsent(sorted[1].userId, () => _Acc(sorted[1].userId))
             .runnerUps++;
       }
     }

@@ -8,14 +8,14 @@ class AppTheme {
   static const double _borderRadius = 8.0;
 
   static ThemeData get light => _buildTheme(
-        colorScheme: AppColors.lightColorScheme,
-        scaffoldBackground: AppColors.lightBackground,
-      );
+    colorScheme: AppColors.lightColorScheme,
+    scaffoldBackground: AppColors.lightBackground,
+  );
 
   static ThemeData get dark => _buildTheme(
-        colorScheme: AppColors.darkColorScheme,
-        scaffoldBackground: AppColors.darkBackground,
-      );
+    colorScheme: AppColors.darkColorScheme,
+    scaffoldBackground: AppColors.darkBackground,
+  );
 
   static ThemeData _buildTheme({
     required ColorScheme colorScheme,
@@ -113,10 +113,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(_borderRadius),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -170,8 +167,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(_borderRadius),
           borderSide: BorderSide(color: AppColors.accent, width: 1.5),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         hintStyle: TextStyle(
           color: isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface,
         ),
@@ -182,8 +181,9 @@ class AppTheme {
         elevation: 0,
         backgroundColor: scaffoldBackground,
         selectedItemColor: colorScheme.onSurface,
-        unselectedItemColor:
-            isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+        unselectedItemColor: isDark
+            ? AppColors.darkOnSurface
+            : AppColors.lightOnSurface,
         selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 12,
@@ -221,15 +221,17 @@ class AppTheme {
       // TabBar
       tabBarTheme: TabBarThemeData(
         labelColor: colorScheme.onSurface,
-        unselectedLabelColor:
-            isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+        unselectedLabelColor: isDark
+            ? AppColors.darkOnSurface
+            : AppColors.lightOnSurface,
         indicatorColor: AppColors.accent,
       ),
 
       // Chip
       chipTheme: ChipThemeData(
-        backgroundColor:
-            isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+        backgroundColor: isDark
+            ? AppColors.darkSurfaceVariant
+            : AppColors.lightSurfaceVariant,
         selectedColor: AppColors.accent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
@@ -239,7 +241,9 @@ class AppTheme {
 
       // SnackBar
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isDark ? AppColors.lightPrimary : AppColors.darkPrimary,
+        backgroundColor: isDark
+            ? AppColors.lightPrimary
+            : AppColors.darkPrimary,
         contentTextStyle: TextStyle(
           color: isDark ? AppColors.darkOnBackground : AppColors.lightOnPrimary,
         ),

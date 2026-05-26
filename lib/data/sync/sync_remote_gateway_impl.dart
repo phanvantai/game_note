@@ -49,12 +49,14 @@ class SyncRemoteGatewayImpl implements SyncRemoteGateway {
   Future<void> commitBatch(MigrationPlan plan) async {
     if (kDebugMode) {
       final uid = FirebaseAuth.instance.currentUser?.uid ?? '<null>';
-      debugPrint('[sync.commit] uid=$uid groupId=${plan.groupId} '
-          'leagueId=${plan.leagueId} totalOps=${plan.totalOps} '
-          'placeholders=${plan.placeholderUsers.length} '
-          'addToGroup=${plan.uidsToAddToGroup} '
-          'participants=${plan.participantUids.length} '
-          'stats=${plan.statDocs.length} matches=${plan.matches.length}');
+      debugPrint(
+        '[sync.commit] uid=$uid groupId=${plan.groupId} '
+        'leagueId=${plan.leagueId} totalOps=${plan.totalOps} '
+        'placeholders=${plan.placeholderUsers.length} '
+        'addToGroup=${plan.uidsToAddToGroup} '
+        'participants=${plan.participantUids.length} '
+        'stats=${plan.statDocs.length} matches=${plan.matches.length}',
+      );
     }
     final batch = _db.batch();
 
@@ -80,7 +82,9 @@ class SyncRemoteGatewayImpl implements SyncRemoteGateway {
       batch.update(
         _db.collection(GNEsportGroup.collectionName).doc(plan.groupId),
         {
-          GNEsportGroup.membersKey: FieldValue.arrayUnion(plan.uidsToAddToGroup),
+          GNEsportGroup.membersKey: FieldValue.arrayUnion(
+            plan.uidsToAddToGroup,
+          ),
           GNEsportGroup.updatedAtKey: Timestamp.now(),
         },
       );
@@ -134,12 +138,16 @@ class SyncRemoteGatewayImpl implements SyncRemoteGateway {
       }
     } on FirebaseException catch (e, st) {
       if (kDebugMode) {
-        debugPrint('[sync.commit] FAILED code=${e.code} message=${e.message} '
-            'plugin=${e.plugin}');
-        debugPrint('[sync.commit] groupId=${plan.groupId} '
-            'placeholderIds=${plan.placeholderUsers.map((p) => p.id).toList()} '
-            'leagueId=${plan.leagueId} '
-            'addToGroup=${plan.uidsToAddToGroup}');
+        debugPrint(
+          '[sync.commit] FAILED code=${e.code} message=${e.message} '
+          'plugin=${e.plugin}',
+        );
+        debugPrint(
+          '[sync.commit] groupId=${plan.groupId} '
+          'placeholderIds=${plan.placeholderUsers.map((p) => p.id).toList()} '
+          'leagueId=${plan.leagueId} '
+          'addToGroup=${plan.uidsToAddToGroup}',
+        );
         debugPrint('$st');
       }
       rethrow;

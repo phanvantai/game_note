@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
 import 'package:pes_arena/widgets/gn_circle_avatar.dart';
 
@@ -25,11 +26,11 @@ class EsportTableView extends StatelessWidget {
   static const _bronze = Color(0xFFCD853F);
 
   Color? _rankAccent(int rank) => switch (rank) {
-        1 => _gold,
-        2 => _silver,
-        3 => _bronze,
-        _ => null,
-      };
+    1 => _gold,
+    2 => _silver,
+    3 => _bronze,
+    _ => null,
+  };
 
   BoxDecoration tableItemDecor(BuildContext context, {required int rank}) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -38,8 +39,8 @@ class EsportTableView extends StatelessWidget {
       color: accent != null
           ? accent.withValues(alpha: 0.08)
           : rank % 2 == 0
-              ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.35)
-              : Colors.transparent,
+          ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.35)
+          : Colors.transparent,
       border: Border(
         bottom: BorderSide(
           color: colorScheme.outline.withValues(alpha: 0.12),
@@ -56,8 +57,8 @@ class EsportTableView extends StatelessWidget {
       color: accent != null
           ? accent.withValues(alpha: 0.13)
           : rank % 2 == 0
-              ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.35)
-              : Colors.transparent,
+          ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.35)
+          : Colors.transparent,
       border: Border(
         bottom: BorderSide(
           color: colorScheme.outline.withValues(alpha: 0.12),
@@ -102,13 +103,13 @@ class EsportTableView extends StatelessWidget {
           child: state.participants.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  children: const [
+                  children: [
                     SizedBox(
                       height: 400,
                       child: AppEmptyState(
                         icon: Icons.people_outline,
-                        title: 'Chưa có người chơi nào',
-                        subtitle: 'Thêm người chơi để bắt đầu giải đấu',
+                        title: context.l10n.tournamentNoPlayersTitle,
+                        subtitle: context.l10n.tournamentNoPlayersSubtitle,
                       ),
                     ),
                   ],
@@ -207,7 +208,11 @@ class EsportTableView extends StatelessWidget {
             alignment: Alignment.center,
             width: tableIconColumnWidth - 4,
             height: tableRowHeight,
-            child: _RankBadge(rank: rank, accent: accent, colorScheme: colorScheme),
+            child: _RankBadge(
+              rank: rank,
+              accent: accent,
+              colorScheme: colorScheme,
+            ),
           ),
           Container(
             alignment: Alignment.center,
@@ -266,10 +271,7 @@ class _RankBadge extends StatelessWidget {
         'assets/svg/award-solid.svg',
         width: 18,
         height: 18,
-        colorFilter: const ColorFilter.mode(
-          Color(0xFFFBBF24),
-          BlendMode.srcIn,
-        ),
+        colorFilter: const ColorFilter.mode(Color(0xFFFBBF24), BlendMode.srcIn),
       );
     }
 
@@ -332,9 +334,7 @@ class _LeagueMetricSummary extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.28),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.28)),
       ),
       child: Column(
         children: [

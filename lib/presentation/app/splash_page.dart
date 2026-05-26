@@ -19,11 +19,7 @@ class SplashPage extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                AssetsPath.appIcon,
-                width: 72,
-                height: 72,
-              ),
+              child: Image.asset(AssetsPath.appIcon, width: 72, height: 72),
             ),
             const SizedBox(height: 20),
             SizedBox(

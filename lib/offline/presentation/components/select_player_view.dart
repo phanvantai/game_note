@@ -1,6 +1,7 @@
 // ignore_for_file: sort_child_properties_last
 
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/offline/presentation/components/player_view.dart';
 import 'package:pes_arena/offline/data/database/database_manager.dart';
 import 'package:pes_arena/injection_container.dart';
@@ -46,19 +47,19 @@ class _SelectPlayerViewState extends State<SelectPlayerView> {
                       widget.onSelectDone!(selectedPlayers);
                     }
                   : null,
-              child: const Text("Done"),
+              child: Text(context.l10n.commonDone),
             ),
           const SizedBox(height: 8),
           if (widget.numberOfPlayer != null)
             Text(
-              "Selecting 2 player. Selected: ${selectedPlayers.length}",
+              context.l10n.offlineSelectingPlayers(selectedPlayers.length),
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             )
           else
             Text(
-              "Selected: ${selectedPlayers.length}",
+              context.l10n.offlineSelectedPlayers(selectedPlayers.length),
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),

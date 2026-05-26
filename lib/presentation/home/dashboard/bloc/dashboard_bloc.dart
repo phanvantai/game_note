@@ -7,6 +7,7 @@ import 'package:pes_arena/domain/repositories/user_stats_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/stats/gn_user_stats_summary.dart';
+import 'package:pes_arena/l10n/app_text.dart';
 
 import '../models/dashboard_stats.dart';
 import '../models/league_performance_point.dart';
@@ -75,7 +76,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: 'Người dùng chưa đăng nhập',
+          errorMessage: appText.dashboardSignInRequired,
         ),
       );
       return;

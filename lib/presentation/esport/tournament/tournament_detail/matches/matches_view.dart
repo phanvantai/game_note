@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/create_custom_match_dialog.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/update_match_score_dialog.dart';
@@ -72,7 +73,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Lịch thi đấu',
+                        context.l10n.tournamentScheduleTitle,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -80,7 +81,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.add),
-                      tooltip: 'Tạo trận tùy chỉnh',
+                      tooltip: context.l10n.tournamentCreateCustomMatchTooltip,
                       onPressed: () {
                         showDialog(
                           context: context,
@@ -100,14 +101,15 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                       },
                     ),
                     FilledButton.tonal(
-                      onPressed: () => _confirmGenerateRound(context, state.fixtures.length),
+                      onPressed: () =>
+                          _confirmGenerateRound(context, state.fixtures.length),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text('Tạo vòng đấu'),
+                      child: Text(context.l10n.tournamentAddRound),
                     ),
                   ],
                 ),
@@ -120,7 +122,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: 'Tìm theo tên người chơi (vd: A B)',
+                    hintText: context.l10n.tournamentSearchPlayerHint,
                     prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: _searchQuery.isEmpty
                         ? null
@@ -201,15 +203,17 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
   ) {
     if (matches.isEmpty) {
       final empty = !isFixtures && _searchQuery.isNotEmpty
-          ? const AppEmptyState(
+          ? AppEmptyState(
               icon: Icons.search_off,
-              title: 'Không tìm thấy trận nào',
+              title: context.l10n.tournamentNoMatchesFound,
             )
           : AppEmptyState(
               icon: isFixtures
                   ? Icons.calendar_today_outlined
                   : Icons.scoreboard_outlined,
-              title: isFixtures ? 'Chưa có lịch thi đấu' : 'Chưa có kết quả',
+              title: isFixtures
+                  ? context.l10n.tournamentNoFixtures
+                  : context.l10n.tournamentNoResults,
             );
       return RefreshIndicator(
         onRefresh: () => _refresh(context),
@@ -264,19 +268,21 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
     );
   }
 
-  Future<void> _confirmGenerateRound(BuildContext context, int existingCount) async {
+  Future<void> _confirmGenerateRound(
+    BuildContext context,
+    int existingCount,
+  ) async {
     final message = existingCount > 0
-        ? 'Hiện có $existingCount trận trong lịch. Tạo thêm một vòng mới?'
-        : 'Tạo vòng đấu round-robin cho tất cả người chơi?';
+        ? context.l10n.tournamentGenerateRoundWithExisting(existingCount)
+        : context.l10n.tournamentGenerateRoundMessage;
     final confirmed = await showAppConfirmDialog(
       context: context,
-      title: 'Tạo vòng đấu',
+      title: context.l10n.tournamentAddRound,
       message: message,
-      confirmText: 'Tạo',
+      confirmText: context.l10n.commonCreate,
     );
     if (confirmed == true && context.mounted) {
       context.read<TournamentDetailBloc>().add(const GenerateRound());
     }
   }
-
 }

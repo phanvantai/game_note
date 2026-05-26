@@ -51,15 +51,15 @@ class MigrationPlan extends Equatable {
 
   @override
   List<Object?> get props => [
-        placeholderUsers,
-        groupId,
-        uidsToAddToGroup,
-        leagueId,
-        leagueData,
-        participantUids,
-        statDocs,
-        matches,
-      ];
+    placeholderUsers,
+    groupId,
+    uidsToAddToGroup,
+    leagueId,
+    leagueData,
+    participantUids,
+    statDocs,
+    matches,
+  ];
 }
 
 class PlannedPlaceholder extends Equatable {
@@ -95,15 +95,15 @@ class PlannedStatDoc extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        matchesPlayed,
-        goals,
-        goalsConceded,
-        wins,
-        draws,
-        losses,
-      ];
+    id,
+    userId,
+    matchesPlayed,
+    goals,
+    goalsConceded,
+    wins,
+    draws,
+    losses,
+  ];
 }
 
 class PlanTooLargeException implements Exception {

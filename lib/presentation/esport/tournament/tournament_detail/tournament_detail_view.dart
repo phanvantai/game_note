@@ -10,6 +10,7 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 
@@ -78,120 +79,149 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
         final List<Widget> tabViews;
         switch (mode) {
           case TournamentMode.cup:
-            tabs = const [Tab(text: 'Bracket'), Tab(text: 'Kết quả'), Tab(text: 'Chi phí')];
-            tabViews = const [BracketView(), EsportMatchesView(isFixtures: false), CostSplitView()];
+            tabs = [
+              Tab(text: context.l10n.tournamentTabBracket),
+              Tab(text: context.l10n.tournamentTabResults),
+              Tab(text: context.l10n.tournamentTabCost),
+            ];
+            tabViews = const [
+              BracketView(),
+              EsportMatchesView(isFixtures: false),
+              CostSplitView(),
+            ];
           case TournamentMode.full:
-            tabs = const [Tab(text: 'Bảng'), Tab(text: 'Bracket'), Tab(text: 'Kết quả'), Tab(text: 'Chi phí')];
-            tabViews = const [GroupStandingsView(), BracketView(), EsportMatchesView(isFixtures: false), CostSplitView()];
+            tabs = [
+              Tab(text: context.l10n.tournamentTabGroups),
+              Tab(text: context.l10n.tournamentTabBracket),
+              Tab(text: context.l10n.tournamentTabResults),
+              Tab(text: context.l10n.tournamentTabCost),
+            ];
+            tabViews = const [
+              GroupStandingsView(),
+              BracketView(),
+              EsportMatchesView(isFixtures: false),
+              CostSplitView(),
+            ];
           case TournamentMode.league:
-            tabs = const [Tab(text: 'BXH'), Tab(text: 'Lịch'), Tab(text: 'Kết quả'), Tab(text: 'Chi phí')];
-            tabViews = const [EsportTableView(), EsportMatchesView(isFixtures: true), EsportMatchesView(isFixtures: false), CostSplitView()];
+            tabs = [
+              Tab(text: context.l10n.tournamentTabStandings),
+              Tab(text: context.l10n.tournamentTabFixtures),
+              Tab(text: context.l10n.tournamentTabResults),
+              Tab(text: context.l10n.tournamentTabCost),
+            ];
+            tabViews = const [
+              EsportTableView(),
+              EsportMatchesView(isFixtures: true),
+              EsportMatchesView(isFixtures: false),
+              CostSplitView(),
+            ];
         }
 
         return DefaultTabController(
-        key: ValueKey(mode),
-        length: tabs.length,
-        child: Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          body: Container(
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.secondary.withValues(alpha: 0.16),
-                  theme.scaffoldBackgroundColor,
-                  colorScheme.primary.withValues(alpha: 0.06),
-                ],
-                stops: const [0, 0.46, 1],
+          key: ValueKey(mode),
+          length: tabs.length,
+          child: Scaffold(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            body: Container(
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colorScheme.secondary.withValues(alpha: 0.16),
+                    theme.scaffoldBackgroundColor,
+                    colorScheme.primary.withValues(alpha: 0.06),
+                  ],
+                  stops: const [0, 0.46, 1],
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _TournamentDetailHero(
-                    state: state,
-                    leagueName: _leagueName(state),
-                    onBack: () => Navigator.of(context).maybePop(),
-                    onAddParticipant: state.currentUserIsMember &&
-                            state.league?.status !=
-                                GNEsportLeagueStatus.finished.value
-                        ? () => _addParticipant(context, state)
-                        : null,
-                    onMenuSelected: (value) {
-                      switch (value) {
-                        case 'share':
-                          _shareStandings(state);
-                          break;
-                        case 'change_status':
-                          _changeStatus(context, state);
-                          break;
-                        case 'recompute_stats':
-                          _recomputeStats(context);
-                          break;
-                        case 'delete':
-                          _deleteLeague(context);
-                          break;
-                      }
-                    },
-                  ),
-                  _TournamentDetailTabBar(tabs: tabs),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        TabBarView(children: tabViews),
-                        if (state.viewStatus.isLoading)
-                          const Positioned(
-                            top: 0,
-                            right: 0,
-                            left: 0,
-                            child: LinearProgressIndicator(minHeight: 3),
-                          ),
-
-                        // Off-screen share cards (dark + light) — outside visible area
-                        // so Flutter fully paints them (required for toImage()).
-                        Positioned(
-                          left: -_shareCardWidth - 10,
-                          top: 0,
-                          child: RepaintBoundary(
-                            key: _shareCardKey,
-                            child: LeagueShareCard(
-                              leagueName: _leagueName(state),
-                              participants: state.participants,
-                              cardWidth: _shareCardWidth,
-                              isDark: true,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: -_shareCardWidth - 10,
-                          top: 0,
-                          child: RepaintBoundary(
-                            key: _shareCardLightKey,
-                            child: LeagueShareCard(
-                              leagueName: _leagueName(state),
-                              participants: state.participants,
-                              cardWidth: _shareCardWidth,
-                              isDark: false,
-                            ),
-                          ),
-                        ),
-                      ],
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    _TournamentDetailHero(
+                      state: state,
+                      leagueName: _leagueName(state),
+                      onBack: () => Navigator.of(context).maybePop(),
+                      onAddParticipant:
+                          state.currentUserIsMember &&
+                              state.league?.status !=
+                                  GNEsportLeagueStatus.finished.value
+                          ? () => _addParticipant(context, state)
+                          : null,
+                      onMenuSelected: (value) {
+                        switch (value) {
+                          case 'share':
+                            _shareStandings(state);
+                            break;
+                          case 'change_status':
+                            _changeStatus(context, state);
+                            break;
+                          case 'recompute_stats':
+                            _recomputeStats(context);
+                            break;
+                          case 'delete':
+                            _deleteLeague(context);
+                            break;
+                        }
+                      },
                     ),
-                  ),
-                ],
+                    _TournamentDetailTabBar(tabs: tabs),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          TabBarView(children: tabViews),
+                          if (state.viewStatus.isLoading)
+                            const Positioned(
+                              top: 0,
+                              right: 0,
+                              left: 0,
+                              child: LinearProgressIndicator(minHeight: 3),
+                            ),
+
+                          // Off-screen share cards (dark + light) — outside visible area
+                          // so Flutter fully paints them (required for toImage()).
+                          Positioned(
+                            left: -_shareCardWidth - 10,
+                            top: 0,
+                            child: RepaintBoundary(
+                              key: _shareCardKey,
+                              child: LeagueShareCard(
+                                leagueName: _leagueName(state),
+                                participants: state.participants,
+                                cardWidth: _shareCardWidth,
+                                isDark: true,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: -_shareCardWidth - 10,
+                            top: 0,
+                            child: RepaintBoundary(
+                              key: _shareCardLightKey,
+                              child: LeagueShareCard(
+                                leagueName: _leagueName(state),
+                                participants: state.participants,
+                                cardWidth: _shareCardWidth,
+                                isDark: false,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+            bottomNavigationBar: (!kIsWeb && _bannerAd != null)
+                ? SizedBox(
+                    width: _bannerAd!.size.width.toDouble(),
+                    height: _bannerAd!.size.height.toDouble(),
+                    child: AdWidget(ad: _bannerAd!),
+                  )
+                : null,
           ),
-          bottomNavigationBar: (!kIsWeb && _bannerAd != null)
-              ? SizedBox(
-                  width: _bannerAd!.size.width.toDouble(),
-                  height: _bannerAd!.size.height.toDouble(),
-                  child: AdWidget(ad: _bannerAd!),
-                )
-              : null,
-        ),
         );
       },
     );
@@ -210,8 +240,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
           key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) return null;
       final image = await boundary.toImage(pixelRatio: 2.5);
-      final byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       return byteData?.buffer.asUint8List();
     }
 
@@ -239,7 +268,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Trạng thái giải đấu'),
+          title: Text(context.l10n.tournamentStatusTitle),
           content: BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
             bloc: bloc,
             builder: (ctx, state) =>
@@ -269,14 +298,14 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Hủy'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () {
                 bloc.add(SubmitLeagueStatus());
                 Navigator.of(context).pop();
               },
-              child: const Text('Lưu'),
+              child: Text(context.l10n.commonSave),
             ),
           ],
         );
@@ -288,11 +317,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     final bloc = BlocProvider.of<TournamentDetailBloc>(context);
     final confirmed = await showAppConfirmDialog(
       context: context,
-      title: 'Đồng bộ điểm số',
-      message:
-          'Tính lại toàn bộ điểm số từ kết quả các trận đã đấu? '
-          'Dùng khi điểm bị lệch do dữ liệu cũ.',
-      confirmText: 'Đồng bộ',
+      title: context.l10n.tournamentRecomputeStatsTitle,
+      message: context.l10n.tournamentRecomputeStatsMessage,
+      confirmText: context.l10n.tournamentRecomputeStatsConfirm,
     );
     if (confirmed == true) {
       bloc.add(RecomputeStats());
@@ -303,9 +330,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     final bloc = BlocProvider.of<TournamentDetailBloc>(context);
     final confirmed = await showAppConfirmDialog(
       context: context,
-      title: 'Xóa giải đấu',
-      message: 'Bạn có chắc chắn muốn xóa giải đấu này không?',
-      confirmText: 'Xóa',
+      title: context.l10n.tournamentDeleteTitle,
+      message: context.l10n.tournamentDeleteMessage,
+      confirmText: context.l10n.commonDelete,
       isDestructive: true,
     );
     if (confirmed == true) {
@@ -428,7 +455,7 @@ class _TournamentDetailHero extends StatelessWidget {
             children: [
               _HeroIconButton(
                 icon: Icons.arrow_back,
-                tooltip: 'Quay lại',
+                tooltip: context.l10n.tournamentBackTooltip,
                 onPressed: onBack,
               ),
               const SizedBox(width: 8),
@@ -458,7 +485,7 @@ class _TournamentDetailHero extends StatelessWidget {
                         Expanded(
                           child: Text(
                             leagueName.isEmpty
-                                ? 'Đang tải giải đấu'
+                                ? context.l10n.tournamentLoadingTitle
                                 : leagueName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -488,41 +515,43 @@ class _TournamentDetailHero extends StatelessWidget {
                 const SizedBox(width: 8),
                 _HeroIconButton(
                   icon: Icons.person_add_outlined,
-                  tooltip: 'Thêm người chơi',
+                  tooltip: context.l10n.tournamentAddPlayersTitle,
                   onPressed: onAddParticipant!,
                 ),
               ],
               if (hasMenuActions) ...[
                 const SizedBox(width: 6),
                 PopupMenuButton<String>(
-                  tooltip: 'Tuỳ chọn giải đấu',
+                  tooltip: context.l10n.tournamentOptionsTooltip,
                   onSelected: onMenuSelected,
                   icon: Icon(Icons.more_horiz, color: colorScheme.onSurface),
                   itemBuilder: (context) => [
                     if (!kIsWeb && state.participants.isNotEmpty)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'share',
                         child: ListTile(
-                          leading: Icon(Icons.share),
-                          title: Text('Chia sẻ BXH'),
+                          leading: const Icon(Icons.share),
+                          title: Text(context.l10n.tournamentShareStandings),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
                     if (state.currentUserIsLeagueAdmin)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'change_status',
                         child: ListTile(
-                          leading: Icon(Icons.edit_outlined),
-                          title: Text('Trạng thái'),
+                          leading: const Icon(Icons.edit_outlined),
+                          title: Text(context.l10n.tournamentStatusMenu),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
                     if (state.currentUserIsLeagueAdmin)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'recompute_stats',
                         child: ListTile(
-                          leading: Icon(Icons.refresh),
-                          title: Text('Đồng bộ điểm số'),
+                          leading: const Icon(Icons.refresh),
+                          title: Text(
+                            context.l10n.tournamentRecomputeStatsTitle,
+                          ),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
@@ -535,7 +564,7 @@ class _TournamentDetailHero extends StatelessWidget {
                             color: colorScheme.error,
                           ),
                           title: Text(
-                            'Xóa giải đấu',
+                            context.l10n.tournamentDeleteTitle,
                             style: TextStyle(color: colorScheme.error),
                           ),
                           contentPadding: EdgeInsets.zero,

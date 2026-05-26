@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import '../../../../../../widgets/gn_circle_avatar.dart';
 
@@ -27,7 +28,7 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
-      title: const Text('Tạo trận đấu'),
+      title: Text(context.l10n.tournamentCreateMatchTitle),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -45,7 +46,7 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
                 );
               }).toList(),
               decoration: InputDecoration(
-                hintText: 'Đội nhà',
+                hintText: context.l10n.tournamentHomeTeamHint,
                 filled: true,
                 fillColor: colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
@@ -71,7 +72,7 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
                 );
               }).toList(),
               decoration: InputDecoration(
-                hintText: 'Đội khách',
+                hintText: context.l10n.tournamentAwayTeamHint,
                 filled: true,
                 fillColor: colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
@@ -90,21 +91,21 @@ class _CreateCustomMatchDialogState extends State<CreateCustomMatchDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () {
             if (homeTeam == null || awayTeam == null) {
-              showToast('Vui lòng chọn đội');
+              showToast(context.l10n.tournamentSelectTeamRequired);
               return;
             }
             if (homeTeam == awayTeam) {
-              showToast('Vui lòng chọn 2 đội khác nhau');
+              showToast(context.l10n.tournamentDistinctTeamsRequired);
               return;
             }
             widget.onMatchCreated(homeTeam!, awayTeam!);
           },
-          child: const Text('Tạo trận đấu'),
+          child: Text(context.l10n.tournamentCreateMatchTitle),
         ),
       ],
     );

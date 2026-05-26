@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 /// Sinh các preset gợi ý phân chia thưởng (đơn vị k VND) dựa theo số người tham gia.
 ///
@@ -11,8 +12,8 @@ List<List<int>> generateRankPayoutPresets(int participantCount) {
   if (participantCount < 2) return [];
   final slots = participantCount - 1;
   final candidates = [
-    List.generate(slots, (i) => (i + 1) * 50),  // 50, 100, 150, ...
-    List.generate(slots, (i) => 100 + i * 50),  // 100, 150, 200, ...
+    List.generate(slots, (i) => (i + 1) * 50), // 50, 100, 150, ...
+    List.generate(slots, (i) => 100 + i * 50), // 100, 150, 200, ...
     List.generate(slots, (i) => (i + 1) * 100), // 100, 200, 300, ...
   ];
   final seen = <String>{};
@@ -81,19 +82,19 @@ class CostConfigFormState extends State<CostConfigForm> {
   late bool _rankPayoutEnabled = widget.initialRankPayoutEnabled;
   late final TextEditingController _rankPayoutsController =
       TextEditingController(
-    text: widget.initialRankPayouts.isEmpty
-        ? '50, 100, 150'
-        : widget.initialRankPayouts.map((v) => v ~/ 1000).join(', '),
-  );
+        text: widget.initialRankPayouts.isEmpty
+            ? '50, 100, 150'
+            : widget.initialRankPayouts.map((v) => v ~/ 1000).join(', '),
+      );
   late final TextEditingController _defaultMatchCostController =
       TextEditingController(
-    text: (widget.initialDefaultMatchCost ~/ 1000).toString(),
-  );
+        text: (widget.initialDefaultMatchCost ~/ 1000).toString(),
+      );
   late bool _defaultPerGoalEnabled = widget.initialDefaultPerGoalEnabled;
   late final TextEditingController _defaultCostPerGoalController =
       TextEditingController(
-    text: (widget.initialDefaultCostPerGoal ~/ 1000).toString(),
-  );
+        text: (widget.initialDefaultCostPerGoal ~/ 1000).toString(),
+      );
 
   @override
   void dispose() {
@@ -121,17 +122,13 @@ class CostConfigFormState extends State<CostConfigForm> {
         ? _parseRankPayouts(_rankPayoutsController.text)
         : <int>[];
     if (_rankPayoutEnabled && parsedRankPayouts.isEmpty) {
-      showToast('Nhập số tiền theo thứ hạng (VD: 50, 100)');
+      showToast(context.l10n.costRankPayoutRequired);
       return null;
     }
-    final defaultMatchCost = (int.tryParse(
-              _defaultMatchCostController.text.trim(),
-            ) ??
-            50) *
-        1000;
+    final defaultMatchCost =
+        (int.tryParse(_defaultMatchCostController.text.trim()) ?? 50) * 1000;
     final defaultCostPerGoal = _defaultPerGoalEnabled
-        ? (int.tryParse(_defaultCostPerGoalController.text.trim()) ?? 50) *
-            1000
+        ? (int.tryParse(_defaultCostPerGoalController.text.trim()) ?? 50) * 1000
         : 0;
     return CostConfigFormResult(
       rankPayoutEnabled: _rankPayoutEnabled,
@@ -151,13 +148,15 @@ class CostConfigFormState extends State<CostConfigForm> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           dense: true,
-          title: Text(widget.isBracketMode
-              ? 'Tính tiền theo bracket'
-              : 'Tính tiền theo thứ hạng'),
+          title: Text(
+            widget.isBracketMode
+                ? context.l10n.costBracketPayoutTitle
+                : context.l10n.costRankPayoutTitle,
+          ),
           subtitle: Text(
             widget.isBracketMode
-                ? 'Champion nhận tiền từ runner-up và người bị loại sớm'
-                : 'Hạng dưới góp tiền cho hạng nhất theo cấu hình',
+                ? context.l10n.costBracketPayoutSubtitle
+                : context.l10n.costRankPayoutSubtitle,
             style: const TextStyle(fontSize: 11),
           ),
           value: _rankPayoutEnabled,
@@ -179,15 +178,15 @@ class CostConfigFormState extends State<CostConfigForm> {
             ],
             decoration: appInputDecoration(
               context: context,
-              hintText: 'VD: 50, 100, 150 (k VND)',
+              hintText: context.l10n.costPayoutHint,
               prefixIcon: Icons.format_list_numbered,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             widget.isBracketMode
-                ? 'Lần lượt: runner-up, mỗi người thua bán kết, mỗi người thua tứ kết…'
-                : 'Lần lượt: hạng 2, hạng 3, hạng 4… đóng cho hạng 1.',
+                ? context.l10n.costBracketPayoutOrder
+                : context.l10n.costRankPayoutOrder,
             style: textTheme.bodySmall,
           ),
         ],
@@ -197,22 +196,19 @@ class CostConfigFormState extends State<CostConfigForm> {
           keyboardType: TextInputType.number,
           decoration: appInputDecoration(
             context: context,
-            hintText: 'Tiền mặc định mỗi trận (k VND)',
+            hintText: context.l10n.costDefaultMatchCostHint,
             prefixIcon: Icons.attach_money,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          'Số này sẽ được điền sẵn khi bật cost cho từng trận lúc nhập kết quả.',
-          style: textTheme.bodySmall,
-        ),
+        Text(context.l10n.costDefaultMatchCostHelp, style: textTheme.bodySmall),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           dense: true,
-          title: const Text('Mặc định bật tiền theo hiệu số bàn thắng'),
-          subtitle: const Text(
-            'Người thua trả thêm theo hiệu số bàn thắng (VD: 3-1 → cộng 2 lần số này).',
-            style: TextStyle(fontSize: 11),
+          title: Text(context.l10n.costDefaultPerGoalTitle),
+          subtitle: Text(
+            context.l10n.costDefaultPerGoalSubtitle,
+            style: const TextStyle(fontSize: 11),
           ),
           value: _defaultPerGoalEnabled,
           onChanged: (v) => setState(() => _defaultPerGoalEnabled = v),
@@ -223,15 +219,12 @@ class CostConfigFormState extends State<CostConfigForm> {
             keyboardType: TextInputType.number,
             decoration: appInputDecoration(
               context: context,
-              hintText: 'Tiền mỗi bàn (k VND)',
+              hintText: context.l10n.costPerGoalHint,
               prefixIcon: Icons.sports_soccer,
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            'Cộng vào tiền per-match khi trận đó cũng bật tính tiền.',
-            style: textTheme.bodySmall,
-          ),
+          Text(context.l10n.costPerGoalHelp, style: textTheme.bodySmall),
         ],
       ],
     );
@@ -254,7 +247,10 @@ class _RankPayoutPresets extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Gợi ý:', style: Theme.of(context).textTheme.bodySmall),
+        Text(
+          context.l10n.costSuggestions,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
         const SizedBox(height: 4),
         Wrap(
           spacing: 6,
@@ -262,7 +258,10 @@ class _RankPayoutPresets extends StatelessWidget {
           children: presets.map((preset) {
             final label = preset.join(', ');
             return ActionChip(
-              label: Text('$label k', style: const TextStyle(fontSize: 12)),
+              label: Text(
+                context.l10n.costPresetAmountLabel(label),
+                style: const TextStyle(fontSize: 12),
+              ),
               visualDensity: VisualDensity.compact,
               padding: const EdgeInsets.symmetric(horizontal: 4),
               onPressed: () => onSelect(label),

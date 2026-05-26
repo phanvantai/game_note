@@ -11,7 +11,8 @@ class LeagueRepositoryImpl implements LeagueRepository {
   LeagueRepositoryImpl(this.localDatasource);
   @override
   Future<Either<Failure, LeagueModel>> createLeague(
-      CreateLeagueParams params) async {
+    CreateLeagueParams params,
+  ) async {
     try {
       return Right(await localDatasource.createLeague(params.name));
     } on DatabaseException catch (e) {
@@ -21,10 +22,16 @@ class LeagueRepositoryImpl implements LeagueRepository {
 
   @override
   Future<Either<Failure, LeagueModel>> updateMatch(
-      UpdateMatchParams params) async {
+    UpdateMatchParams params,
+  ) async {
     try {
-      return Right(await localDatasource.updateMatch(
-          params.matchModel, params.homeScore, params.awayScore));
+      return Right(
+        await localDatasource.updateMatch(
+          params.matchModel,
+          params.homeScore,
+          params.awayScore,
+        ),
+      );
     } catch (e) {
       return Left(LocalFailure(e.toString()));
     }
@@ -32,7 +39,8 @@ class LeagueRepositoryImpl implements LeagueRepository {
 
   @override
   Future<Either<Failure, LeagueModel>> createRounds(
-      CreateRoundsParams params) async {
+    CreateRoundsParams params,
+  ) async {
     try {
       return Right(await localDatasource.createRounds());
     } on DatabaseException catch (e) {
@@ -51,7 +59,8 @@ class LeagueRepositoryImpl implements LeagueRepository {
 
   @override
   Future<Either<Failure, List<LeagueModel>>> getLeagues(
-      GetLeaguesParams params) async {
+    GetLeaguesParams params,
+  ) async {
     try {
       return Right(await localDatasource.getLeagues());
     } on DatabaseException catch (e) {
@@ -61,7 +70,8 @@ class LeagueRepositoryImpl implements LeagueRepository {
 
   @override
   Future<Either<Failure, LeagueModel>> setPlayersForLeague(
-      SetPlayersForLeagueParams params) async {
+    SetPlayersForLeagueParams params,
+  ) async {
     try {
       return Right(await localDatasource.setPlayersForLeague(params.players));
     } on DatabaseException catch (e) {

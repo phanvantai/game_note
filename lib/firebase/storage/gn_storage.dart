@@ -18,7 +18,8 @@ class GNStorage {
     }
     // Create a reference to the file in Firebase Storage
     Reference storageRef = _storage.ref().child(
-        '${GNCollection.avatars}/${user.uid}/${DateTime.now().millisecondsSinceEpoch}-${file.name}');
+      '${GNCollection.avatars}/${user.uid}/${DateTime.now().millisecondsSinceEpoch}-${file.name}',
+    );
 
     // Upload the file to Firebase Storage
     TaskSnapshot snapshot = await storageRef.putFile(File(file.path));

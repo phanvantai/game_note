@@ -1,4 +1,1 @@
-enum MatchType {
-  friendly,
-  tournament,
-}
+enum MatchType { friendly, tournament }

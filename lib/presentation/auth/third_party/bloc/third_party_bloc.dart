@@ -18,7 +18,9 @@ class ThirdPartyBloc extends Bloc<ThirdPartyEvent, ThirdPartyState> {
   final GNAuth _auth = getIt<GNAuth>();
 
   void _signInGoogle(
-      ThirdPartySignInGoogle event, Emitter<ThirdPartyState> emit) async {
+    ThirdPartySignInGoogle event,
+    Emitter<ThirdPartyState> emit,
+  ) async {
     if (state.status == ViewStatus.loading) {
       return;
     }
@@ -70,7 +72,9 @@ class ThirdPartyBloc extends Bloc<ThirdPartyEvent, ThirdPartyState> {
   }
 
   void _signInApple(
-      ThirdPartySignInApple event, Emitter<ThirdPartyState> emit) async {
+    ThirdPartySignInApple event,
+    Emitter<ThirdPartyState> emit,
+  ) async {
     if (state.status == ViewStatus.loading) {
       return;
     }

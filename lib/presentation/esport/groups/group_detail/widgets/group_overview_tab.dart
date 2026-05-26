@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/models/group_overview.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/widgets/group_detail_hero.dart';
@@ -33,14 +34,13 @@ class GroupOverviewTab extends StatelessWidget {
               if (description.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 _SectionShell(
-                  title: 'Mô tả',
+                  title: context.l10n.groupDescriptionTitle,
                   icon: Icons.notes_outlined,
                   child: Text(
                     description,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(height: 1.45),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(height: 1.45),
                     textAlign: TextAlign.justify,
                   ),
                 ),
@@ -56,23 +56,20 @@ class GroupOverviewTab extends StatelessWidget {
               children: [
                 _OverviewHeader(
                   loading: loading,
-                  onRefresh: loading
-                      ? null
-                      : () => _confirmAndRefresh(context),
+                  onRefresh: loading ? null : () => _confirmAndRefresh(context),
                 ),
                 const SizedBox(height: 12),
                 GroupDetailHero(state: state),
                 if (description.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _SectionShell(
-                    title: 'Mô tả',
+                    title: context.l10n.groupDescriptionTitle,
                     icon: Icons.notes_outlined,
                     child: Text(
                       description,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(height: 1.45),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(height: 1.45),
                       textAlign: TextAlign.justify,
                     ),
                   ),
@@ -91,11 +88,9 @@ class GroupOverviewTab extends StatelessWidget {
                     child: Center(child: CircularProgressIndicator()),
                   )
                 else if (overview == null)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 48),
-                    child: Center(
-                      child: Text('Chưa có dữ liệu tổng quan'),
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 48),
+                    child: Center(child: Text(context.l10n.groupNoOverview)),
                   )
                 else if (overview.totalLeagues == 0)
                   const _EmptyBlock()
@@ -125,19 +120,16 @@ class GroupOverviewTab extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cập nhật thống kê?'),
-        content: const Text(
-          'Hệ thống sẽ tải lại toàn bộ giải đấu và tính lại thống kê group. '
-          'Thao tác này có thể mất vài giây.',
-        ),
+        title: Text(ctx.l10n.groupRefreshStatsTitle),
+        content: Text(ctx.l10n.groupRefreshStatsMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Huỷ'),
+            child: Text(ctx.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Cập nhật'),
+            child: Text(ctx.l10n.commonUpdate),
           ),
         ],
       ),
@@ -159,18 +151,22 @@ class _OverviewHeader extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(Icons.dashboard_outlined,
-            size: 20, color: theme.colorScheme.secondary),
+        Icon(
+          Icons.dashboard_outlined,
+          size: 20,
+          color: theme.colorScheme.secondary,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            'Tổng quan group',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
+            context.l10n.groupOverviewTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
         IconButton(
-          tooltip: 'Cập nhật thống kê',
+          tooltip: context.l10n.groupRefreshStatsTooltip,
           onPressed: onRefresh,
           icon: loading
               ? SizedBox(
@@ -200,10 +196,9 @@ class _EmptyBlock extends StatelessWidget {
           Icon(
             Icons.sports_score_outlined,
             size: 56,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.3),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 12),
           Text(
@@ -231,14 +226,13 @@ class _ErrorBlock extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline,
-              color: Theme.of(context).colorScheme.error),
+          Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               message.isEmpty
-                  ? 'Không thể tải dữ liệu tổng quan.'
-                  : 'Lỗi tải dữ liệu: $message',
+                  ? context.l10n.groupOverviewLoadFailed
+                  : context.l10n.groupOverviewLoadError(message),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
@@ -258,65 +252,73 @@ class _AwardsSection extends StatelessWidget {
     final cards = <Widget>[];
     final c = Theme.of(context).colorScheme;
     if (overview.champion != null) {
-      cards.add(_AwardCard(
-        award: overview.champion!,
-        title: 'Vô đối',
-        subtitle: _rateLine(overview.champion!, suffix: 'giải vô địch'),
-        icon: Icons.emoji_events,
-        accent: const Color(0xFFFFC107),
-      ));
+      cards.add(
+        _AwardCard(
+          award: overview.champion!,
+          title: context.l10n.groupLegendChampion,
+          subtitle: _rateLine(overview.champion!, suffix: 'giải vô địch'),
+          icon: Icons.emoji_events,
+          accent: const Color(0xFFFFC107),
+        ),
+      );
     }
     if (overview.runnerUpKing != null) {
-      cards.add(_AwardCard(
-        award: overview.runnerUpKing!,
-        title: 'Kẻ về nhì vĩ đại',
-        subtitle: _rateLine(overview.runnerUpKing!, suffix: 'lần về nhì'),
-        icon: Icons.workspace_premium_outlined,
-        accent: const Color(0xFFB0BEC5),
-      ));
+      cards.add(
+        _AwardCard(
+          award: overview.runnerUpKing!,
+          title: context.l10n.groupLegendRunnerUp,
+          subtitle: _rateLine(overview.runnerUpKing!, suffix: 'lần về nhì'),
+          icon: Icons.workspace_premium_outlined,
+          accent: const Color(0xFFB0BEC5),
+        ),
+      );
     }
     // Hoà vương is computed server-side and stored on the overview, but
     // intentionally hidden from the UI per product call — kept on the
     // model so we can revive the card later without a server change.
     if (overview.master != null) {
-      cards.add(_AwardCard(
-        award: overview.master!,
-        title: 'Cao thủ',
-        subtitle:
-            '${(overview.master!.value * 100).toStringAsFixed(0)}% thắng (${overview.master!.numerator}/${overview.master!.sampleSize})',
-        icon: Icons.bolt_outlined,
-        accent: Colors.lightGreen[600]!,
-      ));
+      cards.add(
+        _AwardCard(
+          award: overview.master!,
+          title: context.l10n.groupLegendPro,
+          subtitle:
+              '${(overview.master!.value * 100).toStringAsFixed(0)}% thắng (${overview.master!.numerator}/${overview.master!.sampleSize})',
+          icon: Icons.bolt_outlined,
+          accent: Colors.lightGreen[600]!,
+        ),
+      );
     }
     if (overview.ironDefense != null) {
-      cards.add(_AwardCard(
-        award: overview.ironDefense!,
-        title: 'Hàng thủ thép',
-        subtitle:
-            '${overview.ironDefense!.value.toStringAsFixed(2)} bàn thua/trận (${overview.ironDefense!.sampleSize} trận)',
-        icon: Icons.shield_outlined,
-        accent: Colors.blueGrey[400]!,
-      ));
+      cards.add(
+        _AwardCard(
+          award: overview.ironDefense!,
+          title: context.l10n.groupLegendDefense,
+          subtitle:
+              '${overview.ironDefense!.value.toStringAsFixed(2)} bàn thua/trận (${overview.ironDefense!.sampleSize} trận)',
+          icon: Icons.shield_outlined,
+          accent: Colors.blueGrey[400]!,
+        ),
+      );
     }
 
     if (cards.isEmpty) {
       return _SectionShell(
-        title: 'Danh hiệu',
+        title: context.l10n.groupTitles,
         icon: Icons.emoji_events_outlined,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text(
-            'Chưa đủ dữ liệu để trao danh hiệu (cần ít nhất 5 giải finished hoặc 5 trận đấu).',
+            context.l10n.groupNotEnoughAwardsData,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: c.onSurface.withValues(alpha: 0.6),
-                ),
+              color: c.onSurface.withValues(alpha: 0.6),
+            ),
           ),
         ),
       );
     }
 
     return _SectionShell(
-      title: 'Danh hiệu',
+      title: context.l10n.groupTitles,
       icon: Icons.emoji_events_outlined,
       child: Column(
         children: [
@@ -390,8 +392,9 @@ class _AwardCard extends StatelessWidget {
                   _displayName(award.player),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w800),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -421,19 +424,19 @@ class _PlayerStatsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (overview.playerStats.isEmpty) {
       return _SectionShell(
-        title: 'Thống kê thành viên',
+        title: context.l10n.groupMemberStats,
         icon: Icons.groups_outlined,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text(
-            'Chưa có dữ liệu thành viên.',
+            context.l10n.groupNoMemberStats,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
       );
     }
     return _SectionShell(
-      title: 'Thống kê thành viên',
+      title: context.l10n.groupMemberStats,
       icon: Icons.groups_outlined,
       child: Column(
         children: [
@@ -472,8 +475,9 @@ class _PlayerStatRow extends StatelessWidget {
                     stats.player.id,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
@@ -539,23 +543,22 @@ class _WdlChip extends StatelessWidget {
           Text(
             '$count',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w900,
-                ),
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
           ),
           Text(
             '$label ${(rate * 100).toStringAsFixed(0)}%',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
     );
   }
 }
-
 
 class _YearFilterRow extends StatelessWidget {
   final GroupDetailState state;
@@ -564,10 +567,7 @@ class _YearFilterRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final years = state.leagues
-        .map((l) => l.startDate.year)
-        .toSet()
-        .toList()
+    final years = state.leagues.map((l) => l.startDate.year).toSet().toList()
       ..sort((a, b) => b.compareTo(a));
 
     if (years.isEmpty) return const SizedBox.shrink();
@@ -581,14 +581,14 @@ class _YearFilterRow extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         children: [
           _YearChip(
-            label: 'Tất cả',
+            label: context.l10n.groupYearFilterAll,
             selected: selected == null,
             colorScheme: colorScheme,
             onTap: () {
               HapticFeedback.selectionClick();
-              context
-                  .read<GroupDetailBloc>()
-                  .add(const FilterGroupOverviewByYear(null));
+              context.read<GroupDetailBloc>().add(
+                const FilterGroupOverviewByYear(null),
+              );
             },
           ),
           ...years.map(
@@ -598,9 +598,9 @@ class _YearFilterRow extends StatelessWidget {
               colorScheme: colorScheme,
               onTap: () {
                 HapticFeedback.selectionClick();
-                context
-                    .read<GroupDetailBloc>()
-                    .add(FilterGroupOverviewByYear(year));
+                context.read<GroupDetailBloc>().add(
+                  FilterGroupOverviewByYear(year),
+                );
               },
             ),
           ),
@@ -648,9 +648,7 @@ class _YearChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: selected
-                  ? colorScheme.onSecondary
-                  : colorScheme.secondary,
+              color: selected ? colorScheme.onSecondary : colorScheme.secondary,
             ),
           ),
         ),
@@ -688,9 +686,7 @@ class _SectionShell extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: colorScheme.secondary),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(title, style: theme.textTheme.titleMedium),
-              ),
+              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
             ],
           ),
           const SizedBox(height: 12),

@@ -77,8 +77,7 @@ class GNUserH2H extends Equatable {
     return GNUserH2H(
       userId: userId,
       opponentId: opponentId,
-      opponentDisplayName:
-          map[fieldOpponentDisplayName] as String? ?? '',
+      opponentDisplayName: map[fieldOpponentDisplayName] as String? ?? '',
       matchesPlayed: (map[fieldMatchesPlayed] as num?)?.toInt() ?? 0,
       wins: (map[fieldWins] as num?)?.toInt() ?? 0,
       draws: (map[fieldDraws] as num?)?.toInt() ?? 0,
@@ -108,10 +107,8 @@ class GNUserH2H extends Equatable {
       fieldLosses: losses,
       fieldGoals: goals,
       fieldGoalsConceded: goalsConceded,
-      fieldLastMetAt:
-          lastMetAt == null ? null : Timestamp.fromDate(lastMetAt!),
-      fieldUpdatedAt:
-          updatedAt == null ? null : Timestamp.fromDate(updatedAt!),
+      fieldLastMetAt: lastMetAt == null ? null : Timestamp.fromDate(lastMetAt!),
+      fieldUpdatedAt: updatedAt == null ? null : Timestamp.fromDate(updatedAt!),
     };
   }
 

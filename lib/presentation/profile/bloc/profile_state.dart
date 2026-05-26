@@ -11,11 +11,7 @@ class ProfileState extends Equatable {
     this.error = '',
   });
 
-  ProfileState copyWith({
-    ViewStatus? viewStatus,
-    GNUser? user,
-    String? error,
-  }) {
+  ProfileState copyWith({ViewStatus? viewStatus, GNUser? user, String? error}) {
     return ProfileState(
       viewStatus: viewStatus ?? this.viewStatus,
       user: user ?? this.user,

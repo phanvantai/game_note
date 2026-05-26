@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/users/bloc/user_bloc.dart';
@@ -59,7 +60,7 @@ class _AddMemberScaffold extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: const SmartBackButton(),
-        title: const Text('Thêm thành viên'),
+        title: Text(context.l10n.groupAddMemberTitle),
       ),
       body: Column(
         children: [
@@ -69,30 +70,25 @@ class _AddMemberScaffold extends StatelessWidget {
               autofocus: true,
               decoration: appInputDecoration(
                 context: context,
-                hintText: 'Tìm kiếm theo tên',
+                hintText: context.l10n.groupSearchByNameHint,
                 prefixIcon: Icons.search,
               ),
-              onChanged: (v) =>
-                  context.read<UserBloc>().add(SearchUser(v)),
+              onChanged: (v) => context.read<UserBloc>().add(SearchUser(v)),
             ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: _CreatePlaceholderTile(
               onConfirm: (name) {
-                final groupId =
-                    context.read<GroupDetailBloc>().state.group.id;
-                context
-                    .read<GroupDetailBloc>()
-                    .add(AddPlaceholderMember(groupId, name));
+                final groupId = context.read<GroupDetailBloc>().state.group.id;
+                context.read<GroupDetailBloc>().add(
+                  AddPlaceholderMember(groupId, name),
+                );
                 Navigator.of(context).pop();
               },
             ),
           ),
-          Divider(
-            height: 1,
-            color: colorScheme.outline.withValues(alpha: 0.3),
-          ),
+          Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.3)),
           Expanded(
             child: BlocBuilder<UserBloc, UserState>(
               builder: (context, userState) => ListView.builder(
@@ -107,11 +103,14 @@ class _AddMemberScaffold extends StatelessWidget {
                   return UserItem(
                     user: user,
                     onTap: () {
-                      final groupId =
-                          context.read<GroupDetailBloc>().state.group.id;
-                      context
+                      final groupId = context
                           .read<GroupDetailBloc>()
-                          .add(AddMember(groupId, user.id));
+                          .state
+                          .group
+                          .id;
+                      context.read<GroupDetailBloc>().add(
+                        AddMember(groupId, user.id),
+                      );
                       Navigator.of(context).pop();
                     },
                   );
@@ -131,8 +130,7 @@ class _CreatePlaceholderTile extends StatefulWidget {
   const _CreatePlaceholderTile({required this.onConfirm});
 
   @override
-  State<_CreatePlaceholderTile> createState() =>
-      _CreatePlaceholderTileState();
+  State<_CreatePlaceholderTile> createState() => _CreatePlaceholderTileState();
 }
 
 class _CreatePlaceholderTileState extends State<_CreatePlaceholderTile> {
@@ -163,20 +161,22 @@ class _CreatePlaceholderTileState extends State<_CreatePlaceholderTile> {
           ),
           child: Row(
             children: [
-              Icon(Icons.person_add_alt_1_outlined,
-                  size: 18, color: colorScheme.secondary),
+              Icon(
+                Icons.person_add_alt_1_outlined,
+                size: 18,
+                color: colorScheme.secondary,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Tạo người chơi mới (placeholder)',
+                  context.l10n.groupCreatePlaceholderPlayer,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.secondary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: colorScheme.secondary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              Icon(Icons.chevron_right,
-                  size: 18, color: colorScheme.secondary),
+              Icon(Icons.chevron_right, size: 18, color: colorScheme.secondary),
             ],
           ),
         ),
@@ -188,24 +188,25 @@ class _CreatePlaceholderTileState extends State<_CreatePlaceholderTile> {
       decoration: BoxDecoration(
         color: colorScheme.secondaryContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.4),
-        ),
+        border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.person_add_alt_1_outlined,
-                  size: 18, color: colorScheme.secondary),
+              Icon(
+                Icons.person_add_alt_1_outlined,
+                size: 18,
+                color: colorScheme.secondary,
+              ),
               const SizedBox(width: 8),
               Text(
-                'Tạo người chơi mới',
+                context.l10n.groupCreateNewPlayer,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: colorScheme.secondary,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: colorScheme.secondary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -214,7 +215,7 @@ class _CreatePlaceholderTileState extends State<_CreatePlaceholderTile> {
             controller: _controller,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'Tên người chơi',
+              hintText: context.l10n.groupPlayerNameHint,
               isDense: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -232,12 +233,12 @@ class _CreatePlaceholderTileState extends State<_CreatePlaceholderTile> {
                   _controller.clear();
                   setState(() => _expanded = false);
                 },
-                child: const Text('Huỷ'),
+                child: Text(context.l10n.commonCancel),
               ),
               const SizedBox(width: 4),
               FilledButton(
                 onPressed: _submit,
-                child: const Text('Tạo'),
+                child: Text(context.l10n.commonCreate),
               ),
             ],
           ),

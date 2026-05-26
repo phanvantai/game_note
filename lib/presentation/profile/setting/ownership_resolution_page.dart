@@ -7,6 +7,7 @@ import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 
 enum _ResolutionType { transfer, deactivate }
@@ -123,7 +124,7 @@ class _OwnershipResolutionPageState extends State<OwnershipResolutionPage> {
       if (!mounted) return;
       setState(() => _applying = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể xử lý quyền sở hữu: $e')),
+        SnackBar(content: Text(context.l10n.ownershipProcessFailed('$e'))),
       );
     }
   }
@@ -134,13 +135,13 @@ class _OwnershipResolutionPageState extends State<OwnershipResolutionPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const SmartBackButton(),
-        title: const Text('Xử lý quyền sở hữu'),
+        title: Text(context.l10n.ownershipResolutionTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
         children: [
           Text(
-            'Bạn đang là chủ sở hữu của các nhóm/giải bên dưới. Hãy chuyển quyền cho thành viên khác hoặc ngừng hoạt động trước khi xoá tài khoản.',
+            context.l10n.ownershipResolutionMessage,
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 12),
@@ -148,7 +149,7 @@ class _OwnershipResolutionPageState extends State<OwnershipResolutionPage> {
             (group) => _OwnershipCard(
               icon: Icons.groups_outlined,
               title: group.groupName,
-              subtitle: 'Nhóm',
+              subtitle: context.l10n.ownershipGroup,
               candidateIds: _candidateIds(group.members),
               usersById: _usersById,
               loadingUsers: _loadingUsers,
@@ -162,7 +163,7 @@ class _OwnershipResolutionPageState extends State<OwnershipResolutionPage> {
             (league) => _OwnershipCard(
               icon: Icons.emoji_events_outlined,
               title: league.name,
-              subtitle: 'Giải đấu',
+              subtitle: context.l10n.ownershipTournament,
               candidateIds: _candidateIds(league.participants),
               usersById: _usersById,
               loadingUsers: _loadingUsers,
@@ -184,7 +185,7 @@ class _OwnershipResolutionPageState extends State<OwnershipResolutionPage> {
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Tiếp tục xoá tài khoản'),
+              : Text(context.l10n.ownershipContinueDelete),
         ),
       ),
     );
@@ -249,15 +250,15 @@ class _OwnershipCard extends StatelessWidget {
               showSelectedIcon: false,
               segments: [
                 if (canTransfer)
-                  const ButtonSegment(
+                  ButtonSegment(
                     value: _ResolutionType.transfer,
-                    icon: Icon(Icons.swap_horiz),
-                    label: Text('Chuyển'),
+                    icon: const Icon(Icons.swap_horiz),
+                    label: Text(context.l10n.ownershipTransfer),
                   ),
-                const ButtonSegment(
+                ButtonSegment(
                   value: _ResolutionType.deactivate,
-                  icon: Icon(Icons.block_outlined),
-                  label: Text('Ngừng'),
+                  icon: const Icon(Icons.block_outlined),
+                  label: Text(context.l10n.ownershipDeactivate),
                 ),
               ],
               selected: value == null ? const {} : {value!.type},

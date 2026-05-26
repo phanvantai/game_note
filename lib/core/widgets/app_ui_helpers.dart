@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 /// Standardized card wrapper with consistent styling.
 class AppCard extends StatelessWidget {
@@ -83,8 +84,8 @@ Future<bool?> showAppConfirmDialog({
   required BuildContext context,
   required String title,
   required String message,
-  String cancelText = 'Hủy',
-  String confirmText = 'Xác nhận',
+  String? cancelText,
+  String? confirmText,
   bool isDestructive = false,
 }) {
   final colorScheme = Theme.of(context).colorScheme;
@@ -96,7 +97,7 @@ Future<bool?> showAppConfirmDialog({
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(cancelText),
+          child: Text(cancelText ?? context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
@@ -108,7 +109,7 @@ Future<bool?> showAppConfirmDialog({
                 ? colorScheme.onError
                 : colorScheme.onSecondary,
           ),
-          child: Text(confirmText),
+          child: Text(confirmText ?? context.l10n.commonConfirm),
         ),
       ],
     ),
@@ -120,8 +121,8 @@ Future<T?> showAppFormDialog<T>({
   required BuildContext context,
   required String title,
   required Widget content,
-  String cancelText = 'Hủy',
-  String submitText = 'Tạo',
+  String? cancelText,
+  String? submitText,
   VoidCallback? onSubmit,
 }) {
   return showDialog<T>(
@@ -132,10 +133,13 @@ Future<T?> showAppFormDialog<T>({
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(cancelText),
+          child: Text(cancelText ?? context.l10n.commonCancel),
         ),
         if (onSubmit != null)
-          FilledButton(onPressed: onSubmit, child: Text(submitText)),
+          FilledButton(
+            onPressed: onSubmit,
+            child: Text(submitText ?? context.l10n.commonCreate),
+          ),
       ],
     ),
   );

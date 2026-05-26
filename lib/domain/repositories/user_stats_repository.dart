@@ -6,10 +6,7 @@ abstract class UserStatsRepository {
 
   Stream<GNUserStatsSummary?> listenSummary(String uid);
 
-  Future<GNUserH2H?> getH2H({
-    required String uid,
-    required String opponentUid,
-  });
+  Future<GNUserH2H?> getH2H({required String uid, required String opponentUid});
 
   /// Triggers a server-side backfill. Returns immediately; caller should
   /// poll/listen for the summary doc to appear.

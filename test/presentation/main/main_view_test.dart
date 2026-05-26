@@ -7,6 +7,7 @@ import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
@@ -16,6 +17,7 @@ import 'package:pes_arena/presentation/home/ongoing_tournaments/bloc/ongoing_tou
 import 'package:pes_arena/presentation/main/main_view.dart';
 import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:pes_arena/presentation/profile/bloc/profile_bloc.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class _MockGroupBloc extends MockBloc<GroupEvent, GroupState>
     implements GroupBloc {}
@@ -48,6 +50,7 @@ Widget _wrap({
   required DashboardBloc dashboardBloc,
   required OngoingTournamentsBloc ongoingBloc,
   required NotificationBloc notificationBloc,
+  Locale locale = const Locale('vi'),
 }) {
   return MultiBlocProvider(
     providers: [
@@ -59,7 +62,12 @@ Widget _wrap({
       BlocProvider<OngoingTournamentsBloc>.value(value: ongoingBloc),
       BlocProvider<NotificationBloc>.value(value: notificationBloc),
     ],
-    child: const MaterialApp(home: MainView()),
+    child: MaterialApp(
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: const MainView(),
+    ),
   );
 }
 
@@ -70,6 +78,7 @@ void main() {
   });
 
   setUp(() async {
+    VisibilityDetectorController.instance.updateInterval = Duration.zero;
     await getIt.reset();
     final messaging = _MockMessaging();
     final remoteConfig = _MockRemoteConfig();
@@ -144,5 +153,52 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => profileBloc.add(any(that: isA<LoadProfileEvent>()))).called(1);
+  });
+
+  testWidgets('MainView bottom labels use English locale', (tester) async {
+    final groupBloc = _MockGroupBloc();
+    final tournamentBloc = _MockTournamentBloc();
+    final profileBloc = _MockProfileBloc();
+    final dashboardBloc = _MockDashboardBloc();
+    final ongoingBloc = _MockOngoingBloc();
+    final notificationBloc = _MockNotificationBloc();
+    when(() => groupBloc.state).thenReturn(const GroupState());
+    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
+    when(() => tournamentBloc.state).thenReturn(const TournamentState());
+    when(() => profileBloc.state).thenReturn(const ProfileState());
+    when(() => dashboardBloc.state).thenReturn(
+      const DashboardState(
+        viewStatus: ViewStatus.success,
+        stats: DashboardStats(
+          tournamentsJoined: 0,
+          finishedTournaments: 0,
+          championCount: 0,
+          runnerUpCount: 0,
+          lastChampionAt: null,
+          recentMatches: [],
+        ),
+      ),
+    );
+    when(() => notificationBloc.state).thenReturn(const NotificationState());
+
+    await tester.pumpWidget(
+      _wrap(
+        groupBloc: groupBloc,
+        tournamentBloc: tournamentBloc,
+        profileBloc: profileBloc,
+        dashboardBloc: dashboardBloc,
+        ongoingBloc: ongoingBloc,
+        notificationBloc: notificationBloc,
+        locale: const Locale('en'),
+      ),
+    );
+
+    expect(find.text('Arena'), findsWidgets);
+    expect(find.text('Groups'), findsWidgets);
+    expect(find.text('Tournaments'), findsOneWidget);
+    expect(find.text('Notifications'), findsWidgets);
+    expect(find.text('Profile'), findsOneWidget);
+    expect(find.text('Nhóm'), findsNothing);
+    expect(find.text('Giải đấu'), findsNothing);
   });
 }

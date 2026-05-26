@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import '../../../../firebase/firestore/esport/group/gn_esport_group.dart';
 
@@ -88,7 +89,7 @@ class GroupItem extends StatelessWidget {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          '$memberCount thành viên',
+                          context.l10n.groupMemberCount(memberCount),
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,

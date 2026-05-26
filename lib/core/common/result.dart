@@ -34,10 +34,7 @@ abstract class Result<E, S> {
   /// if the result is an error, it will be returned in
   /// [whenError],
   /// if it is a success it will be returned in [whenSuccess].
-  W when<W>(
-    W Function(E error) whenError,
-    W Function(S success) whenSuccess,
-  );
+  W when<W>(W Function(E error) whenError, W Function(S success) whenSuccess);
 }
 
 /// Success Result.
@@ -47,9 +44,7 @@ abstract class Result<E, S> {
 class Success<E, S> implements Result<E, S> {
   /// Receives the [S] param as
   /// the successful result.
-  const Success(
-    this._success,
-  );
+  const Success(this._success);
 
   final S _success;
 
@@ -72,10 +67,7 @@ class Success<E, S> implements Result<E, S> {
       other is Success && other._success == _success;
 
   @override
-  W when<W>(
-    W Function(E error) whenError,
-    W Function(S success) whenSuccess,
-  ) {
+  W when<W>(W Function(E error) whenError, W Function(S success) whenSuccess) {
     return whenSuccess(_success);
   }
 
@@ -115,10 +107,7 @@ class Error<E, S> implements Result<E, S> {
   bool operator ==(Object other) => other is Error && other._error == _error;
 
   @override
-  W when<W>(
-    W Function(E error) whenError,
-    W Function(S succcess) whenSuccess,
-  ) {
+  W when<W>(W Function(E error) whenError, W Function(S succcess) whenSuccess) {
     return whenError(_error);
   }
 

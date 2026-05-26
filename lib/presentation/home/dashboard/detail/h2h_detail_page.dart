@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import '../../../../widgets/gn_circle_avatar.dart';
 import '../../../common/smart_back.dart';
@@ -42,12 +43,15 @@ class _H2HDetailPageState extends State<H2HDetailPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: const SmartBackButton(),
-        title: const Text('Lịch sử đối đầu'),
+        title: Text(context.l10n.dashboardH2HTitle),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: _SortBar(current: _sort, onChanged: (s) => setState(() => _sort = s)),
+            child: _SortBar(
+              current: _sort,
+              onChanged: (s) => setState(() => _sort = s),
+            ),
           ),
         ),
       ),
@@ -63,7 +67,7 @@ class _H2HDetailPageState extends State<H2HDetailPage> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Chưa có dữ liệu đối đầu',
+                    context.l10n.dashboardNoH2HData,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -75,10 +79,8 @@ class _H2HDetailPageState extends State<H2HDetailPage> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
               itemCount: sorted.length,
               separatorBuilder: (context, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) => _OpponentCard(
-                opponent: sorted[i],
-                rank: i + 1,
-              ),
+              itemBuilder: (context, i) =>
+                  _OpponentCard(opponent: sorted[i], rank: i + 1),
             ),
     );
   }
@@ -105,9 +107,24 @@ class _SortBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _SortOption(label: 'Nhiều trận', mode: _SortMode.mostMatches, current: current, onChanged: onChanged),
-          _SortOption(label: 'Thắng nhiều', mode: _SortMode.bestWinRate, current: current, onChanged: onChanged),
-          _SortOption(label: 'Thua nhiều', mode: _SortMode.worstWinRate, current: current, onChanged: onChanged),
+          _SortOption(
+            label: context.l10n.dashboardH2HSortMostMatches,
+            mode: _SortMode.mostMatches,
+            current: current,
+            onChanged: onChanged,
+          ),
+          _SortOption(
+            label: context.l10n.dashboardH2HSortWins,
+            mode: _SortMode.bestWinRate,
+            current: current,
+            onChanged: onChanged,
+          ),
+          _SortOption(
+            label: context.l10n.dashboardH2HSortLosses,
+            mode: _SortMode.worstWinRate,
+            current: current,
+            onChanged: onChanged,
+          ),
         ],
       ),
     );
@@ -148,7 +165,9 @@ class _SortOption extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: selected ? colorScheme.onSecondary : colorScheme.onSurfaceVariant,
+              color: selected
+                  ? colorScheme.onSecondary
+                  : colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -238,7 +257,7 @@ class _OpponentCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${o.matchesPlayed} trận',
+                      context.l10n.dashboardMatchesCount(o.matchesPlayed),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -248,21 +267,39 @@ class _OpponentCard extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // Stacked W/D/L bar
-                _WDLBar(winRate: winRate, drawRate: drawRate, lossRate: lossRate),
+                _WDLBar(
+                  winRate: winRate,
+                  drawRate: drawRate,
+                  lossRate: lossRate,
+                ),
 
                 const SizedBox(height: 8),
 
                 // W / D / L counts
                 Row(
                   children: [
-                    _StatChip(label: 'T', value: o.wins, color: const Color(0xFF16A34A)),
+                    _StatChip(
+                      label: context.l10n.dashboardWdlWinShort,
+                      value: o.wins,
+                      color: const Color(0xFF16A34A),
+                    ),
                     const SizedBox(width: 6),
-                    _StatChip(label: 'H', value: o.draws, color: const Color(0xFF6B7280)),
+                    _StatChip(
+                      label: context.l10n.dashboardWdlDrawShort,
+                      value: o.draws,
+                      color: const Color(0xFF6B7280),
+                    ),
                     const SizedBox(width: 6),
-                    _StatChip(label: 'B', value: o.losses, color: const Color(0xFFDC2626)),
+                    _StatChip(
+                      label: context.l10n.dashboardWdlLossShort,
+                      value: o.losses,
+                      color: const Color(0xFFDC2626),
+                    ),
                     const Spacer(),
                     Text(
-                      '${(winRate * 100).round()}% thắng',
+                      context.l10n.dashboardWinRateValue(
+                        (winRate * 100).round(),
+                      ),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: winRate >= 0.5
                             ? const Color(0xFF16A34A)
@@ -342,7 +379,11 @@ class _StatChip extends StatelessWidget {
   final int value;
   final Color color;
 
-  const _StatChip({required this.label, required this.value, required this.color});
+  const _StatChip({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {

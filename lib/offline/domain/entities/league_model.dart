@@ -32,14 +32,13 @@ class LeagueModel extends Equatable {
     List<RoundModel>? rounds,
     List<PlayerStatsModel>? players,
     DateTime? dateTime,
-  }) =>
-      LeagueModel(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        dateTime: dateTime ?? this.dateTime,
-        rounds: rounds ?? this.rounds,
-        players: players ?? this.players,
-      );
+  }) => LeagueModel(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    dateTime: dateTime ?? this.dateTime,
+    rounds: rounds ?? this.rounds,
+    players: players ?? this.players,
+  );
 
   @override
   List<Object?> get props => [id, name, rounds, dateTime, players];

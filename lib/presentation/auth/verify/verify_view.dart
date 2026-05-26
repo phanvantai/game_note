@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 
 import '../../../injection_container.dart';
@@ -20,7 +21,7 @@ class VerifyView extends StatelessWidget {
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         leading: const SmartBackButton(),
-        title: Text('Đăng nhập', style: textTheme.titleMedium),
+        title: Text(context.l10n.authSignIn, style: textTheme.titleMedium),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -41,10 +42,13 @@ class VerifyView extends StatelessWidget {
                     color: colorScheme.secondary,
                   ),
                   const SizedBox(height: 16),
-                  Text('Xác thực tài khoản', style: textTheme.titleLarge),
+                  Text(
+                    context.l10n.authVerifyAccountTitle,
+                    style: textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 8),
                   Text(
-                    'Mã xác thực đã được gửi đến số điện thoại của bạn',
+                    context.l10n.authVerificationSent,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
@@ -54,7 +58,7 @@ class VerifyView extends StatelessWidget {
                   TextField(
                     decoration: appInputDecoration(
                       context: context,
-                      labelText: 'Mã xác thực',
+                      labelText: context.l10n.authVerificationCode,
                       prefixIcon: Icons.pin_outlined,
                     ),
                     controller: _codeController,
@@ -88,7 +92,7 @@ class VerifyView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Xác thực'),
+                      child: Text(context.l10n.authVerify),
                     ),
                   ),
                   // const SizedBox(height: 16),

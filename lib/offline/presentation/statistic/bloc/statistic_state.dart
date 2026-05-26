@@ -20,8 +20,5 @@ class StatisticState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        viewStatus,
-        listStatistic,
-      ];
+  List<Object?> get props => [viewStatus, listStatistic];
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/sync/bloc/sync_bloc.dart';
 import 'package:pes_arena/presentation/sync/views/step1_select_source.dart';
@@ -28,9 +29,9 @@ class SyncView extends StatelessWidget {
     return BlocConsumer<SyncBloc, SyncState>(
       listener: (context, state) {
         if (state.status == SyncStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Đồng bộ thành công')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(context.l10n.syncSuccess)));
           Future.microtask(() {
             if (context.mounted) context.smartBack();
           });
@@ -40,7 +41,7 @@ class SyncView extends StatelessWidget {
         final isRunning = state.status == SyncStatus.running;
         return Scaffold(
           appBar: AppBar(
-            title: Text(_titleFor(state.step)),
+            title: Text(_titleFor(context, state.step)),
             // Khi đang commit batch — ẩn back để user không thoát giữa chừng.
             // Step 4 view có PopScope chặn nốt swipe back.
             automaticallyImplyLeading: !isRunning,
@@ -62,12 +63,12 @@ class SyncView extends StatelessWidget {
     );
   }
 
-  String _titleFor(SyncStep step) => switch (step) {
-        SyncStep.selectSource => 'Chọn league & group',
-        SyncStep.mapPlayers => 'Map người chơi',
-        SyncStep.preview => 'Xác nhận',
-        SyncStep.executing => 'Đang đồng bộ',
-      };
+  String _titleFor(BuildContext context, SyncStep step) => switch (step) {
+    SyncStep.selectSource => context.l10n.syncSelectSourceTitle,
+    SyncStep.mapPlayers => context.l10n.syncMapPlayersTitle,
+    SyncStep.preview => context.l10n.syncConfirmTitle,
+    SyncStep.executing => context.l10n.syncExecutingTitle,
+  };
 
   void _onBack(BuildContext context, SyncState state) {
     final bloc = context.read<SyncBloc>();

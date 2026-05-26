@@ -58,8 +58,7 @@ Map<String, dynamic> _statsToJson(DashboardStats stats) => {
   'goals': stats.goals,
   'goalsConceded': stats.goalsConceded,
   'recentMatches': stats.recentMatches.map(_recentToJson).toList(),
-  'leaguePerformance':
-      stats.leaguePerformance.map(_perfToJson).toList(),
+  'leaguePerformance': stats.leaguePerformance.map(_perfToJson).toList(),
   'opponents': stats.opponents.map(_opponentToJson).toList(),
 };
 

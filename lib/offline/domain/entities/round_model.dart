@@ -7,17 +7,9 @@ class RoundModel extends Equatable {
   final int leagueId;
   final List<MatchModel> matches;
 
-  const RoundModel({
-    this.id,
-    required this.leagueId,
-    this.matches = const [],
-  });
+  const RoundModel({this.id, required this.leagueId, this.matches = const []});
 
-  RoundModel copyWith({
-    int? id,
-    int? leagueId,
-    List<MatchModel>? matches,
-  }) {
+  RoundModel copyWith({int? id, int? leagueId, List<MatchModel>? matches}) {
     return RoundModel(
       id: id,
       leagueId: leagueId ?? this.leagueId,
@@ -26,10 +18,7 @@ class RoundModel extends Equatable {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      DBTableColumn.roundId: id,
-      DBTableColumn.leagueId: leagueId,
-    };
+    return {DBTableColumn.roundId: id, DBTableColumn.leagueId: leagueId};
   }
 
   @override

@@ -21,6 +21,7 @@ import 'core/cache/dashboard_cache.dart';
 import 'core/cache/group_overview_cache.dart';
 import 'core/cache/h2h_preferences.dart';
 import 'core/helpers/shared_preferences_helper.dart';
+import 'core/localization/locale_notifier.dart';
 import 'data/repositories/esport/esport_group_stats_repository_impl.dart';
 import 'data/repositories/user_stats_repository_impl.dart';
 import 'domain/repositories/esport/esport_group_stats_repository.dart';
@@ -76,6 +77,8 @@ Future<void> init() async {
   getIt.registerSingleton(
     H2HPreferences(await getIt.getAsync<SharedPreferences>()),
   );
+
+  getIt.registerSingleton(LocaleNotifier(getIt()));
 
   getIt.registerSingleton(PermissionUtil());
 
@@ -135,9 +138,7 @@ Future<void> init() async {
   getIt.registerFactory<EsportLeagueRepository>(
     () => EsportLeagueRepositoryImpl(),
   );
-  getIt.registerFactory<UserStatsRepository>(
-    () => UserStatsRepositoryImpl(),
-  );
+  getIt.registerFactory<UserStatsRepository>(() => UserStatsRepositoryImpl());
   getIt.registerFactory<EsportGroupStatsRepository>(
     () => EsportGroupStatsRepositoryImpl(),
   );

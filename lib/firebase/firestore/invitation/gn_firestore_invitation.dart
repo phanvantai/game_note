@@ -4,7 +4,10 @@ import 'package:pes_arena/firebase/gn_collection.dart';
 
 extension GNFirestoreInvitation on GNFirestore {
   Future<void> inviteUserToTeam(
-      String message, String teamId, String userId) async {
+    String message,
+    String teamId,
+    String userId,
+  ) async {
     CollectionReference invitationsRef = firestore
         .collection(GNCollection.teams)
         .doc(teamId)

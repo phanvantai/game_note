@@ -1,0 +1,679 @@
+{
+  "@@locale": "vi",
+  "appName": "PES Arena",
+  "mainTabArena": "Arena",
+  "mainTabGroups": "Nhóm",
+  "mainTabTournaments": "Giải đấu",
+  "mainTabNotifications": "Thông báo",
+  "mainTabProfile": "Cá nhân",
+  "languageTitle": "Chọn ngôn ngữ",
+  "languageSubtitle": "Bạn có thể thay đổi sau trong phần cài đặt.",
+  "languageEnglish": "English",
+  "languageVietnamese": "Tiếng Việt",
+  "languageSystemMatch": "Đề xuất theo thiết bị của bạn",
+  "continueButton": "Tiếp tục",
+  "settingsTitle": "Tuỳ chọn khác",
+  "settingsHeroEyebrow": "Preferences",
+  "settingsHeroSubtitle": "Bảo mật, giao diện và tài khoản.",
+  "settingsUpdateProfile": "Cập nhật thông tin",
+  "settingsChangePassword": "Đổi mật khẩu",
+  "settingsDarkMode": "Chế độ tối",
+  "settingsLanguage": "Ngôn ngữ",
+  "settingsDeleteAccount": "Xoá tài khoản",
+  "settingsDeleteConfirmTitle": "Xác nhận",
+  "settingsDeleteConfirmMessage": "Bạn có chắc chắn muốn xoá tài khoản không?\n\nTất cả dữ liệu cá nhân của bạn sẽ bị xoá và không thể khôi phục. Một số dữ liệu liên quan đến nhóm và các người chơi khác sẽ vẫn được giữ lại.",
+  "cancel": "Huỷ",
+  "ownershipCheckFailed": "Không thể kiểm tra quyền sở hữu: {error}",
+  "@ownershipCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authContinue": "Đăng nhập để tiếp tục",
+  "authSignIn": "Đăng nhập",
+  "authSignInSuccess": "Đăng nhập thành công",
+  "authEmailHint": "Email",
+  "authPasswordHint": "Mật khẩu",
+  "authContinueWithGoogle": "Tiếp tục với Google",
+  "authContinueWithApple": "Tiếp tục với Apple",
+  "authVerifyAccountTitle": "Xác thực tài khoản",
+  "authVerificationSent": "Mã xác thực đã được gửi đến số điện thoại của bạn",
+  "authVerificationCode": "Mã xác thực",
+  "authVerify": "Xác thực",
+  "profileChangePasswordTitle": "Đổi mật khẩu",
+  "profileCurrentPasswordHint": "Mật khẩu hiện tại",
+  "profileNewPasswordHint": "Mật khẩu mới",
+  "profileConfirmNewPasswordHint": "Xác nhận mật khẩu mới",
+  "profileChangePasswordSuccess": "Đổi mật khẩu thành công",
+  "profileSecurityEyebrow": "Security",
+  "profileSecuritySubtitle": "Cập nhật mật khẩu để bảo vệ tài khoản.",
+  "or": "Hoặc",
+  "pageNotFound": "Không tìm thấy trang",
+  "backHome": "Về trang chủ"
+  ,"commonOk": "OK",
+  "commonCancel": "Huỷ",
+  "commonConfirm": "Xác nhận",
+  "commonCreate": "Tạo",
+  "commonAdd": "Thêm",
+  "commonSave": "Lưu",
+  "commonSend": "Gửi",
+  "commonDelete": "Xoá",
+  "commonUpdate": "Cập nhật",
+  "commonRetry": "Thử lại",
+  "commonBack": "Quay lại",
+  "commonUnknown": "Unknown",
+  "commonErrorTitle": "Đã xảy ra lỗi",
+  "commonRetryLater": "Vui lòng thử lại sau",
+  "commonDone": "Done",
+  "commonSearchByName": "Tìm theo tên",
+  "appOnline": "Online",
+  "appOffline": "Offline",
+  "offlineLeagueTitle": "Giải đấu",
+  "offlinePlayersTitle": "Người chơi",
+  "offlineStatisticsTitle": "Thống kê",
+  "offlineCreateLeagueTitle": "Tạo giải đấu",
+  "offlineLeagueNameHint": "Tên giải đấu",
+  "offlineAddLeagueTooltip": "Thêm giải đấu mới",
+  "offlineNoLeaguesTitle": "Chưa có giải đấu nào được tạo.",
+  "offlineNoLeaguesSubtitle": "Bấm nút + bên dưới để tạo một giải đấu",
+  "offlineDeleteLeagueTitle": "Xoá giải đấu",
+  "offlineDeleteLeagueMessage": "Bạn có chắc muốn xoá giải đấu {name}?",
+  "@offlineDeleteLeagueMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineShareStandingsTitle": "Bảng xếp hạng - {name}",
+  "@offlineShareStandingsTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineLeagueNotSetupTitle": "Giải đấu chưa được thiết lập.",
+  "offlineLeagueNotSetupSubtitle": "Bấm nút + bên dưới để thêm người chơi và bắt đầu giải đấu",
+  "offlineLoadLeagueFailed": "Không thể tải dữ liệu giải đấu",
+  "offlineShareStandings": "Chia sẻ BXH",
+  "offlineSchedule": "Lịch thi đấu",
+  "offlineResults": "Kết quả",
+  "offlineAddPlayerTitle": "Thêm người chơi",
+  "offlinePlayerNameHint": "Tên người chơi",
+  "offlineNoPlayersTitle": "Chưa có người chơi nào.",
+  "offlineNoPlayersSubtitle": "Bấm nút + bên dưới để thêm người chơi.",
+  "offlineAddPlayerTooltip": "Thêm người chơi",
+  "offlinePlayerDeleted": "Đã xóa {name}",
+  "@offlinePlayerDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineUpdateScoreTitle": "Cập nhật tỉ số",
+  "offlineAddRoundTooltip": "Thêm vòng đấu",
+  "offlineSelectingPlayers": "Selecting 2 player. Selected: {count}",
+  "@offlineSelectingPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offlineSelectedPlayers": "Selected: {count}",
+  "@offlineSelectedPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offlineDataTitle": "DỮ LIỆU",
+  "offlineImportData": "Nhập dữ liệu",
+  "offlineExportData": "Xuất dữ liệu",
+  "offlineInvalidImportFile": "Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db",
+  "offlineImportSuccess": "Dữ liệu đã được nhập thành công",
+  "offlineStatPointsGoalDiff": "Điểm/Hiệu số",
+  "offlineStatChampionRunnerUp": "Vô địch/Á quân",
+  "offlineStatWinDrawLoss": "Thắng/Hoà/Thua",
+  "syncNoOfflineLeague": "Không có league offline nào để đồng bộ",
+  "syncNoGroup": "Bạn chưa tham gia group nào",
+  "syncNoLeagueSelected": "Chưa chọn league",
+  "syncChoose": "Chọn",
+  "syncNoGroupMembers": "Group chưa có thành viên nào",
+  "syncCreatePlaceholderUser": "Tạo user mới (placeholder)",
+  "syncNewPlayerName": "Tên người chơi mới",
+  "syncDisplayNameHint": "Tên hiển thị",
+  "syncMissingData": "Thiếu dữ liệu",
+  "syncDateLabel": "Ngày: {date}",
+  "@syncDateLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncTargetGroupLabel": "Group đích: {group}",
+  "@syncTargetGroupLabel": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNoPlayedMatches": "Không có trận nào đã đấu",
+  "syncSuccess": "Đồng bộ thành công",
+  "syncRetry": "Thử lại",
+  "syncBack": "Quay lại",
+  "syncExit": "Thoát",
+  "syncContinue": "Tiếp tục",
+  "syncOfflineLeagueSection": "League offline",
+  "syncOnlineGroupSection": "Group online",
+  "syncLeagueDescription": "{players} người chơi · {date}",
+  "@syncLeagueDescription": {
+    "placeholders": {
+      "players": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncPreview": "Xem trước",
+  "syncDuplicateMapping": "Lỗi: 2 người chơi cùng map vào 1 user",
+  "syncNotMapped": "Chưa map",
+  "syncNewTargetSuffix": "mới",
+  "syncMapPlayerTitle": "Map \"{name}\"",
+  "@syncMapPlayerTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncWritingData": "Đang ghi dữ liệu lên server...",
+  "syncDoNotClose": "Vui lòng không đóng app cho đến khi hoàn tất",
+  "syncSelectSourceTitle": "Chọn league & group",
+  "syncMapPlayersTitle": "Map người chơi",
+  "syncConfirmTitle": "Xác nhận",
+  "syncExecutingTitle": "Đang đồng bộ",
+  "syncOriginalOfflineTab": "Offline (gốc)",
+  "syncOnlineWillCreateTab": "Online (sẽ tạo)",
+  "syncRun": "Đồng bộ",
+  "syncNewSuffix": "mới",
+  "syncWritesCount": "Sẽ ghi {count} bản ghi lên server",
+  "@syncWritesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncStandingsTitle": "Bảng xếp hạng",
+  "syncMatchResultsTitle": "Kết quả trận đấu ({count})",
+  "@syncMatchResultsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncNewPlayersWillBeCreated": "Người chơi mới sẽ được tạo ({count})",
+  "@syncNewPlayersWillBeCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tablePlayer": "Người chơi",
+  "tableMatchesPlayedShort": "MP",
+  "tableWinsShort": "W",
+  "tableDrawsShort": "D",
+  "tableLossesShort": "L",
+  "tableGoalsForShort": "GF",
+  "tableGoalsAgainstShort": "GA",
+  "tableGoalDifferenceShort": "GD",
+  "tablePointsShort": "Pts"
+  ,"groupCreateSuccess": "Tạo nhóm thành công",
+  "groupCreateTitle": "Tạo nhóm mới",
+  "groupNameHint": "Tên nhóm",
+  "groupDescriptionHint": "Mô tả nhóm",
+  "groupNameRequired": "Tên nhóm không được để trống",
+  "groupCreateButton": "Tạo nhóm",
+  "groupEmptyTitle": "Không có nhóm nào",
+  "groupEmptySubtitle": "Tạo nhóm mới để bắt đầu",
+  "groupHeroEyebrow": "Community hub",
+  "groupHeroTitle": "Quản lý đội nhóm PES",
+  "groupCreateNew": "Tạo mới",
+  "groupMineStat": "Của tôi",
+  "groupDiscoverStat": "Khám phá",
+  "groupMembersStat": "Member",
+  "groupMemberCount": "{count} thành viên",
+  "@groupMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupMyGroupsTab": "Nhóm của tôi",
+  "groupOtherGroupsTab": "Nhóm khác",
+  "groupAddMemberTitle": "Thêm thành viên",
+  "groupCreatePlaceholderPlayer": "Tạo người chơi mới (placeholder)",
+  "groupCreateNewPlayer": "Tạo người chơi mới",
+  "groupDeleteWarning": "Thao tác này sẽ xoá vĩnh viễn nhóm, toàn bộ giải đấu, trận đấu, bảng điểm và thống kê liên quan. Dữ liệu không thể khôi phục.",
+  "groupSearchByNameHint": "Tìm kiếm theo tên",
+  "groupPlayerNameHint": "Tên người chơi",
+  "groupAddMemberSuccess": "Thêm thành viên thành công",
+  "groupPlayerAddedSuccess": "Đã thêm người chơi mới",
+  "groupUpdateStatusFailed": "Không thể cập nhật trạng thái",
+  "groupDeleteRequestSent": "Đã gửi yêu cầu xoá nhóm",
+  "groupDeleteTitle": "Xoá nhóm",
+  "groupOverviewTab": "Tổng quan",
+  "groupMembersTab": "Thành viên",
+  "groupInactive": "Không hoạt động",
+  "groupDescriptionTitle": "Mô tả",
+  "groupNoOverview": "Chưa có dữ liệu tổng quan",
+  "groupRefreshStatsTitle": "Cập nhật thống kê?",
+  "groupRefreshStatsTooltip": "Cập nhật thống kê",
+  "groupOverviewTitle": "Tổng quan group",
+  "groupYearFilterAll": "Tất cả",
+  "groupRefreshStatsMessage": "Hệ thống sẽ tải lại toàn bộ giải đấu và tính lại thống kê group. Thao tác này có thể mất vài giây.",
+  "groupOverviewLoadFailed": "Không thể tải dữ liệu tổng quan.",
+  "groupOverviewLoadError": "Lỗi tải dữ liệu: {message}",
+  "@groupOverviewLoadError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "groupLegendChampion": "Vô đối",
+  "groupLegendRunnerUp": "Kẻ về nhì vĩ đại",
+  "groupLegendPro": "Cao thủ",
+  "groupLegendDefense": "Hàng thủ thép",
+  "groupTitles": "Danh hiệu",
+  "groupMemberStats": "Thống kê thành viên",
+  "groupNotEnoughAwardsData": "Chưa đủ dữ liệu để trao danh hiệu (cần ít nhất 5 giải finished hoặc 5 trận đấu).",
+  "groupNoMemberStats": "Chưa có dữ liệu thành viên.",
+  "groupReplaceSuccess": "Đã thay thế thành công",
+  "groupReplaceError": "Có lỗi xảy ra, vui lòng thử lại",
+  "groupReplaceSelectOld": "Chọn người cần thay",
+  "groupReplaceSelectNew": "Chọn người thay thế",
+  "groupReplaceConfirm": "Xác nhận thay thế",
+  "groupNoSearchResults": "Không tìm thấy",
+  "groupReplaceOldLabel": "Thay",
+  "groupReplaceNewLabel": "Bằng",
+  "groupReplaceMergeWarning": "Người này đã có trong giải. Thống kê của 2 người sẽ được cộng gộp lại.",
+  "groupActionIrreversible": "Hành động này không thể hoàn tác.",
+  "groupClose": "Đóng",
+  "groupPlaceholder": "Placeholder",
+  "costRankPayoutRequired": "Nhập số tiền theo thứ hạng (VD: 50, 100)",
+  "costBracketPayoutTitle": "Tính tiền theo bracket",
+  "costRankPayoutTitle": "Tính tiền theo thứ hạng",
+  "costBracketPayoutSubtitle": "Champion nhận tiền từ runner-up và người bị loại sớm",
+  "costRankPayoutSubtitle": "Hạng dưới góp tiền cho hạng nhất theo cấu hình",
+  "costPayoutHint": "VD: 50, 100, 150 (k VND)",
+  "costBracketPayoutOrder": "Lần lượt: runner-up, mỗi người thua bán kết, mỗi người thua tứ kết...",
+  "costRankPayoutOrder": "Lần lượt: hạng 2, hạng 3, hạng 4... đóng cho hạng 1.",
+  "costDefaultMatchCostHint": "Tiền mặc định mỗi trận (k VND)",
+  "costDefaultMatchCostHelp": "Số này sẽ được điền sẵn khi bật cost cho từng trận lúc nhập kết quả.",
+  "costDefaultPerGoalTitle": "Mặc định bật tiền theo hiệu số bàn thắng",
+  "costDefaultPerGoalSubtitle": "Người thua trả thêm theo hiệu số bàn thắng (VD: 3-1 cộng 2 lần số này).",
+  "costPerGoalHint": "Tiền mỗi bàn (k VND)",
+  "costPerGoalHelp": "Cộng vào tiền per-match khi trận đó cũng bật tính tiền.",
+  "costSuggestions": "Gợi ý:",
+  "costPresetAmountLabel": "{amounts} k",
+  "@costPresetAmountLabel": {
+    "placeholders": {
+      "amounts": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentSelectGroupRequired": "Bạn cần chọn nhóm",
+  "tournamentParticipantsMinimum": "Cần chọn ít nhất 2 người tham gia",
+  "tournamentCupPowerOfTwoRequired": "Cup cần số người là lũy thừa của 2 (2, 4, 8, 16...)",
+  "tournamentFullKnockoutPowerOfTwoRequired": "Số bảng x số lên knockout phải là lũy thừa của 2",
+  "tournamentNameRequired": "Bạn cần nhập tên giải đấu",
+  "tournamentStartBeforeEndRequired": "Ngày bắt đầu phải trước ngày kết thúc",
+  "tournamentEndAfterStartRequired": "Ngày kết thúc phải sau ngày bắt đầu",
+  "tournamentNoGroupsTitle": "Bạn chưa tham gia nhóm nào",
+  "tournamentNoGroupsSubtitle": "Hãy tạo hoặc tham gia một nhóm trước khi tạo giải đấu",
+  "tournamentSelectGroupTitle": "Chọn nhóm",
+  "tournamentSelectGroupSubtitle": "Giải đấu sẽ thuộc về nhóm này",
+  "tournamentMembersCount": "{count} thành viên",
+  "@tournamentMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentAddPlayersTitle": "Thêm người chơi",
+  "tournamentAddPlayersSubtitle": "Chọn ít nhất 2 người ({count} đã chọn)",
+  "@tournamentAddPlayersSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentModeTitle": "Chế độ giải đấu",
+  "tournamentModeSubtitle": "Chọn kiểu thi đấu",
+  "tournamentModeLeague": "League",
+  "tournamentModeLeagueSubtitle": "Đấu vòng tròn, mọi người gặp nhau",
+  "tournamentModeCup": "Cup",
+  "tournamentModeCupSubtitle": "Loại trực tiếp, thua là out",
+  "tournamentModeFull": "Full",
+  "tournamentModeFullSubtitle": "Đá bảng đến knockout",
+  "tournamentConfigPreviewTitle": "Cấu hình & Xem trước",
+  "tournamentConfigPreviewSubtitle": "Tuỳ chỉnh trước khi tạo giải",
+  "tournamentInfoTitle": "Thông tin giải",
+  "tournamentInfoSubtitle": "Đặt tên và thời gian",
+  "tournamentNameDescriptionTitle": "Tên & mô tả",
+  "tournamentNameHint": "Tên giải đấu",
+  "tournamentDescriptionHint": "Mô tả (tuỳ chọn)",
+  "tournamentTimeTitle": "Thời gian",
+  "tournamentStartDateHint": "Ngày bắt đầu",
+  "tournamentEndDateHint": "Ngày kết thúc",
+  "tournamentCostSubtitle": "Có thể cấu hình sau",
+  "tournamentStatsSynced": "Đã đồng bộ lại điểm số",
+  "tournamentCostUpdated": "Đã cập nhật chi phí giải đấu",
+  "tournamentCustomMatchCreated": "Tạo trận đấu thành công",
+  "tournamentCreateMatchTitle": "Tạo trận đấu",
+  "tournamentMatchDeleted": "Xoá trận đấu thành công",
+  "tournamentDeleted": "Đã xoá giải đấu",
+  "tournamentStatusUpdated": "Cập nhật trạng thái giải đấu thành công",
+  "tournamentPlayerAdded": "Thêm người chơi thành công",
+  "tournamentPlayersAdded": "Thêm {count} người chơi thành công",
+  "@tournamentPlayersAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentGroupRoundMinimum": "Bảng cần ít nhất 2 người chơi để tạo vòng đấu",
+  "tournamentRoundCreated": "Tạo vòng đấu thành công",
+  "tournamentMatchUpdated": "Cập nhật trận đấu thành công",
+  "tournamentMatchConcurrentUpdate": "Trận này vừa được người khác cập nhật. Vui lòng kiểm tra lại.",
+  "tournamentBracketCreated": "Tạo bracket thành công",
+  "tournamentFullCreated": "Tạo giải Full thành công",
+  "tournamentSelectedPlayersCount": "Đã chọn {count} người:",
+  "@tournamentSelectedPlayersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentAddPlayersCount": "Thêm {count} người",
+  "@tournamentAddPlayersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentLoadingCost": "Đang tải chi phí",
+  "tournamentNoCostTitle": "Chưa có chi phí",
+  "tournamentNoCostSubtitle": "Bật cấu hình chi phí hoặc nhập tiền trong từng trận",
+  "tournamentHomeTeamHint": "Đội nhà",
+  "tournamentAwayTeamHint": "Đội khách",
+  "tournamentSelectTeamRequired": "Vui lòng chọn đội",
+  "tournamentDistinctTeamsRequired": "Vui lòng chọn 2 đội khác nhau",
+  "tournamentUpdateResultTitle": "Cập nhật kết quả",
+  "tournamentMatchHasCost": "Có tiền cho trận này",
+  "tournamentMatchCostLabel": "Số tiền (k VND)",
+  "tournamentAddGoalDifferenceCost": "Thêm tiền theo hiệu số bàn thắng",
+  "tournamentGoalDifferenceCostHelp": "VD: 3-1 cộng x2 vào tiền.",
+  "tournamentScoreRequired": "Nhập kết quả trận đấu"
+  ,"tournamentTabBracket": "Bracket",
+  "tournamentTabResults": "Kết quả",
+  "tournamentTabCost": "Chi phí",
+  "tournamentTabGroups": "Bảng",
+  "tournamentTabStandings": "BXH",
+  "tournamentTabFixtures": "Lịch",
+  "tournamentStatusTitle": "Trạng thái giải đấu",
+  "tournamentRecomputeStatsTitle": "Đồng bộ điểm số",
+  "tournamentRecomputeStatsMessage": "Tính lại toàn bộ điểm số từ kết quả các trận đã đấu? Dùng khi điểm bị lệch do dữ liệu cũ.",
+  "tournamentRecomputeStatsConfirm": "Đồng bộ",
+  "tournamentDeleteTitle": "Xóa giải đấu",
+  "tournamentDeleteMessage": "Bạn có chắc chắn muốn xóa giải đấu này không?",
+  "tournamentEnded": "Giải đấu đã kết thúc",
+  "tournamentLoadingTitle": "Đang tải giải đấu",
+  "tournamentBackTooltip": "Quay lại",
+  "tournamentOptionsTooltip": "Tuỳ chọn giải đấu",
+  "tournamentShareStandings": "Chia sẻ BXH",
+  "tournamentStatusMenu": "Trạng thái",
+  "tournamentGroupMatchesTitle": "Trận đấu bảng",
+  "tournamentAddRound": "Thêm vòng",
+  "tournamentScheduleTitle": "Lịch thi đấu",
+  "tournamentCreateCustomMatchTooltip": "Tạo trận tùy chỉnh",
+  "tournamentSearchPlayerHint": "Tìm theo tên người chơi (vd: A B)",
+  "tournamentNoMatchesFound": "Không tìm thấy trận nào",
+  "tournamentNoFixtures": "Chưa có lịch thi đấu",
+  "tournamentNoResults": "Chưa có kết quả",
+  "tournamentGenerateRoundWithExisting": "Hiện có {count} trận trong lịch. Tạo thêm một vòng mới?",
+  "@tournamentGenerateRoundWithExisting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentGenerateRoundMessage": "Tạo vòng đấu round-robin cho tất cả người chơi?"
+  ,"tournamentNoPlayersTitle": "Chưa có người chơi nào",
+  "tournamentNoPlayersSubtitle": "Thêm người chơi để bắt đầu giải đấu",
+  "tournamentShareStandingsTitle": "Bảng xếp hạng - {leagueName}",
+  "@tournamentShareStandingsTitle": {
+    "placeholders": {
+      "leagueName": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentShareStandingsSheetTitle": "Chia sẻ bảng xếp hạng",
+  "tournamentPreparingShare": "Đang chuẩn bị...",
+  "tournamentShareNow": "Chia sẻ ngay",
+  "tournamentLightTheme": "Sáng",
+  "tournamentDarkTheme": "Tối"
+  ,"tournamentHeroEyebrow": "Tournament arena",
+  "tournamentHeroTitle": "Quản lý giải đấu PES",
+  "tournamentMyStat": "Của tôi",
+  "tournamentLiveStat": "Live",
+  "tournamentPlayersStat": "Player",
+  "tournamentJoinedTab": "Tham gia",
+  "tournamentManagedTab": "Quản lý",
+  "tournamentOtherTab": "Khác",
+  "tournamentJoinGroupFirst": "Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước",
+  "tournamentCreateSuccess": "Tạo giải đấu thành công",
+  "tournamentCreateButton": "Tạo giải đấu",
+  "tournamentEmptyTitle": "Không có giải đấu nào",
+  "tournamentEmptySubtitle": "Tạo giải đấu mới để bắt đầu",
+  "tournamentManagedEmptySubtitle": "Tạo giải đấu mới để bắt đầu quản lý",
+  "commonListEnd": "Đã hết"
+  ,"dashboardLoadError": "Lỗi tải dữ liệu",
+  "homeOngoingTournamentsTitle": "Giải đấu đang diễn ra",
+  "dashboardSignInRequired": "Người dùng chưa đăng nhập",
+  "dashboardRecentForm10": "Phong độ 10 trận gần nhất",
+  "dashboardRecentMatches": "Trận gần đây",
+  "dashboardNoMatches": "Chưa có trận nào",
+  "dashboardHeroEyebrow": "Control room",
+  "dashboardHeroTitle": "Theo dõi phong độ thi đấu",
+  "dashboardViewDetail": "Xem chi tiết",
+  "dashboardWinRate": "Tỉ lệ thắng",
+  "dashboardGoalDifference": "Hiệu số",
+  "dashboardMatches": "Trận",
+  "dashboardMatchesCount": "{count} trận",
+  "@dashboardMatchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardNoValue": "—",
+  "dashboardNoData": "Chưa có",
+  "dashboardTournamentsJoined": "Giải đã tham gia",
+  "dashboardChampionRate": "Tỉ lệ vô địch",
+  "dashboardRunnerUpRate": "Tỉ lệ á quân",
+  "dashboardLatestChampion": "Vô địch gần nhất",
+  "dashboardToday": "Hôm nay",
+  "dashboardDaysAgo": "{count} ngày trước",
+  "@dashboardDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardInsufficientChartData": "Chưa đủ dữ liệu để vẽ biểu đồ",
+  "dashboardPointsPerMatch": "Điểm / trận",
+  "dashboardGoalDifferencePerMatch": "Hiệu số / trận",
+  "dashboardH2HTitle": "Lịch sử đối đầu",
+  "dashboardNoH2HData": "Chưa có dữ liệu đối đầu"
+  ,"dashboardStatsTitle": "Bảng thống kê",
+  "dashboardDetailEyebrow": "Chi tiết dashboard",
+  "dashboardDetailSubtitle": "Toàn cảnh thành tích thi đấu",
+  "dashboardRefreshTooltip": "Cập nhật từ máy chủ",
+  "dashboardOverview": "Tổng quan",
+  "dashboardMetricTournamentsJoined": "Số giải tham gia",
+  "dashboardMetricMatches": "Số trận",
+  "dashboardMetricLatestChampion": "Vô địch gần nhất",
+  "dashboardMetricWdlCount": "Thắng / Hoà / Thua",
+  "dashboardMetricWdlRate": "Tỉ lệ T / H / T",
+  "dashboardMetricGoals": "BT / BB / Hiệu số",
+  "dashboardMetricChampion": "Vô địch",
+  "dashboardMetricRunnerUp": "Á quân",
+  "dashboardRecentLeagueForm5": "Phong độ 5 giải gần nhất",
+  "dashboardRefreshTitle": "Cập nhật thống kê?",
+  "dashboardRefreshMessage": "Hệ thống sẽ tính lại toàn bộ thống kê từ dữ liệu trận đấu. Thao tác này có thể mất vài giây.",
+  "dashboardH2HSectionTitle": "Đối đầu",
+  "dashboardH2HSectionSubtitle": "Khắc tinh và mồi ngon theo lịch sử gặp nhau",
+  "dashboardH2HSortMostMatches": "Nhiều trận",
+  "dashboardH2HSortWins": "Thắng nhiều",
+  "dashboardH2HSortLosses": "Thua nhiều",
+  "dashboardNemesis": "Khắc tinh",
+  "dashboardFavorableOpponent": "Mồi ngon",
+  "dashboardLossMetric": "thua",
+  "dashboardWinMetric": "thắng",
+  "dashboardWdlWin": "Thắng",
+  "dashboardWdlDraw": "Hoà",
+  "dashboardWdlLoss": "Thua",
+  "dashboardWdlWinShort": "T",
+  "dashboardWdlDrawShort": "H",
+  "dashboardWdlLossShort": "B",
+  "dashboardOpponentRecordLine": "{count} / {total} trận {metric}",
+  "@dashboardOpponentRecordLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "metric": {}
+    }
+  },
+  "dashboardWinRateValue": "{value}% thắng",
+  "@dashboardWinRateValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardNeedMoreH2H": "Cần ≥ {count} trận\nđối đầu cùng người",
+  "@dashboardNeedMoreH2H": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardMinMatchesChip": "(≥ {count} trận)",
+  "@dashboardMinMatchesChip": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardThresholdTooltip": "Tuỳ chỉnh ngưỡng",
+  "dashboardViewAllOpponents": "Xem tất cả đối thủ",
+  "dashboardMinMatchesTitle": "Ngưỡng số trận tối thiểu",
+  "dashboardMinMatchesDescription": "Đối thủ phải có ít nhất {count} trận đối đầu mới được tính vào \"Khắc tinh\" / \"Mồi ngon\". Đặt cao hơn để loại bớt nhiễu khi mẫu nhỏ.",
+  "@dashboardMinMatchesDescription": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardMatchesUnit": "trận"
+  ,"feedbackTitle": "Góp ý",
+  "feedbackSignInRequired": "Bạn cần đăng nhập để gửi phản hồi.",
+  "feedbackCreateTitle": "Tạo phản hồi",
+  "feedbackTitleHint": "Tiêu đề",
+  "feedbackContentHint": "Nội dung",
+  "feedbackRequired": "Vui lòng điền đầy đủ thông tin.",
+  "feedbackMinimumLength": "Tiêu đề phải có ít nhất 5 ký tự\nNội dung phải có ít nhất 10 ký tự.",
+  "feedbackSent": "Góp ý đã được gửi thành công!",
+  "profileUpdateSuccess": "Cập nhật thông tin thành công",
+  "profileUpdateTitle": "Cập nhật thông tin",
+  "profileSetupEyebrow": "Profile setup",
+  "profileDisplayInfoTitle": "Thông tin hiển thị",
+  "profileDisplayInfoSubtitle": "Cập nhật tên, số điện thoại và email.",
+  "profileFullNameHint": "Họ và tên",
+  "profilePhoneHint": "Số điện thoại",
+  "notificationActivityEyebrow": "Activity feed",
+  "notificationAllRead": "Tất cả đã được đọc",
+  "notificationUnreadCount": "{count} thông báo mới",
+  "@notificationUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationMarkAllRead": "Đánh dấu tất cả đã đọc",
+  "notificationRead": "Đã đọc"
+  ,"profileAppSection": "Ứng dụng",
+  "profileOfflineMode": "Chế độ offline",
+  "profileSyncOfflineData": "Đồng bộ dữ liệu offline",
+  "profileOtherOptions": "Tuỳ chọn khác",
+  "profileInfoSection": "Thông tin",
+  "profileRateApp": "Đánh giá",
+  "profileFeedback": "Nhận xét góp ý",
+  "profileSessionSection": "Phiên làm việc",
+  "profileSignOut": "Đăng xuất",
+  "profileChangeAvatar": "Thay đổi ảnh đại diện",
+  "profileDeleteAvatar": "Xoá ảnh đại diện",
+  "profileOfflineModeTitle": "Chế độ Offline",
+  "profileOfflineModeMessage": "Chế độ offline là bạn tự tạo dữ liệu trên máy và dữ liệu sẽ chỉ được lưu trên máy của bạn, không được đồng bộ.\n\nBạn có chắc chắn muốn chuyển sang chế độ offline không?",
+  "profileAccept": "Chấp nhận",
+  "profileSignOutMessage": "Bạn có chắc chắn muốn đăng xuất không?"
+  ,"ownershipProcessFailed": "Không thể xử lý quyền sở hữu: {error}",
+  "@ownershipProcessFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "ownershipResolutionTitle": "Xử lý quyền sở hữu",
+  "ownershipResolutionMessage": "Bạn đang là chủ sở hữu của các nhóm/giải bên dưới. Hãy chuyển quyền cho thành viên khác hoặc ngừng hoạt động trước khi xoá tài khoản.",
+  "ownershipGroup": "Nhóm",
+  "ownershipTournament": "Giải đấu",
+  "ownershipContinueDelete": "Tiếp tục xoá tài khoản",
+  "ownershipTransfer": "Chuyển",
+  "ownershipDeactivate": "Ngừng"
+}

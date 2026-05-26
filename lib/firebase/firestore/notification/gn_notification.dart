@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 
-enum GNNotificationType {
-  unknown,
-  esportsGroup,
-  esportsLeague,
-}
+enum GNNotificationType { unknown, esportsGroup, esportsLeague }
 
 extension GNNotificationTypeExtension on GNNotificationType {
   String get value {
@@ -51,11 +47,11 @@ class GNNotification extends Equatable {
   final String title; // Notification title
   final String message; // Notification message
   final String
-      type; // Type of notification (e.g., "group_invite", "league_invite")
+  type; // Type of notification (e.g., "group_invite", "league_invite")
   final DateTime timestamp; // Time when the notification was created
   final bool isRead; // Whether the notification has been read
   final String?
-      relatedId; // ID related to the notification (groupId or leagueId)
+  relatedId; // ID related to the notification (groupId or leagueId)
 
   final GNUser? user; // User who receives the notification
 
@@ -84,16 +80,16 @@ class GNNotification extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        title,
-        message,
-        type,
-        timestamp,
-        isRead,
-        relatedId,
-        user,
-      ];
+    id,
+    userId,
+    title,
+    message,
+    type,
+    timestamp,
+    isRead,
+    relatedId,
+    user,
+  ];
 
   GNNotification copyWith({
     String? id,

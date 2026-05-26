@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:share_plus/share_plus.dart';
 
 Future<void> showSharePreviewBottomSheet({
@@ -81,15 +82,19 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
     if (_sharing) return;
     setState(() => _sharing = true);
     final box = context.findRenderObject() as RenderBox?;
-    final originRect =
-        box != null ? box.localToGlobal(Offset.zero) & box.size : null;
+    final originRect = box != null
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
+    final shareTitle = context.l10n.tournamentShareStandingsTitle(
+      widget.leagueName,
+    );
     try {
       final tempDir = Directory.systemTemp;
       final file = File('${tempDir.path}/league_standings.png');
       await file.writeAsBytes(_activeImage);
       await SharePlus.instance.share(
         ShareParams(
-          title: 'Bảng xếp hạng - ${widget.leagueName}',
+          title: shareTitle,
           files: [XFile(file.path)],
           sharePositionOrigin: originRect,
         ),
@@ -118,7 +123,8 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
         ],
       ),
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom +
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
             MediaQuery.of(context).padding.bottom +
             16,
       ),
@@ -143,11 +149,15 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(Icons.share_outlined, color: colorScheme.primary, size: 20),
+                Icon(
+                  Icons.share_outlined,
+                  color: colorScheme.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Chia sẻ bảng xếp hạng',
+                    context.l10n.tournamentShareStandingsSheetTitle,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -203,7 +213,7 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text('Đóng'),
+                    child: Text(context.l10n.groupClose),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -221,7 +231,11 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
                             ),
                           )
                         : const Icon(Icons.share_rounded, size: 20),
-                    label: Text(_sharing ? 'Đang chuẩn bị...' : 'Chia sẻ ngay'),
+                    label: Text(
+                      _sharing
+                          ? context.l10n.tournamentPreparingShare
+                          : context.l10n.tournamentShareNow,
+                    ),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -254,22 +268,20 @@ class _ThemeToggle extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           _ToggleOption(
             icon: Icons.light_mode_outlined,
-            label: 'Sáng',
+            label: context.l10n.tournamentLightTheme,
             selected: !isDark,
             onTap: () => onChanged(false),
           ),
           _ToggleOption(
             icon: Icons.dark_mode_outlined,
-            label: 'Tối',
+            label: context.l10n.tournamentDarkTheme,
             selected: isDark,
             onTap: () => onChanged(true),
           ),

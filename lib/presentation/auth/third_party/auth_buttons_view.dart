@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/constants/assets_path.dart';
 import 'package:pes_arena/core/theme/app_colors.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/auth/third_party/bloc/third_party_bloc.dart';
 import 'package:pes_arena/injection_container.dart';
 
@@ -43,7 +44,7 @@ class AuthButtonsView extends StatelessWidget {
         if (state.status == ViewStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Đăng nhập thành công!'),
+              content: Text(context.l10n.authSignInSuccess),
               backgroundColor: AppColors.success(context),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -100,7 +101,7 @@ class AuthButtonsView extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Tiếp tục với Google',
+                            context.l10n.authContinueWithGoogle,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -142,7 +143,7 @@ class AuthButtonsView extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Tiếp tục với Apple',
+                        context.l10n.authContinueWithApple,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,

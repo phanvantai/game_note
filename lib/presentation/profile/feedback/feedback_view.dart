@@ -5,6 +5,7 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/feedback/gn_firestore_feedback.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/profile/feedback/feedback_item.dart';
 
@@ -35,7 +36,7 @@ class _FeedbackViewState extends State<FeedbackView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: const SmartBackButton(),
-        title: const Text('Góp ý'),
+        title: Text(context.l10n.feedbackTitle),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -66,7 +67,7 @@ class _FeedbackViewState extends State<FeedbackView> {
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Bạn cần đăng nhập để gửi phản hồi.'),
+          content: Text(context.l10n.feedbackSignInRequired),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -81,7 +82,7 @@ class _FeedbackViewState extends State<FeedbackView> {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          title: const Text('Tạo phản hồi'),
+          title: Text(context.l10n.feedbackCreateTitle),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -90,7 +91,7 @@ class _FeedbackViewState extends State<FeedbackView> {
                   onChanged: (value) => title = value,
                   decoration: appInputDecoration(
                     context: context,
-                    hintText: 'Tiêu đề',
+                    hintText: context.l10n.feedbackTitleHint,
                     prefixIcon: Icons.title,
                   ),
                 ),
@@ -99,7 +100,7 @@ class _FeedbackViewState extends State<FeedbackView> {
                   onChanged: (value) => detail = value,
                   decoration: appInputDecoration(
                     context: context,
-                    hintText: 'Nội dung',
+                    hintText: context.l10n.feedbackContentHint,
                     prefixIcon: Icons.notes,
                   ),
                   maxLines: 4,
@@ -110,27 +111,26 @@ class _FeedbackViewState extends State<FeedbackView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Huỷ'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () {
                 if (title.isEmpty || detail.isEmpty) {
-                  showToast('Vui lòng điền đầy đủ thông tin.');
+                  showToast(context.l10n.feedbackRequired);
                   return;
                 }
                 if (title.length < 5 || detail.length < 10) {
-                  showToast(
-                    'Tiêu đề phải có ít nhất 5 ký tự\nNội dung phải có ít nhất 10 ký tự.',
-                  );
+                  showToast(context.l10n.feedbackMinimumLength);
                   return;
                 }
+                final sentMessage = context.l10n.feedbackSent;
                 getIt<GNFirestore>()
                     .createFeedback(title, detail, user.uid)
-                    .then((_) => showToast('Góp ý đã được gửi thành công!'));
+                    .then((_) => showToast(sentMessage));
                 Navigator.of(context).pop();
                 setState(() {});
               },
-              child: const Text('Gửi'),
+              child: Text(context.l10n.commonSend),
             ),
           ],
         );
@@ -147,7 +147,7 @@ class _FeedbackViewState extends State<FeedbackView> {
         } else if (snapshot.hasError) {
           return AppEmptyState(
             icon: Icons.error_outline,
-            title: 'Đã xảy ra lỗi',
+            title: context.l10n.commonErrorTitle,
             subtitle: '${snapshot.error}',
           );
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {

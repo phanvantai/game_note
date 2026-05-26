@@ -29,7 +29,9 @@ class BracketView extends StatelessWidget {
           rounds.putIfAbsent(r, () => []).add(m);
         }
         for (final list in rounds.values) {
-          list.sort((a, b) => (a.knockoutSlot ?? 0).compareTo(b.knockoutSlot ?? 0));
+          list.sort(
+            (a, b) => (a.knockoutSlot ?? 0).compareTo(b.knockoutSlot ?? 0),
+          );
         }
 
         final roundLabels = _buildRoundLabels(maxRound);
@@ -154,18 +156,20 @@ class _BracketMatchCard extends StatelessWidget {
     final isAdmin = state.currentUserIsLeagueAdmin;
     final groupStageComplete = state.allGroupMatchesFinished;
 
-    final homeName = match.homeTeam?.displayName ??
+    final homeName =
+        match.homeTeam?.displayName ??
         (match.homeTeamId.isEmpty
             ? 'TBD'
             : match.homeTeamId.length > 4
-                ? match.homeTeamId.substring(0, 4)
-                : match.homeTeamId);
-    final awayName = match.awayTeam?.displayName ??
+            ? match.homeTeamId.substring(0, 4)
+            : match.homeTeamId);
+    final awayName =
+        match.awayTeam?.displayName ??
         (match.awayTeamId.isEmpty
             ? 'TBD'
             : match.awayTeamId.length > 4
-                ? match.awayTeamId.substring(0, 4)
-                : match.awayTeamId);
+            ? match.awayTeamId.substring(0, 4)
+            : match.awayTeamId);
 
     final homeWin =
         match.isFinished && (match.homeScore ?? 0) > (match.awayScore ?? 0);
@@ -173,7 +177,8 @@ class _BracketMatchCard extends StatelessWidget {
         match.isFinished && (match.awayScore ?? 0) > (match.homeScore ?? 0);
 
     final hasGroupStage = state.groupIds.isNotEmpty;
-    final canEdit = isAdmin &&
+    final canEdit =
+        isAdmin &&
         match.homeTeamId.isNotEmpty &&
         match.awayTeamId.isNotEmpty &&
         (!hasGroupStage || groupStageComplete);
@@ -206,7 +211,10 @@ class _BracketMatchCard extends StatelessWidget {
               isWinner: homeWin,
               isTop: true,
             ),
-            Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.2)),
+            Divider(
+              height: 1,
+              color: colorScheme.outline.withValues(alpha: 0.2),
+            ),
             _BracketPlayer(
               name: awayName,
               score: match.isFinished ? match.awayScore : null,
@@ -218,7 +226,6 @@ class _BracketMatchCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _BracketPlayer extends StatelessWidget {
@@ -264,7 +271,9 @@ class _BracketPlayer extends StatelessWidget {
               '$score',
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: isWinner ? colorScheme.secondary : colorScheme.onSurfaceVariant,
+                color: isWinner
+                    ? colorScheme.secondary
+                    : colorScheme.onSurfaceVariant,
               ),
             ),
         ],
@@ -272,4 +281,3 @@ class _BracketPlayer extends StatelessWidget {
     );
   }
 }
-

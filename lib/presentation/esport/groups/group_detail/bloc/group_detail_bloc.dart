@@ -13,6 +13,7 @@ import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/l10n/app_text.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/models/group_overview.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/services/group_overview_calculator.dart';
 
@@ -117,7 +118,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       );
       add(GetMembers(state.group.id));
       add(GetGroupDetail(state.group.id));
-      showToast('Thêm thành viên thành công');
+      showToast(appText.groupAddMemberSuccess);
     } catch (e) {
       emit(
         state.copyWith(
@@ -141,7 +142,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       );
       add(GetMembers(state.group.id));
       add(GetGroupDetail(state.group.id));
-      showToast('Đã thêm người chơi mới');
+      showToast(appText.groupPlayerAddedSuccess);
     } catch (e) {
       emit(
         state.copyWith(
@@ -342,7 +343,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       }).toList();
       emit(state.copyWith(leagues: updated));
     } catch (e) {
-      showToast('Không thể cập nhật trạng thái');
+      showToast(appText.groupUpdateStatusFailed);
     }
   }
 
@@ -460,7 +461,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
       await _groupRepository.requestDeleteGroup(event.groupId);
       await _overviewCache.clear(event.groupId);
       emit(state.copyWith(deleteGroupStatus: ViewStatus.success));
-      showToast('Đã gửi yêu cầu xoá nhóm');
+      showToast(appText.groupDeleteRequestSent);
     } catch (e) {
       emit(
         state.copyWith(

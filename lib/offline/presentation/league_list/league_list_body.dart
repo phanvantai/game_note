@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 
 import '../league_detail/league_detail_page.dart';
 import 'bloc/league_list_bloc.dart';
@@ -21,10 +22,11 @@ class LeagueListBody extends StatelessWidget {
             onDoubleTap: () {
               showAppConfirmDialog(
                 context: context,
-                title: 'Xoá giải đấu',
-                message:
-                    'Bạn có chắc muốn xoá giải đấu ${state.leagues[index].name}?',
-                confirmText: 'Xoá',
+                title: context.l10n.offlineDeleteLeagueTitle,
+                message: context.l10n.offlineDeleteLeagueMessage(
+                  state.leagues[index].name,
+                ),
+                confirmText: context.l10n.commonDelete,
                 isDestructive: true,
               ).then((confirmed) {
                 if (confirmed == true && context.mounted) {

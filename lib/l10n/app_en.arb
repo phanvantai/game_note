@@ -1,0 +1,679 @@
+{
+  "@@locale": "en",
+  "appName": "PES Arena",
+  "mainTabArena": "Arena",
+  "mainTabGroups": "Groups",
+  "mainTabTournaments": "Tournaments",
+  "mainTabNotifications": "Notifications",
+  "mainTabProfile": "Profile",
+  "languageTitle": "Choose your language",
+  "languageSubtitle": "You can change this later in settings.",
+  "languageEnglish": "English",
+  "languageVietnamese": "Tiếng Việt",
+  "languageSystemMatch": "Suggested from your device",
+  "continueButton": "Continue",
+  "settingsTitle": "Settings",
+  "settingsHeroEyebrow": "Preferences",
+  "settingsHeroSubtitle": "Security, appearance, and account.",
+  "settingsUpdateProfile": "Update profile",
+  "settingsChangePassword": "Change password",
+  "settingsDarkMode": "Dark mode",
+  "settingsLanguage": "Language",
+  "settingsDeleteAccount": "Delete account",
+  "settingsDeleteConfirmTitle": "Confirm",
+  "settingsDeleteConfirmMessage": "Are you sure you want to delete your account?\n\nAll of your personal data will be deleted and cannot be restored. Some data related to groups and other players will be kept.",
+  "cancel": "Cancel",
+  "ownershipCheckFailed": "Could not check ownership: {error}",
+  "@ownershipCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authContinue": "Sign in to continue",
+  "authSignIn": "Sign in",
+  "authSignInSuccess": "Signed in successfully",
+  "authEmailHint": "Email",
+  "authPasswordHint": "Password",
+  "authContinueWithGoogle": "Continue with Google",
+  "authContinueWithApple": "Continue with Apple",
+  "authVerifyAccountTitle": "Verify account",
+  "authVerificationSent": "A verification code has been sent to your phone number",
+  "authVerificationCode": "Verification code",
+  "authVerify": "Verify",
+  "profileChangePasswordTitle": "Change password",
+  "profileCurrentPasswordHint": "Current password",
+  "profileNewPasswordHint": "New password",
+  "profileConfirmNewPasswordHint": "Confirm new password",
+  "profileChangePasswordSuccess": "Password changed successfully",
+  "profileSecurityEyebrow": "Security",
+  "profileSecuritySubtitle": "Update your password to protect your account.",
+  "or": "Or",
+  "pageNotFound": "Page not found",
+  "backHome": "Back home"
+  ,"commonOk": "OK",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "commonCreate": "Create",
+  "commonAdd": "Add",
+  "commonSave": "Save",
+  "commonSend": "Send",
+  "commonDelete": "Delete",
+  "commonUpdate": "Update",
+  "commonRetry": "Try again",
+  "commonBack": "Back",
+  "commonUnknown": "Unknown",
+  "commonErrorTitle": "Something went wrong",
+  "commonRetryLater": "Please try again later",
+  "commonDone": "Done",
+  "commonSearchByName": "Search by name",
+  "appOnline": "Online",
+  "appOffline": "Offline",
+  "offlineLeagueTitle": "Tournaments",
+  "offlinePlayersTitle": "Players",
+  "offlineStatisticsTitle": "Statistics",
+  "offlineCreateLeagueTitle": "Create tournament",
+  "offlineLeagueNameHint": "Tournament name",
+  "offlineAddLeagueTooltip": "Add new tournament",
+  "offlineNoLeaguesTitle": "No tournaments have been created.",
+  "offlineNoLeaguesSubtitle": "Tap the + button below to create a tournament",
+  "offlineDeleteLeagueTitle": "Delete tournament",
+  "offlineDeleteLeagueMessage": "Are you sure you want to delete tournament {name}?",
+  "@offlineDeleteLeagueMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineShareStandingsTitle": "Standings - {name}",
+  "@offlineShareStandingsTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineLeagueNotSetupTitle": "Tournament is not set up.",
+  "offlineLeagueNotSetupSubtitle": "Tap the + button below to add players and start the tournament",
+  "offlineLoadLeagueFailed": "Could not load tournament data",
+  "offlineShareStandings": "Share standings",
+  "offlineSchedule": "Schedule",
+  "offlineResults": "Results",
+  "offlineAddPlayerTitle": "Add player",
+  "offlinePlayerNameHint": "Player name",
+  "offlineNoPlayersTitle": "No players yet.",
+  "offlineNoPlayersSubtitle": "Tap the + button below to add a player.",
+  "offlineAddPlayerTooltip": "Add player",
+  "offlinePlayerDeleted": "Deleted {name}",
+  "@offlinePlayerDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineUpdateScoreTitle": "Update score",
+  "offlineAddRoundTooltip": "Add round",
+  "offlineSelectingPlayers": "Selecting 2 players. Selected: {count}",
+  "@offlineSelectingPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offlineSelectedPlayers": "Selected: {count}",
+  "@offlineSelectedPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offlineDataTitle": "DATA",
+  "offlineImportData": "Import data",
+  "offlineExportData": "Export data",
+  "offlineInvalidImportFile": "Invalid file.\nPlease use a game_note_database.db database file",
+  "offlineImportSuccess": "Data imported successfully",
+  "offlineStatPointsGoalDiff": "Points/GD",
+  "offlineStatChampionRunnerUp": "Champion/Runner-up",
+  "offlineStatWinDrawLoss": "Win/Draw/Loss",
+  "syncNoOfflineLeague": "No offline league available to sync",
+  "syncNoGroup": "You have not joined any group",
+  "syncNoLeagueSelected": "No league selected",
+  "syncChoose": "Choose",
+  "syncNoGroupMembers": "Group has no members",
+  "syncCreatePlaceholderUser": "Create new user (placeholder)",
+  "syncNewPlayerName": "New player name",
+  "syncDisplayNameHint": "Display name",
+  "syncMissingData": "Missing data",
+  "syncDateLabel": "Date: {date}",
+  "@syncDateLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncTargetGroupLabel": "Target group: {group}",
+  "@syncTargetGroupLabel": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNoPlayedMatches": "No played matches",
+  "syncSuccess": "Sync completed",
+  "syncRetry": "Retry",
+  "syncBack": "Back",
+  "syncExit": "Exit",
+  "syncContinue": "Continue",
+  "syncOfflineLeagueSection": "Offline league",
+  "syncOnlineGroupSection": "Online group",
+  "syncLeagueDescription": "{players} players · {date}",
+  "@syncLeagueDescription": {
+    "placeholders": {
+      "players": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "syncPreview": "Preview",
+  "syncDuplicateMapping": "Error: 2 players map to the same user",
+  "syncNotMapped": "Not mapped",
+  "syncNewTargetSuffix": "new",
+  "syncMapPlayerTitle": "Map \"{name}\"",
+  "@syncMapPlayerTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncWritingData": "Writing data to server...",
+  "syncDoNotClose": "Please do not close the app until it is complete",
+  "syncSelectSourceTitle": "Choose league & group",
+  "syncMapPlayersTitle": "Map players",
+  "syncConfirmTitle": "Confirm",
+  "syncExecutingTitle": "Syncing",
+  "syncOriginalOfflineTab": "Offline (original)",
+  "syncOnlineWillCreateTab": "Online (will create)",
+  "syncRun": "Sync",
+  "syncNewSuffix": "new",
+  "syncWritesCount": "Will write {count} records to server",
+  "@syncWritesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncStandingsTitle": "Standings",
+  "syncMatchResultsTitle": "Match results ({count})",
+  "@syncMatchResultsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncNewPlayersWillBeCreated": "New players will be created ({count})",
+  "@syncNewPlayersWillBeCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tablePlayer": "Player",
+  "tableMatchesPlayedShort": "MP",
+  "tableWinsShort": "W",
+  "tableDrawsShort": "D",
+  "tableLossesShort": "L",
+  "tableGoalsForShort": "GF",
+  "tableGoalsAgainstShort": "GA",
+  "tableGoalDifferenceShort": "GD",
+  "tablePointsShort": "Pts"
+  ,"groupCreateSuccess": "Group created successfully",
+  "groupCreateTitle": "Create new group",
+  "groupNameHint": "Group name",
+  "groupDescriptionHint": "Group description",
+  "groupNameRequired": "Group name cannot be empty",
+  "groupCreateButton": "Create group",
+  "groupEmptyTitle": "No groups",
+  "groupEmptySubtitle": "Create a new group to get started",
+  "groupHeroEyebrow": "Community hub",
+  "groupHeroTitle": "Manage PES groups",
+  "groupCreateNew": "Create",
+  "groupMineStat": "Mine",
+  "groupDiscoverStat": "Discover",
+  "groupMembersStat": "Members",
+  "groupMemberCount": "{count} members",
+  "@groupMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupMyGroupsTab": "My groups",
+  "groupOtherGroupsTab": "Other groups",
+  "groupAddMemberTitle": "Add member",
+  "groupCreatePlaceholderPlayer": "Create new player (placeholder)",
+  "groupCreateNewPlayer": "Create new player",
+  "groupDeleteWarning": "This will permanently delete the group, all tournaments, matches, standings, and related stats. Data cannot be restored.",
+  "groupSearchByNameHint": "Search by name",
+  "groupPlayerNameHint": "Player name",
+  "groupAddMemberSuccess": "Member added successfully",
+  "groupPlayerAddedSuccess": "New player added",
+  "groupUpdateStatusFailed": "Could not update status",
+  "groupDeleteRequestSent": "Group deletion request sent",
+  "groupDeleteTitle": "Delete group",
+  "groupOverviewTab": "Overview",
+  "groupMembersTab": "Members",
+  "groupInactive": "Inactive",
+  "groupDescriptionTitle": "Description",
+  "groupNoOverview": "No overview data yet",
+  "groupRefreshStatsTitle": "Update stats?",
+  "groupRefreshStatsTooltip": "Update stats",
+  "groupOverviewTitle": "Group overview",
+  "groupYearFilterAll": "All",
+  "groupRefreshStatsMessage": "The system will reload all tournaments and recalculate group stats. This may take a few seconds.",
+  "groupOverviewLoadFailed": "Could not load overview data.",
+  "groupOverviewLoadError": "Overview load error: {message}",
+  "@groupOverviewLoadError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "groupLegendChampion": "Unbeatable",
+  "groupLegendRunnerUp": "Great runner-up",
+  "groupLegendPro": "Pro",
+  "groupLegendDefense": "Steel defense",
+  "groupTitles": "Titles",
+  "groupMemberStats": "Member stats",
+  "groupNotEnoughAwardsData": "Not enough data to award titles (requires at least 5 finished tournaments or 5 matches).",
+  "groupNoMemberStats": "No member data yet.",
+  "groupReplaceSuccess": "Replaced successfully",
+  "groupReplaceError": "Something went wrong, please try again",
+  "groupReplaceSelectOld": "Choose player to replace",
+  "groupReplaceSelectNew": "Choose replacement",
+  "groupReplaceConfirm": "Confirm replacement",
+  "groupNoSearchResults": "No results",
+  "groupReplaceOldLabel": "Replace",
+  "groupReplaceNewLabel": "With",
+  "groupReplaceMergeWarning": "This player is already in the tournament. Stats for both players will be merged.",
+  "groupActionIrreversible": "This action cannot be undone.",
+  "groupClose": "Close",
+  "groupPlaceholder": "Placeholder",
+  "costRankPayoutRequired": "Enter rank payout amounts (for example: 50, 100)",
+  "costBracketPayoutTitle": "Calculate by bracket",
+  "costRankPayoutTitle": "Calculate by rank",
+  "costBracketPayoutSubtitle": "Champion receives money from runner-up and earlier eliminated players",
+  "costRankPayoutSubtitle": "Lower ranks contribute to first place using this configuration",
+  "costPayoutHint": "Example: 50, 100, 150 (k VND)",
+  "costBracketPayoutOrder": "In order: runner-up, each semifinal loser, each quarterfinal loser...",
+  "costRankPayoutOrder": "In order: rank 2, rank 3, rank 4... pay rank 1.",
+  "costDefaultMatchCostHint": "Default amount per match (k VND)",
+  "costDefaultMatchCostHelp": "This amount is prefilled when cost is enabled for a match while entering the result.",
+  "costDefaultPerGoalTitle": "Enable goal-difference cost by default",
+  "costDefaultPerGoalSubtitle": "Loser pays extra by goal difference (for example: 3-1 adds this amount twice).",
+  "costPerGoalHint": "Amount per goal (k VND)",
+  "costPerGoalHelp": "Added to the per-match amount when that match also has cost enabled.",
+  "costSuggestions": "Suggestions:",
+  "costPresetAmountLabel": "{amounts} k",
+  "@costPresetAmountLabel": {
+    "placeholders": {
+      "amounts": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentSelectGroupRequired": "Select a group",
+  "tournamentParticipantsMinimum": "Select at least 2 participants",
+  "tournamentCupPowerOfTwoRequired": "Cup requires participant count to be a power of 2 (2, 4, 8, 16...)",
+  "tournamentFullKnockoutPowerOfTwoRequired": "Groups x knockout qualifiers must be a power of 2",
+  "tournamentNameRequired": "Enter a tournament name",
+  "tournamentStartBeforeEndRequired": "Start date must be before end date",
+  "tournamentEndAfterStartRequired": "End date must be after start date",
+  "tournamentNoGroupsTitle": "You have not joined any groups",
+  "tournamentNoGroupsSubtitle": "Create or join a group before creating a tournament",
+  "tournamentSelectGroupTitle": "Select group",
+  "tournamentSelectGroupSubtitle": "This tournament will belong to this group",
+  "tournamentMembersCount": "{count} members",
+  "@tournamentMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentAddPlayersTitle": "Add players",
+  "tournamentAddPlayersSubtitle": "Select at least 2 players ({count} selected)",
+  "@tournamentAddPlayersSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentModeTitle": "Tournament mode",
+  "tournamentModeSubtitle": "Choose competition format",
+  "tournamentModeLeague": "League",
+  "tournamentModeLeagueSubtitle": "Round robin, everyone plays each other",
+  "tournamentModeCup": "Cup",
+  "tournamentModeCupSubtitle": "Knockout, one loss and out",
+  "tournamentModeFull": "Full",
+  "tournamentModeFullSubtitle": "Group stage to knockout",
+  "tournamentConfigPreviewTitle": "Configuration & Preview",
+  "tournamentConfigPreviewSubtitle": "Customize before creating",
+  "tournamentInfoTitle": "Tournament info",
+  "tournamentInfoSubtitle": "Set name and dates",
+  "tournamentNameDescriptionTitle": "Name & description",
+  "tournamentNameHint": "Tournament name",
+  "tournamentDescriptionHint": "Description (optional)",
+  "tournamentTimeTitle": "Dates",
+  "tournamentStartDateHint": "Start date",
+  "tournamentEndDateHint": "End date",
+  "tournamentCostSubtitle": "Can be configured later",
+  "tournamentStatsSynced": "Scores synced",
+  "tournamentCostUpdated": "Tournament cost updated",
+  "tournamentCustomMatchCreated": "Match created successfully",
+  "tournamentCreateMatchTitle": "Create match",
+  "tournamentMatchDeleted": "Match deleted successfully",
+  "tournamentDeleted": "Tournament deleted",
+  "tournamentStatusUpdated": "Tournament status updated successfully",
+  "tournamentPlayerAdded": "Player added successfully",
+  "tournamentPlayersAdded": "{count} players added successfully",
+  "@tournamentPlayersAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentGroupRoundMinimum": "Group needs at least 2 players to create a round",
+  "tournamentRoundCreated": "Round created successfully",
+  "tournamentMatchUpdated": "Match updated successfully",
+  "tournamentMatchConcurrentUpdate": "This match was just updated by someone else. Please check again.",
+  "tournamentBracketCreated": "Bracket created successfully",
+  "tournamentFullCreated": "Full tournament created successfully",
+  "tournamentSelectedPlayersCount": "{count} selected:",
+  "@tournamentSelectedPlayersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentAddPlayersCount": "Add {count} players",
+  "@tournamentAddPlayersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentLoadingCost": "Loading costs",
+  "tournamentNoCostTitle": "No costs yet",
+  "tournamentNoCostSubtitle": "Enable cost configuration or enter money in each match",
+  "tournamentHomeTeamHint": "Home team",
+  "tournamentAwayTeamHint": "Away team",
+  "tournamentSelectTeamRequired": "Please select teams",
+  "tournamentDistinctTeamsRequired": "Please select 2 different teams",
+  "tournamentUpdateResultTitle": "Update result",
+  "tournamentMatchHasCost": "This match has cost",
+  "tournamentMatchCostLabel": "Amount (k VND)",
+  "tournamentAddGoalDifferenceCost": "Add goal-difference cost",
+  "tournamentGoalDifferenceCostHelp": "For example: 3-1 adds this amount twice.",
+  "tournamentScoreRequired": "Enter match result"
+  ,"tournamentTabBracket": "Bracket",
+  "tournamentTabResults": "Results",
+  "tournamentTabCost": "Costs",
+  "tournamentTabGroups": "Groups",
+  "tournamentTabStandings": "Standings",
+  "tournamentTabFixtures": "Schedule",
+  "tournamentStatusTitle": "Tournament status",
+  "tournamentRecomputeStatsTitle": "Sync scores",
+  "tournamentRecomputeStatsMessage": "Recalculate all scores from finished match results? Use this when scores are inconsistent due to old data.",
+  "tournamentRecomputeStatsConfirm": "Sync",
+  "tournamentDeleteTitle": "Delete tournament",
+  "tournamentDeleteMessage": "Are you sure you want to delete this tournament?",
+  "tournamentEnded": "Tournament has ended",
+  "tournamentLoadingTitle": "Loading tournament",
+  "tournamentBackTooltip": "Back",
+  "tournamentOptionsTooltip": "Tournament options",
+  "tournamentShareStandings": "Share standings",
+  "tournamentStatusMenu": "Status",
+  "tournamentGroupMatchesTitle": "Group matches",
+  "tournamentAddRound": "Add round",
+  "tournamentScheduleTitle": "Schedule",
+  "tournamentCreateCustomMatchTooltip": "Create custom match",
+  "tournamentSearchPlayerHint": "Search by player name (for example: A B)",
+  "tournamentNoMatchesFound": "No matches found",
+  "tournamentNoFixtures": "No fixtures yet",
+  "tournamentNoResults": "No results yet",
+  "tournamentGenerateRoundWithExisting": "There are {count} matches in the schedule. Create another round?",
+  "@tournamentGenerateRoundWithExisting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentGenerateRoundMessage": "Create a round-robin round for all players?"
+  ,"tournamentNoPlayersTitle": "No players yet",
+  "tournamentNoPlayersSubtitle": "Add players to start the tournament",
+  "tournamentShareStandingsTitle": "Standings - {leagueName}",
+  "@tournamentShareStandingsTitle": {
+    "placeholders": {
+      "leagueName": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentShareStandingsSheetTitle": "Share standings",
+  "tournamentPreparingShare": "Preparing...",
+  "tournamentShareNow": "Share now",
+  "tournamentLightTheme": "Light",
+  "tournamentDarkTheme": "Dark"
+  ,"tournamentHeroEyebrow": "Tournament arena",
+  "tournamentHeroTitle": "Manage PES tournaments",
+  "tournamentMyStat": "Mine",
+  "tournamentLiveStat": "Live",
+  "tournamentPlayersStat": "Players",
+  "tournamentJoinedTab": "Joined",
+  "tournamentManagedTab": "Managed",
+  "tournamentOtherTab": "Other",
+  "tournamentJoinGroupFirst": "You have not joined any groups. Join a group first",
+  "tournamentCreateSuccess": "Tournament created successfully",
+  "tournamentCreateButton": "Create tournament",
+  "tournamentEmptyTitle": "No tournaments",
+  "tournamentEmptySubtitle": "Create a new tournament to get started",
+  "tournamentManagedEmptySubtitle": "Create a new tournament to start managing",
+  "commonListEnd": "End"
+  ,"dashboardLoadError": "Could not load data",
+  "homeOngoingTournamentsTitle": "Ongoing tournaments",
+  "dashboardSignInRequired": "You need to sign in",
+  "dashboardRecentForm10": "Last 10 match form",
+  "dashboardRecentMatches": "Recent matches",
+  "dashboardNoMatches": "No matches yet",
+  "dashboardHeroEyebrow": "Control room",
+  "dashboardHeroTitle": "Track match performance",
+  "dashboardViewDetail": "View details",
+  "dashboardWinRate": "Win rate",
+  "dashboardGoalDifference": "Goal difference",
+  "dashboardMatches": "Matches",
+  "dashboardMatchesCount": "{count} matches",
+  "@dashboardMatchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardNoValue": "—",
+  "dashboardNoData": "No data",
+  "dashboardTournamentsJoined": "Tournaments joined",
+  "dashboardChampionRate": "Champion rate",
+  "dashboardRunnerUpRate": "Runner-up rate",
+  "dashboardLatestChampion": "Latest championship",
+  "dashboardToday": "Today",
+  "dashboardDaysAgo": "{count} days ago",
+  "@dashboardDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardInsufficientChartData": "Not enough data to draw chart",
+  "dashboardPointsPerMatch": "Points / match",
+  "dashboardGoalDifferencePerMatch": "Goal diff / match",
+  "dashboardH2HTitle": "Head-to-head history",
+  "dashboardNoH2HData": "No head-to-head data yet"
+  ,"dashboardStatsTitle": "Stats dashboard",
+  "dashboardDetailEyebrow": "Dashboard detail",
+  "dashboardDetailSubtitle": "Full match performance overview",
+  "dashboardRefreshTooltip": "Update from server",
+  "dashboardOverview": "Overview",
+  "dashboardMetricTournamentsJoined": "Tournaments joined",
+  "dashboardMetricMatches": "Matches",
+  "dashboardMetricLatestChampion": "Latest championship",
+  "dashboardMetricWdlCount": "Wins / Draws / Losses",
+  "dashboardMetricWdlRate": "W / D / L rate",
+  "dashboardMetricGoals": "GF / GA / Goal diff",
+  "dashboardMetricChampion": "Champion",
+  "dashboardMetricRunnerUp": "Runner-up",
+  "dashboardRecentLeagueForm5": "Last 5 tournament form",
+  "dashboardRefreshTitle": "Update stats?",
+  "dashboardRefreshMessage": "The system will recalculate all stats from match data. This may take a few seconds.",
+  "dashboardH2HSectionTitle": "Head-to-head",
+  "dashboardH2HSectionSubtitle": "Nemesis and favorable opponents from matchup history",
+  "dashboardH2HSortMostMatches": "Most matches",
+  "dashboardH2HSortWins": "Most wins",
+  "dashboardH2HSortLosses": "Most losses",
+  "dashboardNemesis": "Nemesis",
+  "dashboardFavorableOpponent": "Favorable",
+  "dashboardLossMetric": "losses",
+  "dashboardWinMetric": "wins",
+  "dashboardWdlWin": "Win",
+  "dashboardWdlDraw": "Draw",
+  "dashboardWdlLoss": "Loss",
+  "dashboardWdlWinShort": "W",
+  "dashboardWdlDrawShort": "D",
+  "dashboardWdlLossShort": "L",
+  "dashboardOpponentRecordLine": "{count} / {total} matches {metric}",
+  "@dashboardOpponentRecordLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "metric": {}
+    }
+  },
+  "dashboardWinRateValue": "{value}% win",
+  "@dashboardWinRateValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardNeedMoreH2H": "Need ≥ {count} matches\nagainst the same opponent",
+  "@dashboardNeedMoreH2H": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardMinMatchesChip": ">= {count} matches",
+  "@dashboardMinMatchesChip": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardThresholdTooltip": "Customize threshold",
+  "dashboardViewAllOpponents": "View all opponents",
+  "dashboardMinMatchesTitle": "Minimum match threshold",
+  "dashboardMinMatchesDescription": "An opponent must have at least {count} head-to-head matches to count toward \"Nemesis\" / \"Favorable opponent\". Increase this to reduce noise from small samples.",
+  "@dashboardMinMatchesDescription": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardMatchesUnit": "matches"
+  ,"feedbackTitle": "Feedback",
+  "feedbackSignInRequired": "You need to sign in to send feedback.",
+  "feedbackCreateTitle": "Create feedback",
+  "feedbackTitleHint": "Title",
+  "feedbackContentHint": "Content",
+  "feedbackRequired": "Please fill in all information.",
+  "feedbackMinimumLength": "Title must have at least 5 characters\nContent must have at least 10 characters.",
+  "feedbackSent": "Feedback sent successfully!",
+  "profileUpdateSuccess": "Profile updated successfully",
+  "profileUpdateTitle": "Update profile",
+  "profileSetupEyebrow": "Profile setup",
+  "profileDisplayInfoTitle": "Display info",
+  "profileDisplayInfoSubtitle": "Update your name, phone number, and email.",
+  "profileFullNameHint": "Full name",
+  "profilePhoneHint": "Phone number",
+  "notificationActivityEyebrow": "Activity feed",
+  "notificationAllRead": "All caught up",
+  "notificationUnreadCount": "{count} new notifications",
+  "@notificationUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationMarkAllRead": "Mark all as read",
+  "notificationRead": "Read"
+  ,"profileAppSection": "App",
+  "profileOfflineMode": "Offline mode",
+  "profileSyncOfflineData": "Sync offline data",
+  "profileOtherOptions": "Other options",
+  "profileInfoSection": "Info",
+  "profileRateApp": "Rate",
+  "profileFeedback": "Feedback",
+  "profileSessionSection": "Session",
+  "profileSignOut": "Sign out",
+  "profileChangeAvatar": "Change avatar",
+  "profileDeleteAvatar": "Delete avatar",
+  "profileOfflineModeTitle": "Offline mode",
+  "profileOfflineModeMessage": "Offline mode lets you create data on this device only. Data is stored locally and will not be synced.\n\nAre you sure you want to switch to offline mode?",
+  "profileAccept": "Accept",
+  "profileSignOutMessage": "Are you sure you want to sign out?"
+  ,"ownershipProcessFailed": "Could not process ownership: {error}",
+  "@ownershipProcessFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "ownershipResolutionTitle": "Resolve ownership",
+  "ownershipResolutionMessage": "You own the groups/tournaments below. Transfer ownership to another member or deactivate them before deleting your account.",
+  "ownershipGroup": "Group",
+  "ownershipTournament": "Tournament",
+  "ownershipContinueDelete": "Continue deleting account",
+  "ownershipTransfer": "Transfer",
+  "ownershipDeactivate": "Deactivate"
+}

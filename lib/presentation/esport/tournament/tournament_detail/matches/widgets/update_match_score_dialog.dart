@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_team.dart';
 
@@ -22,23 +23,25 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
       ? true
       : (league?.defaultPerGoalEnabled ?? false);
   final matchCostCtrl = TextEditingController(
-    text: ((match.matchCost ?? 0) > 0
-            ? (match.matchCost! ~/ 1000)
-            : defaultPrefillK)
-        .toString(),
+    text:
+        ((match.matchCost ?? 0) > 0
+                ? (match.matchCost! ~/ 1000)
+                : defaultPrefillK)
+            .toString(),
   );
   final perGoalCostCtrl = TextEditingController(
-    text: ((match.costPerGoal ?? 0) > 0
-            ? (match.costPerGoal! ~/ 1000)
-            : defaultPerGoalK)
-        .toString(),
+    text:
+        ((match.costPerGoal ?? 0) > 0
+                ? (match.costPerGoal! ~/ 1000)
+                : defaultPerGoalK)
+            .toString(),
   );
 
   showDialog(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setLocalState) => AlertDialog(
-        title: const Text('Cập nhật kết quả'),
+        title: Text(context.l10n.tournamentUpdateResultTitle),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -104,7 +107,7 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   dense: true,
-                  title: const Text('Có tiền cho trận này'),
+                  title: Text(context.l10n.tournamentMatchHasCost),
                   value: costEnabled,
                   onChanged: (v) => setLocalState(() => costEnabled = v),
                 ),
@@ -114,7 +117,7 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       isDense: true,
-                      labelText: 'Số tiền (k VND)',
+                      labelText: context.l10n.tournamentMatchCostLabel,
                       prefixIcon: const Icon(Icons.attach_money, size: 20),
                       filled: true,
                       fillColor: colorScheme.surfaceContainerHighest,
@@ -127,10 +130,9 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     dense: true,
-                    title: const Text('Thêm tiền theo hiệu số bàn thắng'),
+                    title: Text(context.l10n.tournamentAddGoalDifferenceCost),
                     value: perGoalEnabled,
-                    onChanged: (v) =>
-                        setLocalState(() => perGoalEnabled = v),
+                    onChanged: (v) => setLocalState(() => perGoalEnabled = v),
                   ),
                   if (perGoalEnabled)
                     TextField(
@@ -138,10 +140,10 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         isDense: true,
-                        labelText: 'Tiền mỗi bàn (k VND)',
-                        helperText: 'VD: 3-1 → cộng x2 vào tiền.',
-                        prefixIcon:
-                            const Icon(Icons.sports_soccer, size: 20),
+                        labelText: context.l10n.costPerGoalHint,
+                        helperText:
+                            context.l10n.tournamentGoalDifferenceCostHelp,
+                        prefixIcon: const Icon(Icons.sports_soccer, size: 20),
                         filled: true,
                         fillColor: colorScheme.surfaceContainerHighest,
                         border: OutlineInputBorder(
@@ -158,24 +160,30 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Hủy'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
               FocusScope.of(ctx).unfocus();
               if (homeCtrl.text.isEmpty || awayCtrl.text.isEmpty) {
-                showToast('Nhập kết quả trận đấu', gravity: ToastGravity.TOP);
+                showToast(
+                  context.l10n.tournamentScoreRequired,
+                  gravity: ToastGravity.TOP,
+                );
                 return;
               }
               final homeScore = int.tryParse(homeCtrl.text);
               final awayScore = int.tryParse(awayCtrl.text);
               if (homeScore == null || awayScore == null) return;
               final matchCost = costEnabled
-                  ? (int.tryParse(matchCostCtrl.text.trim()) ?? defaultPrefillK) * 1000
+                  ? (int.tryParse(matchCostCtrl.text.trim()) ??
+                            defaultPrefillK) *
+                        1000
                   : 0;
               final costPerGoal = (costEnabled && perGoalEnabled)
-                  ? (int.tryParse(perGoalCostCtrl.text.trim()) ?? defaultPerGoalK) *
-                      1000
+                  ? (int.tryParse(perGoalCostCtrl.text.trim()) ??
+                            defaultPerGoalK) *
+                        1000
                   : 0;
               context.read<TournamentDetailBloc>().add(
                 UpdateEsportMatch(
@@ -189,7 +197,7 @@ void showUpdateMatchScoreDialog(BuildContext context, GNEsportMatch match) {
               );
               Navigator.of(ctx).pop();
             },
-            child: const Text('Cập nhật'),
+            child: Text(context.l10n.commonUpdate),
           ),
         ],
       ),

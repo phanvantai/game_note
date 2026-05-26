@@ -47,8 +47,9 @@ class CostSummaryPanel extends StatelessWidget {
     // Chỉ tính các trận đã finished — trận chưa đá xong dù có matchCost
     // prefill từ league default cũng không vào netting. Filter ở đây để
     // section "Theo trận" không render trống.
-    final hasMatchCost =
-        matches.any((m) => m.isFinished && (m.matchCost ?? 0) > 0);
+    final hasMatchCost = matches.any(
+      (m) => m.isFinished && (m.matchCost ?? 0) > 0,
+    );
     if (!league.rankPayoutEnabled && !hasMatchCost) {
       return const SizedBox.shrink();
     }

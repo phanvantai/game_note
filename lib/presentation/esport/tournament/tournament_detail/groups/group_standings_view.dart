@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/update_match_score_dialog.dart';
 
 import '../bloc/tournament_detail_bloc.dart';
@@ -103,9 +104,7 @@ class _GroupTabBar extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? colorScheme.secondary
-                    : colorScheme.surface,
+                color: isSelected ? colorScheme.secondary : colorScheme.surface,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isSelected
@@ -162,10 +161,7 @@ class _GroupContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _StandingsTable(
-            stats: sortedStats,
-            advanceCount: advanceCount,
-          ),
+          _StandingsTable(stats: sortedStats, advanceCount: advanceCount),
           const SizedBox(height: 16),
           _GroupMatchesList(
             groupId: groupId,
@@ -302,7 +298,9 @@ class _TableRow extends StatelessWidget {
               textAlign: TextAlign.center,
               style: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: isAdvance ? colorScheme.secondary : colorScheme.onSurfaceVariant,
+                color: isAdvance
+                    ? colorScheme.secondary
+                    : colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -316,7 +314,13 @@ class _TableRow extends StatelessWidget {
               ),
             ),
           ),
-          for (final v in [stat.wins, stat.draws, stat.losses, stat.goalDifference, stat.points])
+          for (final v in [
+            stat.wins,
+            stat.draws,
+            stat.losses,
+            stat.goalDifference,
+            stat.points,
+          ])
             SizedBox(
               width: 30,
               child: Text(
@@ -362,17 +366,19 @@ class _GroupMatchesList extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                'Trận đấu bảng',
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                context.l10n.tournamentGroupMatchesTitle,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
             if (canEdit)
               TextButton.icon(
-                onPressed: () => context
-                    .read<TournamentDetailBloc>()
-                    .add(GenerateGroupRound(groupId)),
+                onPressed: () => context.read<TournamentDetailBloc>().add(
+                  GenerateGroupRound(groupId),
+                ),
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('Thêm vòng'),
+                label: Text(context.l10n.tournamentAddRound),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -385,14 +391,18 @@ class _GroupMatchesList extends StatelessWidget {
           final homeName = m.homeTeam?.displayName ?? m.homeTeamId;
           final awayName = m.awayTeam?.displayName ?? m.awayTeamId;
           return GestureDetector(
-            onTap: canEdit ? () => showUpdateMatchScoreDialog(context, m) : null,
+            onTap: canEdit
+                ? () => showUpdateMatchScoreDialog(context, m)
+                : null,
             child: Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
                 children: [
@@ -400,11 +410,16 @@ class _GroupMatchesList extends StatelessWidget {
                     child: Text(
                       homeName,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: m.isFinished
                           ? colorScheme.secondary.withValues(alpha: 0.12)
@@ -412,12 +427,12 @@ class _GroupMatchesList extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      m.isFinished
-                          ? '${m.homeScore} – ${m.awayScore}'
-                          : 'vs',
+                      m.isFinished ? '${m.homeScore} – ${m.awayScore}' : 'vs',
                       style: theme.textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: m.isFinished ? colorScheme.secondary : colorScheme.onSurfaceVariant,
+                        color: m.isFinished
+                            ? colorScheme.secondary
+                            : colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -426,7 +441,9 @@ class _GroupMatchesList extends StatelessWidget {
                       awayName,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.end,
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],

@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/l10n/app_text.dart';
 
 import '../../../../domain/repositories/esport/esport_group_repository.dart';
 import '../../../../firebase/firestore/esport/group/gn_esport_group.dart';
@@ -53,7 +54,7 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
           groups: [...state.groups, group],
         ),
       );
-      showToast('Tạo nhóm thành công');
+      showToast(appText.groupCreateSuccess);
     } catch (e) {
       emit(
         state.copyWith(
