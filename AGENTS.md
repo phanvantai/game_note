@@ -109,6 +109,7 @@ Existing repo guidance targets very high coverage for production code under `lib
 
 ## Release / PR Guardrails
 
+- Never push directly to `main`. All `main` changes must go through a pull request, even urgent release fixes.
 - Pull requests targeting `main` trigger the production mobile release flow, including build and Play Store deployment.
 - Before creating or updating a PR that targets `main`, explicitly confirm the intended release target with the user.
 - Use this checklist before opening a `main` PR:
