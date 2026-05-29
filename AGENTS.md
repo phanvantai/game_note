@@ -109,16 +109,11 @@ Existing repo guidance targets very high coverage for production code under `lib
 
 ## Release / PR Guardrails
 
-- Never work directly on `main`. Before any file edit, commit, reset, merge, cherry-pick, or implementation/doc task, check the current branch and switch to a feature/release branch if on `main`.
-- Never push directly to `main`. All `main` changes must go through a pull request, even urgent release fixes.
-- Pull requests targeting `main` trigger the production mobile release flow, including build and Play Store deployment.
-- Before creating or updating a PR that targets `main`, explicitly confirm the intended release target with the user.
-- Use this checklist before opening a `main` PR:
-  - Confirm the PR is intended to release to production.
-  - Confirm `pubspec.yaml` app version/build number has been reviewed and bumped if needed.
-  - Confirm release notes or PR notes mention any production-impacting changes.
-  - Confirm `flutter analyze` and the relevant test suite have passed.
-- If the work is not ready for production release, target `develop` or keep the branch unmerged instead of opening a PR to `main`.
+- The standard workflow is intentionally simple: start from `main`, create a short-lived branch, open a PR, merge it, then clean up the branch.
+- Never work directly on `main`. Before any file edit, commit, reset, merge, cherry-pick, implementation task, or documentation task, check `git status` and switch/create a branch from the latest `main`.
+- Never push directly to `main`. All changes go through a pull request targeting `main`.
+- After a PR is merged, delete the remote branch and any local branches that are no longer needed, keeping `main` as the clean baseline.
+- Before opening or updating a PR, verify the relevant checks for the change, such as `flutter analyze`, targeted tests, or docs-only review.
 
 ## Area-Specific Tips
 
@@ -144,12 +139,14 @@ Existing repo guidance targets very high coverage for production code under `lib
 
 ## Preferred Agent Workflow
 
-1. Inspect `git status` and touched files before making edits.
+1. Fetch/check the latest `main`, inspect `git status`, and create a short-lived branch from `main` before editing.
 2. Break the request into small, file-scoped tasks before implementation.
 3. Read the local feature/module before changing it.
 4. Edit only the necessary files.
 5. Run the smallest useful verification first, then broader checks if needed.
-6. Report what changed, what was verified, and any remaining risk.
+6. Commit, push the branch, open a PR targeting `main`, and merge only after review/checks are acceptable.
+7. Clean up the merged remote/local branch and return to a clean `main`.
+8. Report what changed, what was verified, and any remaining risk.
 
 ## Parallel Agent Workflow
 

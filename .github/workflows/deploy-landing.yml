@@ -2,9 +2,7 @@ name: Deploy Landing Page
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: ["main"]
 
 permissions:
   contents: read

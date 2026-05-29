@@ -1,8 +1,8 @@
 name: _Android Build (reusable)
 
 # Reusable workflow chứa toàn bộ build steps cho Android release AAB.
-# Không trigger trực tiếp — gọi từ android-build.yml (develop) và
-# android-release.yml (main) để đảm bảo 2 pipeline build hoàn toàn giống nhau.
+# Không trigger trực tiếp — gọi từ android-build.yml (PR vào main) và
+# android-release.yml (push main) để đảm bảo 2 pipeline build hoàn toàn giống nhau.
 #
 # Artifact xuất ra tên cố định "android-release"; caller deploy job download theo tên này.
 

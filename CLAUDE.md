@@ -97,6 +97,14 @@ The project follows **Clean Architecture** principles with clear layer separatio
 - **Parallel Data Loading**: `getParticipantsAndMatches()` for simultaneous API calls
 - **Real-time Optimization**: Minimize concurrent Firestore listeners
 
+## Git Workflow
+
+- The repository uses a simple PR-first workflow for every change.
+- Always start from the latest `main`, then create a short-lived branch before editing code or documentation.
+- Never commit or push directly to `main`.
+- Open a pull request targeting `main`, wait for review/checks, then merge.
+- After merge, delete the remote branch and any local branches that are no longer needed so `main` stays the clean baseline.
+
 ## Key Features
 
 ### Tournament System
