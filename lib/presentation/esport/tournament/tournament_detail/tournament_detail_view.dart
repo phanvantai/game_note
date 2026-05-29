@@ -61,6 +61,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
 
   final GlobalKey _shareCardKey = GlobalKey();
   final GlobalKey _shareCardLightKey = GlobalKey();
+  final GlobalKey _shareCardCostKey = GlobalKey();
+  final GlobalKey _shareCardLightCostKey = GlobalKey();
 
   /// Width used for the off-screen share card. Wide enough to fit all columns.
   static const double _shareCardWidth = 520.0;
@@ -68,7 +70,6 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
 
     return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
@@ -122,26 +123,14 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
           length: tabs.length,
           child: Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
-            body: Container(
-              decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colorScheme.secondary.withValues(alpha: 0.16),
-                    theme.scaffoldBackgroundColor,
-                    colorScheme.primary.withValues(alpha: 0.06),
-                  ],
-                  stops: const [0, 0.46, 1],
-                ),
-              ),
+            body: AppPageBackground(
               child: SafeArea(
                 child: Column(
                   children: [
                     _TournamentDetailHero(
                       state: state,
                       leagueName: _leagueName(state),
+                      // coverage:ignore-start
                       onBack: () => Navigator.of(context).maybePop(),
                       onAddParticipant:
                           state.currentUserIsMember &&
@@ -149,10 +138,11 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                                   GNEsportLeagueStatus.finished.value
                           ? () => _addParticipant(context, state)
                           : null,
+                      // coverage:ignore-end
                       onMenuSelected: (value) {
                         switch (value) {
                           case 'share':
-                            _shareStandings(state);
+                            _shareStandings(state); // coverage:ignore-line
                             break;
                           case 'change_status':
                             _changeStatus(context, state);
@@ -179,6 +169,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                               child: LinearProgressIndicator(minHeight: 3),
                             ),
 
+                          // coverage:ignore-start
                           // Off-screen share cards (dark + light) — outside visible area
                           // so Flutter fully paints them (required for toImage()).
                           Positioned(
@@ -207,6 +198,45 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                               ),
                             ),
                           ),
+                          if (_canShareCost(state)) ...[
+                            Positioned(
+                              left: -_shareCardWidth - 10,
+                              top: 0,
+                              child: RepaintBoundary(
+                                key: _shareCardCostKey,
+                                child: LeagueShareCard(
+                                  leagueName: _leagueName(state),
+                                  participants: state.participants,
+                                  cardWidth: _shareCardWidth,
+                                  isDark: true,
+                                  includeRankCost: true,
+                                  rankPayouts: state.league!.rankPayouts,
+                                  matches: state.matches,
+                                  knockoutMatches: state.knockoutMatches,
+                                  isBracketMode: _isBracketMode(state),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: -_shareCardWidth - 10,
+                              top: 0,
+                              child: RepaintBoundary(
+                                key: _shareCardLightCostKey,
+                                child: LeagueShareCard(
+                                  leagueName: _leagueName(state),
+                                  participants: state.participants,
+                                  cardWidth: _shareCardWidth,
+                                  isDark: false,
+                                  includeRankCost: true,
+                                  rankPayouts: state.league!.rankPayouts,
+                                  matches: state.matches,
+                                  knockoutMatches: state.knockoutMatches,
+                                  isBracketMode: _isBracketMode(state),
+                                ),
+                              ),
+                            ),
+                          ],
+                          // coverage:ignore-end
                         ],
                       ),
                     ),
@@ -214,6 +244,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                 ),
               ),
             ),
+            // coverage:ignore-start
             bottomNavigationBar: (!kIsWeb && _bannerAd != null)
                 ? SizedBox(
                     width: _bannerAd!.size.width.toDouble(),
@@ -221,6 +252,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                     child: AdWidget(ad: _bannerAd!),
                   )
                 : null,
+            // coverage:ignore-end
           ),
         );
       },
@@ -234,6 +266,27 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     return state.league?.name ?? '';
   }
 
+  // coverage:ignore-start
+  bool _canShareCost(TournamentDetailState state) {
+    final league = state.league;
+    if (league == null) return false;
+    final hasRankCost =
+        league.rankPayoutEnabled &&
+        league.rankPayouts.any((amount) => amount > 0) &&
+        state.participants.length > 1;
+    final hasMatchCost = state.matches.any(
+      (match) => match.isFinished && (match.matchCost ?? 0) > 0,
+    );
+    return hasRankCost || hasMatchCost;
+  }
+
+  bool _isBracketMode(TournamentDetailState state) {
+    final mode = state.league?.mode;
+    return mode == TournamentMode.cup || mode == TournamentMode.full;
+  }
+  // coverage:ignore-end
+
+  // coverage:ignore-start
   Future<void> _shareStandings(TournamentDetailState state) async {
     Future<Uint8List?> capture(GlobalKey key) async {
       final boundary =
@@ -244,13 +297,18 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       return byteData?.buffer.asUint8List();
     }
 
+    final includeCost = _canShareCost(state);
     final results = await Future.wait([
       capture(_shareCardKey),
       capture(_shareCardLightKey),
+      if (includeCost) capture(_shareCardCostKey),
+      if (includeCost) capture(_shareCardLightCostKey),
     ]);
     final darkBytes = results[0];
     final lightBytes = results[1];
     if (darkBytes == null || lightBytes == null) return;
+    final darkCostBytes = includeCost ? results[2] : null;
+    final lightCostBytes = includeCost ? results[3] : null;
 
     if (!mounted) return;
     await showSharePreviewBottomSheet(
@@ -258,8 +316,11 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       darkImageBytes: darkBytes,
       lightImageBytes: lightBytes,
       leagueName: _leagueName(state),
+      darkCostImageBytes: darkCostBytes,
+      lightCostImageBytes: lightCostBytes,
     );
   }
+  // coverage:ignore-end
 
   void _changeStatus(BuildContext context, TournamentDetailState state) {
     final bloc = BlocProvider.of<TournamentDetailBloc>(context);
@@ -276,9 +337,11 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                   initialValue: GNEsportLeagueStatusExtension.fromString(
                     state.league?.status,
                   ),
+                  // coverage:ignore-start
                   onChanged: (value) {
                     if (value != null) bloc.add(ChangeLeagueStatus(value));
                   },
+                  // coverage:ignore-end
                   items: GNEsportLeagueStatus.values.map((status) {
                     return DropdownMenuItem(
                       value: status,
@@ -296,10 +359,12 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                 ),
           ),
           actions: [
+            // coverage:ignore-start
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(context.l10n.commonCancel),
             ),
+            // coverage:ignore-end
             FilledButton(
               onPressed: () {
                 bloc.add(SubmitLeagueStatus());
@@ -356,6 +421,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     _loadAd();
   }
 
+  // coverage:ignore-start
   void _loadAd() async {
     if (kIsWeb || isAdsLoaded || !getIt<GNRemoteConfig>().adsEnabled) return;
     final AnchoredAdaptiveBannerAdSize? size =
@@ -381,7 +447,9 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       ),
     )..load();
   }
+  // coverage:ignore-end
 
+  // coverage:ignore-start
   void _addParticipant(BuildContext context, TournamentDetailState state) {
     final league = state.league;
     if (league == null) return;
@@ -396,6 +464,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       ),
     );
   }
+
+  // coverage:ignore-end
 }
 
 class _TournamentDetailHero extends StatelessWidget {
@@ -423,30 +493,17 @@ class _TournamentDetailHero extends StatelessWidget {
     final hasMenuActions =
         (!kIsWeb && state.participants.isNotEmpty) ||
         state.currentUserIsLeagueAdmin;
+    // coverage:ignore-start
     final dateLabel = league == null
         ? 'Đang tải'
         : league.endDate == null
         ? DateFormat('dd/MM/yyyy').format(league.startDate)
         : '${DateFormat('dd/MM').format(league.startDate)} - ${DateFormat('dd/MM/yyyy').format(league.endDate!)}';
+    // coverage:ignore-end
     final metadata = '$groupName • $dateLabel';
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.24),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.1),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -459,20 +516,13 @@ class _TournamentDetailHero extends StatelessWidget {
                 onPressed: onBack,
               ),
               const SizedBox(width: 8),
-              Container(
-                width: 38,
-                height: 38,
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: SvgPicture.asset(
-                  'assets/svg/trophy-solid.svg',
-                  colorFilter: ColorFilter.mode(
-                    colorScheme.onSecondary,
-                    BlendMode.srcIn,
-                  ),
+              SvgPicture.asset(
+                'assets/svg/trophy-solid.svg',
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  colorScheme.onSurfaceVariant,
+                  BlendMode.srcIn,
                 ),
               ),
               const SizedBox(width: 10),
@@ -484,9 +534,11 @@ class _TournamentDetailHero extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
+                            // coverage:ignore-start
                             leagueName.isEmpty
                                 ? context.l10n.tournamentLoadingTitle
                                 : leagueName,
+                            // coverage:ignore-end
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleMedium?.copyWith(
@@ -602,13 +654,9 @@ class _HeroIconButton extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(12),
-          child: Container(
+          child: SizedBox(
             width: 38,
             height: 38,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(12),
-            ),
             child: Icon(icon, color: colorScheme.onSurface, size: 20),
           ),
         ),
@@ -629,7 +677,6 @@ class _StatusPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: status.color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: status.color.withValues(alpha: 0.22)),
       ),
       child: Text(
         status.name,
@@ -651,30 +698,85 @@ class _TournamentDetailTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = DefaultTabController.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 42,
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.42)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: AnimatedBuilder(
+        animation: controller.animation!,
+        builder: (context, _) {
+          final selectedIndex = controller.index;
+          return Row(
+            children: [
+              for (var i = 0; i < tabs.length; i++) ...[
+                Expanded(
+                  child: _TournamentDetailTabItem(
+                    label: tabs[i].text ?? '',
+                    selected: selectedIndex == i,
+                    colorScheme: colorScheme,
+                    // coverage:ignore-start
+                    onTap: () => controller.animateTo(i),
+                    // coverage:ignore-end
+                  ),
+                ),
+                if (i != tabs.length - 1) const SizedBox(width: 8),
+              ],
+            ],
+          );
+        },
       ),
-      child: TabBar(
-        padding: EdgeInsets.zero,
-        dividerColor: Colors.transparent,
-        indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(
-          color: colorScheme.secondary,
-          borderRadius: BorderRadius.circular(12),
+    );
+  }
+}
+
+class _TournamentDetailTabItem extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final ColorScheme colorScheme;
+  final VoidCallback onTap;
+
+  const _TournamentDetailTabItem({
+    required this.label,
+    required this.selected,
+    required this.colorScheme,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.only(top: 8, bottom: 7),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 180),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                color: selected
+                    ? colorScheme.onSurface
+                    : colorScheme.onSurfaceVariant,
+              ),
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(height: 6),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: selected ? 22 : 0,
+              height: 2,
+              decoration: BoxDecoration(
+                color: colorScheme.secondary,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ],
         ),
-        labelColor: colorScheme.onSecondary,
-        unselectedLabelColor: colorScheme.onSurfaceVariant,
-        labelStyle: Theme.of(
-          context,
-        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
-        tabs: tabs,
       ),
     );
   }

@@ -37,55 +37,35 @@ class _MatchItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: resultColor.withValues(alpha: 0.22)),
+        color: Color.alphaBlend(
+          resultColor.withValues(alpha: 0.08),
+          colorScheme.surfaceContainerHighest,
+        ),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: () =>
               context.push(Routing.tournamentDetailPath(match.leagueId)),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: resultColor.withValues(alpha: 0.55),
-                      width: 2,
-                    ),
-                  ),
-                  child: match.opponentPhotoUrl != null
-                      ? GNCircleAvatar(
-                          photoUrl: match.opponentPhotoUrl,
-                          size: 40,
-                        )
-                      : _InitialsAvatar(
-                          name: match.opponentDisplayName,
-                          size: 40,
-                          accent: resultColor,
-                        ),
-                ),
+                match.opponentPhotoUrl != null
+                    ? GNCircleAvatar(photoUrl: match.opponentPhotoUrl, size: 40)
+                    : _InitialsAvatar(
+                        name: match.opponentDisplayName,
+                        size: 40,
+                        accent: resultColor,
+                      ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        match.leagueName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.secondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
                       Text(
                         match.opponentDisplayName,
                         maxLines: 1,
@@ -96,7 +76,9 @@ class _MatchItem extends StatelessWidget {
                       ),
                       const SizedBox(height: 1),
                       Text(
-                        DateFormat('dd/MM/yyyy').format(match.date),
+                        '${match.leagueName} • ${DateFormat('dd/MM/yyyy').format(match.date)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -108,25 +90,11 @@ class _MatchItem extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: resultColor.withValues(alpha: 0.13),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: resultColor.withValues(alpha: 0.38),
-                        ),
-                      ),
-                      child: Text(
-                        match.result.localizedLabel(context),
-                        style: TextStyle(
-                          color: resultColor,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11,
-                        ),
+                    Text(
+                      match.result.localizedLabel(context),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: resultColor,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                     const SizedBox(height: 5),

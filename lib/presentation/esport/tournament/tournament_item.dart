@@ -28,17 +28,11 @@ class TournamentItem extends StatelessWidget {
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [status.color.withValues(alpha: 0.1), colorScheme.surface],
-        ),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
@@ -49,11 +43,8 @@ class TournamentItem extends StatelessWidget {
                 height: 48,
                 padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
-                  color: status.color.withValues(alpha: 0.13),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: status.color.withValues(alpha: 0.2),
-                  ),
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: SvgPicture.asset(
                   'assets/svg/trophy-solid.svg',
@@ -99,15 +90,15 @@ class TournamentItem extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _InfoChip(
+                        _InfoMetaItem(
                           icon: Icons.groups_2_outlined,
                           label: groupName,
                         ),
-                        _InfoChip(
+                        _InfoMetaItem(
                           icon: Icons.people_alt_outlined,
                           label: '${league.participants.length} người',
                         ),
-                        _InfoChip(
+                        _InfoMetaItem(
                           icon: Icons.calendar_today_outlined,
                           label: dateRange,
                         ),
@@ -131,57 +122,43 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: status.color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Text(
-        status.name,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: status.color,
-          fontWeight: FontWeight.w800,
-        ),
+    return Text(
+      status.name,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        color: status.color,
+        fontWeight: FontWeight.w800,
       ),
     );
   }
 }
 
-class _InfoChip extends StatelessWidget {
+class _InfoMetaItem extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _InfoChip({required this.icon, required this.label});
+  const _InfoMetaItem({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.62),
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: colorScheme.secondary),
-          const SizedBox(width: 5),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 160),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+        const SizedBox(width: 6),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 180),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

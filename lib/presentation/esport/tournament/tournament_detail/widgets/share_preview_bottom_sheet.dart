@@ -1,15 +1,34 @@
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 import 'package:share_plus/share_plus.dart';
+
+// coverage:ignore-start
+@visibleForTesting
+Future<ShareResult> Function(ShareParams params) sharePreviewShare =
+    SharePlus.instance.share;
+// coverage:ignore-end
+
+@visibleForTesting
+Future<File> Function(Uint8List imageBytes) sharePreviewWriteFile =
+    _writeSharePreviewFile;
+
+Future<File> _writeSharePreviewFile(Uint8List imageBytes) async {
+  final tempDir = Directory.systemTemp;
+  final file = File('${tempDir.path}/league_standings.png');
+  await file.writeAsBytes(imageBytes);
+  return file;
+}
 
 Future<void> showSharePreviewBottomSheet({
   required BuildContext context,
   required Uint8List darkImageBytes,
   required Uint8List lightImageBytes,
   required String leagueName,
+  Uint8List? darkCostImageBytes,
+  Uint8List? lightCostImageBytes,
 }) async {
   await showModalBottomSheet(
     context: context,
@@ -19,6 +38,8 @@ Future<void> showSharePreviewBottomSheet({
       darkImageBytes: darkImageBytes,
       lightImageBytes: lightImageBytes,
       leagueName: leagueName,
+      darkCostImageBytes: darkCostImageBytes,
+      lightCostImageBytes: lightCostImageBytes,
     ),
   );
 }
@@ -27,11 +48,15 @@ class _SharePreviewSheet extends StatefulWidget {
   final Uint8List darkImageBytes;
   final Uint8List lightImageBytes;
   final String leagueName;
+  final Uint8List? darkCostImageBytes;
+  final Uint8List? lightCostImageBytes;
 
   const _SharePreviewSheet({
     required this.darkImageBytes,
     required this.lightImageBytes,
     required this.leagueName,
+    this.darkCostImageBytes,
+    this.lightCostImageBytes,
   });
 
   @override
@@ -44,10 +69,18 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
   late Animation<double> _scaleAnim;
   bool _sharing = false;
   bool _isDark = false;
+  bool _includeCost = false;
   bool _themeInitialized = false;
 
-  Uint8List get _activeImage =>
-      _isDark ? widget.darkImageBytes : widget.lightImageBytes;
+  bool get _canIncludeCost =>
+      widget.darkCostImageBytes != null && widget.lightCostImageBytes != null;
+
+  Uint8List get _activeImage {
+    if (_includeCost && _canIncludeCost) {
+      return _isDark ? widget.darkCostImageBytes! : widget.lightCostImageBytes!;
+    }
+    return _isDark ? widget.darkImageBytes : widget.lightImageBytes;
+  }
 
   @override
   void didChangeDependencies() {
@@ -89,10 +122,8 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
       widget.leagueName,
     );
     try {
-      final tempDir = Directory.systemTemp;
-      final file = File('${tempDir.path}/league_standings.png');
-      await file.writeAsBytes(_activeImage);
-      await SharePlus.instance.share(
+      final file = await sharePreviewWriteFile(_activeImage);
+      await sharePreviewShare(
         ShareParams(
           title: shareTitle,
           files: [XFile(file.path)],
@@ -171,6 +202,17 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
             ),
           ),
 
+          if (_canIncludeCost) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _CostToggle(
+                value: _includeCost,
+                onChanged: (value) => setState(() => _includeCost = value),
+              ),
+            ),
+          ],
+
           const SizedBox(height: 16),
 
           // Preview image with crossfade
@@ -187,7 +229,7 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
                     switchInCurve: Curves.easeOut,
                     switchOutCurve: Curves.easeIn,
                     child: SingleChildScrollView(
-                      key: ValueKey(_isDark),
+                      key: ValueKey('$_isDark-$_includeCost'),
                       physics: const BouncingScrollPhysics(),
                       child: Image.memory(_activeImage, fit: BoxFit.fitWidth),
                     ),
@@ -222,12 +264,12 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
                   child: FilledButton.icon(
                     onPressed: _sharing ? null : _doShare,
                     icon: _sharing
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: colorScheme.onPrimary,
                             ),
                           )
                         : const Icon(Icons.share_rounded, size: 20),
@@ -248,6 +290,46 @@ class _SharePreviewSheetState extends State<_SharePreviewSheet>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CostToggle extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _CostToggle({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Icon(
+              Icons.payments_outlined,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                context.l10n.tournamentShareIncludeRankCost,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Switch.adaptive(value: value, onChanged: onChanged),
+          ],
+        ),
       ),
     );
   }

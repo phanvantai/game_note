@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pes_arena/presentation/esport/tournament/cost/cost_calculator.dart';
 
+import '../../../../../firebase/firestore/esport/league/match/gn_esport_match.dart';
 import '../../../../../firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import '../../../../../firebase/firestore/user/gn_user.dart';
 import '../../../../../widgets/gn_circle_avatar.dart';
 
 /// Fixed-width card for leaderboard screenshot. No ScrollView — every column
@@ -11,6 +14,11 @@ class LeagueShareCard extends StatelessWidget {
   final List<GNEsportLeagueStat> participants;
   final double cardWidth;
   final bool isDark;
+  final bool includeRankCost;
+  final List<int> rankPayouts;
+  final List<GNEsportMatch> matches;
+  final List<GNEsportMatch> knockoutMatches;
+  final bool isBracketMode;
 
   const LeagueShareCard({
     super.key,
@@ -18,6 +26,11 @@ class LeagueShareCard extends StatelessWidget {
     required this.participants,
     this.cardWidth = 520,
     this.isDark = true,
+    this.includeRankCost = false,
+    this.rankPayouts = const [],
+    this.matches = const [],
+    this.knockoutMatches = const [],
+    this.isBracketMode = false,
   });
 
   static const List<String> _headers = [
@@ -86,6 +99,8 @@ class LeagueShareCard extends StatelessWidget {
   Color get _footerText => isDark ? _dkFooterText : _ltFooterText;
   Color get _footerLine => isDark ? _dkFooterLine : _ltFooterLine;
   Color get _headerText => isDark ? Colors.white : _ltNamePrimary;
+  Color get _sectionBg => isDark ? const Color(0x141E3347) : _ltRowAlt;
+  Color get _sectionTitle => isDark ? _dkPtsAccent : _ltPtsAccent;
 
   Color _rankAccent(int index) => index == 0
       ? _gold
@@ -121,6 +136,7 @@ class LeagueShareCard extends StatelessWidget {
               participants.length,
               (i) => _buildRow(i, participants[i]),
             ),
+            if (includeRankCost) _buildCostSection(),
             _buildFooter(),
           ],
         ),
@@ -351,6 +367,242 @@ class LeagueShareCard extends StatelessWidget {
     );
   }
 
+  Widget _buildCostSection() {
+    final rankTransfers = isBracketMode
+        ? CostCalculator.bracketRankPayouts(knockoutMatches, rankPayouts)
+        : CostCalculator.rankPayouts(participants, rankPayouts);
+    final matchTransfers = CostCalculator.matchCosts(matches);
+    final mergedRank = _mergeByPair(rankTransfers);
+    final mergedMatch = _mergeByPair(matchTransfers);
+    final netEntries =
+        CostCalculator.netByUser([
+            ...rankTransfers,
+            ...matchTransfers,
+          ]).entries.where((entry) => entry.value != 0).toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+    if (mergedRank.isEmpty && mergedMatch.isEmpty && netEntries.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final usersById = _usersById();
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 11, 12, 9),
+      decoration: BoxDecoration(
+        color: _sectionBg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.payments_outlined, color: _sectionTitle, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                'Chi phí',
+                style: TextStyle(
+                  color: _sectionTitle,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (mergedRank.isNotEmpty) ...[
+            _buildCostSubheading(
+              isBracketMode ? 'Theo bracket' : 'Theo thứ hạng',
+            ),
+            ...mergedRank
+                .take(6)
+                .map(
+                  (transfer) => _buildCostTransferRow(
+                    from: usersById[transfer.fromUserId],
+                    to: usersById[transfer.toUserId],
+                    amount: transfer.amount,
+                  ),
+                ),
+            if (mergedRank.length > 6) _buildMoreRow(mergedRank.length - 6),
+          ],
+          if (mergedMatch.isNotEmpty) ...[
+            if (mergedRank.isNotEmpty) const SizedBox(height: 6),
+            _buildCostSubheading('Theo trận'),
+            ...mergedMatch
+                .take(6)
+                .map(
+                  (transfer) => _buildCostTransferRow(
+                    from: usersById[transfer.fromUserId],
+                    to: usersById[transfer.toUserId],
+                    amount: transfer.amount,
+                  ),
+                ),
+            if (mergedMatch.length > 6) _buildMoreRow(mergedMatch.length - 6),
+          ],
+          if (netEntries.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(height: 1, color: _footerLine),
+            const SizedBox(height: 8),
+            _buildCostSubheading('Tổng ròng'),
+            ...netEntries
+                .take(8)
+                .map(
+                  (entry) => _buildNetRow(
+                    user: usersById[entry.key],
+                    amount: entry.value,
+                  ),
+                ),
+            if (netEntries.length > 8) _buildMoreRow(netEntries.length - 8),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCostSubheading(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 3),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: _statText,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoreRow(int count) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+        '+$count khoản khác',
+        style: TextStyle(
+          color: _statText,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNetRow({required GNUser? user, required int amount}) {
+    final isReceiver = amount > 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _displayName(user),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _nameSecondary,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${isReceiver ? '+' : '-'}${_formatMoney(amount)}',
+            style: TextStyle(
+              color: isReceiver ? _gdPos : _gdNeg,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, GNUser> _usersById() {
+    final usersById = {
+      for (final stat in participants)
+        if (stat.user != null) stat.userId: stat.user!,
+    };
+    for (final match in [...matches, ...knockoutMatches]) {
+      if (match.homeTeam != null) {
+        usersById[match.homeTeamId] = match.homeTeam!;
+      }
+      if (match.awayTeam != null) {
+        usersById[match.awayTeamId] = match.awayTeam!;
+      }
+    }
+    return usersById;
+  }
+
+  List<CostTransfer> _mergeByPair(List<CostTransfer> transfers) {
+    final byPair = <String, int>{};
+    final pairOrder = <String, (String, String)>{};
+    for (final transfer in transfers) {
+      final key = '${transfer.fromUserId}|${transfer.toUserId}';
+      pairOrder.putIfAbsent(
+        key,
+        () => (transfer.fromUserId, transfer.toUserId),
+      );
+      byPair[key] = (byPair[key] ?? 0) + transfer.amount;
+    }
+    return byPair.entries.where((entry) => entry.value > 0).map((entry) {
+      final (from, to) = pairOrder[entry.key]!;
+      return CostTransfer(fromUserId: from, toUserId: to, amount: entry.value);
+    }).toList()..sort((a, b) => b.amount.compareTo(a.amount));
+  }
+
+  Widget _buildCostTransferRow({
+    required GNUser? from,
+    required GNUser? to,
+    required int amount,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _displayName(from),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _nameSecondary,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Icon(Icons.arrow_forward, size: 12, color: _statText),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              _displayName(to),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _nameSecondary,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _formatMoney(amount),
+            style: TextStyle(
+              color: _sectionTitle,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _statValue(GNEsportLeagueStat stats, String header) {
     return switch (header) {
       'P' => '${stats.matchesPlayed}',
@@ -359,12 +611,13 @@ class LeagueShareCard extends StatelessWidget {
       'L' => '${stats.losses}',
       'F' => '${stats.goals}',
       'A' => '${stats.goalsConceded}',
-      'GD' =>
-        stats.goalDifference > 0
-            ? '+${stats.goalDifference}'
-            : '${stats.goalDifference}',
-      'PTS' => '${stats.points}',
-      _ => '—',
+      _ => '—', // coverage:ignore-line
     };
   }
+
+  String _displayName(GNUser? user) {
+    return user?.displayName ?? user?.email ?? user?.phoneNumber ?? '—';
+  }
+
+  String _formatMoney(int amount) => '${(amount.abs() + 500) ~/ 1000}k';
 }

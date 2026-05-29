@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluttertoast/fluttertoast.dart'; // ignore: unused_import
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart'; // ignore: unused_import
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
@@ -12,6 +15,7 @@ import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/group_detail_view.dart';
+import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---------------------------------------------------------------------------
@@ -22,6 +26,9 @@ class _MockGroupDetailBloc extends MockBloc<GroupDetailEvent, GroupDetailState>
     implements GroupDetailBloc {}
 
 class _MockRemoteConfig extends Mock implements GNRemoteConfig {}
+
+class _MockGroupBloc extends MockBloc<GroupEvent, GroupState>
+    implements GroupBloc {}
 
 class _FakeGroupDetailEvent extends Fake implements GroupDetailEvent {}
 
@@ -82,7 +89,11 @@ GroupDetailState _memberState({List<GNUser> members = const []}) =>
 // Router helper
 // ---------------------------------------------------------------------------
 
-Widget _wrapWithRouter(GroupDetailBloc bloc) {
+Widget _wrapWithRouter(
+  GroupDetailBloc bloc, {
+  GroupBloc? groupBloc,
+  void Function(Map<String, Object?>?)? onAddMemberExtra,
+}) {
   final router = GoRouter(
     initialLocation: '/',
     routes: [
@@ -90,19 +101,41 @@ Widget _wrapWithRouter(GroupDetailBloc bloc) {
         path: '/',
         builder: (context, state) => BlocProvider<GroupDetailBloc>.value(
           value: bloc,
-          child: const GroupDetailView(),
+          child: groupBloc == null
+              ? const GroupDetailView()
+              : MultiBlocProvider(
+                  providers: [BlocProvider<GroupBloc>.value(value: groupBloc)],
+                  child: const GroupDetailView(),
+                ),
         ),
       ),
       GoRoute(
         path: '/group/:groupId/add-member',
-        builder: (context, state) =>
-            const Scaffold(body: Text('add-member page')),
+        builder: (context, state) {
+          if (onAddMemberExtra != null && state.extra is Map) {
+            onAddMemberExtra(
+              Map<String, Object?>.from(state.extra as Map<dynamic, dynamic>),
+            );
+          }
+          return const Scaffold(body: Text('add-member page'));
+        },
+      ),
+      GoRoute(
+        path: '/groups',
+        builder: (context, state) => const Scaffold(body: Text('groups page')),
       ),
     ],
   );
 
   return MaterialApp.router(routerConfig: router);
 }
+
+GroupDetailState _nonMemberState({String currentUserId = 'u2'}) =>
+    GroupDetailState(
+      group: _group(ownerId: 'owner1', members: const ['owner1']),
+      members: const [],
+      currentUserId: currentUserId,
+    );
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -408,6 +441,262 @@ void main() {
           ),
         ),
       ).called(1);
+    },
+  );
+
+  testWidgets(
+    'AppBar: non-owner không phải thành viên thì không hiển thị menu hành động',
+    (tester) async {
+      when(() => bloc.state).thenReturn(_nonMemberState());
+      whenListen(
+        bloc,
+        Stream.value(_nonMemberState()),
+        initialState: _nonMemberState(),
+      );
+
+      await tester.pumpWidget(_wrapWithRouter(bloc));
+      await tester.pumpAndSettle();
+
+      expect(find.byWidgetPredicate((w) => w is PopupMenuButton), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'initState: không dispatch load overview/leagues khi user không phải thành viên',
+    (tester) async {
+      final state = _nonMemberState();
+      when(() => bloc.state).thenReturn(state);
+      whenListen(bloc, Stream.value(state), initialState: state);
+
+      await tester.pumpWidget(_wrapWithRouter(bloc));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => bloc.add(any(that: isA<LoadGroupOverview>())));
+      verifyNever(() => bloc.add(any(that: isA<LoadGroupLeagues>())));
+    },
+  );
+
+  testWidgets('thêm thành viên: chuyển hướng và truyền payload đúng', (
+    tester,
+  ) async {
+    final state = _ownerState(members: [_user('owner1'), _user('u2')]);
+    Map<String, Object?>? capturedExtra;
+    when(() => bloc.state).thenReturn(state);
+    whenListen(bloc, Stream.value(state), initialState: state);
+
+    await tester.pumpWidget(
+      _wrapWithRouter(bloc, onAddMemberExtra: (extra) => capturedExtra = extra),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Thành viên'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('add-member page'), findsOneWidget);
+    expect(capturedExtra?['bloc'], same(bloc));
+    final members = capturedExtra?['members'];
+    expect(members is Set<String>, true);
+    expect(Set<String>.from(members as Set), {'owner1', 'u2'});
+  });
+
+  testWidgets('members tab: hiển thị user active, deactivated và placeholder', (
+    tester,
+  ) async {
+    final state = _ownerState(
+      members: [
+        _user('owner1'),
+        _user('u2'),
+        _user('u3'),
+        _user('u4', isPlaceholder: true),
+      ],
+      deactivatedMembers: ['u3'],
+    );
+    when(() => bloc.state).thenReturn(state);
+    whenListen(bloc, Stream.value(state), initialState: state);
+
+    await tester.pumpWidget(_wrapWithRouter(bloc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Thành viên'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('User owner1'), findsOneWidget);
+    expect(find.text('User u2'), findsOneWidget);
+    expect(find.text('User u3'), findsOneWidget);
+    expect(find.text('User u4'), findsOneWidget);
+    expect(find.byType(Chip), findsOneWidget);
+  });
+
+  testWidgets(
+    'toggle deactivation: chọn "Kích hoạt lại" dispatch deactivate = false',
+    (tester) async {
+      final state = _ownerState(
+        members: [_user('owner1'), _user('u2')],
+        deactivatedMembers: ['u2'],
+      );
+      when(() => bloc.state).thenReturn(state);
+      whenListen(bloc, Stream.value(state), initialState: state);
+
+      await tester.pumpWidget(_wrapWithRouter(bloc));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Thành viên'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).at(1));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Kích hoạt lại'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => bloc.add(
+          any(
+            that: predicate<GroupDetailEvent>(
+              (e) =>
+                  e is ToggleMemberDeactivation &&
+                  e.userId == 'u2' &&
+                  e.deactivate == false,
+            ),
+          ),
+        ),
+      ).called(1);
+    },
+  );
+
+  testWidgets(
+    'AppBar: Rời nhóm → hiện confirm dialog → cancel không dispatch RemoveMember',
+    (tester) async {
+      final state = _memberState(members: [_user('owner1'), _user('u2')]);
+      when(() => bloc.state).thenReturn(state);
+      whenListen(bloc, Stream.value(state), initialState: state);
+
+      await tester.pumpWidget(_wrapWithRouter(bloc));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byWidgetPredicate((w) => w is PopupMenuButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rời nhóm'));
+      await tester.pumpAndSettle();
+
+      final cancelButtons = find.descendant(
+        of: find.byType(TextButton),
+        matching: find.text('Huỷ'),
+      );
+      await tester.tap(cancelButtons.last);
+      await tester.pumpAndSettle();
+
+      verifyNever(() => bloc.add(any(that: isA<RemoveMember>())));
+    },
+  );
+
+  testWidgets('AppBar: Xoá nhóm → cancel không dispatch RequestDeleteGroup', (
+    tester,
+  ) async {
+    final state = _ownerState(members: [_user('owner1')]);
+    when(() => bloc.state).thenReturn(state);
+    whenListen(bloc, Stream.value(state), initialState: state);
+
+    await tester.pumpWidget(_wrapWithRouter(bloc));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Xoá nhóm'));
+    await tester.pumpAndSettle();
+
+    final cancelButtons = find.descendant(
+      of: find.byType(TextButton),
+      matching: find.text('Huỷ'),
+    );
+    await tester.tap(cancelButtons.last);
+    await tester.pumpAndSettle();
+
+    verifyNever(() => bloc.add(any(that: isA<RequestDeleteGroup>())));
+  });
+
+  testWidgets(
+    'AppBar: Xoá nhóm → xác nhận đúng tên mới dispatch RequestDeleteGroup',
+    (tester) async {
+      final state = _ownerState(members: [_user('owner1')]);
+      when(() => bloc.state).thenReturn(state);
+      whenListen(bloc, Stream.value(state), initialState: state);
+
+      await tester.pumpWidget(_wrapWithRouter(bloc));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Xoá nhóm'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Test Group');
+      await tester.pumpAndSettle();
+
+      final confirmButtons = find.descendant(
+        of: find.byType(FilledButton),
+        matching: find.text('Xoá nhóm'),
+      );
+      await tester.tap(confirmButtons.last);
+      await tester.pumpAndSettle();
+
+      verify(() => bloc.add(any(that: isA<RequestDeleteGroup>()))).called(1);
+    },
+  );
+
+  testWidgets('listener: deleteGroupStatus success điều hướng về /groups', (
+    tester,
+  ) async {
+    final memberList = [_user('owner1')];
+    final initialState = _ownerState(members: memberList);
+    var currentState = initialState;
+    final groupBloc = _MockGroupBloc();
+    when(() => groupBloc.state).thenReturn(const GroupState());
+    final streamController = StreamController<GroupDetailState>();
+    whenListen(bloc, streamController.stream, initialState: initialState);
+    when(() => bloc.state).thenAnswer((_) => currentState);
+
+    await tester.pumpWidget(_wrapWithRouter(bloc, groupBloc: groupBloc));
+    await tester.pumpAndSettle();
+
+    currentState = initialState.copyWith(deleteGroupStatus: ViewStatus.success);
+    streamController.add(currentState);
+    await tester.pumpAndSettle();
+
+    expect(find.text('groups page'), findsOneWidget);
+    verify(() => groupBloc.add(GetEsportGroups())).called(1);
+
+    await streamController.close();
+  });
+
+  testWidgets(
+    'tabcontroller: switching tabs không dispatch thêm LoadGroupOverview/loadLeagues',
+    (tester) async {
+      final state = _ownerState(members: [_user('owner1'), _user('u2')]);
+      when(() => bloc.state).thenReturn(state);
+      whenListen(bloc, Stream.value(state), initialState: state);
+
+      await tester.pumpWidget(_wrapWithRouter(bloc));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Thành viên'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tổng quan'));
+      await tester.pumpAndSettle();
+
+      verify(() => bloc.add(any(that: isA<LoadGroupOverview>()))).called(1);
+      verify(() => bloc.add(any(that: isA<LoadGroupLeagues>()))).called(1);
+
+      clearInteractions(bloc);
+
+      await tester.tap(find.text('Thành viên'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tổng quan'));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => bloc.add(any(that: isA<LoadGroupOverview>())));
+      verifyNever(() => bloc.add(any(that: isA<LoadGroupLeagues>())));
     },
   );
 }

@@ -97,7 +97,9 @@ void main() {
     ),
   );
 
-  testWidgets('render đầy đủ các metric trong section Tổng quan', (tester) async {
+  testWidgets('render đầy đủ các metric trong section Tổng quan', (
+    tester,
+  ) async {
     when(() => bloc.state).thenReturn(
       DashboardState(
         viewStatus: ViewStatus.success,
@@ -233,11 +235,12 @@ void main() {
     expect(find.text('Lỗi tải dữ liệu'), findsOneWidget);
   });
 
-  testWidgets('AppBar refresh icon mở dialog xác nhận, "Cập nhật" → dispatch',
-      (tester) async {
-    when(
-      () => bloc.state,
-    ).thenReturn(DashboardState(viewStatus: ViewStatus.success, stats: _stats()));
+  testWidgets('AppBar refresh icon mở dialog xác nhận, "Cập nhật" → dispatch', (
+    tester,
+  ) async {
+    when(() => bloc.state).thenReturn(
+      DashboardState(viewStatus: ViewStatus.success, stats: _stats()),
+    );
     await tester.pumpWidget(wrap());
     await tester.tap(find.byIcon(Icons.refresh));
     await tester.pumpAndSettle();
@@ -249,9 +252,9 @@ void main() {
   });
 
   testWidgets('AppBar refresh dialog "Huỷ" không dispatch', (tester) async {
-    when(
-      () => bloc.state,
-    ).thenReturn(DashboardState(viewStatus: ViewStatus.success, stats: _stats()));
+    when(() => bloc.state).thenReturn(
+      DashboardState(viewStatus: ViewStatus.success, stats: _stats()),
+    );
     await tester.pumpWidget(wrap());
     await tester.tap(find.byIcon(Icons.refresh));
     await tester.pumpAndSettle();
@@ -279,8 +282,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('loading với stats cũ overlay shimmer bar phía trên ListView',
-      (tester) async {
+  testWidgets('loading với stats cũ overlay shimmer bar phía trên ListView', (
+    tester,
+  ) async {
     when(() => bloc.state).thenReturn(
       DashboardState(viewStatus: ViewStatus.loading, stats: _stats()),
     );
@@ -291,11 +295,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   });
 
-  testWidgets('không còn RefreshIndicator (refresh chỉ qua dialog)',
-      (tester) async {
-    when(
-      () => bloc.state,
-    ).thenReturn(DashboardState(viewStatus: ViewStatus.success, stats: _stats()));
+  testWidgets('không còn RefreshIndicator (refresh chỉ qua dialog)', (
+    tester,
+  ) async {
+    when(() => bloc.state).thenReturn(
+      DashboardState(viewStatus: ViewStatus.success, stats: _stats()),
+    );
     await tester.pumpWidget(wrap());
     expect(find.byType(RefreshIndicator), findsNothing);
   });
@@ -315,8 +320,9 @@ void main() {
     expect(find.text('3 - 1'), findsOneWidget);
   });
 
-  testWidgets('section Đối đầu: chọn theo tỉ lệ, qualifier theo default 50',
-      (tester) async {
+  testWidgets('section Đối đầu: chọn theo tỉ lệ, qualifier theo default 50', (
+    tester,
+  ) async {
     when(() => bloc.state).thenReturn(
       DashboardState(
         viewStatus: ViewStatus.success,
@@ -366,33 +372,119 @@ void main() {
     expect(find.textContaining('Andy'), findsNothing);
   });
 
-  testWidgets('section Đối đầu: empty / không ai >=20 trận → "—" cho cả 2 dòng',
-      (tester) async {
+  testWidgets('section Đối đầu: nút xem tất cả mở trang chi tiết', (
+    tester,
+  ) async {
     when(() => bloc.state).thenReturn(
       DashboardState(
         viewStatus: ViewStatus.success,
         stats: _stats(
           opponents: const [
             OpponentStat(
-              opponentId: 'a',
-              opponentDisplayName: 'Andy',
-              matchesPlayed: 5,
-              wins: 5,
-              draws: 0,
-              losses: 0,
+              opponentId: 'b',
+              opponentDisplayName: 'Bob Smith',
+              matchesPlayed: 60,
+              wins: 36,
+              draws: 12,
+              losses: 12,
             ),
           ],
         ),
       ),
     );
     await tester.pumpWidget(wrap());
-    // 2 H2H rows show "—" và placeholder hint.
-    expect(find.text('—'), findsNWidgets(2));
-    expect(find.textContaining('Cần ≥ 50 trận'), findsNWidgets(2));
+
+    final viewAllButton = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Xem tất cả đối thủ'),
+    );
+    viewAllButton.onPressed!();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bob Smith'), findsWidgets);
   });
 
-  testWidgets('mở bottom sheet, đổi slider, lưu → cập nhật ngưỡng + persist',
-      (tester) async {
+  testWidgets('section Đối đầu: render avatar ảnh đại diện khi có photoUrl', (
+    tester,
+  ) async {
+    when(() => bloc.state).thenReturn(
+      DashboardState(
+        viewStatus: ViewStatus.success,
+        stats: _stats(
+          opponents: const [
+            OpponentStat(
+              opponentId: 'b',
+              opponentDisplayName: 'Bob Smith',
+              opponentPhotoUrl: 'https://example.com/bob.png',
+              matchesPlayed: 60,
+              wins: 36,
+              draws: 12,
+              losses: 12,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(wrap());
+
+    expect(find.text('Bob Smith'), findsWidgets);
+    expect(find.text('BS'), findsNothing);
+  });
+
+  testWidgets('section Đối đầu: initials fallback dùng dấu hỏi khi tên rỗng', (
+    tester,
+  ) async {
+    when(() => bloc.state).thenReturn(
+      DashboardState(
+        viewStatus: ViewStatus.success,
+        stats: _stats(
+          opponents: const [
+            OpponentStat(
+              opponentId: 'b',
+              opponentDisplayName: '',
+              matchesPlayed: 60,
+              wins: 36,
+              draws: 12,
+              losses: 12,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(wrap());
+
+    expect(find.text('?'), findsNWidgets(2));
+  });
+
+  testWidgets(
+    'section Đối đầu: empty / không ai >=20 trận → "—" cho cả 2 dòng',
+    (tester) async {
+      when(() => bloc.state).thenReturn(
+        DashboardState(
+          viewStatus: ViewStatus.success,
+          stats: _stats(
+            opponents: const [
+              OpponentStat(
+                opponentId: 'a',
+                opponentDisplayName: 'Andy',
+                matchesPlayed: 5,
+                wins: 5,
+                draws: 0,
+                losses: 0,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpWidget(wrap());
+      // 2 H2H rows show "—" và placeholder hint.
+      expect(find.text('—'), findsNWidgets(2));
+      expect(find.textContaining('Cần ≥ 50 trận'), findsNWidgets(2));
+    },
+  );
+
+  testWidgets('mở bottom sheet, đổi slider, lưu → cập nhật ngưỡng + persist', (
+    tester,
+  ) async {
     when(() => bloc.state).thenReturn(
       DashboardState(
         viewStatus: ViewStatus.success,
@@ -455,9 +547,7 @@ void main() {
   ) async {
     // Re-register prefs with a non-default value.
     getIt.unregister<H2HPreferences>();
-    SharedPreferences.setMockInitialValues({
-      'dashboard.h2h.min_matches': 50,
-    });
+    SharedPreferences.setMockInitialValues({'dashboard.h2h.min_matches': 50});
     final sp = await SharedPreferences.getInstance();
     getIt.registerSingleton<H2HPreferences>(H2HPreferences(sp));
 
@@ -514,20 +604,22 @@ void main() {
     expect(result, isNull);
   });
 
-  testWidgets('render section "Phong độ 5 giải gần nhất" và chart placeholder',
-      (tester) async {
-    when(() => bloc.state).thenReturn(
-      DashboardState(viewStatus: ViewStatus.success, stats: _stats()),
-    );
-    await tester.pumpWidget(wrap());
-    await tester.scrollUntilVisible(
-      find.text('Phong độ 5 giải gần nhất'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('Phong độ 5 giải gần nhất'), findsOneWidget);
-    expect(find.text('Chưa đủ dữ liệu để vẽ biểu đồ'), findsOneWidget);
-  });
+  testWidgets(
+    'render section "Phong độ 5 giải gần nhất" và chart placeholder',
+    (tester) async {
+      when(() => bloc.state).thenReturn(
+        DashboardState(viewStatus: ViewStatus.success, stats: _stats()),
+      );
+      await tester.pumpWidget(wrap());
+      await tester.scrollUntilVisible(
+        find.text('Phong độ 5 giải gần nhất'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Phong độ 5 giải gần nhất'), findsOneWidget);
+      expect(find.text('Chưa đủ dữ liệu để vẽ biểu đồ'), findsOneWidget);
+    },
+  );
 
   testWidgets('chart hiện khi có league performance', (tester) async {
     when(() => bloc.state).thenReturn(

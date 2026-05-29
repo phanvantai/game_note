@@ -439,6 +439,14 @@
   "tournamentTabResults": "Kết quả",
   "tournamentTabCost": "Chi phí",
   "tournamentTabGroups": "Bảng",
+  "tournamentGroupLabel": "Bảng {groupId}",
+  "@tournamentGroupLabel": {
+    "placeholders": {
+      "groupId": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentTabStandings": "BXH",
   "tournamentTabFixtures": "Lịch",
   "tournamentStatusTitle": "Trạng thái giải đấu",
@@ -483,6 +491,7 @@
   "tournamentShareStandingsSheetTitle": "Chia sẻ bảng xếp hạng",
   "tournamentPreparingShare": "Đang chuẩn bị...",
   "tournamentShareNow": "Chia sẻ ngay",
+  "tournamentShareIncludeRankCost": "Kèm chi phí",
   "tournamentLightTheme": "Sáng",
   "tournamentDarkTheme": "Tối"
   ,"tournamentHeroEyebrow": "Tournament arena",
@@ -657,6 +666,7 @@
   "profileSignOut": "Đăng xuất",
   "profileChangeAvatar": "Thay đổi ảnh đại diện",
   "profileDeleteAvatar": "Xoá ảnh đại diện",
+  "profileEditTooltip": "Cập nhật thông tin",
   "profileOfflineModeTitle": "Chế độ Offline",
   "profileOfflineModeMessage": "Chế độ offline là bạn tự tạo dữ liệu trên máy và dữ liệu sẽ chỉ được lưu trên máy của bạn, không được đồng bộ.\n\nBạn có chắc chắn muốn chuyển sang chế độ offline không?",
   "profileAccept": "Chấp nhận",

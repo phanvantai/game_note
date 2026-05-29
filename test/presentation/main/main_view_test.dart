@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
+import 'package:pes_arena/firebase/firestore/notification/gn_notification.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/generated/app_localizations.dart';
@@ -200,5 +201,67 @@ void main() {
     expect(find.text('Profile'), findsOneWidget);
     expect(find.text('Nhóm'), findsNothing);
     expect(find.text('Giải đấu'), findsNothing);
+  });
+
+  testWidgets('MainView shows unread notification badge', (tester) async {
+    final groupBloc = _MockGroupBloc();
+    final tournamentBloc = _MockTournamentBloc();
+    final profileBloc = _MockProfileBloc();
+    final dashboardBloc = _MockDashboardBloc();
+    final ongoingBloc = _MockOngoingBloc();
+    final notificationBloc = _MockNotificationBloc();
+    when(() => groupBloc.state).thenReturn(const GroupState());
+    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
+    when(() => tournamentBloc.state).thenReturn(const TournamentState());
+    when(() => profileBloc.state).thenReturn(const ProfileState());
+    when(() => dashboardBloc.state).thenReturn(
+      const DashboardState(
+        viewStatus: ViewStatus.success,
+        stats: DashboardStats(
+          tournamentsJoined: 0,
+          finishedTournaments: 0,
+          championCount: 0,
+          runnerUpCount: 0,
+          lastChampionAt: null,
+          recentMatches: [],
+        ),
+      ),
+    );
+    when(() => notificationBloc.state).thenReturn(
+      NotificationState(
+        notifications: [
+          GNNotification(
+            id: 'n1',
+            userId: 'u1',
+            title: 'Unread',
+            message: 'Unread message',
+            type: GNNotificationType.esportsLeague.value,
+            timestamp: DateTime(2026, 1, 1),
+            isRead: false,
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        groupBloc: groupBloc,
+        tournamentBloc: tournamentBloc,
+        profileBloc: profileBloc,
+        dashboardBloc: dashboardBloc,
+        ongoingBloc: ongoingBloc,
+        notificationBloc: notificationBloc,
+      ),
+    );
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Container &&
+            widget.constraints?.minWidth == 8 &&
+            widget.constraints?.minHeight == 8,
+      ),
+      findsOneWidget,
+    );
   });
 }

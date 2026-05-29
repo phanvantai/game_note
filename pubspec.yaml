@@ -2,7 +2,7 @@ name: pes_arena
 description: Social platform for PES players - create groups, tournaments, and
   compete with your crew.
 publish_to: "none"
-version: 3.3.1+43
+version: 3.4.0+44
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -88,6 +88,7 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
   fake_cloud_firestore: ^4.1.0
+  flutter_cache_manager: ^3.4.1
 
   flutter_launcher_icons: ^0.14.4
 

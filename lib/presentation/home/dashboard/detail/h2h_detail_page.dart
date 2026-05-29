@@ -96,37 +96,29 @@ class _SortBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      height: 36,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        children: [
-          _SortOption(
-            label: context.l10n.dashboardH2HSortMostMatches,
-            mode: _SortMode.mostMatches,
-            current: current,
-            onChanged: onChanged,
-          ),
-          _SortOption(
-            label: context.l10n.dashboardH2HSortWins,
-            mode: _SortMode.bestWinRate,
-            current: current,
-            onChanged: onChanged,
-          ),
-          _SortOption(
-            label: context.l10n.dashboardH2HSortLosses,
-            mode: _SortMode.worstWinRate,
-            current: current,
-            onChanged: onChanged,
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        _SortOption(
+          label: context.l10n.dashboardH2HSortMostMatches,
+          mode: _SortMode.mostMatches,
+          current: current,
+          onChanged: onChanged,
+        ),
+        const SizedBox(width: 8),
+        _SortOption(
+          label: context.l10n.dashboardH2HSortWins,
+          mode: _SortMode.bestWinRate,
+          current: current,
+          onChanged: onChanged,
+        ),
+        const SizedBox(width: 8),
+        _SortOption(
+          label: context.l10n.dashboardH2HSortLosses,
+          mode: _SortMode.worstWinRate,
+          current: current,
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 }
@@ -150,25 +142,42 @@ class _SortOption extends StatelessWidget {
     final selected = current == mode;
 
     return Expanded(
-      child: GestureDetector(
+      child: InkWell(
         onTap: () => onChanged(mode),
+        borderRadius: BorderRadius.circular(8),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          margin: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: selected ? colorScheme.secondary : Colors.transparent,
-            borderRadius: BorderRadius.circular(7),
-          ),
+          padding: const EdgeInsets.only(top: 8, bottom: 7),
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: selected
-                  ? colorScheme.onSecondary
-                  : colorScheme.onSurfaceVariant,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 180),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected
+                      ? colorScheme.onSurface
+                      : colorScheme.onSurfaceVariant,
+                ),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 6),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: selected ? 22 : 0,
+                height: 2,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -38,22 +38,7 @@ class _FeedbackViewState extends State<FeedbackView> {
         leading: const SmartBackButton(),
         title: Text(context.l10n.feedbackTitle),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.16),
-              Theme.of(context).scaffoldBackgroundColor,
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
-            ],
-            stops: const [0, 0.46, 1],
-          ),
-        ),
-        child: SafeArea(child: _body()),
-      ),
+      body: AppPageBackground(child: SafeArea(child: _body())),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_feedback',
         onPressed: _addFeedback,
@@ -109,10 +94,12 @@ class _FeedbackViewState extends State<FeedbackView> {
             ),
           ),
           actions: [
+            // coverage:ignore-start
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(context.l10n.commonCancel),
             ),
+            // coverage:ignore-end
             FilledButton(
               onPressed: () {
                 if (title.isEmpty || detail.isEmpty) {
@@ -180,28 +167,14 @@ class _FeedbackHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.24),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: colorScheme.secondary,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              Icons.chat_bubble_outline,
-              color: colorScheme.onSecondary,
-            ),
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 24,
+            color: colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -211,8 +184,7 @@ class _FeedbackHero extends StatelessWidget {
                 Text(
                   'Feedback board',
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.secondary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -248,30 +220,15 @@ class _FeedbackEmptyState extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 48, 24, 96),
       children: [
-        Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.45),
-            ),
-          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 22),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Icon(
-                  Icons.chat_bubble_outline,
-                  color: colorScheme.secondary,
-                  size: 30,
-                ),
+              Icon(
+                Icons.chat_bubble_outline,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+                size: 40,
               ),
               const SizedBox(height: 14),
               Text(

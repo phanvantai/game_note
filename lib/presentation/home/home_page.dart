@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/dashboard_view.dart';
 import 'package:pes_arena/presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
@@ -38,8 +39,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     return BlocListener<GroupBloc, GroupState>(
       listenWhen: (prev, curr) => prev.userGroups != curr.userGroups,
       listener: (context, state) => _reload(),
@@ -55,20 +54,7 @@ class _HomePageState extends State<HomePage> {
           }
         },
         child: Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.secondary.withValues(alpha: 0.16),
-                  theme.scaffoldBackgroundColor,
-                  colorScheme.primary.withValues(alpha: 0.06),
-                ],
-                stops: const [0, 0.42, 1],
-              ),
-            ),
+          body: AppPageBackground(
             child: const SafeArea(
               child: Column(
                 children: [

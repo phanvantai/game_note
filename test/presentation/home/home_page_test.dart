@@ -138,9 +138,9 @@ void main() {
     when(() => dashboardBloc.state).thenReturn(_emptyDashboard());
     final groupState = _groupStateWith([_group('g1'), _group('g2')]);
     when(() => groupBloc.state).thenReturn(groupState);
-    when(() => ongoingBloc.state).thenReturn(
-      const OngoingTournamentsState(loadedGroupIds: ['g2', 'g1']),
-    );
+    when(
+      () => ongoingBloc.state,
+    ).thenReturn(const OngoingTournamentsState(loadedGroupIds: ['g2', 'g1']));
 
     await tester.pumpWidget(
       _wrap(
@@ -155,48 +155,116 @@ void main() {
     ).called(1);
   });
 
-  testWidgets(
-    'banner hiện khi có giải đấu ongoing và ẩn giải đã kết thúc',
-    (tester) async {
-      final now = DateTime.now();
-      final dashboardBloc = _MockDashboardBloc();
-      final groupBloc = _MockGroupBloc();
-      final ongoingBloc = _MockOngoingBloc();
-      when(() => dashboardBloc.state).thenReturn(_emptyDashboard());
-      when(() => groupBloc.state).thenReturn(const GroupState());
-      when(() => ongoingBloc.state).thenReturn(
-        OngoingTournamentsState(
-          status: ViewStatus.success,
-          leagues: [
-            _league(
-              id: 'l1',
-              name: 'Đang chạy',
-              start: now.subtract(const Duration(days: 2)),
-              end: now.add(const Duration(days: 2)),
-              status: 'ongoing',
-            ),
-            _league(
-              id: 'l2',
-              name: 'Đã kết thúc',
-              start: now.subtract(const Duration(days: 10)),
-              end: now.subtract(const Duration(days: 5)),
-              status: 'finished',
-            ),
-          ],
-        ),
-      );
+  testWidgets('visibility callback sau lần đầu sẽ reload ongoing tournaments', (
+    tester,
+  ) async {
+    final dashboardBloc = _MockDashboardBloc();
+    final groupBloc = _MockGroupBloc();
+    final ongoingBloc = _MockOngoingBloc();
+    final groupState = _groupStateWith([_group('g1')]);
+    when(() => dashboardBloc.state).thenReturn(_emptyDashboard());
+    when(() => groupBloc.state).thenReturn(groupState);
+    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
 
-      await tester.pumpWidget(
-        _wrap(
-          dashboardBloc: dashboardBloc,
-          groupBloc: groupBloc,
-          ongoingBloc: ongoingBloc,
-        ),
-      );
+    await tester.pumpWidget(
+      _wrap(
+        dashboardBloc: dashboardBloc,
+        groupBloc: groupBloc,
+        ongoingBloc: ongoingBloc,
+      ),
+    );
+    final detector = tester.widget<VisibilityDetector>(
+      find.byType(VisibilityDetector),
+    );
+    const visibleInfo = VisibilityInfo(
+      key: Key('home_page'),
+      size: Size(100, 100),
+      visibleBounds: Rect.fromLTWH(0, 0, 100, 100),
+    );
+    detector.onVisibilityChanged!(visibleInfo);
+    detector.onVisibilityChanged!(visibleInfo);
 
-      expect(find.text('Giải đấu đang diễn ra'), findsOneWidget);
-      expect(find.text('Đang chạy'), findsOneWidget);
-      expect(find.text('Đã kết thúc'), findsNothing);
-    },
-  );
+    final captured = verify(
+      () => ongoingBloc.add(captureAny(that: isA<LoadOngoingTournaments>())),
+    ).captured.cast<LoadOngoingTournaments>().toList();
+    expect(captured, hasLength(greaterThanOrEqualTo(2)));
+    expect(captured.every((event) => event.groupIds.single == 'g1'), isTrue);
+  });
+
+  testWidgets('group list đổi thì reload ongoing tournaments', (tester) async {
+    final dashboardBloc = _MockDashboardBloc();
+    final groupBloc = _MockGroupBloc();
+    final ongoingBloc = _MockOngoingBloc();
+    final initialGroupState = _groupStateWith([_group('g1')]);
+    final updatedGroupState = _groupStateWith([_group('g2'), _group('g3')]);
+    var currentGroupState = initialGroupState;
+    when(() => dashboardBloc.state).thenReturn(_emptyDashboard());
+    when(() => groupBloc.state).thenAnswer((_) => currentGroupState);
+    when(() => groupBloc.stream).thenAnswer((_) async* {
+      currentGroupState = updatedGroupState;
+      yield updatedGroupState;
+    });
+    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
+
+    await tester.pumpWidget(
+      _wrap(
+        dashboardBloc: dashboardBloc,
+        groupBloc: groupBloc,
+        ongoingBloc: ongoingBloc,
+      ),
+    );
+    await tester.pump();
+
+    final captured = verify(
+      () => ongoingBloc.add(captureAny(that: isA<LoadOngoingTournaments>())),
+    ).captured.cast<LoadOngoingTournaments>().toList();
+    expect(captured.map((event) => event.groupIds), [
+      ['g1'],
+      ['g2', 'g3'],
+    ]);
+  });
+
+  testWidgets('banner hiện khi có giải đấu ongoing và ẩn giải đã kết thúc', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final dashboardBloc = _MockDashboardBloc();
+    final groupBloc = _MockGroupBloc();
+    final ongoingBloc = _MockOngoingBloc();
+    when(() => dashboardBloc.state).thenReturn(_emptyDashboard());
+    when(() => groupBloc.state).thenReturn(const GroupState());
+    when(() => ongoingBloc.state).thenReturn(
+      OngoingTournamentsState(
+        status: ViewStatus.success,
+        leagues: [
+          _league(
+            id: 'l1',
+            name: 'Đang chạy',
+            start: now.subtract(const Duration(days: 2)),
+            end: now.add(const Duration(days: 2)),
+            status: 'ongoing',
+          ),
+          _league(
+            id: 'l2',
+            name: 'Đã kết thúc',
+            start: now.subtract(const Duration(days: 10)),
+            end: now.subtract(const Duration(days: 5)),
+            status: 'finished',
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        dashboardBloc: dashboardBloc,
+        groupBloc: groupBloc,
+        ongoingBloc: ongoingBloc,
+      ),
+    );
+
+    expect(find.text('Giải đấu đang diễn ra'), findsOneWidget);
+    expect(find.text('Đang chạy'), findsOneWidget);
+    expect(find.text('Đã kết thúc'), findsNothing);
+  });
 }

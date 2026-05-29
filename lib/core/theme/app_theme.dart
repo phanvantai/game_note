@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppTheme {
-  AppTheme._();
+  AppTheme._(); // coverage:ignore-line
 
   static const double _borderRadius = 8.0;
 
@@ -107,8 +107,8 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: AppColors.accent,
-          foregroundColor: AppColors.onAccent,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(_borderRadius),
           ),
@@ -120,7 +120,7 @@ class AppTheme {
       // TextButton
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.accent,
+          foregroundColor: colorScheme.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(_borderRadius),
           ),
@@ -141,11 +141,11 @@ class AppTheme {
 
       // FloatingActionButton
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        elevation: 1,
-        backgroundColor: AppColors.accent,
-        foregroundColor: AppColors.onAccent,
+        elevation: 0,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_borderRadius * 2),
+          borderRadius: BorderRadius.circular(_borderRadius),
         ),
       ),
 
@@ -165,7 +165,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
-          borderSide: BorderSide(color: AppColors.accent, width: 1.5),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -193,6 +193,31 @@ class AppTheme {
           fontSize: 12,
         ),
         type: BottomNavigationBarType.fixed,
+      ),
+
+      navigationBarTheme: NavigationBarThemeData(
+        elevation: 0,
+        backgroundColor: scaffoldBackground,
+        indicatorColor: colorScheme.surfaceContainerHighest,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 12,
+            color: selected
+                ? colorScheme.onSurface
+                : (isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface),
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            size: 22,
+            color: selected
+                ? colorScheme.onSurface
+                : (isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface),
+          );
+        }),
       ),
 
       // Divider
@@ -224,7 +249,7 @@ class AppTheme {
         unselectedLabelColor: isDark
             ? AppColors.darkOnSurface
             : AppColors.lightOnSurface,
-        indicatorColor: AppColors.accent,
+        indicatorColor: colorScheme.primary,
       ),
 
       // Chip
@@ -232,7 +257,7 @@ class AppTheme {
         backgroundColor: isDark
             ? AppColors.darkSurfaceVariant
             : AppColors.lightSurfaceVariant,
-        selectedColor: AppColors.accent,
+        selectedColor: colorScheme.surfaceContainerHighest,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
         ),
@@ -255,18 +280,18 @@ class AppTheme {
 
       // ProgressIndicator
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: AppColors.accent,
+        color: colorScheme.primary,
       ),
 
       // Switch
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.accent;
+          if (states.contains(WidgetState.selected)) return colorScheme.primary;
           return isDark ? AppColors.darkOnSurface : AppColors.lightOnSurface;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.accent.withValues(alpha: 0.4);
+            return colorScheme.primary.withValues(alpha: 0.28);
           }
           return colorScheme.outline;
         }),

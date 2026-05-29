@@ -57,20 +57,7 @@ class _ProfileViewState extends State<ProfileView>
 
     return BlocConsumer<ProfileBloc, ProfileState>(
       builder: (context, state) => Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.secondary.withValues(alpha: 0.16),
-                Theme.of(context).scaffoldBackgroundColor,
-                colorScheme.primary.withValues(alpha: 0.06),
-              ],
-              stops: const [0, 0.46, 1],
-            ),
-          ),
+        body: AppPageBackground(
           child: SafeArea(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -291,22 +278,8 @@ class _ProfileHero extends StatelessWidget {
         : state.displayUser;
     final contact = state.user?.email ?? state.user?.phoneNumber ?? 'PES Arena';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.24),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.1),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           GestureDetector(
@@ -319,13 +292,10 @@ class _ProfileHero extends StatelessWidget {
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: colorScheme.secondary.withValues(alpha: 0.18),
-                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(6),
                     child: CachedNetworkImage(
                       imageUrl: state.user?.photoUrl ?? '',
                       fit: BoxFit.cover,
@@ -348,17 +318,13 @@ class _ProfileHero extends StatelessWidget {
                       width: 26,
                       height: 26,
                       decoration: BoxDecoration(
-                        color: colorScheme.secondary,
-                        borderRadius: BorderRadius.circular(9),
-                        border: Border.all(
-                          color: colorScheme.surface,
-                          width: 2,
-                        ),
+                        color: colorScheme.onSurface,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Icons.camera_alt,
                         size: 13,
-                        color: colorScheme.onSecondary,
+                        color: colorScheme.surface,
                       ),
                     ),
                   ),
@@ -367,37 +333,51 @@ class _ProfileHero extends StatelessWidget {
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Player profile',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.secondary,
-                    fontWeight: FontWeight.w800,
+            child: GestureDetector(
+              onTap: onEditTap,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Player profile',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  display,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
+                  const SizedBox(height: 4),
+                  Text(
+                    display,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  contact,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  const SizedBox(height: 4),
+                  Text(
+                    contact,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            color: colorScheme.onSurfaceVariant,
+            onPressed: onEditTap,
+            iconSize: 18,
+            tooltip: context.l10n.profileEditTooltip,
+            padding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 2),
         ],
       ),
     );
@@ -419,36 +399,29 @@ class _ProfileSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: colorScheme.secondary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          for (var i = 0; i < children.length; i++) ...[
-            children[i],
-            if (i != children.length - 1) const SizedBox(height: 8),
+            ),
           ],
+        ),
+        const SizedBox(height: 12),
+        for (var i = 0; i < children.length; i++) ...[
+          children[i],
+          if (i != children.length - 1) const SizedBox(height: 8),
         ],
-      ),
+      ],
     );
   }
 }
@@ -474,32 +447,21 @@ class _ProfileActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final resolvedIconColor = iconColor ?? colorScheme.secondary;
+    final resolvedIconColor = iconColor ?? colorScheme.onSurfaceVariant;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.26),
-            ),
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: resolvedIconColor.withValues(alpha: 0.11),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Icon(icon, color: resolvedIconColor, size: 19),
-              ),
+              Icon(icon, color: resolvedIconColor, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -537,30 +499,19 @@ class _VersionMenuItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.26),
-            ),
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withValues(alpha: 0.11),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Icon(
-                  Icons.info_outline,
-                  color: colorScheme.secondary,
-                  size: 19,
-                ),
+              Icon(
+                Icons.info_outline,
+                color: colorScheme.onSurfaceVariant,
+                size: 20,
               ),
               const SizedBox(width: 12),
               Expanded(

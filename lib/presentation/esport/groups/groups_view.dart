@@ -101,22 +101,7 @@ class _GroupsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colorScheme.secondary.withValues(alpha: 0.16),
-            theme.scaffoldBackgroundColor,
-            colorScheme.primary.withValues(alpha: 0.06),
-          ],
-          stops: const [0, 0.46, 1],
-        ),
-      ),
+    return AppPageBackground(
       child: SafeArea(
         child: Column(
           children: [
@@ -164,39 +149,17 @@ class _GroupsHero extends StatelessWidget {
         ...group.members,
     }.length;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.26),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.groups_2_outlined,
-                  color: colorScheme.onSecondary,
-                ),
+              Icon(
+                Icons.groups_2_outlined,
+                size: 24,
+                color: colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -206,8 +169,7 @@ class _GroupsHero extends StatelessWidget {
                     Text(
                       context.l10n.groupHeroEyebrow,
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.secondary,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -280,8 +242,8 @@ class _HeroStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.64),
-        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,33 +275,91 @@ class _GroupsTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 46,
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.42)),
+    final tabController = DefaultTabController.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: AnimatedBuilder(
+        animation: tabController,
+        builder: (context, _) {
+          final selectedIndex = tabController.index;
+
+          return Row(
+            children: [
+              Expanded(
+                child: _GroupsTabOption(
+                  label: context.l10n.groupMyGroupsTab,
+                  selected: selectedIndex == 0,
+                  colorScheme: colorScheme,
+                  onTap: () => tabController.animateTo(0),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _GroupsTabOption(
+                  label: context.l10n.groupOtherGroupsTab,
+                  selected: selectedIndex == 1,
+                  colorScheme: colorScheme,
+                  onTap: () => tabController.animateTo(1),
+                ),
+              ),
+            ],
+          );
+        },
       ),
-      child: TabBar(
-        padding: EdgeInsets.zero,
-        dividerColor: Colors.transparent,
-        indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(
-          color: colorScheme.secondary,
-          borderRadius: BorderRadius.circular(12),
+    );
+  }
+}
+
+class _GroupsTabOption extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final ColorScheme colorScheme;
+  final VoidCallback onTap;
+
+  const _GroupsTabOption({
+    required this.label,
+    required this.selected,
+    required this.colorScheme,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.only(top: 8, bottom: 7),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 180),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                color: selected
+                    ? colorScheme.onSurface
+                    : colorScheme.onSurfaceVariant,
+              ),
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(height: 6),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: selected ? 22 : 0,
+              height: 2,
+              decoration: BoxDecoration(
+                color: colorScheme.secondary,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ],
         ),
-        labelColor: colorScheme.onSecondary,
-        unselectedLabelColor: colorScheme.onSurfaceVariant,
-        labelStyle: Theme.of(
-          context,
-        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
-        tabs: [
-          Tab(text: context.l10n.groupMyGroupsTab),
-          Tab(text: context.l10n.groupOtherGroupsTab),
-        ],
       ),
     );
   }
@@ -382,31 +402,15 @@ class _GroupsEmptyState extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Center(
-      child: Container(
-        margin: const EdgeInsets.all(24),
-        padding: const EdgeInsets.all(22),
-        decoration: BoxDecoration(
-          color: colorScheme.surface.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.45),
-          ),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: colorScheme.secondary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(
-                Icons.group_outlined,
-                color: colorScheme.secondary,
-                size: 30,
-              ),
+            Icon(
+              Icons.group_outlined,
+              size: 40,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
             ),
             const SizedBox(height: 14),
             Text(

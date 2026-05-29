@@ -74,7 +74,7 @@ class AuthButtonsView extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   backgroundColor: isDark
                       ? colorScheme.surfaceContainerHighest
-                      : Colors.white,
+                      : colorScheme.surface,
                   side: BorderSide(color: colorScheme.outline, width: 1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -115,44 +115,50 @@ class AuthButtonsView extends StatelessWidget {
             if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
               const SizedBox(height: 12),
               // Apple sign-in button
-              SizedBox(
-                height: 48,
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          FocusManager.instance.primaryFocus?.unfocus();
-                          thirdPartyBloc.add(const ThirdPartySignInApple());
-                        },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: isDark ? Colors.white : Colors.black,
-                    foregroundColor: isDark ? Colors.black : Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        AssetsPath.iconApple,
-                        width: 20,
-                        height: 20,
-                        color: isDark ? Colors.black : Colors.white,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        context.l10n.authContinueWithApple,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.black : Colors.white,
+              Builder(
+                builder: (context) {
+                  final appleBackground = colorScheme.primary;
+                  final appleForeground = colorScheme.onPrimary;
+                  return SizedBox(
+                    height: 48,
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              thirdPartyBloc.add(const ThirdPartySignInApple());
+                            },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: appleBackground,
+                        foregroundColor: appleForeground,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            AssetsPath.iconApple,
+                            width: 20,
+                            height: 20,
+                            color: appleForeground,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            context.l10n.authContinueWithApple,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: appleForeground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ],

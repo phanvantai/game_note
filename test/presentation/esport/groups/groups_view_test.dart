@@ -213,5 +213,9 @@ void main() {
     await tester.tap(find.text('Nhóm khác'));
     await tester.pumpAndSettle();
     expect(find.text('Group Two'), findsOneWidget);
+
+    await tester.tap(find.text('Nhóm của tôi'));
+    await tester.pumpAndSettle();
+    expect(find.text('Group One'), findsOneWidget);
   });
 }

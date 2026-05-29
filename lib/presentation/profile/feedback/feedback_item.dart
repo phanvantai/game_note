@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pes_arena/core/theme/app_colors.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 
 import '../../../firebase/firestore/feedback/feedback_model.dart';
@@ -16,18 +17,16 @@ class FeedbackItem extends StatelessWidget {
     final status = FeedbackStatusX.fromInt(feedback.status);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final statusColor = status.themeColor(context);
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [status.color.withValues(alpha: 0.08), colorScheme.surface],
+        color: Color.alphaBlend(
+          statusColor.withValues(alpha: 0.06),
+          colorScheme.surfaceContainerHighest,
         ),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,6 +54,7 @@ class FeedbackItem extends StatelessWidget {
                 return CircleAvatar(
                   radius: 20,
                   backgroundImage: NetworkImage(photoUrl),
+                  onBackgroundImageError: (_, _) {},
                 );
               }
               return CircleAvatar(
@@ -96,13 +96,13 @@ class FeedbackItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: status.color.withValues(alpha: 0.15),
+              color: statusColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(99),
             ),
             child: Text(
               status.name,
               style: textTheme.labelSmall?.copyWith(
-                color: status.color,
+                color: statusColor,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -110,5 +110,21 @@ class FeedbackItem extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+extension _FeedbackStatusThemeColor on FeedbackStatus {
+  Color themeColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    switch (this) {
+      case FeedbackStatus.notReceived:
+        return colorScheme.onSurfaceVariant;
+      case FeedbackStatus.processing:
+        return AppColors.warning(context);
+      case FeedbackStatus.done:
+        return AppColors.success(context);
+      case FeedbackStatus.rejected:
+        return colorScheme.error;
+    }
   }
 }

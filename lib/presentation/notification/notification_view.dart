@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 
 import 'bloc/notification_bloc.dart';
@@ -35,22 +36,7 @@ class _NotificationBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colorScheme.secondary.withValues(alpha: 0.16),
-            theme.scaffoldBackgroundColor,
-            colorScheme.primary.withValues(alpha: 0.06),
-          ],
-          stops: const [0, 0.46, 1],
-        ),
-      ),
+    return AppPageBackground(
       child: SafeArea(
         child: Column(
           children: [
@@ -95,39 +81,17 @@ class _NotificationHero extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final unread = state.unreadNotificationsCount;
     final total = state.notifications.length;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.26),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.notifications_active_outlined,
-                  color: colorScheme.onSecondary,
-                ),
+              Icon(
+                Icons.notifications_active_outlined,
+                size: 24,
+                color: colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -137,8 +101,7 @@ class _NotificationHero extends StatelessWidget {
                     Text(
                       context.l10n.notificationActivityEyebrow,
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.secondary,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -204,8 +167,8 @@ class _HeroStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.64),
-        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,30 +206,15 @@ class _NotificationEmptyState extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(24, 36, 24, 96),
       children: [
-        Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.45),
-            ),
-          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 22),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Icon(
-                  Icons.notifications_none_outlined,
-                  color: colorScheme.secondary,
-                  size: 30,
-                ),
+              Icon(
+                Icons.notifications_none_outlined,
+                size: 40,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
               ),
               const SizedBox(height: 14),
               Text(

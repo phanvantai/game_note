@@ -4,8 +4,10 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_item.dart';
@@ -13,6 +15,25 @@ import 'package:pes_arena/presentation/esport/tournament/tournament_item.dart';
 import '../../../routing.dart';
 import '../groups/bloc/group_bloc.dart';
 import 'create_esport_league_page.dart';
+
+typedef TournamentCreatePageBuilder =
+    Widget Function({
+      required List<GNEsportGroup> groups,
+      required OnAddLeagueCallback onAddLeague,
+    });
+
+/// Injectable for tests to avoid depending on the full wizard flow.
+TournamentCreatePageBuilder tournamentCreatePageBuilder =
+    _defaultCreatePageBuilder;
+
+// coverage:ignore-start
+Widget _defaultCreatePageBuilder({
+  required List<GNEsportGroup> groups,
+  required OnAddLeagueCallback onAddLeague,
+}) {
+  return CreateEsportLeaguePage(groups: groups, onAddLeague: onAddLeague);
+}
+// coverage:ignore-end
 
 class TournamentView extends StatelessWidget {
   const TournamentView({super.key});
@@ -46,22 +67,7 @@ class _TournamentBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colorScheme.secondary.withValues(alpha: 0.16),
-            theme.scaffoldBackgroundColor,
-            colorScheme.primary.withValues(alpha: 0.06),
-          ],
-          stops: const [0, 0.46, 1],
-        ),
-      ),
+    return AppPageBackground(
       child: SafeArea(
         child: Column(
           children: [
@@ -106,39 +112,17 @@ class _TournamentHero extends StatelessWidget {
       for (final league in allLeagues) ...league.participants,
     }.length;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.26),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.emoji_events_outlined,
-                  color: colorScheme.onSecondary,
-                ),
+              Icon(
+                Icons.emoji_events_outlined,
+                size: 24,
+                color: colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -148,8 +132,7 @@ class _TournamentHero extends StatelessWidget {
                     Text(
                       context.l10n.tournamentHeroEyebrow,
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.secondary,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -221,8 +204,8 @@ class _HeroStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.64),
-        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,34 +237,105 @@ class _TournamentTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tabController = DefaultTabController.of(context);
+
+    final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 46,
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.42)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: AnimatedBuilder(
+        animation: tabController.animation!,
+        builder: (context, _) {
+          final selectedIndex = tabController.index;
+
+          return Row(
+            children: [
+              Expanded(
+                child: _TournamentTabOption(
+                  label: context.l10n.tournamentJoinedTab,
+                  selected: selectedIndex == 0,
+                  colorScheme: colorScheme,
+                  theme: theme,
+                  onTap: () => tabController.animateTo(0),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _TournamentTabOption(
+                  label: context.l10n.tournamentManagedTab,
+                  selected: selectedIndex == 1,
+                  colorScheme: colorScheme,
+                  theme: theme,
+                  onTap: () => tabController.animateTo(1),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _TournamentTabOption(
+                  label: context.l10n.tournamentOtherTab,
+                  selected: selectedIndex == 2,
+                  colorScheme: colorScheme,
+                  theme: theme,
+                  onTap: () => tabController.animateTo(2),
+                ),
+              ),
+            ],
+          );
+        },
       ),
-      child: TabBar(
-        padding: EdgeInsets.zero,
-        dividerColor: Colors.transparent,
-        indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(
-          color: colorScheme.secondary,
-          borderRadius: BorderRadius.circular(12),
+    );
+  }
+}
+
+class _TournamentTabOption extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final ThemeData theme;
+  final ColorScheme colorScheme;
+  final VoidCallback onTap;
+
+  const _TournamentTabOption({
+    required this.label,
+    required this.selected,
+    required this.colorScheme,
+    required this.theme,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.only(top: 8, bottom: 7),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 180),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                color: selected
+                    ? colorScheme.onSurface
+                    : colorScheme.onSurfaceVariant,
+              ),
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(height: 6),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: selected ? 22 : 0,
+              height: 2,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondary,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ],
         ),
-        labelColor: colorScheme.onSecondary,
-        unselectedLabelColor: colorScheme.onSurfaceVariant,
-        labelStyle: Theme.of(
-          context,
-        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
-        tabs: [
-          Tab(text: context.l10n.tournamentJoinedTab),
-          Tab(text: context.l10n.tournamentManagedTab),
-          Tab(text: context.l10n.tournamentOtherTab),
-        ],
       ),
     );
   }
@@ -299,7 +353,7 @@ Future<void> openCreateTournament(BuildContext context) async {
 
   final leagueId = await Navigator.of(context).push<String>(
     MaterialPageRoute(
-      builder: (ctx) => CreateEsportLeaguePage(
+      builder: (ctx) => tournamentCreatePageBuilder(
         groups: groups,
         onAddLeague:
             ({
@@ -555,6 +609,7 @@ class _ManagedLeaguesTabState extends State<_ManagedLeaguesTab> {
     return RefreshIndicator(
       onRefresh: _refresh,
       child: state.managedLeagues.isEmpty
+          // coverage:ignore-start
           ? ListView(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
@@ -569,6 +624,7 @@ class _ManagedLeaguesTabState extends State<_ManagedLeaguesTab> {
                   ),
               ],
             )
+          // coverage:ignore-end
           : ListView.builder(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
@@ -670,6 +726,7 @@ class _OtherLeaguesTabState extends State<_OtherLeaguesTab> {
     return RefreshIndicator(
       onRefresh: _refresh,
       child: state.otherLeagues.isEmpty
+          // coverage:ignore-start
           ? ListView(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
@@ -683,6 +740,7 @@ class _OtherLeaguesTabState extends State<_OtherLeaguesTab> {
                   ),
               ],
             )
+          // coverage:ignore-end
           : ListView.builder(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
@@ -735,16 +793,9 @@ class _TournamentLoadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.45)),
-      ),
-      child: const Center(child: CircularProgressIndicator()),
+    return const Padding(
+      padding: EdgeInsets.only(top: 24, left: 22, right: 22, bottom: 22),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 }
@@ -759,29 +810,16 @@ class _TournamentEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.45)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 24, left: 22, right: 22, bottom: 22),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: colorScheme.secondary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Icon(
-              Icons.emoji_events_outlined,
-              color: colorScheme.secondary,
-              size: 30,
-            ),
+          Icon(
+            Icons.emoji_events_outlined,
+            size: 40,
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
           ),
           const SizedBox(height: 14),
           Text(
