@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # build qua reusable workflow để đảm bảo identical với build trên develop
+  # build qua reusable workflow để đảm bảo identical với build trên PR vào main
   build:
     uses: ./.github/workflows/_android-build.yml
     secrets: inherit
