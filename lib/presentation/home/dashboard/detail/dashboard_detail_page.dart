@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pes_arena/core/cache/h2h_preferences.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/theme/app_colors.dart';
 import 'package:pes_arena/core/widgets/shimmer.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
-import 'package:pes_arena/routing.dart';
 
 import '../../../../../widgets/gn_circle_avatar.dart';
 import '../bloc/dashboard_bloc.dart';
 import 'h2h_detail_page.dart';
 import '../models/dashboard_stats.dart';
 import '../models/opponent_stat.dart';
-import '../models/recent_match_summary.dart';
 import '../widgets/form_dots_row.dart';
 import '../widgets/league_performance_chart.dart';
+import '../widgets/recent_matches_list.dart';
 
 /// Full dashboard view — every metric the summary doc carries.
 ///
@@ -41,7 +40,6 @@ class _DashboardDetailScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -80,65 +78,53 @@ class _DashboardDetailScaffold extends StatelessWidget {
                   : state.errorMessage,
             );
           }
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  colorScheme.secondary.withValues(alpha: 0.12),
-                  theme.scaffoldBackgroundColor,
+          return Stack(
+            children: [
+              ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                children: [
+                  _DetailHero(stats: stats),
+                  const SizedBox(height: 14),
+                  _SectionHeader(context.l10n.dashboardOverview),
+                  _OverviewBlock(stats: stats),
+                  const SizedBox(height: 16),
+                  _HeadToHeadSection(opponents: stats.opponents),
+                  const SizedBox(height: 18),
+                  _SectionShell(
+                    title: context.l10n.dashboardRecentLeagueForm5,
+                    icon: Icons.show_chart_outlined,
+                    child: LeaguePerformanceChart(
+                      points: stats.leaguePerformance,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _SectionShell(
+                    title: context.l10n.dashboardRecentForm10,
+                    icon: Icons.timeline_outlined,
+                    child: FormDotsRow(matches: stats.recentMatches),
+                  ),
+                  const SizedBox(height: 24),
+                  _SectionShell(
+                    title: context.l10n.dashboardRecentMatches,
+                    icon: Icons.sports_soccer_outlined,
+                    child: RecentMatchesList(matches: stats.recentMatches),
+                  ),
+                  if (stats.recentMatches.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(context.l10n.dashboardNoMatches),
+                    ),
                 ],
               ),
-            ),
-            child: Stack(
-              children: [
-                ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-                  children: [
-                    _DetailHero(stats: stats),
-                    const SizedBox(height: 14),
-                    _SectionHeader(context.l10n.dashboardOverview),
-                    _OverviewBlock(stats: stats),
-                    const SizedBox(height: 16),
-                    _HeadToHeadSection(opponents: stats.opponents),
-                    const SizedBox(height: 18),
-                    _SectionShell(
-                      title: context.l10n.dashboardRecentLeagueForm5,
-                      icon: Icons.show_chart_outlined,
-                      child: LeaguePerformanceChart(
-                        points: stats.leaguePerformance,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _SectionShell(
-                      title: context.l10n.dashboardRecentForm10,
-                      icon: Icons.timeline_outlined,
-                      child: FormDotsRow(matches: stats.recentMatches),
-                    ),
-                    const SizedBox(height: 24),
-                    _SectionShell(
-                      title: context.l10n.dashboardRecentMatches,
-                      icon: Icons.sports_soccer_outlined,
-                      child: _DetailedMatchList(matches: stats.recentMatches),
-                    ),
-                    if (stats.recentMatches.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(context.l10n.dashboardNoMatches),
-                      ),
-                  ],
+              if (state.viewStatus == ViewStatus.loading)
+                const Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: _ShimmerBar(),
                 ),
-                if (state.viewStatus == ViewStatus.loading)
-                  const Positioned(
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    child: _ShimmerBar(),
-                  ),
-              ],
-            ),
+            ],
           );
         },
       ),
@@ -158,95 +144,68 @@ class _DetailHero extends StatelessWidget {
     final winRate = stats.winRate == null
         ? context.l10n.dashboardNoData
         : '${(stats.winRate! * 100).round()}%';
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.28),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.12),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(
-                  Icons.dashboard_customize_outlined,
-                  color: colorScheme.onSecondary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.dashboardDetailEyebrow,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.secondary,
-                        fontWeight: FontWeight.w800,
-                      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.dashboard_customize_outlined,
+              size: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.dashboardDetailEyebrow,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      context.l10n.dashboardDetailSubtitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _HeroPill(
-                  label: context.l10n.dashboardWinRate,
-                  value: winRate,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _HeroPill(
-                  label: context.l10n.dashboardGoalDifference,
-                  value: _signed(stats.goalDifference),
-                  color: colorScheme.secondary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _HeroPill(
-                  label: context.l10n.dashboardMatches,
-                  value: context.l10n.dashboardMatchesCount(
-                    stats.matchesPlayed,
                   ),
-                  color: const Color(0xFF2563EB),
-                ),
+                  const SizedBox(height: 2),
+                  Text(
+                    context.l10n.dashboardDetailSubtitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _HeroPill(
+                label: context.l10n.dashboardWinRate,
+                value: winRate,
+                color: AppColors.success(context),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _HeroPill(
+                label: context.l10n.dashboardGoalDifference,
+                value: _signed(stats.goalDifference),
+                color: colorScheme.secondary,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _HeroPill(
+                label: context.l10n.dashboardMatches,
+                value: context.l10n.dashboardMatchesCount(stats.matchesPlayed),
+                color: colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -269,8 +228,8 @@ class _HeroPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(14),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,6 +239,7 @@ class _HeroPill extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleMedium?.copyWith(
+              color: color,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -372,23 +332,9 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 18,
-            decoration: BoxDecoration(
-              color: colorScheme.secondary,
-              borderRadius: BorderRadius.circular(99),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-        ],
-      ),
+      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
     );
   }
 }
@@ -408,27 +354,19 @@ class _SectionShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.55)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: colorScheme.secondary),
-              const SizedBox(width: 8),
-              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        child,
+      ],
     );
   }
 }
@@ -449,39 +387,31 @@ class _OverviewBlock extends StatelessWidget {
         '${stats.goals} / ${stats.goalsConceded} / '
         '${_signed(stats.goalDifference)}';
 
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.55)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          children: [
-            _MetricRow(
-              context.l10n.dashboardMetricTournamentsJoined,
-              '${stats.tournamentsJoined}',
-            ),
-            _MetricRow(context.l10n.dashboardMetricMatches, '$played'),
-            _MetricRow(
-              context.l10n.dashboardMetricLatestChampion,
-              _lastChampionLabel(context, stats.lastChampionAt),
-            ),
-            _MetricRow(context.l10n.dashboardMetricWdlCount, wdlCount),
-            _MetricRow(context.l10n.dashboardMetricWdlRate, wdlPct),
-            _MetricRow(context.l10n.dashboardMetricGoals, goalsLine),
-            _MetricRow(
-              context.l10n.dashboardMetricChampion,
-              _countAndRate(stats.championCount, stats.championRate),
-            ),
-            _MetricRow(
-              context.l10n.dashboardMetricRunnerUp,
-              _countAndRate(stats.runnerUpCount, stats.runnerUpRate),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        children: [
+          _MetricRow(
+            context.l10n.dashboardMetricTournamentsJoined,
+            '${stats.tournamentsJoined}',
+          ),
+          _MetricRow(context.l10n.dashboardMetricMatches, '$played'),
+          _MetricRow(
+            context.l10n.dashboardMetricLatestChampion,
+            _lastChampionLabel(context, stats.lastChampionAt),
+          ),
+          _MetricRow(context.l10n.dashboardMetricWdlCount, wdlCount),
+          _MetricRow(context.l10n.dashboardMetricWdlRate, wdlPct),
+          _MetricRow(context.l10n.dashboardMetricGoals, goalsLine),
+          _MetricRow(
+            context.l10n.dashboardMetricChampion,
+            _countAndRate(stats.championCount, stats.championRate),
+          ),
+          _MetricRow(
+            context.l10n.dashboardMetricRunnerUp,
+            _countAndRate(stats.runnerUpCount, stats.runnerUpRate),
+          ),
+        ],
       ),
     );
   }
@@ -529,30 +459,14 @@ class _HeadToHeadSectionState extends State<_HeadToHeadSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.48),
-            ),
-          ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
           child: Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Icon(
-                  Icons.groups_2_outlined,
-                  color: colorScheme.secondary,
-                  size: 19,
-                ),
+              Icon(
+                Icons.groups_2_outlined,
+                color: colorScheme.onSurfaceVariant,
+                size: 20,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -575,21 +489,11 @@ class _HeadToHeadSectionState extends State<_HeadToHeadSection> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Text(
-                  context.l10n.dashboardMinMatchesChip(_minMatches),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.secondary,
-                    fontWeight: FontWeight.w800,
-                  ),
+              Text(
+                context.l10n.dashboardMinMatchesChip(_minMatches),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(width: 4),
@@ -1037,142 +941,6 @@ class _MetricRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _DetailedMatchList extends StatelessWidget {
-  final List<RecentMatchSummary> matches;
-  const _DetailedMatchList({required this.matches});
-
-  @override
-  Widget build(BuildContext context) {
-    if (matches.isEmpty) return const SizedBox.shrink();
-    final colorScheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
-    return Column(
-      children: matches.map((m) {
-        final resultColor = m.result.color;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: resultColor.withValues(alpha: 0.22)),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-            child: InkWell(
-              onTap: () =>
-                  context.push(Routing.tournamentDetailPath(m.leagueId)),
-              borderRadius: BorderRadius.circular(14),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: resultColor.withValues(alpha: 0.55),
-                          width: 2,
-                        ),
-                      ),
-                      child: m.opponentPhotoUrl != null
-                          ? GNCircleAvatar(
-                              photoUrl: m.opponentPhotoUrl,
-                              size: 40,
-                            )
-                          : _InitialsAvatar(
-                              name: m.opponentDisplayName,
-                              size: 40,
-                              accent: resultColor,
-                            ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            m.leagueName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.secondary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            m.opponentDisplayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            DateFormat('dd/MM/yyyy').format(m.date),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: resultColor.withValues(alpha: 0.13),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: resultColor.withValues(alpha: 0.38),
-                            ),
-                          ),
-                          child: Text(
-                            m.result.localizedLabel(context),
-                            style: TextStyle(
-                              color: resultColor,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          '${m.userScore} - ${m.opponentScore}',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right,
-                      size: 18,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 }

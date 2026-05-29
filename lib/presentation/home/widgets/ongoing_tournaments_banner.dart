@@ -50,35 +50,13 @@ class _Banner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.22),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withValues(alpha: 0.13),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.emoji_events,
-                  color: colorScheme.secondary,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   context.l10n.homeOngoingTournamentsTitle,
@@ -89,14 +67,14 @@ class _Banner extends StatelessWidget {
               ),
               Text(
                 '${leagues.length}',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: colorScheme.secondary,
-                  fontWeight: FontWeight.w800,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           ...leagues.map(
             (l) => TournamentItem(
               league: l,

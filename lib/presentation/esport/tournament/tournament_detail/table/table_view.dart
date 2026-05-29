@@ -124,22 +124,10 @@ class EsportTableView extends StatelessWidget {
                         width: double.infinity,
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.outline.withValues(alpha: 0.28),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.shadow.withValues(alpha: 0.05),
-                              blurRadius: 18,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,7 +270,6 @@ class _RankBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: accent!.withValues(alpha: 0.2),
           shape: BoxShape.circle,
-          border: Border.all(color: accent!, width: 1.5),
         ),
         alignment: Alignment.center,
         child: Text(
@@ -332,9 +319,8 @@ class _LeagueMetricSummary extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.28)),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [

@@ -18,31 +18,27 @@ class StatCardGrid extends StatelessWidget {
       mainAxisSpacing: 12,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.35,
+      childAspectRatio: 1.65,
       children: [
         _StatCard(
           title: context.l10n.dashboardTournamentsJoined,
           value: '${stats.tournamentsJoined}',
           icon: Icons.emoji_events_outlined,
-          tone: _StatTone.gold,
         ),
         _StatCard(
           title: context.l10n.dashboardChampionRate,
           value: _percent(stats.championCount, finishedCount),
           icon: Icons.workspace_premium_outlined,
-          tone: _StatTone.violet,
         ),
         _StatCard(
           title: context.l10n.dashboardRunnerUpRate,
           value: _percent(stats.runnerUpCount, finishedCount),
           icon: Icons.military_tech_outlined,
-          tone: _StatTone.blue,
         ),
         _StatCard(
           title: context.l10n.dashboardLatestChampion,
           value: _lastChampionLabel(context, stats.lastChampionAt),
           icon: Icons.history_outlined,
-          tone: _StatTone.rose,
         ),
       ],
     );
@@ -65,66 +61,50 @@ class StatCardGrid extends StatelessWidget {
   }
 }
 
-enum _StatTone { gold, violet, blue, rose }
-
 class _StatCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
-  final _StatTone tone;
 
   const _StatCard({
     required this.title,
     required this.value,
     required this.icon,
-    required this.tone,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final accent = switch (tone) {
-      _StatTone.gold => const Color(0xFFE0A11B),
-      _StatTone.violet => const Color(0xFF7C3AED),
-      _StatTone.blue => const Color(0xFF2563EB),
-      _StatTone.rose => const Color(0xFFE11D48),
-    };
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.55)),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [accent.withValues(alpha: 0.13), colorScheme.surface],
-        ),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: accent, size: 20),
+            Row(
+              children: [
+                Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            const SizedBox(height: 10),
             Text(
               value,
               maxLines: 1,

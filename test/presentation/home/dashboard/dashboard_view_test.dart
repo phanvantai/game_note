@@ -113,6 +113,10 @@ void main() {
           championCount: 1,
           runnerUpCount: 0,
           lastChampionAt: DateTime.now(),
+          matchesPlayed: 2,
+          wins: 1,
+          goals: 5,
+          goalsConceded: 3,
           recentMatches: [_match()],
         ),
       ),
@@ -121,6 +125,8 @@ void main() {
     await tester.pumpWidget(_wrap(bloc));
 
     expect(find.text('Xem chi tiết'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+    expect(find.text('+2'), findsOneWidget);
     await tester.drag(find.byType(ListView), const Offset(0, -500));
     await tester.pump();
     expect(find.text('Phong độ 10 trận gần nhất'), findsOneWidget);

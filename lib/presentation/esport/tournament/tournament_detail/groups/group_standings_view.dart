@@ -91,38 +91,45 @@ class _GroupTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 40,
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+    return SizedBox(
+      height: 42,
       child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         scrollDirection: Axis.horizontal,
         children: groupIds.map((id) {
           final isSelected = id == selected;
-          return GestureDetector(
+          return InkWell(
             onTap: () => onSelect(id),
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: isSelected ? colorScheme.secondary : colorScheme.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isSelected
-                      ? colorScheme.secondary
-                      : colorScheme.outline.withValues(alpha: 0.28),
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  'Bảng $id',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: isSelected
-                        ? colorScheme.onSecondary
-                        : colorScheme.onSurface,
-                    fontSize: 13,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 14, top: 7, bottom: 6),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 180),
+                    style: TextStyle(
+                      fontWeight: isSelected
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
+                    child: Text(context.l10n.tournamentGroupLabel(id)),
                   ),
-                ),
+                  const SizedBox(height: 5),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: isSelected ? 20 : 0,
+                    height: 2,
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondary,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                ],
               ),
             ),
           );
@@ -182,14 +189,12 @@ class _StandingsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
@@ -205,7 +210,7 @@ class _StandingsTable extends StatelessWidget {
                   Divider(
                     height: 1,
                     thickness: 2,
-                    color: colorScheme.secondary.withValues(alpha: 0.4),
+                    color: colorScheme.secondary.withValues(alpha: 0.28),
                   ),
                 _TableRow(
                   rank: i + 1,
@@ -230,8 +235,8 @@ class _TableHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.secondary.withValues(alpha: 0.08),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
       ),
       child: Row(
         children: [
@@ -286,7 +291,7 @@ class _TableRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: isAdvance ? colorScheme.secondary.withValues(alpha: 0.05) : null,
         borderRadius: isLast
-            ? const BorderRadius.vertical(bottom: Radius.circular(11))
+            ? const BorderRadius.vertical(bottom: Radius.circular(8))
             : null,
       ),
       child: Row(
@@ -398,11 +403,8 @@ class _GroupMatchesList extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.2),
-                ),
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [

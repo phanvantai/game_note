@@ -15,6 +15,18 @@ RecentMatchSummary _summary(MatchResult result) => RecentMatchSummary(
   opponentDisplayName: 'NamPhan',
 );
 
+RecentMatchSummary _summaryWithPhoto() => RecentMatchSummary(
+  matchId: 'm4',
+  leagueId: 'l4',
+  leagueName: 'Photo Cup',
+  date: DateTime(2026, 5, 6),
+  userScore: 1,
+  opponentScore: 0,
+  result: MatchResult.win,
+  opponentDisplayName: 'Photo Player',
+  opponentPhotoUrl: 'https://example.com/avatar.png',
+);
+
 Widget _wrap(Widget child) {
   return MaterialApp.router(
     routerConfig: GoRouter(
@@ -40,14 +52,15 @@ void main() {
     expect(find.byType(InkWell), findsNothing);
   });
 
-  testWidgets('render avatar, tên đối thủ, giải đấu, tỉ số và result badge',
-      (tester) async {
+  testWidgets('render avatar, tên đối thủ, giải đấu, tỉ số và result badge', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _wrap(RecentMatchesList(matches: [_summary(MatchResult.win)])),
     );
 
     expect(find.text('NamPhan'), findsOneWidget);
-    expect(find.text('Champions Cup'), findsOneWidget);
+    expect(find.textContaining('Champions Cup'), findsOneWidget);
     expect(find.text('3 - 1'), findsOneWidget);
     // Win result badge shows 'T'
     expect(find.text('T'), findsOneWidget);
@@ -100,5 +113,16 @@ void main() {
     expect(find.text('T'), findsOneWidget);
     expect(find.text('H'), findsOneWidget);
     expect(find.text('B'), findsOneWidget);
+  });
+
+  testWidgets('render network avatar branch when opponent has photo', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(RecentMatchesList(matches: [_summaryWithPhoto()])),
+    );
+
+    expect(find.text('Photo Player'), findsOneWidget);
+    expect(find.text('P'), findsNothing);
   });
 }

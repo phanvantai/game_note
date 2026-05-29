@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/core/theme/app_colors.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
@@ -258,7 +259,7 @@ class _AwardsSection extends StatelessWidget {
           title: context.l10n.groupLegendChampion,
           subtitle: _rateLine(overview.champion!, suffix: 'giải vô địch'),
           icon: Icons.emoji_events,
-          accent: const Color(0xFFFFC107),
+          accent: AppColors.warning(context),
         ),
       );
     }
@@ -269,7 +270,7 @@ class _AwardsSection extends StatelessWidget {
           title: context.l10n.groupLegendRunnerUp,
           subtitle: _rateLine(overview.runnerUpKing!, suffix: 'lần về nhì'),
           icon: Icons.workspace_premium_outlined,
-          accent: const Color(0xFFB0BEC5),
+          accent: c.onSurfaceVariant,
         ),
       );
     }
@@ -284,7 +285,7 @@ class _AwardsSection extends StatelessWidget {
           subtitle:
               '${(overview.master!.value * 100).toStringAsFixed(0)}% thắng (${overview.master!.numerator}/${overview.master!.sampleSize})',
           icon: Icons.bolt_outlined,
-          accent: Colors.lightGreen[600]!,
+          accent: AppColors.success(context),
         ),
       );
     }
@@ -296,7 +297,7 @@ class _AwardsSection extends StatelessWidget {
           subtitle:
               '${overview.ironDefense!.value.toStringAsFixed(2)} bàn thua/trận (${overview.ironDefense!.sampleSize} trận)',
           icon: Icons.shield_outlined,
-          accent: Colors.blueGrey[400]!,
+          accent: c.primary,
         ),
       );
     }
@@ -358,20 +359,15 @@ class _AwardCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accent.withValues(alpha: 0.32)),
+        color: Color.alphaBlend(
+          accent.withValues(alpha: 0.06),
+          theme.colorScheme.surfaceContainerHighest,
+        ),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: accent, size: 22),
-          ),
+          Icon(icon, color: accent, size: 22),
           const SizedBox(width: 10),
           GNCircleAvatar(photoUrl: award.player.photoUrl, size: 40),
           const SizedBox(width: 10),
@@ -536,7 +532,6 @@ class _WdlChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -626,30 +621,37 @@ class _YearChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
+      padding: const EdgeInsets.only(right: 14),
+      child: InkWell(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: selected
-                ? colorScheme.secondary
-                : colorScheme.secondary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? colorScheme.secondary
-                  : colorScheme.secondary.withValues(alpha: 0.3),
-            ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: selected ? colorScheme.onSecondary : colorScheme.secondary,
-            ),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 7, bottom: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 180),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected
+                      ? colorScheme.onSurface
+                      : colorScheme.onSurfaceVariant,
+                ),
+                child: Text(label),
+              ),
+              const SizedBox(height: 5),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: selected ? 20 : 0,
+                height: 2,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -672,27 +674,19 @@ class _SectionShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: colorScheme.secondary),
-              const SizedBox(width: 8),
-              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        child,
+      ],
     );
   }
 }

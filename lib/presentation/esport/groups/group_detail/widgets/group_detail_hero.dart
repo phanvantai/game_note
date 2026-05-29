@@ -18,22 +18,8 @@ class GroupDetailHero extends StatelessWidget {
     final groupName = state.group.groupName.isEmpty
         ? 'Đang tải nhóm'
         : state.group.groupName;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.24),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.1),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
@@ -42,13 +28,10 @@ class GroupDetailHero extends StatelessWidget {
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: colorScheme.secondary.withValues(alpha: 0.18),
-              ),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(6),
               child: Image.asset(
                 'assets/images/pes_club_logo.png',
                 fit: BoxFit.cover,
@@ -63,8 +46,7 @@ class GroupDetailHero extends StatelessWidget {
                 Text(
                   'Group arena',
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.secondary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 3),

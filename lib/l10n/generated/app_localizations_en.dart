@@ -1,3 +1,4 @@
+// coverage:ignore-file
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
@@ -952,6 +953,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tournamentTabGroups => 'Groups';
 
   @override
+  String tournamentGroupLabel(String groupId) {
+    return 'Group $groupId';
+  }
+
+  @override
   String get tournamentTabStandings => 'Standings';
 
   @override
@@ -1049,6 +1055,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tournamentShareNow => 'Share now';
+
+  @override
+  String get tournamentShareIncludeRankCost => 'Include costs';
 
   @override
   String get tournamentLightTheme => 'Light';
@@ -1414,6 +1423,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDeleteAvatar => 'Delete avatar';
+
+  @override
+  String get profileEditTooltip => 'Edit profile';
 
   @override
   String get profileOfflineModeTitle => 'Offline mode';

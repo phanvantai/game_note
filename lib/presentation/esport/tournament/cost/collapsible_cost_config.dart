@@ -46,32 +46,23 @@ class _CollapsibleCostConfigState extends State<CollapsibleCostConfig> {
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.28)),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: colorScheme.secondary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(11),
-                    ),
-                    child: Icon(
-                      Icons.payments_outlined,
-                      size: 19,
-                      color: colorScheme.secondary,
-                    ),
+                  Icon(
+                    Icons.payments_outlined,
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 10),
                   Expanded(

@@ -16,39 +16,48 @@ import 'package:pes_arena/presentation/esport/tournament/tournament_detail/group
 // Mocks
 // ---------------------------------------------------------------------------
 
-class _MockBloc
-    extends MockBloc<TournamentDetailEvent, TournamentDetailState>
+class _MockBloc extends MockBloc<TournamentDetailEvent, TournamentDetailState>
     implements TournamentDetailBloc {}
 
-class _FakeTournamentDetailEvent extends Fake implements TournamentDetailEvent {}
-class _FakeTournamentDetailState extends Fake implements TournamentDetailState {}
+class _FakeTournamentDetailEvent extends Fake
+    implements TournamentDetailEvent {}
+
+class _FakeTournamentDetailState extends Fake
+    implements TournamentDetailState {}
+
+class _AdminTournamentDetailState extends TournamentDetailState {
+  const _AdminTournamentDetailState({super.league, super.matches});
+
+  @override
+  bool get currentUserIsLeagueAdmin => true;
+}
 
 // ---------------------------------------------------------------------------
 // Factories
 // ---------------------------------------------------------------------------
 
 GNUser _user(String id) => GNUser(
-      id: id,
-      displayName: 'Player $id',
-      email: null,
-      phoneNumber: null,
-      photoUrl: null,
-      role: 'user',
-      fcmToken: '',
-      isPlaceholder: false,
-    );
+  id: id,
+  displayName: 'Player $id',
+  email: null,
+  phoneNumber: null,
+  photoUrl: null,
+  role: 'user',
+  fcmToken: '',
+  isPlaceholder: false,
+);
 
 GNEsportLeague _league({int advanceCount = 2}) => GNEsportLeague(
-      id: 'L1',
-      ownerId: 'owner',
-      groupId: 'G1',
-      name: 'Test League',
-      startDate: DateTime(2026, 1, 1),
-      isActive: true,
-      description: '',
-      participants: const [],
-      advanceCount: advanceCount,
-    );
+  id: 'L1',
+  ownerId: 'owner',
+  groupId: 'G1',
+  name: 'Test League',
+  startDate: DateTime(2026, 1, 1),
+  isActive: true,
+  description: '',
+  participants: const [],
+  advanceCount: advanceCount,
+);
 
 GNEsportMatch _groupMatch({
   String id = 'M1',
@@ -60,21 +69,20 @@ GNEsportMatch _groupMatch({
   int? awayScore,
   GNUser? homeTeam,
   GNUser? awayTeam,
-}) =>
-    GNEsportMatch(
-      id: id,
-      homeTeamId: home,
-      awayTeamId: away,
-      homeScore: homeScore,
-      awayScore: awayScore,
-      date: DateTime(2026, 1, 1),
-      isFinished: isFinished,
-      leagueId: 'L1',
-      phase: 'group',
-      groupId: groupId,
-      homeTeam: homeTeam,
-      awayTeam: awayTeam,
-    );
+}) => GNEsportMatch(
+  id: id,
+  homeTeamId: home,
+  awayTeamId: away,
+  homeScore: homeScore,
+  awayScore: awayScore,
+  date: DateTime(2026, 1, 1),
+  isFinished: isFinished,
+  leagueId: 'L1',
+  phase: 'group',
+  groupId: groupId,
+  homeTeam: homeTeam,
+  awayTeam: awayTeam,
+);
 
 GNEsportLeagueStat _stat({
   String id = 'S1',
@@ -86,42 +94,40 @@ GNEsportLeagueStat _stat({
   int goals = 3,
   int goalsConceded = 1,
   GNUser? user,
-}) =>
-    GNEsportLeagueStat(
-      id: id,
-      userId: userId,
-      leagueId: 'L1',
-      matchesPlayed: wins + draws + losses,
-      goals: goals,
-      goalsConceded: goalsConceded,
-      wins: wins,
-      draws: draws,
-      losses: losses,
-      groupId: groupId,
-      user: user,
-    );
+}) => GNEsportLeagueStat(
+  id: id,
+  userId: userId,
+  leagueId: 'L1',
+  matchesPlayed: wins + draws + losses,
+  goals: goals,
+  goalsConceded: goalsConceded,
+  wins: wins,
+  draws: draws,
+  losses: losses,
+  groupId: groupId,
+  user: user,
+);
 
 TournamentDetailState _buildState({
   GNEsportLeague? league,
   List<GNEsportLeagueStat> participants = const [],
   List<GNEsportMatch> matches = const [],
   String? selectedGroupId,
-}) =>
-    TournamentDetailState(
-      league: league,
-      participants: participants,
-      matches: matches,
-      selectedGroupId: selectedGroupId,
-    );
+}) => TournamentDetailState(
+  league: league,
+  participants: participants,
+  matches: matches,
+  selectedGroupId: selectedGroupId,
+);
 
 Widget _wrap(_MockBloc bloc) => MaterialApp(
-      home: Scaffold(
-        body: BlocProvider<TournamentDetailBloc>.value(
-          value: bloc,
-          child: const GroupStandingsView(),
-        ),
-      ),
-    );
+  home: Scaffold(
+    body: BlocProvider<TournamentDetailBloc>.value(
+      value: bloc,
+      child: const GroupStandingsView(),
+    ),
+  ),
+);
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -139,8 +145,9 @@ void main() {
     setUp(() => bloc = _MockBloc());
     tearDown(() => bloc.close());
 
-    testWidgets('hiện thông báo chưa có vòng bảng khi matches trống',
-        (tester) async {
+    testWidgets('hiện thông báo chưa có vòng bảng khi matches trống', (
+      tester,
+    ) async {
       when(() => bloc.state).thenReturn(_buildState());
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
@@ -152,10 +159,9 @@ void main() {
         _groupMatch(id: 'M1', groupId: 'A'),
         _groupMatch(id: 'M2', groupId: 'B'),
       ];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-      ));
+      when(
+        () => bloc.state,
+      ).thenReturn(_buildState(league: _league(), matches: matches));
       when(() => bloc.add(any())).thenReturn(null);
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
@@ -169,13 +175,18 @@ void main() {
       final matches = [_groupMatch(id: 'M1', groupId: 'A')];
       final stats = [
         _stat(id: 'S1', userId: 'u1', groupId: 'A', wins: 1, user: u1),
-        _stat(id: 'S2', userId: 'u2', groupId: 'A', wins: 0, losses: 1, user: u2),
+        _stat(
+          id: 'S2',
+          userId: 'u2',
+          groupId: 'A',
+          wins: 0,
+          losses: 1,
+          user: u2,
+        ),
       ];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-        participants: stats,
-      ));
+      when(() => bloc.state).thenReturn(
+        _buildState(league: _league(), matches: matches, participants: stats),
+      );
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
       expect(find.text('Player u1'), findsOneWidget);
@@ -194,10 +205,9 @@ void main() {
           awayTeam: _user('u2'),
         ),
       ];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-      ));
+      when(
+        () => bloc.state,
+      ).thenReturn(_buildState(league: _league(), matches: matches));
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
       expect(find.text('2 – 1'), findsOneWidget);
@@ -212,13 +222,87 @@ void main() {
           awayTeam: _user('u2'),
         ),
       ];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-      ));
+      when(
+        () => bloc.state,
+      ).thenReturn(_buildState(league: _league(), matches: matches));
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
       expect(find.text('vs'), findsOneWidget);
+    });
+
+    testWidgets('sắp xếp theo điểm rồi hiệu số bàn thắng', (tester) async {
+      final matches = [_groupMatch(id: 'M1', groupId: 'A')];
+      final stats = [
+        _stat(
+          id: 'S1',
+          userId: 'u1',
+          groupId: 'A',
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 5,
+          goalsConceded: 4,
+          user: _user('u1'),
+        ),
+        _stat(
+          id: 'S2',
+          userId: 'u2',
+          groupId: 'A',
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 7,
+          goalsConceded: 4,
+          user: _user('u2'),
+        ),
+      ];
+      when(() => bloc.state).thenReturn(
+        _buildState(league: _league(), matches: matches, participants: stats),
+      );
+      await tester.pumpWidget(_wrap(bloc));
+      await tester.pump();
+      final firstTop = tester.getTopLeft(find.text('Player u2')).dy;
+      final secondTop = tester.getTopLeft(find.text('Player u1')).dy;
+      expect(firstTop, lessThan(secondTop));
+    });
+
+    testWidgets('chỉ rebuild khi selectedGroupId thay đổi', (tester) async {
+      final matches = [
+        _groupMatch(
+          id: 'M1',
+          groupId: 'A',
+          homeTeam: _user('u1'),
+          awayTeam: _user('u2'),
+        ),
+        _groupMatch(
+          id: 'M2',
+          groupId: 'B',
+          homeTeam: _user('u3'),
+          awayTeam: _user('u4'),
+        ),
+      ];
+      final participants = [
+        _stat(id: 'S1', userId: 'u1', groupId: 'A', wins: 1, user: _user('u1')),
+        _stat(id: 'S2', userId: 'u3', groupId: 'B', wins: 1, user: _user('u3')),
+      ];
+      final initial = _buildState(
+        league: _league(),
+        matches: matches,
+        participants: participants,
+      );
+      final next = _buildState(
+        league: _league(),
+        matches: matches,
+        participants: participants,
+        selectedGroupId: 'B',
+      );
+      when(() => bloc.state).thenReturn(initial);
+      when(() => bloc.stream).thenAnswer((_) => Stream.value(next));
+      when(() => bloc.add(any())).thenReturn(null);
+      await tester.pumpWidget(_wrap(bloc));
+      await tester.pumpAndSettle();
+      expect(find.text('Player u1'), findsNothing);
+      expect(find.text('Player u3'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('tap tab B gửi SelectGroup event', (tester) async {
@@ -226,10 +310,9 @@ void main() {
         _groupMatch(id: 'M1', groupId: 'A'),
         _groupMatch(id: 'M2', groupId: 'B'),
       ];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-      ));
+      when(
+        () => bloc.state,
+      ).thenReturn(_buildState(league: _league(), matches: matches));
       when(() => bloc.add(any())).thenReturn(null);
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
@@ -248,10 +331,9 @@ void main() {
           awayTeam: _user('u2'),
         ),
       ];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-      ));
+      when(
+        () => bloc.state,
+      ).thenReturn(_buildState(league: _league(), matches: matches));
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
       await tester.tap(find.text('vs'), warnIfMissed: false);
@@ -259,31 +341,52 @@ void main() {
       expect(find.text('Cập nhật kết quả'), findsNothing);
     });
 
-    testWidgets('hiện tất cả participants trong group khi advanceCount < tổng',
-        (tester) async {
-      final stats = [
-        _stat(id: 'S1', userId: 'u1', groupId: 'A', wins: 2, user: _user('u1')),
-        _stat(id: 'S2', userId: 'u2', groupId: 'A', wins: 1, user: _user('u2')),
-        _stat(id: 'S3', userId: 'u3', groupId: 'A', wins: 0, user: _user('u3')),
-      ];
-      final matches = [_groupMatch(id: 'M1', groupId: 'A')];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(advanceCount: 2),
-        matches: matches,
-        participants: stats,
-      ));
-      await tester.pumpWidget(_wrap(bloc));
-      await tester.pump();
-      expect(find.text('Player u1'), findsOneWidget);
-      expect(find.text('Player u3'), findsOneWidget);
-    });
+    testWidgets(
+      'hiện tất cả participants trong group khi advanceCount < tổng',
+      (tester) async {
+        final stats = [
+          _stat(
+            id: 'S1',
+            userId: 'u1',
+            groupId: 'A',
+            wins: 2,
+            user: _user('u1'),
+          ),
+          _stat(
+            id: 'S2',
+            userId: 'u2',
+            groupId: 'A',
+            wins: 1,
+            user: _user('u2'),
+          ),
+          _stat(
+            id: 'S3',
+            userId: 'u3',
+            groupId: 'A',
+            wins: 0,
+            user: _user('u3'),
+          ),
+        ];
+        final matches = [_groupMatch(id: 'M1', groupId: 'A')];
+        when(() => bloc.state).thenReturn(
+          _buildState(
+            league: _league(advanceCount: 2),
+            matches: matches,
+            participants: stats,
+          ),
+        );
+        await tester.pumpWidget(_wrap(bloc));
+        await tester.pump();
+        expect(find.text('Player u1'), findsOneWidget);
+        expect(find.text('Player u3'), findsOneWidget);
+      },
+    );
 
     testWidgets('header hiện đúng cột W D L GD Pts', (tester) async {
       final matches = [_groupMatch(id: 'M1', groupId: 'A')];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-      ));
+      when(
+        () => bloc.state,
+      ).thenReturn(_buildState(league: _league(), matches: matches));
       when(() => bloc.add(any())).thenReturn(null);
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
@@ -295,25 +398,68 @@ void main() {
     testWidgets('non-admin không thấy nút Thêm vòng', (tester) async {
       // currentUserIsLeagueAdmin = false khi Firebase không init
       final matches = [_groupMatch(id: 'M1', groupId: 'A')];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-      ));
+      when(
+        () => bloc.state,
+      ).thenReturn(_buildState(league: _league(), matches: matches));
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
       expect(find.text('Thêm vòng'), findsNothing);
     });
 
-    testWidgets('non-admin không thấy nút Thêm vòng khi có matches', (tester) async {
+    testWidgets('non-admin không thấy nút Thêm vòng khi có matches', (
+      tester,
+    ) async {
       final matches = [_groupMatch(id: 'M1', groupId: 'A')];
-      when(() => bloc.state).thenReturn(_buildState(
-        league: _league(),
-        matches: matches,
-      ));
+      when(
+        () => bloc.state,
+      ).thenReturn(_buildState(league: _league(), matches: matches));
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
       // Admin = false in test env (no Firebase) → button hidden
       expect(find.text('Thêm vòng'), findsNothing);
+    });
+
+    testWidgets('admin thấy nút Thêm vòng và bấm để tạo vòng mới', (
+      tester,
+    ) async {
+      final matches = [_groupMatch(id: 'M1', groupId: 'A')];
+      when(() => bloc.state).thenReturn(
+        _AdminTournamentDetailState(league: _league(), matches: matches),
+      );
+      when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
+      when(() => bloc.add(any())).thenReturn(null);
+      await tester.pumpWidget(_wrap(bloc));
+      await tester.pump();
+
+      await tester.tap(find.text('Thêm vòng'));
+      await tester.pump();
+
+      verify(() => bloc.add(any(that: isA<GenerateGroupRound>()))).called(1);
+    });
+
+    testWidgets('admin chạm trận để mở dialog cập nhật kết quả', (
+      tester,
+    ) async {
+      final matches = [
+        _groupMatch(
+          id: 'M1',
+          groupId: 'A',
+          homeTeam: _user('u1'),
+          awayTeam: _user('u2'),
+        ),
+      ];
+      when(() => bloc.state).thenReturn(
+        _AdminTournamentDetailState(league: _league(), matches: matches),
+      );
+      when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
+      await tester.pumpWidget(_wrap(bloc));
+      await tester.pump();
+
+      await tester.tap(find.text('vs'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Cập nhật kết quả'), findsOneWidget);
     });
   });
 

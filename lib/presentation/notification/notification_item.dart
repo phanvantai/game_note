@@ -17,14 +17,13 @@ class NotificationItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isUnread = !notification.isRead;
-    final accent = isUnread ? colorScheme.secondary : colorScheme.outline;
 
     return Slidable(
       endActionPane: ActionPane(
         motion: const StretchMotion(),
         children: [
           SlidableAction(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
             onPressed: (ctx) {
               context.read<NotificationBloc>().add(
                 NotificationEventDelete(notification.id),
@@ -36,7 +35,7 @@ class NotificationItem extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         onTap: () {
           if (!notification.isRead) {
             context.read<NotificationBloc>().add(
@@ -52,21 +51,13 @@ class NotificationItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: colorScheme.surface,
-            border: Border.all(
-              color: isUnread
-                  ? colorScheme.secondary.withValues(alpha: 0.28)
-                  : colorScheme.outline.withValues(alpha: 0.42),
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                accent.withValues(alpha: isUnread ? 0.13 : 0.04),
-                colorScheme.surface,
-              ],
-            ),
+            borderRadius: BorderRadius.circular(8),
+            color: isUnread
+                ? Color.alphaBlend(
+                    colorScheme.onSurface.withValues(alpha: 0.04),
+                    colorScheme.surfaceContainerHighest,
+                  )
+                : colorScheme.surfaceContainerHighest,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,12 +70,8 @@ class NotificationItem extends StatelessWidget {
                     height: 42,
                     padding: const EdgeInsets.all(9),
                     decoration: BoxDecoration(
-                      color: isUnread
-                          ? colorScheme.secondary.withValues(alpha: 0.13)
-                          : colorScheme.surfaceContainerHighest.withValues(
-                              alpha: 0.72,
-                            ),
-                      borderRadius: BorderRadius.circular(13),
+                      color: colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: notification.notificationType.icon,
                   ),
@@ -96,12 +83,8 @@ class NotificationItem extends StatelessWidget {
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: colorScheme.secondary,
+                          color: colorScheme.onSurface,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.surface,
-                            width: 2,
-                          ),
                         ),
                       ),
                     ),
@@ -170,8 +153,8 @@ class _TimeBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(9),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         DateFormat('dd/MM\nHH:mm').format(timestamp.toLocal()),
@@ -194,11 +177,11 @@ class _NotificationChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color = unread ? colorScheme.secondary : colorScheme.onSurfaceVariant;
+    final color = unread ? colorScheme.onSurface : colorScheme.onSurfaceVariant;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(

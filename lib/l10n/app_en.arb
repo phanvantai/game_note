@@ -439,6 +439,14 @@
   "tournamentTabResults": "Results",
   "tournamentTabCost": "Costs",
   "tournamentTabGroups": "Groups",
+  "tournamentGroupLabel": "Group {groupId}",
+  "@tournamentGroupLabel": {
+    "placeholders": {
+      "groupId": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentTabStandings": "Standings",
   "tournamentTabFixtures": "Schedule",
   "tournamentStatusTitle": "Tournament status",
@@ -483,6 +491,7 @@
   "tournamentShareStandingsSheetTitle": "Share standings",
   "tournamentPreparingShare": "Preparing...",
   "tournamentShareNow": "Share now",
+  "tournamentShareIncludeRankCost": "Include costs",
   "tournamentLightTheme": "Light",
   "tournamentDarkTheme": "Dark"
   ,"tournamentHeroEyebrow": "Tournament arena",
@@ -657,6 +666,7 @@
   "profileSignOut": "Sign out",
   "profileChangeAvatar": "Change avatar",
   "profileDeleteAvatar": "Delete avatar",
+  "profileEditTooltip": "Edit profile",
   "profileOfflineModeTitle": "Offline mode",
   "profileOfflineModeMessage": "Offline mode lets you create data on this device only. Data is stored locally and will not be synced.\n\nAre you sure you want to switch to offline mode?",
   "profileAccept": "Accept",

@@ -189,6 +189,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(prefs.getString(SharedPreferencesHelper.currentLocale), 'en');
+
+    await tester.tap(find.text('Ngôn ngữ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tiếng Việt').last);
+    await tester.pumpAndSettle();
+
+    expect(prefs.getString(SharedPreferencesHelper.currentLocale), 'vi');
   });
 
   testWidgets('settings navigation tiles use configured routes', (

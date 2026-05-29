@@ -17,21 +17,12 @@ class GroupItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colorScheme.secondary.withValues(alpha: 0.1),
-            colorScheme.surface,
-          ],
-        ),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
@@ -42,13 +33,10 @@ class GroupItem extends StatelessWidget {
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: colorScheme.secondary.withValues(alpha: 0.18),
-                  ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(6),
                   child: Image.asset(
                     'assets/images/pes_club_logo.png',
                     fit: BoxFit.cover,
@@ -85,7 +73,7 @@ class GroupItem extends StatelessWidget {
                         Icon(
                           Icons.people_alt_outlined,
                           size: 15,
-                          color: colorScheme.secondary,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 5),
                         Text(
@@ -101,20 +89,10 @@ class GroupItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(
-                    alpha: 0.72,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.chevron_right,
-                  color: colorScheme.onSurfaceVariant,
-                  size: 20,
-                ),
+              Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurfaceVariant,
+                size: 20,
               ),
             ],
           ),

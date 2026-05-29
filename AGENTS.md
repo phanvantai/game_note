@@ -109,6 +109,7 @@ Existing repo guidance targets very high coverage for production code under `lib
 
 ## Release / PR Guardrails
 
+- Never work directly on `main`. Before any file edit, commit, reset, merge, cherry-pick, or implementation/doc task, check the current branch and switch to a feature/release branch if on `main`.
 - Never push directly to `main`. All `main` changes must go through a pull request, even urgent release fixes.
 - Pull requests targeting `main` trigger the production mobile release flow, including build and Play Store deployment.
 - Before creating or updating a PR that targets `main`, explicitly confirm the intended release target with the user.
@@ -144,10 +145,51 @@ Existing repo guidance targets very high coverage for production code under `lib
 ## Preferred Agent Workflow
 
 1. Inspect `git status` and touched files before making edits.
-2. Read the local feature/module before changing it.
-3. Edit only the necessary files.
-4. Run the smallest useful verification first, then broader checks if needed.
-5. Report what changed, what was verified, and any remaining risk.
+2. Break the request into small, file-scoped tasks before implementation.
+3. Read the local feature/module before changing it.
+4. Edit only the necessary files.
+5. Run the smallest useful verification first, then broader checks if needed.
+6. Report what changed, what was verified, and any remaining risk.
+
+## Parallel Agent Workflow
+
+- For every non-trivial task flow, including feature implementation, bug fixes, refactors, UI work, test writing, and test failure repair, first split the work into small independent tasks.
+- When the current environment exposes a multi-agent tool, spawn subagents for independent tasks so work can run in parallel.
+- Prefer spawning each subagent with model `gpt-5.3-codex-spark` when model selection is supported.
+- Treat subagents as best-effort parallel help, not as blockers for the main task flow:
+  - the main agent must keep the critical path moving locally
+  - do not wait indefinitely for a subagent
+  - use short, bounded waits; if a subagent stalls, inspect the relevant diff directly
+  - if the file already has a correct patch or the main agent can finish safely, close the stalled subagent and continue
+  - do not wait for every subagent to return before reviewing completed work
+- Keep subagent ownership narrow:
+  - one production-code subagent may modify only one production file
+  - one test subagent may modify only one test file
+  - a subagent may read related files, but must not edit files outside its assigned ownership
+  - if a change requires touching multiple files, split it into multiple subagent tasks or keep integration edits in the main agent
+- Use subagents for clearly separated scopes, such as:
+  - one widget/page file
+  - one BLoC/repository/use-case file
+  - one failing test file
+  - one new test file mirroring a changed production file
+  - one isolated documentation/config file
+- Do not spawn subagents for tiny single-file edits where the overhead is clearly higher than the work, or when the environment does not expose a multi-agent tool.
+- Avoid spawning subagents when the expected coordination, wait time, or review cost is likely to exceed doing the edit directly.
+- Give each subagent a self-contained prompt with:
+  - the exact single file it may edit
+  - the related files it may read for context
+  - the test command or failure it should focus on
+  - constraints to avoid touching unrelated files
+  - a requirement to preserve user changes and not revert work from other agents
+  - a final summary listing changed files, root cause, and verification run
+- The main agent remains responsible for integration:
+  - decompose the work before dispatching subagents
+  - review subagent changes before accepting them
+  - trust the actual git diff and verification output more than the subagent's final message
+  - resolve conflicts or overlapping edits deliberately
+  - make any required cross-file wiring edits directly when coordination is safer than delegating
+  - run targeted tests after integration
+  - run broader `flutter test` or `flutter analyze` when practical before reporting completion
 
 ## Existing Project Context
 

@@ -1,3 +1,4 @@
+// coverage:ignore-file
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
@@ -950,6 +951,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tournamentTabGroups => 'Bảng';
 
   @override
+  String tournamentGroupLabel(String groupId) {
+    return 'Bảng $groupId';
+  }
+
+  @override
   String get tournamentTabStandings => 'BXH';
 
   @override
@@ -1046,6 +1052,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get tournamentShareNow => 'Chia sẻ ngay';
+
+  @override
+  String get tournamentShareIncludeRankCost => 'Kèm chi phí';
 
   @override
   String get tournamentLightTheme => 'Sáng';
@@ -1410,6 +1419,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get profileDeleteAvatar => 'Xoá ảnh đại diện';
+
+  @override
+  String get profileEditTooltip => 'Cập nhật thông tin';
 
   @override
   String get profileOfflineModeTitle => 'Chế độ Offline';

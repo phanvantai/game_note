@@ -1832,6 +1832,12 @@ abstract class AppLocalizations {
   /// **'Groups'**
   String get tournamentTabGroups;
 
+  /// No description provided for @tournamentGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {groupId}'**
+  String tournamentGroupLabel(String groupId);
+
   /// No description provided for @tournamentTabStandings.
   ///
   /// In en, this message translates to:
@@ -2011,6 +2017,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share now'**
   String get tournamentShareNow;
+
+  /// No description provided for @tournamentShareIncludeRankCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Include costs'**
+  String get tournamentShareIncludeRankCost;
 
   /// No description provided for @tournamentLightTheme.
   ///
@@ -2695,6 +2707,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete avatar'**
   String get profileDeleteAvatar;
+
+  /// No description provided for @profileEditTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get profileEditTooltip;
 
   /// No description provided for @profileOfflineModeTitle.
   ///

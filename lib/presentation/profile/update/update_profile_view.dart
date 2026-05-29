@@ -51,20 +51,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
           leading: const SmartBackButton(),
           title: Text(context.l10n.profileUpdateTitle),
         ),
-        body: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.secondary.withValues(alpha: 0.16),
-                Theme.of(context).scaffoldBackgroundColor,
-                colorScheme.primary.withValues(alpha: 0.06),
-              ],
-              stops: const [0, 0.46, 1],
-            ),
-          ),
+        body: AppPageBackground(
           child: SafeArea(
             child: Column(
               children: [
@@ -138,7 +125,7 @@ class _UpdateProfileViewState extends State<UpdateProfileView> {
                             backgroundColor: colorScheme.secondary,
                             foregroundColor: colorScheme.onSecondary,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           child: const Text(
@@ -179,26 +166,11 @@ class _FormHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.24),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: colorScheme.secondary,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: colorScheme.onSecondary),
-          ),
+          Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -207,8 +179,7 @@ class _FormHero extends StatelessWidget {
                 Text(
                   eyebrow,
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.secondary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -241,15 +212,6 @@ class _FormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
-      ),
-      child: Column(children: children),
-    );
+    return Column(children: children);
   }
 }

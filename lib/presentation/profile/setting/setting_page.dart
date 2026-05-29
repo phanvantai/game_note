@@ -5,6 +5,7 @@ import 'package:pes_arena/domain/repositories/esport/esport_group_repository.dar
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/core/localization/locale_notifier.dart';
+import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/routing.dart';
 import 'package:pes_arena/core/theme/theme_provider.dart';
@@ -41,20 +42,7 @@ class _SettingView extends StatelessWidget {
         leading: const SmartBackButton(),
         title: Text(l10n.settingsTitle),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.secondary.withValues(alpha: 0.16),
-              Theme.of(context).scaffoldBackgroundColor,
-              colorScheme.primary.withValues(alpha: 0.06),
-            ],
-            stops: const [0, 0.46, 1],
-          ),
-        ),
+      body: AppPageBackground(
         child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -267,25 +255,14 @@ class _SettingsHero extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = context.l10n;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.24),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: colorScheme.secondary,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(Icons.tune_outlined, color: colorScheme.onSecondary),
+          Icon(
+            Icons.tune_outlined,
+            size: 24,
+            color: colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -295,8 +272,7 @@ class _SettingsHero extends StatelessWidget {
                 Text(
                   l10n.settingsHeroEyebrow,
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.secondary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -329,22 +305,13 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.48)),
-      ),
-      child: Column(
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            children[i],
-            if (i != children.length - 1) const SizedBox(height: 8),
-          ],
+    return Column(
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          children[i],
+          if (i != children.length - 1) const SizedBox(height: 8),
         ],
-      ),
+      ],
     );
   }
 }
@@ -372,32 +339,21 @@ class _SettingActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final resolvedIconColor = iconColor ?? colorScheme.secondary;
+    final resolvedIconColor = iconColor ?? colorScheme.onSurfaceVariant;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.26),
-            ),
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: resolvedIconColor.withValues(alpha: 0.11),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Icon(icon, color: resolvedIconColor, size: 19),
-              ),
+              Icon(icon, color: resolvedIconColor, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

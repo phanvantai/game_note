@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  AppColors._();
+  AppColors._(); // coverage:ignore-line
 
   // --- Light Mode ---
   static const Color lightBackground = Color(0xFFFAFAFA);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceVariant = Color(0xFFF3F3F3);
-  static const Color lightOnBackground = Color(0xFF1A1A1A);
-  static const Color lightOnSurface = Color(0xFF4A4A4A);
-  static const Color lightOutline = Color(0xFFE0E0E0);
-  static const Color lightPrimary = Color(0xFF2D2D2D);
+  static const Color lightSurfaceVariant = Color(0xFFF4F4F5);
+  static const Color lightOnBackground = Color(0xFF111827);
+  static const Color lightOnSurface = Color(0xFF52525B);
+  static const Color lightOutline = Color(0xFFE4E4E7);
+  static const Color lightPrimary = Color(0xFF111827);
   static const Color lightOnPrimary = Color(0xFFFFFFFF);
 
   // --- Dark Mode ---
   static const Color darkBackground = Color(0xFF121212);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkSurfaceVariant = Color(0xFF2A2A2A);
-  static const Color darkOnBackground = Color(0xFFF0F0F0);
-  static const Color darkOnSurface = Color(0xFFB0B0B0);
-  static const Color darkOutline = Color(0xFF3A3A3A);
-  static const Color darkPrimary = Color(0xFFF0F0F0);
-  static const Color darkOnPrimary = Color(0xFF1A1A1A);
+  static const Color darkSurface = Color(0xFF1B1B1D);
+  static const Color darkSurfaceVariant = Color(0xFF262629);
+  static const Color darkOnBackground = Color(0xFFE7E5E0);
+  static const Color darkOnSurface = Color(0xFFBDBAB4);
+  static const Color darkOutline = Color(0xFF333336);
+  static const Color darkPrimary = Color(0xFFE7E5E0);
+  static const Color darkOnPrimary = Color(0xFF121212);
 
   // --- Shared Accent ---
-  static const Color accent = Color(0xFFE8734A);
+  static const Color accent = Color(0xFF111827);
   static const Color onAccent = Color(0xFFFFFFFF);
 
   // --- Semantic Colors (light) ---
@@ -55,10 +55,16 @@ class AppColors {
     brightness: Brightness.light,
     primary: lightPrimary,
     onPrimary: lightOnPrimary,
+    primaryContainer: lightSurfaceVariant,
+    onPrimaryContainer: lightOnBackground,
     secondary: accent,
     onSecondary: onAccent,
+    secondaryContainer: lightSurfaceVariant,
+    onSecondaryContainer: lightOnBackground,
     tertiary: accent,
     onTertiary: onAccent,
+    tertiaryContainer: lightSurfaceVariant,
+    onTertiaryContainer: lightOnBackground,
     error: lightError,
     onError: Color(0xFFFFFFFF),
     surface: lightSurface,
@@ -66,17 +72,23 @@ class AppColors {
     surfaceContainerHighest: lightSurfaceVariant,
     surfaceContainerLow: lightSurfaceVariant,
     outline: lightOutline,
-    outlineVariant: Color(0xFFEEEEEE),
+    outlineVariant: Color(0xFFF4F4F5),
   );
 
   static ColorScheme get darkColorScheme => const ColorScheme(
     brightness: Brightness.dark,
     primary: darkPrimary,
     onPrimary: darkOnPrimary,
-    secondary: accent,
-    onSecondary: onAccent,
-    tertiary: accent,
-    onTertiary: onAccent,
+    primaryContainer: darkSurfaceVariant,
+    onPrimaryContainer: darkOnBackground,
+    secondary: darkPrimary,
+    onSecondary: darkOnPrimary,
+    secondaryContainer: darkSurfaceVariant,
+    onSecondaryContainer: darkOnBackground,
+    tertiary: darkPrimary,
+    onTertiary: darkOnPrimary,
+    tertiaryContainer: darkSurfaceVariant,
+    onTertiaryContainer: darkOnBackground,
     error: darkError,
     onError: Color(0xFFFFFFFF),
     surface: darkSurface,
@@ -84,6 +96,6 @@ class AppColors {
     surfaceContainerHighest: darkSurfaceVariant,
     surfaceContainerLow: darkSurfaceVariant,
     outline: darkOutline,
-    outlineVariant: Color(0xFF2E2E2E),
+    outlineVariant: Color(0xFF262629),
   );
 }

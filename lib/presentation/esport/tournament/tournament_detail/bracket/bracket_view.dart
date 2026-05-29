@@ -114,30 +114,32 @@ class _RoundColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      width: 180,
-      margin: EdgeInsets.only(right: isLast ? 0 : 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: colorScheme.secondary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: colorScheme.secondary,
+    return Padding(
+      padding: EdgeInsets.only(right: isLast ? 0 : 12),
+      child: SizedBox(
+        width: 180,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: colorScheme.secondary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.secondary,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          ...matches.map((m) => _BracketMatchCard(match: m)),
-        ],
+            const SizedBox(height: 8),
+            ...matches.map((m) => _BracketMatchCard(match: m)),
+          ],
+        ),
       ),
     );
   }
@@ -177,31 +179,22 @@ class _BracketMatchCard extends StatelessWidget {
         match.isFinished && (match.awayScore ?? 0) > (match.homeScore ?? 0);
 
     final hasGroupStage = state.groupIds.isNotEmpty;
-    final canEdit =
-        isAdmin &&
-        match.homeTeamId.isNotEmpty &&
-        match.awayTeamId.isNotEmpty &&
-        (!hasGroupStage || groupStageComplete);
+    final hasPlayableTeams =
+        match.homeTeamId.isNotEmpty && match.awayTeamId.isNotEmpty;
+    final groupGateOpen = !hasGroupStage || groupStageComplete;
+    final canEdit = isAdmin && hasPlayableTeams && groupGateOpen;
 
     return GestureDetector(
       onTap: canEdit ? () => showUpdateMatchScoreDialog(context, match) : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: match.isFinished
-                ? colorScheme.secondary.withValues(alpha: 0.3)
-                : colorScheme.outline.withValues(alpha: 0.28),
+          color: Color.alphaBlend(
+            (match.isFinished ? colorScheme.secondary : colorScheme.outline)
+                .withValues(alpha: match.isFinished ? 0.07 : 0.02),
+            colorScheme.surfaceContainerHighest,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: 0.06),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           children: [

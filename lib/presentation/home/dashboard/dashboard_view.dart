@@ -56,13 +56,13 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(height: 14),
             StatCardGrid(stats: stats),
             const SizedBox(height: 20),
-            _SectionCard(
+            _SectionBlock(
               title: context.l10n.dashboardRecentForm10,
               icon: Icons.timeline_outlined,
               child: FormDotsRow(matches: stats.recentMatches),
             ),
             const SizedBox(height: 14),
-            _SectionCard(
+            _SectionBlock(
               title: context.l10n.dashboardRecentMatches,
               icon: Icons.sports_soccer_outlined,
               child: RecentMatchesList(matches: stats.recentMatches),
@@ -91,104 +91,76 @@ class _DashboardHero extends StatelessWidget {
     final winRate = stats.winRate == null
         ? '—'
         : '${(stats.winRate! * 100).round()}%';
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.26),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.query_stats_outlined,
-                  color: colorScheme.onSecondary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.dashboardHeroEyebrow,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.secondary,
-                        fontWeight: FontWeight.w800,
-                      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.query_stats_outlined,
+              size: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.dashboardHeroEyebrow,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      context.l10n.dashboardHeroTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              FilledButton.icon(
-                onPressed: () => context.push(Routing.dashboardDetail),
-                icon: const Icon(Icons.bar_chart_outlined, size: 18),
-                label: Text(context.l10n.dashboardViewDetail),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    context.l10n.dashboardHeroTitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            FilledButton.icon(
+              onPressed: () => context.push(Routing.dashboardDetail),
+              icon: const Icon(Icons.bar_chart_outlined, size: 18),
+              label: Text(context.l10n.dashboardViewDetail),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: _HeroMetric(
-                  label: context.l10n.dashboardWinRate,
-                  value: winRate,
-                  icon: Icons.trending_up,
-                ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Expanded(
+              child: _HeroMetric(
+                label: context.l10n.dashboardWinRate,
+                value: winRate,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _HeroMetric(
-                  label: context.l10n.dashboardGoalDifference,
-                  value: _signed(stats.goalDifference),
-                  icon: Icons.swap_vert,
-                ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _HeroMetric(
+                label: context.l10n.dashboardGoalDifference,
+                value: _signed(stats.goalDifference),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _HeroMetric(
-                  label: context.l10n.dashboardMatches,
-                  value: '${stats.matchesPlayed}',
-                  icon: Icons.sports_soccer,
-                ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _HeroMetric(
+                label: context.l10n.dashboardMatches,
+                value: '${stats.matchesPlayed}',
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -196,13 +168,8 @@ class _DashboardHero extends StatelessWidget {
 class _HeroMetric extends StatelessWidget {
   final String label;
   final String value;
-  final IconData icon;
 
-  const _HeroMetric({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
+  const _HeroMetric({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -217,8 +184,6 @@ class _HeroMetric extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 17, color: colorScheme.secondary),
-          const SizedBox(height: 8),
           Text(
             value,
             maxLines: 1,
@@ -241,12 +206,12 @@ class _HeroMetric extends StatelessWidget {
   }
 }
 
-class _SectionCard extends StatelessWidget {
+class _SectionBlock extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget child;
 
-  const _SectionCard({
+  const _SectionBlock({
     required this.title,
     required this.icon,
     required this.child,
@@ -256,27 +221,19 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.55)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: colorScheme.secondary),
-              const SizedBox(width: 8),
-              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        child,
+      ],
     );
   }
 }
