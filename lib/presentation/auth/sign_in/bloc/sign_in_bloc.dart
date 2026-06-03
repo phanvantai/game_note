@@ -9,83 +9,81 @@ part 'sign_in_event.dart';
 part 'sign_in_state.dart';
 
 class SignInBloc extends Bloc<SignInEvent, SignInState> {
-  SignInBloc() : super(const SignInState()) {
-    on<SignInPhoneChanged>(_onPhoneChanged);
-    on<SignInSubmitted>(_onSubmitted);
-
+  SignInBloc({GNAuth? auth})
+    : _auth = auth ?? getIt<GNAuth>(),
+      super(const SignInState()) {
+    on<AuthFormModeChanged>(_onModeChanged);
     on<EmailChanged>(_onEmailChanged);
     on<PasswordChanged>(_onPasswordChanged);
-    on<EmailSignInSubmitted>(_onEmailSignInSubmitted);
+    on<AuthFormSubmitted>(_onAuthFormSubmitted);
+    on<EmailSignInSubmitted>((event, emit) {
+      add(AuthFormSubmitted());
+    });
+  }
+
+  final GNAuth _auth;
+
+  Future<void> _onModeChanged(
+    AuthFormModeChanged event,
+    Emitter<SignInState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        mode: event.mode,
+        status: SignInStatus.initial,
+        emailError: '',
+        passwordError: '',
+      ),
+    );
   }
 
   Future<void> _onEmailChanged(
     EmailChanged event,
     Emitter<SignInState> emit,
   ) async {
-    // validate email
-    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-    if (!emailRegex.hasMatch(event.email)) {
-      emit(
-        state.copyWith(
-          email: event.email,
-          emailError: 'Vui lòng nhập email hợp lệ',
-        ),
-      );
-      return;
-    }
-    emit(state.copyWith(email: event.email));
+    emit(state.copyWith(email: event.email, emailError: ''));
   }
 
   Future<void> _onPasswordChanged(
     PasswordChanged event,
     Emitter<SignInState> emit,
   ) async {
-    // validate password
-    if (event.password.length < 6) {
-      emit(
-        state.copyWith(
-          password: event.password,
-          passwordError: 'Mật khẩu phải có ít nhất 6 ký tự',
-        ),
-      );
-      return;
-    }
-    emit(state.copyWith(password: event.password));
+    emit(state.copyWith(password: event.password, passwordError: ''));
   }
 
-  Future<void> _onEmailSignInSubmitted(
-    EmailSignInSubmitted event,
+  Future<void> _onAuthFormSubmitted(
+    AuthFormSubmitted event,
     Emitter<SignInState> emit,
   ) async {
     if (state.status == SignInStatus.loading) return;
 
-    // check valid input
-    debugPrint('onEmailSignInSubmitted');
-    if (state.email.isEmpty) {
-      emit(state.copyWith(emailError: 'Vui lòng nhập email'));
-      return;
-    }
-    if (state.password.isEmpty) {
-      emit(state.copyWith(passwordError: 'Vui lòng nhập mật khẩu'));
-      return;
-    }
-    if (state.emailError.isNotEmpty) {
-      return;
-    }
-    if (state.passwordError.isNotEmpty) {
-      return;
-    }
-    // do stuff
-    emit(state.copyWith(status: SignInStatus.loading));
-    //
-    final email = state.email;
-    final password = state.password;
-    // do sign in with firebase
-    try {
-      await getIt<GNAuth>().signInOrCreateUserWithEmailAndPassword(
-        email,
-        password,
+    final emailError = _emailError(state.email);
+    final passwordError = state.mode == AuthFormMode.resetPassword
+        ? ''
+        : _passwordError(state.password);
+    if (emailError.isNotEmpty || passwordError.isNotEmpty) {
+      emit(
+        state.copyWith(
+          status: SignInStatus.invalid,
+          emailError: emailError,
+          passwordError: passwordError,
+        ),
       );
+      return;
+    }
+
+    emit(state.copyWith(status: SignInStatus.loading));
+    final email = state.email.trim();
+    final password = state.password;
+    try {
+      switch (state.mode) {
+        case AuthFormMode.signIn:
+          await _auth.signInWithEmailAndPassword(email, password);
+        case AuthFormMode.register:
+          await _auth.createUserWithEmailAndPassword(email, password);
+        case AuthFormMode.resetPassword:
+          await _auth.sendPasswordResetEmail(email);
+      }
       emit(state.copyWith(status: SignInStatus.success));
     } catch (e) {
       if (kDebugMode) {
@@ -93,15 +91,7 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
       }
       if (e is FirebaseAuthException) {
         String error = '';
-        if (e.code == 'wrong-password') {
-          error = 'Mật khẩu không đúng';
-        } else if (e.code == 'too-many-requests') {
-          error = 'Quá nhiều yêu cầu, vui lòng thử lại sau';
-        } else if (e.code == 'user-not-found') {
-          error = 'Email không tồn tại';
-        } else {
-          error = 'Đã có lỗi xảy ra';
-        }
+        error = _firebaseAuthErrorMessage(e);
         emit(state.copyWith(status: SignInStatus.error, error: error));
         return;
       }
@@ -109,44 +99,39 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
     }
   }
 
-  Future<void> _onPhoneChanged(
-    SignInPhoneChanged event,
-    Emitter<SignInState> emit,
-  ) async {
-    emit(state.copyWith(phoneNumber: event.phone));
+  String _emailError(String email) {
+    final trimmed = email.trim();
+    if (trimmed.isEmpty) return 'Vui lòng nhập email';
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailRegex.hasMatch(trimmed)) return 'Vui lòng nhập email hợp lệ';
+    return '';
   }
 
-  Future<void> _onSubmitted(
-    SignInSubmitted event,
-    Emitter<SignInState> emit,
-  ) async {
-    // check valid input
-    debugPrint('onSignInSubmitted');
-    // do stuff
-    emit(state.copyWith(status: SignInStatus.loading));
-    //
-    final phoneNumber = _formatPhoneNumber(state.phoneNumber);
-    if (kDebugMode) {
-      print(phoneNumber);
-    }
-    // do sign in with firebase
-    try {
-      await getIt<GNAuth>().verifyPhoneNumber(phoneNumber);
-      emit(state.copyWith(status: SignInStatus.verify));
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-      emit(state.copyWith(status: SignInStatus.error, error: e.toString()));
-    }
+  String _passwordError(String password) {
+    if (password.isEmpty) return 'Vui lòng nhập mật khẩu';
+    if (password.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự';
+    return '';
   }
 
-  String _formatPhoneNumber(String phoneNumber) {
-    if (phoneNumber.startsWith('0')) {
-      return phoneNumber.replaceFirst('0', '+84');
-    } else {
-      return '+84$phoneNumber';
+  String _firebaseAuthErrorMessage(FirebaseAuthException e) {
+    if (e.code == 'wrong-password') {
+      return 'Mật khẩu không đúng';
     }
-    // return phoneNumber.replaceAll(RegExp(r'[^\d]'), '');
+    if (e.code == 'too-many-requests') {
+      return 'Quá nhiều yêu cầu, vui lòng thử lại sau';
+    }
+    if (e.code == 'user-not-found') {
+      return 'Email không tồn tại';
+    }
+    if (e.code == 'email-already-in-use') {
+      return 'Email đã được sử dụng';
+    }
+    if (e.code == 'invalid-email') {
+      return 'Email không hợp lệ';
+    }
+    if (e.code == 'weak-password') {
+      return 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+    return 'Đã có lỗi xảy ra';
   }
 }

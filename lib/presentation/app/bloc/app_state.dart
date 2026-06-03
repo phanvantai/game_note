@@ -8,8 +8,16 @@ part of 'app_bloc.dart';
 ///   queries with `currentUser == null` before auth resolves.
 /// - [unauthenticated]: Firebase confirmed no signed-in user. Router
 ///   bounces protected routes to /login with a `?next` param.
-/// - [authenticated]: a Firebase user is signed in.
-enum AppStatus { initializing, unauthenticated, authenticated }
+/// - [profileIncomplete]: a Firebase user is signed in, but the app profile is
+///   missing required display data.
+/// - [authenticated]: a Firebase user is signed in and has a complete app
+///   profile.
+enum AppStatus {
+  initializing,
+  unauthenticated,
+  profileIncomplete,
+  authenticated,
+}
 
 extension AppStatusX on AppStatus {
   bool get isAuthenticated => this == AppStatus.authenticated;
@@ -19,20 +27,28 @@ extension AppStatusX on AppStatus {
 class AppState extends Equatable {
   final AppStatus status;
   final bool enableFootballFeature;
+  final GNUser? currentUser;
 
   const AppState({
     this.status = AppStatus.initializing,
     this.enableFootballFeature = false,
+    this.currentUser,
   });
 
-  AppState copyWith({AppStatus? status, bool? enableFootballFeature}) {
+  AppState copyWith({
+    AppStatus? status,
+    bool? enableFootballFeature,
+    GNUser? currentUser,
+    bool clearCurrentUser = false,
+  }) {
     return AppState(
       status: status ?? this.status,
       enableFootballFeature:
           enableFootballFeature ?? this.enableFootballFeature,
+      currentUser: clearCurrentUser ? null : currentUser ?? this.currentUser,
     );
   }
 
   @override
-  List<Object?> get props => [status, enableFootballFeature];
+  List<Object?> get props => [status, enableFootballFeature, currentUser];
 }

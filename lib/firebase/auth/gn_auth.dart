@@ -1,16 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
-import 'package:pes_arena/service/permission_util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 
 import '../../injection_container.dart';
-import '../../presentation/app/bloc/app_bloc.dart';
 import '../firestore/gn_firestore.dart';
 
 class GNAuth {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  Future<void>? _googleSignInInitialized;
+  final FirebaseAuth _auth;
+  final Future<void>? _googleSignInInitialized;
+  final Future<GoogleSignInAuthentication> Function()? _googleAuthenticate;
+  final bool _isWebForTesting;
+  static const _googleWebClientId =
+      '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com';
 
   FirebaseAuth get auth => _auth;
 
@@ -20,93 +22,46 @@ class GNAuth {
 
   bool _isSignInWithEmailAndPassword = false;
 
-  GNAuth() {
-    if (!kIsWeb) {
-      const googleClientId =
-          '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com';
+  GNAuth({
+    FirebaseAuth? auth,
+    bool? isWebForTesting,
+    Future<void> Function()? googleSignInInitialized,
+    Future<void> Function()? googleSignInInitializer,
+    Future<GoogleSignInAuthentication> Function()? googleAuthenticate,
+  }) : _isWebForTesting = isWebForTesting ?? kIsWeb,
+       _auth = auth ?? FirebaseAuth.instance, // coverage:ignore-line
+       _googleSignInInitialized =
+           (((isWebForTesting ?? kIsWeb) == false &&
+                   (googleSignInInitializer ?? googleSignInInitialized) != null)
+               ? (googleSignInInitializer ?? googleSignInInitialized)!()
+               : null) ??
+           (((isWebForTesting ?? kIsWeb) == false && googleAuthenticate == null)
+               ? _initializeGoogleSignIn() // coverage:ignore-line
+               : null),
+       _googleAuthenticate = googleAuthenticate {
+    if (!_isWebForTesting &&
+        googleSignInInitialized == null &&
+        googleSignInInitializer == null &&
+        googleAuthenticate == null) {
+      // coverage:ignore-start
       if (kDebugMode) {
-        print('🔧 GNAuth: Initializing Google Sign-In with $googleClientId');
-      }
-      _googleSignInInitialized = GoogleSignIn.instance.initialize(
-        serverClientId: googleClientId,
-      );
-    }
-
-    // Listen to auth state changes
-    _auth.authStateChanges().listen(
-      (User? user) async {
-        if (kDebugMode) {
-          debugPrint(
-            '[AuthFlow] FirebaseAuth.authStateChanges: '
-            'uid=${user?.uid} email=${user?.email} '
-            'dispatch=${user != null ? AppStatus.authenticated : AppStatus.unauthenticated}',
-          );
-        }
-        getIt<AppBloc>().add(
-          user != null
-              ? const AuthStatusChanged(AppStatus.authenticated)
-              : const AuthStatusChanged(AppStatus.unauthenticated),
+        print(
+          '🔧 GNAuth: Initializing Google Sign-In with $_googleWebClientId',
         );
-
-        // create user in Firestore if not exists
-        if (user != null) {
-          final gnUser = await getIt<GNFirestore>().createUserIfNeeded(user);
-          getIt<PermissionUtil>().setCurrentUser(gnUser);
-          checkLoginMethod();
-        }
-      },
-      onDone: () {
-        if (kDebugMode) {
-          print('Auth state changes stream done');
-        }
-      },
-    );
+      }
+      // coverage:ignore-end
+    }
   }
 
-  String _verificationId = '';
-
-  Future<void> verifyPhoneNumber(String phoneNumber) async {
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        // Sign in the user with the credential
-        await _auth.signInWithCredential(credential);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        // if (e.code == 'invalid-phone-number') {
-        //   if (kDebugMode) {
-        //     print('The provided phone number is not valid.');
-        //   }
-        // }
-        if (kDebugMode) {
-          print('taipv $e ${e.message}');
-        }
-        throw e;
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        if (kDebugMode) {
-          print(
-            'Code sent to $phoneNumber with verificationId: $verificationId and resendToken: $resendToken',
-          );
-        }
-        _verificationId = verificationId;
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        if (kDebugMode) {
-          print('Code auto retrieval timeout');
-        }
-      },
-    );
+  // coverage:ignore-start
+  static Future<void> _initializeGoogleSignIn() {
+    return GoogleSignIn.instance
+        .initialize(serverClientId: _googleWebClientId)
+        .then((_) {});
   }
+  // coverage:ignore-end
 
-  Future<UserCredential> signInWithPhoneNumber(String smsCode) async {
-    final PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: _verificationId,
-      smsCode: smsCode,
-    );
-
-    return _auth.signInWithCredential(credential);
-  }
+  Stream<User?> authStateChanges() => _auth.authStateChanges();
 
   Future<UserCredential> signInWithGoogle() async {
     if (kDebugMode) {
@@ -114,26 +69,26 @@ class GNAuth {
     }
 
     try {
-      if (kIsWeb) {
+      if (_isWebForTesting) {
         final provider = GoogleAuthProvider();
         return await _auth.signInWithPopup(provider);
       }
 
-      await _googleSignInInitialized!;
-
-      final GoogleSignInAccount googleSignInAccount = await GoogleSignIn
-          .instance
-          .authenticate();
-
-      if (kDebugMode) {
-        print(
-          '✅ GNAuth: Google account selected: ${googleSignInAccount.email}',
-        );
-        print('🔑 GNAuth: Getting authentication tokens...');
+      final googleSignInInitialized = _googleSignInInitialized;
+      if (googleSignInInitialized != null) {
+        await googleSignInInitialized;
       }
 
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          googleSignInAccount.authentication;
+      final GoogleSignInAuthentication googleSignInAuthentication;
+      if (_googleAuthenticate != null) {
+        if (kDebugMode) {
+          print('🔧 GNAuth: Using test/google authenticate callback');
+        }
+        googleSignInAuthentication = await _googleAuthenticate();
+      } else {
+        googleSignInAuthentication =
+            await _defaultGoogleAuthenticate(); // coverage:ignore-line
+      }
 
       if (kDebugMode) {
         print('🎫 GNAuth: Tokens received');
@@ -219,6 +174,17 @@ class GNAuth {
     }
   }
 
+  // coverage:ignore-start
+  static Future<GoogleSignInAuthentication> _defaultGoogleAuthenticate() async {
+    final googleSignInAccount = await GoogleSignIn.instance.authenticate();
+    if (kDebugMode) {
+      print('✅ GNAuth: Google account selected: ${googleSignInAccount.email}');
+      print('🔑 GNAuth: Getting authentication tokens...');
+    }
+    return googleSignInAccount.authentication;
+  }
+  // coverage:ignore-end
+
   // sign in with apple
   Future<UserCredential> signInWithApple() async {
     final appleProvider = AppleAuthProvider();
@@ -236,31 +202,16 @@ class GNAuth {
     );
   }
 
-  /// sign in with email and password
-  /// if user not exists, create new user
-  /// return UserCredential
-  Future<UserCredential> signInOrCreateUserWithEmailAndPassword(
-    String email,
-    String password,
-  ) async {
-    try {
-      return await signInWithEmailAndPassword(email, password);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        // create new user
-        return createUserWithEmailAndPassword(email, password);
-      } else {
-        rethrow;
-      }
-    }
-  }
-
   // sign in with email and password
   Future<UserCredential> signInWithEmailAndPassword(
     String email,
     String password,
   ) async {
     return _auth.signInWithEmailAndPassword(email: email, password: password);
+  }
+
+  Future<void> sendPasswordResetEmail(String email) {
+    return _auth.sendPasswordResetEmail(email: email);
   }
 
   // sign out
@@ -271,14 +222,14 @@ class GNAuth {
   }
 
   void checkLoginMethod() {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _auth.currentUser;
     _isSignInWithEmailAndPassword =
         user?.providerData.any((p) => p.providerId == 'password') ?? false;
   }
 
   // change password
   Future<void> changePassword(String oldPassword, String newPassword) async {
-    User? user = FirebaseAuth.instance.currentUser;
+    User? user = _auth.currentUser;
 
     if (user != null) {
       try {

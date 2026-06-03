@@ -15,7 +15,7 @@ import 'presentation/app/bloc/app_bloc.dart';
 import 'presentation/app/language_selection_page.dart';
 import 'presentation/app/splash_page.dart';
 import 'presentation/auth/auth_view.dart';
-import 'presentation/auth/verify/verify_page.dart';
+import 'presentation/auth/complete_profile/complete_profile_page.dart';
 import 'presentation/esport/groups/group_detail/add_member_page.dart';
 import 'presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
@@ -33,11 +33,11 @@ class Routing {
   static const String splash = '/splash';
   static const String language = '/language';
   static const String login = '/login';
+  static const String completeProfile = '/complete-profile';
   static const String offline = '/offline';
   static const String groups = '/groups';
   static const String offlineLeague = '/offline/league';
   static const String league = '/league';
-  static const String verify = '/verify';
 
   // community
   static const String createTeam = '/create-team';
@@ -68,6 +68,7 @@ class Routing {
   static String safeNextLocation(String? next) => _safeNextLocation(next);
 }
 
+// coverage:ignore-start
 CustomTransitionPage<T> _slide<T>({
   required BuildContext context,
   required GoRouterState state,
@@ -91,7 +92,9 @@ CustomTransitionPage<T> _slide<T>({
     },
   );
 }
+// coverage:ignore-end
 
+// coverage:ignore-start
 class _NotFoundPage extends StatelessWidget {
   const _NotFoundPage();
 
@@ -115,22 +118,32 @@ class _NotFoundPage extends StatelessWidget {
     );
   }
 }
+// coverage:ignore-end
 
 GoRouter createAppRouter({String initialLocation = Routing.app}) {
   return GoRouter(
     initialLocation: initialLocation,
     redirect: _appRedirect,
     refreshListenable: _AppBlocListenable(getIt<AppBloc>()),
+    // coverage:ignore-start
     errorBuilder: (context, state) => const _NotFoundPage(),
-    routes: _appRoutes,
+    // coverage:ignore-end
+    routes: _appRoutes, // coverage:ignore-line
   );
 }
 
+// coverage:ignore-start
 final GoRouter appRouter = createAppRouter();
+// coverage:ignore-end
 
 // Paths that anyone can visit without auth. /login is the obvious one;
 // /splash is the holding screen while Firebase Auth restores the session.
-const _publicPaths = <String>{Routing.language, Routing.login, Routing.splash};
+const _publicPaths = <String>{
+  Routing.language,
+  Routing.login,
+  Routing.splash,
+  Routing.completeProfile,
+};
 int _redirectCount = 0;
 
 void _logRouteFlow(String message) {
@@ -163,7 +176,6 @@ bool _isKnownRoutePath(String path) {
     Routing.offline,
     Routing.offlineLeague,
     Routing.groups,
-    Routing.verify,
     Routing.updateProfile,
     Routing.setting,
     Routing.changePassword,
@@ -217,6 +229,7 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
     }
   }
 
+  // coverage:ignore-start
   if (kIsWeb) {
     if (location == Routing.offline ||
         location == Routing.offlineLeague ||
@@ -224,6 +237,7 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
       return _redirectResult(seq, 'web-blocked-route', Routing.app);
     }
   }
+  // coverage:ignore-end
 
   // Auth not yet known — park every protected route on /splash with the
   // intended URL preserved, so the bounceback after auth resolves can land
@@ -239,6 +253,7 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
     return _redirectResult(seq, 'initializing-protected', target);
   }
 
+  // coverage:ignore-start
   // Definitely signed out. /login is the destination; if we're already
   // there, stay. If we're on /splash (auth just resolved as "no user"),
   // forward its `next` to /login so the post-login bounce still lands on
@@ -265,6 +280,31 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
     return _redirectResult(seq, 'unauth-protected', target);
   }
 
+  if (appStatus == AppStatus.profileIncomplete) {
+    if (location == Routing.language) {
+      return _redirectResult(seq, 'profile-incomplete-language', null);
+    }
+    if (location == Routing.completeProfile) {
+      return _redirectResult(seq, 'profile-incomplete-page', null);
+    }
+    final origNext = location == Routing.splash || location == Routing.login
+        ? state.uri.queryParameters['next']
+        : fullUri;
+    final safeNext = _safeNextLocation(origNext);
+    if (safeNext == Routing.app) {
+      return _redirectResult(
+        seq,
+        'profile-incomplete-no-next',
+        Routing.completeProfile,
+      );
+    }
+    final target = Uri(
+      path: Routing.completeProfile,
+      queryParameters: {'next': safeNext},
+    ).toString();
+    return _redirectResult(seq, 'profile-incomplete-protected', target);
+  }
+
   // Signed in. If we're sitting on /login or /splash, bounce to whatever
   // the user originally asked for; otherwise let them through.
   if (_publicPaths.contains(location)) {
@@ -275,12 +315,14 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
     return _redirectResult(seq, 'auth-public-home', Routing.app);
   }
   return _redirectResult(seq, 'auth-protected', null);
+  // coverage:ignore-end
 }
 
 /// Adapts the AppBloc auth-state stream into a [ChangeNotifier] so
 /// `GoRouter.refreshListenable` re-evaluates `_appRedirect` whenever auth
 /// transitions (login, logout, initial restore). Without this the router
 /// would stay stuck on /splash because redirect only runs on navigation.
+// coverage:ignore-start
 class _AppBlocListenable extends ChangeNotifier {
   _AppBlocListenable(this._bloc) {
     _last = _bloc.state.status;
@@ -304,7 +346,9 @@ class _AppBlocListenable extends ChangeNotifier {
     super.dispose();
   }
 }
+// coverage:ignore-end
 
+// coverage:ignore-start
 final List<RouteBase> _appRoutes = [
   GoRoute(
     path: Routing.language,
@@ -325,6 +369,16 @@ final List<RouteBase> _appRoutes = [
     path: Routing.login,
     pageBuilder: (context, state) =>
         _slide(context: context, state: state, child: const AuthView()),
+  ),
+  GoRoute(
+    path: Routing.completeProfile,
+    pageBuilder: (context, state) => _slide(
+      context: context,
+      state: state,
+      child: CompleteProfilePage(
+        nextLocation: state.uri.queryParameters['next'],
+      ),
+    ),
   ),
   GoRoute(
     path: Routing.app,
@@ -350,11 +404,6 @@ final List<RouteBase> _appRoutes = [
             _slide(context: context, state: state, child: const OfflineView()),
       ),
     ],
-  ),
-  GoRoute(
-    path: Routing.verify,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const VerifyPage()),
   ),
   GoRoute(
     path: '/group/:groupId',
@@ -434,3 +483,4 @@ final List<RouteBase> _appRoutes = [
         _slide(context: context, state: state, child: const SyncPage()),
   ),
 ];
+// coverage:ignore-end

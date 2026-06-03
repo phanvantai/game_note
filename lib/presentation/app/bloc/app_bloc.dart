@@ -1,19 +1,45 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/service/permission_util.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';
 
 class AppBloc extends Bloc<AppEvent, AppState> {
-  AppBloc() : super(const AppState()) {
+  AppBloc({
+    GNAuth? auth,
+    GNFirestore? firestore,
+    PermissionUtil? permissionUtil,
+  }) : _auth = auth,
+       _firestore = firestore,
+       _permissionUtil = permissionUtil,
+       super(const AppState()) {
     if (kDebugMode) {
       debugPrint('[AuthFlow] AppBloc.init: status=${state.status}');
     }
     on<AuthStatusChanged>(_onAuthStatusChanged);
     on<InitApp>(_onInitApp);
     on<UpdateFootballFeature>(_onUpdateFootballFeature);
+    on<_FirebaseAuthUserChanged>(_onFirebaseAuthUserChanged);
+    on<RefreshCurrentUser>(_onRefreshCurrentUser);
+
+    _ensureAuthSubscription();
   }
+
+  GNAuth? _auth;
+  GNFirestore? _firestore;
+  PermissionUtil? _permissionUtil;
+  StreamSubscription<User?>? _authSubscription;
+  User? _lastFirebaseUser;
 
   void _onUpdateFootballFeature(
     UpdateFootballFeature event,
@@ -26,6 +52,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     if (kDebugMode) {
       debugPrint('[AuthFlow] AppBloc.InitApp: status=${state.status}');
     }
+    _ensureAuthSubscription();
   }
 
   void _onAuthStatusChanged(AuthStatusChanged event, Emitter<AppState> emit) {
@@ -36,5 +63,99 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       );
     }
     emit(state.copyWith(status: event.status));
+  }
+
+  void _ensureAuthSubscription() {
+    if (_authSubscription != null) return;
+
+    _auth ??= getIt.isRegistered<GNAuth>() ? getIt<GNAuth>() : null;
+    _firestore ??= getIt.isRegistered<GNFirestore>()
+        ? getIt<GNFirestore>()
+        : null;
+    _permissionUtil ??= getIt.isRegistered<PermissionUtil>()
+        ? getIt<PermissionUtil>()
+        : null;
+
+    final auth = _auth;
+    if (auth == null || _firestore == null || _permissionUtil == null) {
+      if (kDebugMode) {
+        debugPrint('[AuthFlow] AppBloc: auth services not ready, skip listen');
+      }
+      return;
+    }
+
+    _authSubscription = auth.authStateChanges().listen((user) {
+      add(_FirebaseAuthUserChanged(user));
+    });
+  }
+
+  Future<void> _onFirebaseAuthUserChanged(
+    _FirebaseAuthUserChanged event,
+    Emitter<AppState> emit,
+  ) async {
+    _lastFirebaseUser = event.user;
+    await _loadFirebaseUser(event.user, emit);
+  }
+
+  Future<void> _onRefreshCurrentUser(
+    RefreshCurrentUser event,
+    Emitter<AppState> emit,
+  ) async {
+    await _loadFirebaseUser(_lastFirebaseUser, emit);
+  }
+
+  Future<void> _loadFirebaseUser(User? user, Emitter<AppState> emit) async {
+    if (kDebugMode) {
+      debugPrint(
+        '[AuthFlow] AppBloc.loadFirebaseUser: uid=${user?.uid} email=${user?.email}',
+      );
+    }
+
+    if (user == null) {
+      _permissionUtil?.setCurrentUser(null);
+      emit(
+        state.copyWith(
+          status: AppStatus.unauthenticated,
+          clearCurrentUser: true,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final firestore = _firestore!;
+      final permissionUtil = _permissionUtil!;
+      final currentUser = await firestore.createUserIfNeeded(user);
+      permissionUtil.setCurrentUser(currentUser);
+      _auth?.checkLoginMethod();
+      final hasDisplayName =
+          currentUser.displayName != null &&
+          currentUser.displayName!.trim().isNotEmpty;
+      emit(
+        state.copyWith(
+          status: hasDisplayName
+              ? AppStatus.authenticated
+              : AppStatus.profileIncomplete,
+          currentUser: currentUser,
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[AuthFlow] AppBloc.loadFirebaseUser failed: $e');
+      }
+      _permissionUtil?.setCurrentUser(null);
+      emit(
+        state.copyWith(
+          status: AppStatus.unauthenticated,
+          clearCurrentUser: true,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _authSubscription?.cancel();
+    return super.close();
   }
 }

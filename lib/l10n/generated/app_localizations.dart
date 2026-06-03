@@ -254,6 +254,30 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get authSignIn;
 
+  /// No description provided for @authRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get authRegister;
+
+  /// No description provided for @authForgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password'**
+  String get authForgotPassword;
+
+  /// No description provided for @authResetPasswordSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send reset email'**
+  String get authResetPasswordSubmit;
+
+  /// No description provided for @authResetPasswordSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset email sent'**
+  String get authResetPasswordSent;
+
   /// No description provided for @authSignInSuccess.
   ///
   /// In en, this message translates to:
@@ -2587,6 +2611,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile setup'**
   String get profileSetupEyebrow;
+
+  /// No description provided for @profileCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile'**
+  String get profileCompleteTitle;
+
+  /// No description provided for @profileCompleteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a display name to keep using online features.'**
+  String get profileCompleteSubtitle;
+
+  /// No description provided for @profileContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get profileContinue;
 
   /// No description provided for @profileDisplayInfoTitle.
   ///

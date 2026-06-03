@@ -148,45 +148,36 @@ Existing repo guidance targets very high coverage for production code under `lib
 7. Clean up the merged remote/local branch and return to a clean `main`.
 8. Report what changed, what was verified, and any remaining risk.
 
-## Parallel Agent Workflow
+## Parallel Agent Workflow / Luồng làm việc đa tác nhân
 
-- For every non-trivial task flow, including feature implementation, bug fixes, refactors, UI work, test writing, and test failure repair, first split the work into small independent tasks.
-- When the current environment exposes a multi-agent tool, spawn subagents for independent tasks so work can run in parallel.
-- Prefer spawning each subagent with model `gpt-5.3-codex-spark` when model selection is supported.
-- Treat subagents as best-effort parallel help, not as blockers for the main task flow:
-  - the main agent must keep the critical path moving locally
-  - do not wait indefinitely for a subagent
-  - use short, bounded waits; if a subagent stalls, inspect the relevant diff directly
-  - if the file already has a correct patch or the main agent can finish safely, close the stalled subagent and continue
-  - do not wait for every subagent to return before reviewing completed work
-- Keep subagent ownership narrow:
-  - one production-code subagent may modify only one production file
-  - one test subagent may modify only one test file
-  - a subagent may read related files, but must not edit files outside its assigned ownership
-  - if a change requires touching multiple files, split it into multiple subagent tasks or keep integration edits in the main agent
-- Use subagents for clearly separated scopes, such as:
-  - one widget/page file
-  - one BLoC/repository/use-case file
-  - one failing test file
-  - one new test file mirroring a changed production file
-  - one isolated documentation/config file
-- Do not spawn subagents for tiny single-file edits where the overhead is clearly higher than the work, or when the environment does not expose a multi-agent tool.
-- Avoid spawning subagents when the expected coordination, wait time, or review cost is likely to exceed doing the edit directly.
-- Give each subagent a self-contained prompt with:
-  - the exact single file it may edit
-  - the related files it may read for context
-  - the test command or failure it should focus on
-  - constraints to avoid touching unrelated files
-  - a requirement to preserve user changes and not revert work from other agents
-  - a final summary listing changed files, root cause, and verification run
-- The main agent remains responsible for integration:
-  - decompose the work before dispatching subagents
-  - review subagent changes before accepting them
-  - trust the actual git diff and verification output more than the subagent's final message
-  - resolve conflicts or overlapping edits deliberately
-  - make any required cross-file wiring edits directly when coordination is safer than delegating
-  - run targeted tests after integration
-  - run broader `flutter test` or `flutter analyze` when practical before reporting completion
+- For every request that involves file edits, if a multi-agent tool is available, we MUST use subagents first and treat them as the execution path (for code, tests, docs, config, and generated files).
+  Nếu có công cụ đa tác nhân, mọi chỉnh sửa file phải đi qua subagent trước tiên (áp dụng cho code, test, docs, config, generated files).
+- Every spawned subagent must use model `gpt-5.3-codex-spark` when model selection is supported.
+  Mỗi subagent phải chạy bằng mô hình `gpt-5.3-codex-spark` khi có thể chọn model.
+- Each subagent edits exactly one file and is accountable only for that file.
+  Mỗi subagent chỉ được sửa đúng một file và chịu trách nhiệm duy nhất cho file đó.
+  - Do not overlap ownership between workers; if one change set touches many files, run one worker per file or use short, dependency-aware sequencing.
+- Main agent will not edit files directly except when:
+  - no multi-agent tool is available, or
+  - an emergency fallback is required to keep the request moving.
+  In normal flow, the main agent handles analysis, task decomposition, flow handling, coordination, integration review, verification, and reporting.
+  Khi không có cơ chế đa tác nhân hoặc có lý do khẩn cấp mới được sửa trực tiếp; bình thường main agent chỉ làm phân tích, chia việc, điều phối, tổng hợp, kiểm chứng và báo cáo.
+- Worker pool management rules:
+  - Keep active workers bounded (small fixed pool, e.g. 2–4 depending on task size) and avoid over-expansion.
+  - Use short bounded waits; review progress/partial results regularly.
+  - If work stalls, inspect the blocker quickly, reassign/fix scope, or cancel and reroute to another available worker.
+  - Close each worker after completion or as soon as it is no longer needed; never leave idle workers running.
+- Subagent task prompt must be narrow and self-contained, including:
+  - exact target file,
+  - allowed read-only context files,
+  - expected command(s) to verify its scope,
+  - a hard prohibition on touching unrelated files,
+  - and a short verification note tied to that one file.
+- Main agent must review subagent diffs before acceptance, and reject/resolve any overlapping edits, inconsistent assumptions, or policy breaches.
+- Integration and verification remain the main agent responsibility:
+  - collect and reconcile all file diffs,
+  - run dependency-aware verification (targeted tests/linters first, broader checks when practical),
+  - then report result, remaining risks, and next action.
 
 ## Existing Project Context
 

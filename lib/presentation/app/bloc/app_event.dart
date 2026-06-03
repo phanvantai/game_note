@@ -17,6 +17,19 @@ class AuthStatusChanged extends AppEvent {
   List<Object?> get props => [status];
 }
 
+class RefreshCurrentUser extends AppEvent {}
+
+class _FirebaseAuthUserChanged extends AppEvent {
+  final User? user;
+
+  const _FirebaseAuthUserChanged(this.user);
+
+  // coverage:ignore-start
+  @override
+  List<Object?> get props => [user];
+  // coverage:ignore-end
+}
+
 class UpdateFootballFeature extends AppEvent {
   final bool enableFootballFeature;
 

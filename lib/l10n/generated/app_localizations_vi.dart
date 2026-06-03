@@ -91,6 +91,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get authSignIn => 'Đăng nhập';
 
   @override
+  String get authRegister => 'Đăng ký';
+
+  @override
+  String get authForgotPassword => 'Quên mật khẩu';
+
+  @override
+  String get authResetPasswordSubmit => 'Gửi email đặt lại mật khẩu';
+
+  @override
+  String get authResetPasswordSent => 'Đã gửi email đặt lại mật khẩu';
+
+  @override
   String get authSignInSuccess => 'Đăng nhập thành công';
 
   @override
@@ -1356,6 +1368,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get profileSetupEyebrow => 'Profile setup';
+
+  @override
+  String get profileCompleteTitle => 'Hoàn thiện hồ sơ';
+
+  @override
+  String get profileCompleteSubtitle =>
+      'Nhập tên hiển thị để tiếp tục sử dụng các tính năng online.';
+
+  @override
+  String get profileContinue => 'Tiếp tục';
 
   @override
   String get profileDisplayInfoTitle => 'Thông tin hiển thị';

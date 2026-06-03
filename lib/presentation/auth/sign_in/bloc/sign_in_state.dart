@@ -1,10 +1,12 @@
 part of 'sign_in_bloc.dart';
 
-enum SignInStatus { initial, loading, verify, invalid, error, success }
+enum SignInStatus { initial, loading, invalid, error, success }
+
+enum AuthFormMode { signIn, register, resetPassword }
 
 class SignInState extends Equatable {
   final SignInStatus status;
-  final String phoneNumber;
+  final AuthFormMode mode;
   final String email;
   final String password;
   final String emailError;
@@ -13,7 +15,7 @@ class SignInState extends Equatable {
 
   const SignInState({
     this.status = SignInStatus.initial,
-    this.phoneNumber = '',
+    this.mode = AuthFormMode.signIn,
     this.error = '',
     this.email = '',
     this.password = '',
@@ -23,7 +25,7 @@ class SignInState extends Equatable {
 
   SignInState copyWith({
     SignInStatus? status,
-    String? phoneNumber,
+    AuthFormMode? mode,
     String? error,
     String? email,
     String? password,
@@ -32,7 +34,7 @@ class SignInState extends Equatable {
   }) {
     return SignInState(
       status: status ?? this.status,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
+      mode: mode ?? this.mode,
       error: error ?? '',
       email: email ?? this.email,
       password: password ?? this.password,
@@ -44,7 +46,7 @@ class SignInState extends Equatable {
   @override
   List<Object?> get props => [
     status,
-    phoneNumber,
+    mode,
     error,
     email,
     password,
