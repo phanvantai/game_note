@@ -91,6 +91,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSignIn => 'Sign in';
 
   @override
+  String get authRegister => 'Register';
+
+  @override
+  String get authForgotPassword => 'Forgot password';
+
+  @override
+  String get authResetPasswordSubmit => 'Send reset email';
+
+  @override
+  String get authResetPasswordSent => 'Password reset email sent';
+
+  @override
   String get authSignInSuccess => 'Signed in successfully';
 
   @override
@@ -1360,6 +1372,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSetupEyebrow => 'Profile setup';
+
+  @override
+  String get profileCompleteTitle => 'Complete your profile';
+
+  @override
+  String get profileCompleteSubtitle =>
+      'Enter a display name to keep using online features.';
+
+  @override
+  String get profileContinue => 'Continue';
 
   @override
   String get profileDisplayInfoTitle => 'Display info';

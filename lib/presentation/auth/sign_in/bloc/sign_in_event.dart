@@ -5,16 +5,14 @@ abstract class SignInEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class SignInPhoneChanged extends SignInEvent {
-  final String phone;
+class AuthFormModeChanged extends SignInEvent {
+  final AuthFormMode mode;
 
-  SignInPhoneChanged(this.phone);
+  AuthFormModeChanged(this.mode);
 
   @override
-  List<Object?> get props => [phone];
+  List<Object?> get props => [mode];
 }
-
-class SignInSubmitted extends SignInEvent {}
 
 class EmailChanged extends SignInEvent {
   final String email;
@@ -33,5 +31,7 @@ class PasswordChanged extends SignInEvent {
   @override
   List<Object?> get props => [password];
 }
+
+class AuthFormSubmitted extends SignInEvent {}
 
 class EmailSignInSubmitted extends SignInEvent {}

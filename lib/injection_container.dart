@@ -118,15 +118,17 @@ Future<void> init() async {
     );
   }
 
-  getIt.registerSingleton(AppBloc());
-
   // firebase service
-  getIt.registerSingleton(GNAuth());
   getIt.registerSingleton(GNFirestore());
+  getIt.registerSingleton(GNAuth());
   getIt.registerSingleton(GNStorage());
   if (!kIsWeb) {
     getIt.registerSingleton(GNFirebaseMessaging());
   }
+
+  getIt.registerSingleton(
+    AppBloc(auth: getIt(), firestore: getIt(), permissionUtil: getIt()),
+  );
 
   /// online mode
   // data

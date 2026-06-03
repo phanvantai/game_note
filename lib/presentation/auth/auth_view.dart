@@ -25,30 +25,13 @@ class AuthView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
               // App logo
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
-                child: Image.asset(AssetsPath.appIcon, width: 80, height: 80),
+                child: Image.asset(AssetsPath.appIcon, width: 76, height: 76),
               ),
-              const SizedBox(height: 16),
-              Text(
-                context.l10n.appName,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                context.l10n.authContinue,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 24),
               // Email sign-in form
               const SignInPage(),
               const SizedBox(height: 32),
