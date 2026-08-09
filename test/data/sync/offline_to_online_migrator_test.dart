@@ -250,8 +250,10 @@ void main() {
 
     test('does not call gateway during plan-building', () {
       final p1 = offlinePlayer(1, 'A');
-      final league =
-          offlineLeagueFixture(players: [p1], roundsMatches: const []);
+      final league = offlineLeagueFixture(
+        players: [p1],
+        roundsMatches: const [],
+      );
       migrator.buildPlan(
         offlineLeague: league,
         groupId: 'G',
@@ -320,8 +322,10 @@ void main() {
 
     test('throws on unknown offline player id in mapping', () {
       final p1 = offlinePlayer(1, 'A');
-      final league =
-          offlineLeagueFixture(players: [p1], roundsMatches: const []);
+      final league = offlineLeagueFixture(
+        players: [p1],
+        roundsMatches: const [],
+      );
       expect(
         () => migrator.buildPlan(
           offlineLeague: league,
@@ -369,8 +373,13 @@ void main() {
             2: const MapToExisting('uidB'),
           },
         ),
-        throwsA(isA<PlanTooLargeException>()
-            .having((e) => e.totalOps, 'totalOps', greaterThan(500))),
+        throwsA(
+          isA<PlanTooLargeException>().having(
+            (e) => e.totalOps,
+            'totalOps',
+            greaterThan(500),
+          ),
+        ),
       );
     });
   });
@@ -379,8 +388,10 @@ void main() {
     test('forwards plan to gateway.commitBatch', () async {
       when(() => gateway.commitBatch(any())).thenAnswer((_) async {});
       final p1 = offlinePlayer(1, 'A');
-      final league =
-          offlineLeagueFixture(players: [p1], roundsMatches: const []);
+      final league = offlineLeagueFixture(
+        players: [p1],
+        roundsMatches: const [],
+      );
       final plan = migrator.buildPlan(
         offlineLeague: league,
         groupId: 'G',
@@ -394,8 +405,10 @@ void main() {
     test('propagates gateway errors as-is', () async {
       when(() => gateway.commitBatch(any())).thenThrow(StateError('quota'));
       final p1 = offlinePlayer(1, 'A');
-      final league =
-          offlineLeagueFixture(players: [p1], roundsMatches: const []);
+      final league = offlineLeagueFixture(
+        players: [p1],
+        roundsMatches: const [],
+      );
       final plan = migrator.buildPlan(
         offlineLeague: league,
         groupId: 'G',

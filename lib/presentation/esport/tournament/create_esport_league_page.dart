@@ -5,6 +5,7 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/round_robin_scheduler.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
@@ -261,24 +262,39 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
       }
     }
 
-    final leagueId = await widget.onAddLeague(
-      name: _nameController.text.trim(),
-      groupId: _selectedGroup!.id,
-      startDate: _startDate,
-      endDate: _endDate,
-      description: _descController.text.trim(),
-      rankPayoutEnabled: cost.rankPayoutEnabled,
-      rankPayouts: cost.rankPayouts,
-      defaultMatchCost: cost.defaultMatchCost,
-      defaultPerGoalEnabled: cost.defaultPerGoalEnabled,
-      defaultCostPerGoal: cost.defaultCostPerGoal,
-      mode: _mode,
-      participants: participants,
-      groupCount: _groupCount,
-      advanceCount: _advanceCount,
-      knockoutSeeding: knockoutSeeding,
-      groupAssignment: groupAssignment,
-    );
+    final String leagueId;
+    try {
+      leagueId = await widget.onAddLeague(
+        name: _nameController.text.trim(),
+        groupId: _selectedGroup!.id,
+        startDate: _startDate,
+        endDate: _endDate,
+        description: _descController.text.trim(),
+        rankPayoutEnabled: cost.rankPayoutEnabled,
+        rankPayouts: cost.rankPayouts,
+        defaultMatchCost: cost.defaultMatchCost,
+        defaultPerGoalEnabled: cost.defaultPerGoalEnabled,
+        defaultCostPerGoal: cost.defaultCostPerGoal,
+        mode: _mode,
+        participants: participants,
+        groupCount: _groupCount,
+        advanceCount: _advanceCount,
+        knockoutSeeding: knockoutSeeding,
+        groupAssignment: groupAssignment,
+      );
+    } on RoundTooLargeException catch (e) {
+      // Nothing was persisted — the creation flow rolls the league doc back.
+      // Keep the wizard open so the user can drop a few players and retry.
+      if (mounted) {
+        showToast(context.l10n.tournamentRoundTooLarge(e.maxParticipants));
+      }
+      return;
+    } catch (_) {
+      // Without this the failure escapes an async button handler and the
+      // wizard just sits there, giving the user no sign anything went wrong.
+      if (mounted) showToast(context.l10n.commonErrorTitle);
+      return;
+    }
     if (mounted) Navigator.of(context).pop(leagueId);
   }
 

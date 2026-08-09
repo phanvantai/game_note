@@ -253,7 +253,10 @@ void main() {
     when(() => bloc.state).thenReturn(
       _MemberState(
         league: _league(),
-        matches: [_match(id: 'm1', matchday: 1), _match(id: 'm2')],
+        matches: [
+          _match(id: 'm1', matchday: 1),
+          _match(id: 'm2'),
+        ],
         participants: [_stat('u1'), _stat('u2')],
         member: true,
       ),

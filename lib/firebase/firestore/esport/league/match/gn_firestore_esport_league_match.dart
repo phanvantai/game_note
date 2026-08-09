@@ -22,28 +22,6 @@ class ConcurrentMatchUpdateException implements Exception {
       'someone else while you were editing it.';
 }
 
-/// Thrown when a league has so many participants that one round-robin leg
-/// cannot be written in a single Firestore transaction.
-///
-/// A leg is written atomically on purpose: chunked writes can leave a leg
-/// half-created, and no retry path can tell the difference between "finish
-/// this leg" and "start another one". Failing early with a clear error beats
-/// partial state that nothing repairs.
-class RoundTooLargeException implements Exception {
-  final int participantCount;
-  final int maxParticipants;
-
-  RoundTooLargeException({
-    required this.participantCount,
-    required this.maxParticipants,
-  });
-
-  @override
-  String toString() =>
-      'RoundTooLargeException: $participantCount participants exceeds the '
-      'maximum of $maxParticipants for a single atomically written leg.';
-}
-
 extension GnFirestoreEsportLeagueMatch on GNFirestore {
   Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId) {
     return firestore
@@ -98,7 +76,7 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     if (schedule.length + 1 > _kTransactionLimit) {
       throw RoundTooLargeException(
         participantCount: uniqueTeamIds.length,
-        maxParticipants: _maxParticipantsPerLeg,
+        maxParticipants: kMaxRoundRobinParticipants,
       );
     }
 
@@ -130,7 +108,21 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         GNEsportLeague.fieldMatchdayCount: allocated + matchdaysInLeg,
       }, SetOptions(merge: true));
 
-      for (final pairing in schedule) {
+      // Another client may have reserved legs between the orientation read
+      // above and this transaction. Firestore retries the transaction body,
+      // but the schedule was built outside it and cannot be recomputed here —
+      // transactions cannot run collection queries. Correcting the
+      // alternation from the counter gap achieves the same result.
+      final pairings =
+          shouldFlipForMissedLegs(
+            expectedAllocated: legacySeed,
+            actualAllocated: allocated,
+            matchdaysInLeg: matchdaysInLeg,
+          )
+          ? flipPairings(schedule)
+          : schedule;
+
+      for (final pairing in pairings) {
         final matchId = firestore.collection(matchPath).doc().id;
         final match = GNEsportMatch(
           id: matchId,
@@ -624,11 +616,6 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
 
   /// Firestore caps a transaction at 500 operations.
   static const int _kTransactionLimit = 500;
-
-  /// Largest participant count whose leg still fits one transaction:
-  /// `n(n - 1) / 2` matches plus the counter update must stay within
-  /// [_kTransactionLimit]. 32 players → 496 matches; 33 → 528.
-  static const int _maxParticipantsPerLeg = 32;
 
   /// Writes [docs] (path → data pairs) in chunks of [_kBatchLimit] to stay
   /// under Firestore's 500-write-per-batch ceiling.

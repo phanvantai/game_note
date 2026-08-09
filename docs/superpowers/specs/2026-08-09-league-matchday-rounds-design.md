@@ -112,10 +112,18 @@ This rule is preferred over a simpler `legIndex.isOdd` flip because it stays
 correct when the participant list changes between legs — a leg-parity counter
 would mis-orient pairs that skipped a leg.
 
-Orientation is computed from a read taken outside the transaction. A stale read
-here is cosmetic only: the worst case is one pair getting a less-balanced
-home/away assignment. It cannot corrupt numbering, which is what the
-transaction protects.
+Orientation is computed from a read taken outside the transaction, because
+Firestore transactions cannot run collection queries — `Transaction` only
+exposes `get` on a `DocumentReference`, so `leagues_matches` cannot be re-read
+inside the callback and the schedule cannot simply be rebuilt on retry.
+
+The staleness is corrected instead of tolerated. `shouldFlipForMissedLegs`
+compares how many matchdays existed when orientation was computed against what
+the transaction actually finds on the counter. Each whole leg allocated in
+between flips which side of the alternation the built schedule belongs on, so
+an odd gap means the schedule is flipped wholesale via `flipPairings`. Two
+clients generating at once therefore still produce mirrored legs rather than
+two identical ones.
 
 **Duplicate handling.** `teamIds` is de-duplicated first, preserving the
 existing `_uniqueTeamIds` behaviour.
@@ -163,6 +171,12 @@ league in the app's lifetime, and the failure mode is a cosmetic duplicate
 matchday number rather than data loss. Adding a migration to pre-seed every
 league is not worth it.
 
+**Testing note:** `fake_cloud_firestore` is single-threaded, so no test here
+produces a real race. What the tests pin is the contract the race relies on —
+`shouldFlipForMissedLegs` as a pure function across every gap size, and the
+Firestore-level behaviour when the counter is already ahead of the matches the
+schedule was built from.
+
 #### Atomicity
 
 `_writeBatched` commits independent chunks of 499. With 33 participants a leg
@@ -185,7 +199,25 @@ repairs. `_writeBatched` stays in place for `generateGroupRound`,
 If a league ever legitimately needs more than 32 participants, the fix is a
 resumable generation record — explicitly deferred, not designed here.
 
-### 4. Presentation
+### 4. Creation flow
+
+`CreateEsportLeaguePage._submit` awaited `onAddLeague` with no `try`/`catch`.
+Any failure there escaped an async button handler: the wizard stayed open with
+no message and no indication anything had gone wrong. `RoundTooLargeException`
+made that path newly reachable — the wizard only validates the power-of-two
+rule for cup mode, and `tournament_view.dart` calls `generateRound` directly
+during league creation, where the rollback deletes the league and rethrows.
+
+`_submit` now catches: `RoundTooLargeException` shows the localized limit
+message, anything else shows `commonErrorTitle`. Either way the wizard stays
+open so the user can adjust and retry. This also closes the pre-existing hole
+for every other creation failure.
+
+`RoundTooLargeException` and the `kMaxRoundRobinParticipants` constant live in
+`round_robin_scheduler.dart` rather than the Firestore extension, so the
+presentation layer can catch the exception without importing a Firestore file.
+
+### 5. Presentation
 
 **Grouping (new file):**
 `lib/presentation/esport/tournament/tournament_detail/matches/fixture_grouping.dart`
@@ -209,7 +241,7 @@ tab keeps its flat list and name search.
 `tournamentRoundTooLarge` toast instead of leaking `e.toString()` into
 `errorMessage`. Other exceptions keep the current behaviour.
 
-### 5. Offline-to-online migrator
+### 6. Offline-to-online migrator
 
 `_buildOnlineMatches` in `lib/data/sync/offline_to_online_migrator.dart`
 already iterates `offlineLeague.rounds`. It sets `matchday: roundIndex + 1` on
@@ -220,7 +252,7 @@ The migrator also writes `matchdayCount = offlineLeague.rounds.length` on the
 created league document, so the first online `generateRound` after a migration
 continues from the right number instead of restarting at 1.
 
-### 6. Localization
+### 7. Localization
 
 New keys in `lib/l10n/app_en.arb` / `app_vi.arb`:
 
@@ -285,7 +317,7 @@ tests in the same change.
 
 | Test file | Cases |
 |---|---|
-| `test/firebase/firestore/esport/league/match/round_robin_scheduler_test.dart` (new) | 6 teams → 5 matchdays × 3 matches; every pair appears exactly once; every team appears exactly once per matchday; 5 teams (odd) → 5 matchdays with one team resting each; second leg mirrors home/away of the first; a pair that skipped a leg still orients correctly; duplicate ids de-duplicated; fewer than 2 teams → empty |
+| `test/firebase/firestore/esport/league/match/round_robin_scheduler_test.dart` (new) | `shouldFlipForMissedLegs` across gap sizes 0, 1, 2, 3, a partial leg, a negative gap, and a zero-length leg; `flipPairings` swaps sides and keeps matchdays; 6 teams → 5 matchdays × 3 matches; every pair appears exactly once; every team appears exactly once per matchday; 5 teams (odd) → 5 matchdays with one team resting each; second leg mirrors home/away of the first; a pair that skipped a leg still orients correctly; duplicate ids de-duplicated; fewer than 2 teams → empty |
 | `test/firebase/firestore/esport/league/match/gn_firestore_esport_league_match_test.dart` (extend) | matchday persisted on generated docs; `matchdayCount` written to the league doc; a second `generateRound` continues from 6; a legacy league with no counter seeds from `max(matchday)`; a legacy league with no matchday at all starts at 1; **two sequential reservations never overlap** (fake_cloud_firestore is single-threaded, so this asserts the counter contract rather than a true race); **deleting every match of the last matchday does not free its number**; 33 participants throws `RoundTooLargeException` and writes nothing; 32 participants succeeds |
 | `test/firebase/firestore/esport/league/gn_esport_match_test.dart` (extend) | `matchday` round-trips through `toMap`/`fromMap`; absent field → `null`; `copyWith` and `props` include it |
 | `test/firebase/firestore/esport/league/gn_esport_league_test.dart` (extend) | `toMap()` does **not** contain `matchdayCount`, so `updateLeague` cannot clobber it |
@@ -293,6 +325,7 @@ tests in the same change.
 | `test/presentation/esport/tournament/tournament_detail/matches/matches_view_test.dart` (extend) | matchday headers render; "other matches" header renders only when such matches exist; the results tab stays flat |
 | `test/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item_test.dart` (extend) | badge shown when `matchday != null`, hidden otherwise; renders `V3` under `vi` and `MD 3` under `en` |
 | `test/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc_test.dart` (extend) | `RoundTooLargeException` surfaces the localized toast, not `e.toString()` |
+| `test/presentation/esport/tournament/create_esport_league_page_test.dart` (extend) | over the participant limit → localized toast and the wizard stays open; any other creation error → error toast, wizard stays open |
 | `test/data/sync/offline_to_online_migrator_test.dart` (extend) | migrated matches carry `matchday = roundIndex + 1`; league doc carries `matchdayCount = rounds.length` |
 
 Renaming `tournamentAddRound`, `tournamentRoundCreated`, and
@@ -312,6 +345,7 @@ change does not widen — verified by measuring the same files on `main`:
 | File | Uncovered | Status |
 |---|---|---|
 | `offline_to_online_migrator.dart` | `_defaultIdGenerator` (Firebase glue), `_parseDate` | Identical on `main` |
+| `create_esport_league_page.dart` | Large untested widget-build sections | Pre-existing; every line this change adds is covered |
 | `tournament_detail_bloc.dart` | `_auditStats` debug block, `_AuditTotals` | Identical on `main` |
 
 Not verified on a device — no manual run of the app was performed.
@@ -341,3 +375,21 @@ test at `test/firebase/firestore/esport/league/match/gn_esport_match_test.dart`
 and called it new. That file already exists one directory up, at
 `test/firebase/firestore/esport/league/gn_esport_match_test.dart`; the matchday
 cases were added there instead of creating a duplicate.
+
+### Second review round
+
+- **Creation flow could not surface the limit.** The wizard validated only the
+  cup power-of-two rule, and `_submit` awaited `onAddLeague` without a
+  `try`/`catch`, so `RoundTooLargeException` escaped an async handler silently.
+  Fixed in `_submit`, which also closes the same hole for every other creation
+  failure. See Creation flow above.
+- **Concurrent generation could produce two legs with the same orientation.**
+  The reviewer's suggestion — recompute the schedule when the transaction
+  retries — is not implementable: Firestore transactions cannot run collection
+  queries, so `leagues_matches` cannot be re-read inside the callback. Solved
+  instead by correcting the alternation from the counter gap
+  (`shouldFlipForMissedLegs`), which needs no extra read and is a pure,
+  fully-tested function.
+- **Formatting.** The seven files in the diff were run through `dart format`.
+  The repo has ~25 further unformatted files outside this change; those were
+  left alone rather than padding the diff.

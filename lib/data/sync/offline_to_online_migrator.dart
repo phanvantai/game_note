@@ -151,7 +151,11 @@ class OfflineToOnlineMigrator {
     required Map<int, String> playerIdToUid,
   }) {
     final result = <GNEsportMatch>[];
-    for (int roundIndex = 0; roundIndex < offlineLeague.rounds.length; roundIndex++) {
+    for (
+      int roundIndex = 0;
+      roundIndex < offlineLeague.rounds.length;
+      roundIndex++
+    ) {
       final round = offlineLeague.rounds[roundIndex];
       for (final m in round.matches) {
         if (!_isCompleted(m)) continue;

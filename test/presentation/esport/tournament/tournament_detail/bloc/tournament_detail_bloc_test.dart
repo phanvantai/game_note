@@ -9,7 +9,7 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
-import 'package:pes_arena/firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/round_robin_scheduler.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
@@ -101,17 +101,19 @@ void main() {
   setUp(() {
     repo = _MockRepo();
     toasts = [];
-    setShowToastImpl((msg, {gravity = ToastGravity.BOTTOM}) =>
-        toasts.add(msg));
+    setShowToastImpl((msg, {gravity = ToastGravity.BOTTOM}) => toasts.add(msg));
 
     // Streams thường được listen ở init flows — stub bằng empty stream để
     // các handler nào subscribe không crash.
-    when(() => repo.listenForLeagueStats(any()))
-        .thenAnswer((_) => const Stream.empty());
-    when(() => repo.listenForMatchesUpdated(any()))
-        .thenAnswer((_) => const Stream.empty());
-    when(() => repo.listenForLeagueUpdated(any()))
-        .thenAnswer((_) => const Stream.empty());
+    when(
+      () => repo.listenForLeagueStats(any()),
+    ).thenAnswer((_) => const Stream.empty());
+    when(
+      () => repo.listenForMatchesUpdated(any()),
+    ).thenAnswer((_) => const Stream.empty());
+    when(
+      () => repo.listenForLeagueUpdated(any()),
+    ).thenAnswer((_) => const Stream.empty());
   });
 
   tearDown(() {
@@ -130,13 +132,15 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'không làm gì khi state.league == null',
       build: build,
-      act: (bloc) => bloc.add(const UpdateLeagueCostConfig(
-        rankPayoutEnabled: true,
-        rankPayouts: [50000],
-        defaultMatchCost: 50000,
-        defaultPerGoalEnabled: false,
-        defaultCostPerGoal: 0,
-      )),
+      act: (bloc) => bloc.add(
+        const UpdateLeagueCostConfig(
+          rankPayoutEnabled: true,
+          rankPayouts: [50000],
+          defaultMatchCost: 50000,
+          defaultPerGoalEnabled: false,
+          defaultCostPerGoal: 0,
+        ),
+      ),
       expect: () => const <TournamentDetailState>[],
       verify: (_) => verifyNever(() => repo.updateLeague(any())),
     );
@@ -147,13 +151,15 @@ void main() {
         when(() => repo.updateLeague(any())).thenAnswer((_) async {});
         return buildWithLeague(_league());
       },
-      act: (bloc) => bloc.add(const UpdateLeagueCostConfig(
-        rankPayoutEnabled: true,
-        rankPayouts: [50000, 100000],
-        defaultMatchCost: 80000,
-        defaultPerGoalEnabled: true,
-        defaultCostPerGoal: 70000,
-      )),
+      act: (bloc) => bloc.add(
+        const UpdateLeagueCostConfig(
+          rankPayoutEnabled: true,
+          rankPayouts: [50000, 100000],
+          defaultMatchCost: 80000,
+          defaultPerGoalEnabled: true,
+          defaultCostPerGoal: 70000,
+        ),
+      ),
       expect: () => [
         // emit loading
         isA<TournamentDetailState>().having(
@@ -164,9 +170,15 @@ void main() {
         // emit success với league mới
         isA<TournamentDetailState>()
             .having((s) => s.viewStatus, 'success', ViewStatus.success)
-            .having((s) => s.league?.rankPayoutEnabled, 'rankPayoutEnabled', true)
-            .having((s) => s.league?.rankPayouts, 'rankPayouts',
-                [50000, 100000])
+            .having(
+              (s) => s.league?.rankPayoutEnabled,
+              'rankPayoutEnabled',
+              true,
+            )
+            .having((s) => s.league?.rankPayouts, 'rankPayouts', [
+              50000,
+              100000,
+            ])
             .having(
               (s) => s.league?.defaultMatchCost,
               'defaultMatchCost',
@@ -184,8 +196,7 @@ void main() {
             ),
       ],
       verify: (_) {
-        final captured =
-            verify(() => repo.updateLeague(captureAny())).captured;
+        final captured = verify(() => repo.updateLeague(captureAny())).captured;
         expect(captured, hasLength(1));
         final passed = captured.single as GNEsportLeague;
         expect(passed.rankPayoutEnabled, isTrue);
@@ -200,17 +211,18 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'emit failure khi repo throw',
       build: () {
-        when(() => repo.updateLeague(any()))
-            .thenThrow(Exception('boom'));
+        when(() => repo.updateLeague(any())).thenThrow(Exception('boom'));
         return buildWithLeague(_league());
       },
-      act: (bloc) => bloc.add(const UpdateLeagueCostConfig(
-        rankPayoutEnabled: false,
-        rankPayouts: [],
-        defaultMatchCost: 50000,
-        defaultPerGoalEnabled: false,
-        defaultCostPerGoal: 0,
-      )),
+      act: (bloc) => bloc.add(
+        const UpdateLeagueCostConfig(
+          rankPayoutEnabled: false,
+          rankPayouts: [],
+          defaultMatchCost: 50000,
+          defaultPerGoalEnabled: false,
+          defaultCostPerGoal: 0,
+        ),
+      ),
       expect: () => [
         isA<TournamentDetailState>().having(
           (s) => s.viewStatus,
@@ -219,8 +231,7 @@ void main() {
         ),
         isA<TournamentDetailState>()
             .having((s) => s.viewStatus, 'failure', ViewStatus.failure)
-            .having((s) => s.errorMessage, 'errorMessage',
-                contains('boom')),
+            .having((s) => s.errorMessage, 'errorMessage', contains('boom')),
       ],
     );
   });
@@ -229,8 +240,9 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'success: emit league sau khi load',
       build: () {
-        when(() => repo.getLeague('L1'))
-            .thenAnswer((_) async => _league(id: 'L1'));
+        when(
+          () => repo.getLeague('L1'),
+        ).thenAnswer((_) async => _league(id: 'L1'));
         when(() => repo.getParticipantsAndMatches('L1')).thenAnswer(
           (_) async => const LeagueDetailData(participants: [], matches: []),
         );
@@ -259,8 +271,11 @@ void main() {
       expect: () => [
         isA<TournamentDetailState>()
             .having((s) => s.viewStatus, 'failure', ViewStatus.failure)
-            .having((s) => s.errorMessage, 'errorMessage',
-                'Không tìm thấy giải đấu'),
+            .having(
+              (s) => s.errorMessage,
+              'errorMessage',
+              'Không tìm thấy giải đấu',
+            ),
       ],
     );
 
@@ -276,8 +291,11 @@ void main() {
       act: (bloc) => bloc.add(const GetLeague('L1')),
       skip: 1,
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -318,9 +336,8 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'cập nhật state.league.status local (không gọi repo)',
       build: () => buildWithLeague(_league(status: 'ongoing')),
-      act: (bloc) => bloc.add(
-        const ChangeLeagueStatus(GNEsportLeagueStatus.finished),
-      ),
+      act: (bloc) =>
+          bloc.add(const ChangeLeagueStatus(GNEsportLeagueStatus.finished)),
       expect: () => [
         isA<TournamentDetailState>().having(
           (s) => s.league?.status,
@@ -349,10 +366,16 @@ void main() {
       },
       act: (bloc) => bloc.add(SubmitLeagueStatus()),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'success', ViewStatus.success),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'success',
+          ViewStatus.success,
+        ),
       ],
       verify: (_) {
         verify(() => repo.updateLeague(any())).called(1);
@@ -368,10 +391,16 @@ void main() {
       },
       act: (bloc) => bloc.add(SubmitLeagueStatus()),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -393,10 +422,16 @@ void main() {
       },
       act: (bloc) => bloc.add(InactiveLeague()),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'success', ViewStatus.success),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'success',
+          ViewStatus.success,
+        ),
       ],
       verify: (_) {
         verify(() => repo.inactiveLeague(any())).called(1);
@@ -424,8 +459,7 @@ void main() {
         );
         return build();
       },
-      act: (bloc) =>
-          bloc.add(const GetParticipantsAndMatches('L1')),
+      act: (bloc) => bloc.add(const GetParticipantsAndMatches('L1')),
       skip: 1, // bỏ qua loading
       expect: () => [
         isA<TournamentDetailState>().having(
@@ -449,8 +483,7 @@ void main() {
         );
         return build();
       },
-      act: (bloc) =>
-          bloc.add(const GetParticipantsAndMatches('L1')),
+      act: (bloc) => bloc.add(const GetParticipantsAndMatches('L1')),
       skip: 1,
       expect: () => [
         isA<TournamentDetailState>().having(
@@ -464,16 +497,19 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'repo throw: emit failure',
       build: () {
-        when(() => repo.getParticipantsAndMatches(any()))
-            .thenThrow(Exception('x'));
+        when(
+          () => repo.getParticipantsAndMatches(any()),
+        ).thenThrow(Exception('x'));
         return build();
       },
-      act: (bloc) =>
-          bloc.add(const GetParticipantsAndMatches('L1')),
+      act: (bloc) => bloc.add(const GetParticipantsAndMatches('L1')),
       skip: 1,
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -488,29 +524,40 @@ void main() {
       },
       act: (bloc) => bloc.add(const GenerateRound()),
       expect: () => const <TournamentDetailState>[],
-      verify: (_) =>
-          verifyNever(() => repo.generateRound(leagueId: any(named: 'leagueId'), teamIds: any(named: 'teamIds'))),
+      verify: (_) => verifyNever(
+        () => repo.generateRound(
+          leagueId: any(named: 'leagueId'),
+          teamIds: any(named: 'teamIds'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'gọi generateRound với danh sách userIds + toast',
       build: () {
-        when(() => repo.generateRound(
-              leagueId: any(named: 'leagueId'),
-              teamIds: any(named: 'teamIds'),
-            )).thenAnswer((_) async {});
+        when(
+          () => repo.generateRound(
+            leagueId: any(named: 'leagueId'),
+            teamIds: any(named: 'teamIds'),
+          ),
+        ).thenAnswer((_) async {});
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         final bloc = buildWithLeague(_league());
-        bloc.emit(bloc.state
-            .copyWith(participants: [_stat('A'), _stat('B'), _stat('C')]));
+        bloc.emit(
+          bloc.state.copyWith(
+            participants: [_stat('A'), _stat('B'), _stat('C')],
+          ),
+        );
         return bloc;
       },
       act: (bloc) => bloc.add(const GenerateRound()),
       verify: (_) {
-        final captured = verify(() => repo.generateRound(
-              leagueId: 'L1',
-              teamIds: captureAny(named: 'teamIds'),
-            )).captured;
+        final captured = verify(
+          () => repo.generateRound(
+            leagueId: 'L1',
+            teamIds: captureAny(named: 'teamIds'),
+          ),
+        ).captured;
         expect(captured.single, ['A', 'B', 'C']);
         expect(toasts.any((t) => t.contains('Tạo lượt đấu')), isTrue);
       },
@@ -528,9 +575,7 @@ void main() {
           RoundTooLargeException(participantCount: 33, maxParticipants: 32),
         );
         final bloc = buildWithLeague(_league());
-        bloc.emit(
-          bloc.state.copyWith(participants: [_stat('A'), _stat('B')]),
-        );
+        bloc.emit(bloc.state.copyWith(participants: [_stat('A'), _stat('B')]));
         return bloc;
       },
       act: (bloc) => bloc.add(const GenerateRound()),
@@ -560,13 +605,15 @@ void main() {
       build: () {
         final prev = _match();
         final next = _match(homeScore: 2, awayScore: 1, isFinished: true);
-        when(() => repo.updateMatch(any())).thenAnswer(
-          (_) async => (previous: prev, updated: next),
-        );
-        when(() => repo.applyMatchStatDelta(
-              previous: any(named: 'previous'),
-              updated: any(named: 'updated'),
-            )).thenAnswer((_) async {});
+        when(
+          () => repo.updateMatch(any()),
+        ).thenAnswer((_) async => (previous: prev, updated: next));
+        when(
+          () => repo.applyMatchStatDelta(
+            previous: any(named: 'previous'),
+            updated: any(named: 'updated'),
+          ),
+        ).thenAnswer((_) async {});
         when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return buildWithLeague(_league());
@@ -575,10 +622,12 @@ void main() {
           bloc.add(UpdateEsportMatch(_match(homeScore: 2, awayScore: 1))),
       verify: (_) {
         verify(() => repo.updateMatch(any())).called(1);
-        verify(() => repo.applyMatchStatDelta(
-              previous: any(named: 'previous'),
-              updated: any(named: 'updated'),
-            )).called(1);
+        verify(
+          () => repo.applyMatchStatDelta(
+            previous: any(named: 'previous'),
+            updated: any(named: 'updated'),
+          ),
+        ).called(1);
         expect(toasts.any((t) => t.contains('Cập nhật trận đấu')), isTrue);
       },
     );
@@ -588,13 +637,15 @@ void main() {
       build: () {
         final prev = _match();
         final next = _match(homeScore: 2, awayScore: 1, isFinished: true);
-        when(() => repo.updateMatch(any())).thenAnswer(
-          (_) async => (previous: prev, updated: next),
-        );
-        when(() => repo.applyMatchStatDelta(
-              previous: any(named: 'previous'),
-              updated: any(named: 'updated'),
-            )).thenThrow(Exception('stats missing'));
+        when(
+          () => repo.updateMatch(any()),
+        ).thenAnswer((_) async => (previous: prev, updated: next));
+        when(
+          () => repo.applyMatchStatDelta(
+            previous: any(named: 'previous'),
+            updated: any(named: 'updated'),
+          ),
+        ).thenThrow(Exception('stats missing'));
         when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return buildWithLeague(_league());
@@ -625,29 +676,41 @@ void main() {
   group('TournamentDetailState computed', () {
     test('fixtures = matches chưa finished', () {
       const state = TournamentDetailState();
-      final s = state.copyWith(matches: [
-        _match(id: 'm1', isFinished: false),
-        _match(id: 'm2', isFinished: true),
-      ]);
+      final s = state.copyWith(
+        matches: [
+          _match(id: 'm1', isFinished: false),
+          _match(id: 'm2', isFinished: true),
+        ],
+      );
       expect(s.fixtures.map((e) => e.id), ['m1']);
     });
 
     test('fixtures loại bỏ match có phase=knockout', () {
       const state = TournamentDetailState();
-      final s = state.copyWith(matches: [
-        _match(id: 'm1', isFinished: false),
-        _match(id: 'ko1', isFinished: false, phase: 'knockout'),
-        _match(id: 'ko2', isFinished: false, home: 'A1', away: 'B1', phase: 'knockout'),
-      ]);
+      final s = state.copyWith(
+        matches: [
+          _match(id: 'm1', isFinished: false),
+          _match(id: 'ko1', isFinished: false, phase: 'knockout'),
+          _match(
+            id: 'ko2',
+            isFinished: false,
+            home: 'A1',
+            away: 'B1',
+            phase: 'knockout',
+          ),
+        ],
+      );
       expect(s.fixtures.map((e) => e.id), ['m1']);
     });
 
     test('results = matches đã finished', () {
       const state = TournamentDetailState();
-      final s = state.copyWith(matches: [
-        _match(id: 'm1', isFinished: false),
-        _match(id: 'm2', isFinished: true),
-      ]);
+      final s = state.copyWith(
+        matches: [
+          _match(id: 'm1', isFinished: false),
+          _match(id: 'm2', isFinished: true),
+        ],
+      );
       expect(s.results.map((e) => e.id), ['m2']);
     });
 
@@ -656,10 +719,16 @@ void main() {
       expect(state.copyWith().selectedGroupId, 'A');
     });
 
-    test('copyWith(clearSelectedGroupId: true) xoá selectedGroupId về null', () {
-      const state = TournamentDetailState(selectedGroupId: 'A');
-      expect(state.copyWith(clearSelectedGroupId: true).selectedGroupId, isNull);
-    });
+    test(
+      'copyWith(clearSelectedGroupId: true) xoá selectedGroupId về null',
+      () {
+        const state = TournamentDetailState(selectedGroupId: 'A');
+        expect(
+          state.copyWith(clearSelectedGroupId: true).selectedGroupId,
+          isNull,
+        );
+      },
+    );
 
     test('copyWith(selectedGroupId: "B") cập nhật selectedGroupId', () {
       const state = TournamentDetailState(selectedGroupId: 'A');
@@ -673,8 +742,11 @@ void main() {
       build: build,
       act: (bloc) => bloc.add(const SelectGroup('A')),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.selectedGroupId, 'selectedGroupId', 'A'),
+        isA<TournamentDetailState>().having(
+          (s) => s.selectedGroupId,
+          'selectedGroupId',
+          'A',
+        ),
       ],
     );
 
@@ -687,8 +759,11 @@ void main() {
       },
       act: (bloc) => bloc.add(const SelectGroup(null)),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.selectedGroupId, 'selectedGroupId', isNull),
+        isA<TournamentDetailState>().having(
+          (s) => s.selectedGroupId,
+          'selectedGroupId',
+          isNull,
+        ),
       ],
     );
   });
@@ -704,8 +779,7 @@ void main() {
         );
         return build();
       },
-      act: (bloc) =>
-          bloc.add(UpdateLeague(_league(id: 'L1', isActive: true))),
+      act: (bloc) => bloc.add(UpdateLeague(_league(id: 'L1', isActive: true))),
       verify: (_) {
         verify(() => repo.getParticipantsAndMatches('L1')).called(1);
       },
@@ -714,8 +788,7 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'isActive = false ⇒ không gọi getParticipantsAndMatches',
       build: build,
-      act: (bloc) =>
-          bloc.add(UpdateLeague(_league(id: 'L1', isActive: false))),
+      act: (bloc) => bloc.add(UpdateLeague(_league(id: 'L1', isActive: false))),
       verify: (_) {
         verifyNever(() => repo.getParticipantsAndMatches(any()));
       },
@@ -749,14 +822,16 @@ void main() {
         bloc.emit(bloc.state.copyWith(viewStatus: ViewStatus.loading));
         return bloc;
       },
-      act: (bloc) => bloc.add(CreateCustomMatch(homeTeam: user1, awayTeam: user2)),
+      act: (bloc) =>
+          bloc.add(CreateCustomMatch(homeTeam: user1, awayTeam: user2)),
       verify: (_) => verifyNever(() => repo.createCustomMatch(any())),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'không có league ⇒ no-op',
       build: build,
-      act: (bloc) => bloc.add(CreateCustomMatch(homeTeam: user1, awayTeam: user2)),
+      act: (bloc) =>
+          bloc.add(CreateCustomMatch(homeTeam: user1, awayTeam: user2)),
       verify: (_) => verifyNever(() => repo.createCustomMatch(any())),
     );
 
@@ -767,10 +842,12 @@ void main() {
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return buildWithLeague(_league());
       },
-      act: (bloc) => bloc.add(CreateCustomMatch(homeTeam: user1, awayTeam: user2)),
+      act: (bloc) =>
+          bloc.add(CreateCustomMatch(homeTeam: user1, awayTeam: user2)),
       verify: (_) {
-        final captured =
-            verify(() => repo.createCustomMatch(captureAny())).captured;
+        final captured = verify(
+          () => repo.createCustomMatch(captureAny()),
+        ).captured;
         final m = captured.single as GNEsportMatch;
         expect(m.homeTeamId, 'A');
         expect(m.awayTeamId, 'B');
@@ -786,12 +863,19 @@ void main() {
         when(() => repo.createCustomMatch(any())).thenThrow(Exception('x'));
         return buildWithLeague(_league());
       },
-      act: (bloc) => bloc.add(CreateCustomMatch(homeTeam: user1, awayTeam: user2)),
+      act: (bloc) =>
+          bloc.add(CreateCustomMatch(homeTeam: user1, awayTeam: user2)),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -826,10 +910,16 @@ void main() {
       },
       act: (bloc) => bloc.add(DeleteEsportMatch(_match())),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -840,22 +930,30 @@ void main() {
       build: build,
       act: (bloc) => bloc.add(const AddParticipant('L1', 'U1')),
       verify: (_) => verifyNever(
-          () => repo.addParticipant(leagueId: any(named: 'leagueId'), userId: any(named: 'userId'))),
+        () => repo.addParticipant(
+          leagueId: any(named: 'leagueId'),
+          userId: any(named: 'userId'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'success: thêm + toast + load lại stats',
       build: () {
-        when(() => repo.addParticipant(
-              leagueId: any(named: 'leagueId'),
-              userId: any(named: 'userId'),
-            )).thenAnswer((_) async {});
+        when(
+          () => repo.addParticipant(
+            leagueId: any(named: 'leagueId'),
+            userId: any(named: 'userId'),
+          ),
+        ).thenAnswer((_) async {});
         when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(const AddParticipant('L1', 'U1')),
       verify: (_) {
-        verify(() => repo.addParticipant(leagueId: 'L1', userId: 'U1')).called(1);
+        verify(
+          () => repo.addParticipant(leagueId: 'L1', userId: 'U1'),
+        ).called(1);
         expect(toasts.any((t) => t.contains('Thêm người chơi')), isTrue);
       },
     );
@@ -863,18 +961,26 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'failure: emit failure',
       build: () {
-        when(() => repo.addParticipant(
-              leagueId: any(named: 'leagueId'),
-              userId: any(named: 'userId'),
-            )).thenThrow(Exception('x'));
+        when(
+          () => repo.addParticipant(
+            leagueId: any(named: 'leagueId'),
+            userId: any(named: 'userId'),
+          ),
+        ).thenThrow(Exception('x'));
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(const AddParticipant('L1', 'U1')),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -885,58 +991,74 @@ void main() {
       build: build,
       act: (bloc) =>
           bloc.add(const AddMultipleParticipants('L1', ['U1', 'U2'])),
-      verify: (_) => verifyNever(() => repo.addMultipleParticipants(
+      verify: (_) => verifyNever(
+        () => repo.addMultipleParticipants(
           leagueId: any(named: 'leagueId'),
-          userIds: any(named: 'userIds'))),
+          userIds: any(named: 'userIds'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'userIds rỗng ⇒ no-op',
       build: () => buildWithLeague(_league()),
       act: (bloc) => bloc.add(const AddMultipleParticipants('L1', [])),
-      verify: (_) => verifyNever(() => repo.addMultipleParticipants(
+      verify: (_) => verifyNever(
+        () => repo.addMultipleParticipants(
           leagueId: any(named: 'leagueId'),
-          userIds: any(named: 'userIds'))),
+          userIds: any(named: 'userIds'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'success',
       build: () {
-        when(() => repo.addMultipleParticipants(
-              leagueId: any(named: 'leagueId'),
-              userIds: any(named: 'userIds'),
-            )).thenAnswer((_) async {});
+        when(
+          () => repo.addMultipleParticipants(
+            leagueId: any(named: 'leagueId'),
+            userIds: any(named: 'userIds'),
+          ),
+        ).thenAnswer((_) async {});
         when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
         return buildWithLeague(_league());
       },
       act: (bloc) =>
           bloc.add(const AddMultipleParticipants('L1', ['U1', 'U2'])),
       verify: (_) {
-        verify(() => repo.addMultipleParticipants(
-            leagueId: 'L1', userIds: ['U1', 'U2'])).called(1);
-        expect(
-          toasts.any((t) => t.contains('2 người chơi')),
-          isTrue,
-        );
+        verify(
+          () => repo.addMultipleParticipants(
+            leagueId: 'L1',
+            userIds: ['U1', 'U2'],
+          ),
+        ).called(1);
+        expect(toasts.any((t) => t.contains('2 người chơi')), isTrue);
       },
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'failure: emit failure',
       build: () {
-        when(() => repo.addMultipleParticipants(
-              leagueId: any(named: 'leagueId'),
-              userIds: any(named: 'userIds'),
-            )).thenThrow(Exception('x'));
+        when(
+          () => repo.addMultipleParticipants(
+            leagueId: any(named: 'leagueId'),
+            userIds: any(named: 'userIds'),
+          ),
+        ).thenThrow(Exception('x'));
         return buildWithLeague(_league());
       },
-      act: (bloc) =>
-          bloc.add(const AddMultipleParticipants('L1', ['U1'])),
+      act: (bloc) => bloc.add(const AddMultipleParticipants('L1', ['U1'])),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -946,44 +1068,60 @@ void main() {
       'không league ⇒ no-op',
       build: build,
       act: (bloc) => bloc.add(const GenerateRound()),
-      verify: (_) => verifyNever(() => repo.generateRound(
+      verify: (_) => verifyNever(
+        () => repo.generateRound(
           leagueId: any(named: 'leagueId'),
-          teamIds: any(named: 'teamIds'))),
+          teamIds: any(named: 'teamIds'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'state loading ⇒ no-op',
       build: () {
         final bloc = buildWithLeague(_league());
-        bloc.emit(bloc.state.copyWith(
-          participants: [_stat('A'), _stat('B')],
-          viewStatus: ViewStatus.loading,
-        ));
+        bloc.emit(
+          bloc.state.copyWith(
+            participants: [_stat('A'), _stat('B')],
+            viewStatus: ViewStatus.loading,
+          ),
+        );
         return bloc;
       },
       act: (bloc) => bloc.add(const GenerateRound()),
-      verify: (_) => verifyNever(() => repo.generateRound(
+      verify: (_) => verifyNever(
+        () => repo.generateRound(
           leagueId: any(named: 'leagueId'),
-          teamIds: any(named: 'teamIds'))),
+          teamIds: any(named: 'teamIds'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'repo throw: emit failure',
       build: () {
-        when(() => repo.generateRound(
-              leagueId: any(named: 'leagueId'),
-              teamIds: any(named: 'teamIds'),
-            )).thenThrow(Exception('x'));
+        when(
+          () => repo.generateRound(
+            leagueId: any(named: 'leagueId'),
+            teamIds: any(named: 'teamIds'),
+          ),
+        ).thenThrow(Exception('x'));
         final bloc = buildWithLeague(_league());
         bloc.emit(bloc.state.copyWith(participants: [_stat('A'), _stat('B')]));
         return bloc;
       },
       act: (bloc) => bloc.add(const GenerateRound()),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -995,12 +1133,19 @@ void main() {
         when(() => repo.updateMatch(any())).thenThrow(Exception('x'));
         return buildWithLeague(_league());
       },
-      act: (bloc) => bloc.add(UpdateEsportMatch(_match(homeScore: 1, awayScore: 0))),
+      act: (bloc) =>
+          bloc.add(UpdateEsportMatch(_match(homeScore: 1, awayScore: 0))),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -1009,9 +1154,9 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'success: gắn user vào match',
       build: () {
-        when(() => repo.getMatches('L1')).thenAnswer(
-          (_) async => [_match(home: 'A', away: 'B')],
-        );
+        when(
+          () => repo.getMatches('L1'),
+        ).thenAnswer((_) async => [_match(home: 'A', away: 'B')]);
         final bloc = build();
         const userA = GNUser(
           id: 'A',
@@ -1053,8 +1198,11 @@ void main() {
       act: (bloc) => bloc.add(const GetMatches('L1')),
       skip: 1,
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -1063,10 +1211,9 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'sort + load matches',
       build: () {
-        when(() => repo.getLeagueStats('L1')).thenAnswer((_) async => [
-              _stat('B', wins: 1),
-              _stat('A', wins: 2),
-            ]);
+        when(
+          () => repo.getLeagueStats('L1'),
+        ).thenAnswer((_) async => [_stat('B', wins: 1), _stat('A', wins: 2)]);
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return build();
       },
@@ -1085,8 +1232,11 @@ void main() {
       act: (bloc) => bloc.add(const GetParticipantStats('L1')),
       skip: 1,
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -1103,14 +1253,18 @@ void main() {
         leagueCtrl.close();
       });
 
-      when(() => repo.listenForLeagueStats(any()))
-          .thenAnswer((_) => statsCtrl.stream);
-      when(() => repo.listenForMatchesUpdated(any()))
-          .thenAnswer((_) => matchesCtrl.stream);
-      when(() => repo.listenForLeagueUpdated(any()))
-          .thenAnswer((_) => leagueCtrl.stream);
-      when(() => repo.getLeague('L1'))
-          .thenAnswer((_) async => _league(id: 'L1'));
+      when(
+        () => repo.listenForLeagueStats(any()),
+      ).thenAnswer((_) => statsCtrl.stream);
+      when(
+        () => repo.listenForMatchesUpdated(any()),
+      ).thenAnswer((_) => matchesCtrl.stream);
+      when(
+        () => repo.listenForLeagueUpdated(any()),
+      ).thenAnswer((_) => leagueCtrl.stream);
+      when(
+        () => repo.getLeague('L1'),
+      ).thenAnswer((_) async => _league(id: 'L1'));
       when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
         (_) async => const LeagueDetailData(participants: [], matches: []),
       );
@@ -1137,14 +1291,18 @@ void main() {
         leagueCtrl.close();
       });
 
-      when(() => repo.listenForLeagueStats(any()))
-          .thenAnswer((_) => statsCtrl.stream);
-      when(() => repo.listenForMatchesUpdated(any()))
-          .thenAnswer((_) => matchesCtrl.stream);
-      when(() => repo.listenForLeagueUpdated(any()))
-          .thenAnswer((_) => leagueCtrl.stream);
-      when(() => repo.getLeague('L1'))
-          .thenAnswer((_) async => _league(id: 'L1'));
+      when(
+        () => repo.listenForLeagueStats(any()),
+      ).thenAnswer((_) => statsCtrl.stream);
+      when(
+        () => repo.listenForMatchesUpdated(any()),
+      ).thenAnswer((_) => matchesCtrl.stream);
+      when(
+        () => repo.listenForLeagueUpdated(any()),
+      ).thenAnswer((_) => leagueCtrl.stream);
+      when(
+        () => repo.getLeague('L1'),
+      ).thenAnswer((_) async => _league(id: 'L1'));
 
       final bloc = build();
       bloc.add(const GetLeague('L1'));
@@ -1157,44 +1315,50 @@ void main() {
       await bloc.close();
     });
 
-    test('listenForLeagueUpdated emit → add UpdateLeague (xử lý onError không crash)',
-        () async {
-      final statsCtrl = StreamController<List<GNEsportLeagueStat>>();
-      final matchesCtrl = StreamController<List<GNEsportMatch>>();
-      final leagueCtrl = StreamController<GNEsportLeague>();
-      addTearDown(() {
-        statsCtrl.close();
-        matchesCtrl.close();
-        leagueCtrl.close();
-      });
+    test(
+      'listenForLeagueUpdated emit → add UpdateLeague (xử lý onError không crash)',
+      () async {
+        final statsCtrl = StreamController<List<GNEsportLeagueStat>>();
+        final matchesCtrl = StreamController<List<GNEsportMatch>>();
+        final leagueCtrl = StreamController<GNEsportLeague>();
+        addTearDown(() {
+          statsCtrl.close();
+          matchesCtrl.close();
+          leagueCtrl.close();
+        });
 
-      when(() => repo.listenForLeagueStats(any()))
-          .thenAnswer((_) => statsCtrl.stream);
-      when(() => repo.listenForMatchesUpdated(any()))
-          .thenAnswer((_) => matchesCtrl.stream);
-      when(() => repo.listenForLeagueUpdated(any()))
-          .thenAnswer((_) => leagueCtrl.stream);
-      when(() => repo.getLeague('L1'))
-          .thenAnswer((_) async => _league(id: 'L1'));
-      when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
-        (_) async => const LeagueDetailData(participants: [], matches: []),
-      );
+        when(
+          () => repo.listenForLeagueStats(any()),
+        ).thenAnswer((_) => statsCtrl.stream);
+        when(
+          () => repo.listenForMatchesUpdated(any()),
+        ).thenAnswer((_) => matchesCtrl.stream);
+        when(
+          () => repo.listenForLeagueUpdated(any()),
+        ).thenAnswer((_) => leagueCtrl.stream);
+        when(
+          () => repo.getLeague('L1'),
+        ).thenAnswer((_) async => _league(id: 'L1'));
+        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
+          (_) async => const LeagueDetailData(participants: [], matches: []),
+        );
 
-      final bloc = build();
-      bloc.add(const GetLeague('L1'));
-      await Future<void>.delayed(Duration.zero);
+        final bloc = build();
+        bloc.add(const GetLeague('L1'));
+        await Future<void>.delayed(Duration.zero);
 
-      // Push update — covers onData branch
-      leagueCtrl.add(_league(id: 'L1', status: 'finished'));
-      await Future<void>.delayed(Duration.zero);
+        // Push update — covers onData branch
+        leagueCtrl.add(_league(id: 'L1', status: 'finished'));
+        await Future<void>.delayed(Duration.zero);
 
-      // Push error — covers onError branch (no-op trong code)
-      leagueCtrl.addError(Exception('boom'));
-      await Future<void>.delayed(Duration.zero);
+        // Push error — covers onError branch (no-op trong code)
+        leagueCtrl.addError(Exception('boom'));
+        await Future<void>.delayed(Duration.zero);
 
-      expect(bloc.state.league?.status, 'finished');
-      await bloc.close();
-    });
+        expect(bloc.state.league?.status, 'finished');
+        await bloc.close();
+      },
+    );
   });
 
   test('close() huỷ subscriptions không crash', () async {
@@ -1215,10 +1379,16 @@ void main() {
       },
       act: (bloc) => bloc.add(InactiveLeague()),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -1237,10 +1407,9 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'thu thập user khi participant.user != null',
       build: () {
-        when(() => repo.getLeagueStats('L1')).thenAnswer((_) async => [
-              _stat('A', wins: 1, user: user1),
-              _stat('B'),
-            ]);
+        when(() => repo.getLeagueStats('L1')).thenAnswer(
+          (_) async => [_stat('A', wins: 1, user: user1), _stat('B')],
+        );
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return build();
       },
@@ -1254,10 +1423,12 @@ void main() {
       'tie-break theo goalDifference',
       build: () {
         // A và B cùng points=3, A goalDiff=+5, B goalDiff=+1
-        when(() => repo.getLeagueStats('L1')).thenAnswer((_) async => [
-              _stat('B', wins: 1, goals: 2, goalsConceded: 1),
-              _stat('A', wins: 1, goals: 6, goalsConceded: 1),
-            ]);
+        when(() => repo.getLeagueStats('L1')).thenAnswer(
+          (_) async => [
+            _stat('B', wins: 1, goals: 2, goalsConceded: 1),
+            _stat('A', wins: 1, goals: 6, goalsConceded: 1),
+          ],
+        );
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return build();
       },
@@ -1271,10 +1442,12 @@ void main() {
       'tie-break theo goals',
       build: () {
         // points và goalDiff bằng nhau, A goals nhiều hơn
-        when(() => repo.getLeagueStats('L1')).thenAnswer((_) async => [
-              _stat('B', wins: 1, losses: 1, goals: 2, goalsConceded: 1),
-              _stat('A', wins: 1, losses: 1, goals: 5, goalsConceded: 4),
-            ]);
+        when(() => repo.getLeagueStats('L1')).thenAnswer(
+          (_) async => [
+            _stat('B', wins: 1, losses: 1, goals: 2, goalsConceded: 1),
+            _stat('A', wins: 1, losses: 1, goals: 5, goalsConceded: 4),
+          ],
+        );
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return build();
       },
@@ -1288,10 +1461,19 @@ void main() {
       'tie-break theo matchesPlayed (cuối cùng)',
       build: () {
         // points, goalDiff, goals đều bằng. A đá nhiều trận hơn.
-        when(() => repo.getLeagueStats('L1')).thenAnswer((_) async => [
-              _stat('B', wins: 0, draws: 1, goals: 1, goalsConceded: 1),
-              _stat('A', wins: 0, draws: 1, losses: 1, goals: 1, goalsConceded: 1),
-            ]);
+        when(() => repo.getLeagueStats('L1')).thenAnswer(
+          (_) async => [
+            _stat('B', wins: 0, draws: 1, goals: 1, goalsConceded: 1),
+            _stat(
+              'A',
+              wins: 0,
+              draws: 1,
+              losses: 1,
+              goals: 1,
+              goalsConceded: 1,
+            ),
+          ],
+        );
         when(() => repo.getMatches(any())).thenAnswer((_) async => []);
         return build();
       },
@@ -1348,8 +1530,7 @@ void main() {
         );
         return build();
       },
-      act: (bloc) =>
-          bloc.add(const GetParticipantsAndMatches('L1')),
+      act: (bloc) => bloc.add(const GetParticipantsAndMatches('L1')),
       verify: (bloc) {
         expect(bloc.state.participants.first.userId, 'A');
       },
@@ -1380,87 +1561,105 @@ void main() {
       build: build,
       act: (bloc) => bloc.add(const GenerateGroupRound('G1')),
       expect: () => const <TournamentDetailState>[],
-      verify: (_) => verifyNever(() => repo.generateGroupRound(
-            leagueId: any(named: 'leagueId'),
-            groupId: any(named: 'groupId'),
-            teamIds: any(named: 'teamIds'),
-          )),
+      verify: (_) => verifyNever(
+        () => repo.generateGroupRound(
+          leagueId: any(named: 'leagueId'),
+          groupId: any(named: 'groupId'),
+          teamIds: any(named: 'teamIds'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'không làm gì khi nhóm có < 2 thành viên',
       build: () {
         final bloc = build();
-        bloc.emit(bloc.state.copyWith(
-          league: _league(),
-          participants: [statWithGroup('U1', 'G1')],
-        ));
+        bloc.emit(
+          bloc.state.copyWith(
+            league: _league(),
+            participants: [statWithGroup('U1', 'G1')],
+          ),
+        );
         return bloc;
       },
       act: (bloc) => bloc.add(const GenerateGroupRound('G1')),
       expect: () => const <TournamentDetailState>[],
-      verify: (_) => verifyNever(() => repo.generateGroupRound(
-            leagueId: any(named: 'leagueId'),
-            groupId: any(named: 'groupId'),
-            teamIds: any(named: 'teamIds'),
-          )),
+      verify: (_) => verifyNever(
+        () => repo.generateGroupRound(
+          leagueId: any(named: 'leagueId'),
+          groupId: any(named: 'groupId'),
+          teamIds: any(named: 'teamIds'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'thành công → gọi generateGroupRound',
       build: () {
-        when(() => repo.generateGroupRound(
-              leagueId: any(named: 'leagueId'),
-              groupId: any(named: 'groupId'),
-              teamIds: any(named: 'teamIds'),
-            )).thenAnswer((_) async {});
-        when(() => repo.getParticipantsAndMatches(any()))
-            .thenAnswer((_) async => LeagueDetailData(
-                  participants: const [],
-                  matches: const [],
-                ));
+        when(
+          () => repo.generateGroupRound(
+            leagueId: any(named: 'leagueId'),
+            groupId: any(named: 'groupId'),
+            teamIds: any(named: 'teamIds'),
+          ),
+        ).thenAnswer((_) async {});
+        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
+          (_) async =>
+              LeagueDetailData(participants: const [], matches: const []),
+        );
         final bloc = build();
-        bloc.emit(bloc.state.copyWith(
-          league: _league(),
-          participants: [
-            statWithGroup('U1', 'G1'),
-            statWithGroup('U2', 'G1'),
-          ],
-        ));
+        bloc.emit(
+          bloc.state.copyWith(
+            league: _league(),
+            participants: [
+              statWithGroup('U1', 'G1'),
+              statWithGroup('U2', 'G1'),
+            ],
+          ),
+        );
         return bloc;
       },
       act: (bloc) => bloc.add(const GenerateGroupRound('G1')),
       verify: (_) {
-        verify(() => repo.generateGroupRound(
-              leagueId: 'L1',
-              groupId: 'G1',
-              teamIds: any(named: 'teamIds'),
-            )).called(1);
+        verify(
+          () => repo.generateGroupRound(
+            leagueId: 'L1',
+            groupId: 'G1',
+            teamIds: any(named: 'teamIds'),
+          ),
+        ).called(1);
       },
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'repo throw → emit failure',
       build: () {
-        when(() => repo.generateGroupRound(
-              leagueId: any(named: 'leagueId'),
-              groupId: any(named: 'groupId'),
-              teamIds: any(named: 'teamIds'),
-            )).thenThrow(Exception('boom'));
+        when(
+          () => repo.generateGroupRound(
+            leagueId: any(named: 'leagueId'),
+            groupId: any(named: 'groupId'),
+            teamIds: any(named: 'teamIds'),
+          ),
+        ).thenThrow(Exception('boom'));
         final bloc = build();
-        bloc.emit(bloc.state.copyWith(
-          league: _league(),
-          participants: [
-            statWithGroup('U1', 'G1'),
-            statWithGroup('U2', 'G1'),
-          ],
-        ));
+        bloc.emit(
+          bloc.state.copyWith(
+            league: _league(),
+            participants: [
+              statWithGroup('U1', 'G1'),
+              statWithGroup('U2', 'G1'),
+            ],
+          ),
+        );
         return bloc;
       },
       act: (bloc) => bloc.add(const GenerateGroupRound('G1')),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
         isA<TournamentDetailState>()
             .having((s) => s.viewStatus, 'failure', ViewStatus.failure)
             .having((s) => s.errorMessage, 'errorMessage', isNotEmpty),
@@ -1478,20 +1677,17 @@ void main() {
       build: build,
       act: (bloc) => bloc.add(RecomputeStats()),
       expect: () => const <TournamentDetailState>[],
-      verify: (_) =>
-          verifyNever(() => repo.recomputeLeagueStats(any())),
+      verify: (_) => verifyNever(() => repo.recomputeLeagueStats(any())),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'thành công → gọi recomputeLeagueStats',
       build: () {
-        when(() => repo.recomputeLeagueStats(any()))
-            .thenAnswer((_) async {});
-        when(() => repo.getParticipantsAndMatches(any()))
-            .thenAnswer((_) async => LeagueDetailData(
-                  participants: const [],
-                  matches: const [],
-                ));
+        when(() => repo.recomputeLeagueStats(any())).thenAnswer((_) async {});
+        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
+          (_) async =>
+              LeagueDetailData(participants: const [], matches: const []),
+        );
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(RecomputeStats()),
@@ -1503,16 +1699,23 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'repo throw → emit failure',
       build: () {
-        when(() => repo.recomputeLeagueStats(any()))
-            .thenThrow(Exception('network'));
+        when(
+          () => repo.recomputeLeagueStats(any()),
+        ).thenThrow(Exception('network'));
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(RecomputeStats()),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -1527,47 +1730,60 @@ void main() {
       build: build,
       act: (bloc) => bloc.add(const GenerateCup(['U1', 'U2'])),
       expect: () => const <TournamentDetailState>[],
-      verify: (_) => verifyNever(() => repo.generateCupBracket(
-            leagueId: any(named: 'leagueId'),
-            seededTeamIds: any(named: 'seededTeamIds'),
-          )),
+      verify: (_) => verifyNever(
+        () => repo.generateCupBracket(
+          leagueId: any(named: 'leagueId'),
+          seededTeamIds: any(named: 'seededTeamIds'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'thành công → gọi generateCupBracket',
       build: () {
-        when(() => repo.generateCupBracket(
-              leagueId: any(named: 'leagueId'),
-              seededTeamIds: any(named: 'seededTeamIds'),
-            )).thenAnswer((_) async {});
-        when(() => repo.getMatches(any()))
-            .thenAnswer((_) async => const []);
+        when(
+          () => repo.generateCupBracket(
+            leagueId: any(named: 'leagueId'),
+            seededTeamIds: any(named: 'seededTeamIds'),
+          ),
+        ).thenAnswer((_) async {});
+        when(() => repo.getMatches(any())).thenAnswer((_) async => const []);
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(const GenerateCup(['U1', 'U2'])),
       verify: (_) {
-        verify(() => repo.generateCupBracket(
-              leagueId: 'L1',
-              seededTeamIds: ['U1', 'U2'],
-            )).called(1);
+        verify(
+          () => repo.generateCupBracket(
+            leagueId: 'L1',
+            seededTeamIds: ['U1', 'U2'],
+          ),
+        ).called(1);
       },
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'repo throw → emit failure',
       build: () {
-        when(() => repo.generateCupBracket(
-              leagueId: any(named: 'leagueId'),
-              seededTeamIds: any(named: 'seededTeamIds'),
-            )).thenThrow(Exception('boom'));
+        when(
+          () => repo.generateCupBracket(
+            leagueId: any(named: 'leagueId'),
+            seededTeamIds: any(named: 'seededTeamIds'),
+          ),
+        ).thenThrow(Exception('boom'));
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(const GenerateCup([])),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });
@@ -1580,68 +1796,94 @@ void main() {
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'không làm gì khi league null',
       build: build,
-      act: (bloc) =>
-          bloc.add(const GenerateFull(groups: [['U1']], advanceCount: 1)),
+      act: (bloc) => bloc.add(
+        const GenerateFull(
+          groups: [
+            ['U1'],
+          ],
+          advanceCount: 1,
+        ),
+      ),
       expect: () => const <TournamentDetailState>[],
-      verify: (_) => verifyNever(() => repo.generateFullTournament(
-            leagueId: any(named: 'leagueId'),
-            groups: any(named: 'groups'),
-            advanceCount: any(named: 'advanceCount'),
-          )),
+      verify: (_) => verifyNever(
+        () => repo.generateFullTournament(
+          leagueId: any(named: 'leagueId'),
+          groups: any(named: 'groups'),
+          advanceCount: any(named: 'advanceCount'),
+        ),
+      ),
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'thành công → gọi generateFullTournament',
       build: () {
-        when(() => repo.generateFullTournament(
-              leagueId: any(named: 'leagueId'),
-              groups: any(named: 'groups'),
-              advanceCount: any(named: 'advanceCount'),
-            )).thenAnswer((_) async {});
-        when(() => repo.getParticipantsAndMatches(any()))
-            .thenAnswer((_) async => LeagueDetailData(
-                  participants: const [],
-                  matches: const [],
-                ));
+        when(
+          () => repo.generateFullTournament(
+            leagueId: any(named: 'leagueId'),
+            groups: any(named: 'groups'),
+            advanceCount: any(named: 'advanceCount'),
+          ),
+        ).thenAnswer((_) async {});
+        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
+          (_) async =>
+              LeagueDetailData(participants: const [], matches: const []),
+        );
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(
         const GenerateFull(
-            groups: [
-              ['U1', 'U2'],
-              ['U3', 'U4']
-            ],
-            advanceCount: 2),
+          groups: [
+            ['U1', 'U2'],
+            ['U3', 'U4'],
+          ],
+          advanceCount: 2,
+        ),
       ),
       verify: (_) {
-        verify(() => repo.generateFullTournament(
-              leagueId: 'L1',
-              groups: [
-                ['U1', 'U2'],
-                ['U3', 'U4']
-              ],
-              advanceCount: 2,
-            )).called(1);
+        verify(
+          () => repo.generateFullTournament(
+            leagueId: 'L1',
+            groups: [
+              ['U1', 'U2'],
+              ['U3', 'U4'],
+            ],
+            advanceCount: 2,
+          ),
+        ).called(1);
       },
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
       'repo throw → emit failure',
       build: () {
-        when(() => repo.generateFullTournament(
-              leagueId: any(named: 'leagueId'),
-              groups: any(named: 'groups'),
-              advanceCount: any(named: 'advanceCount'),
-            )).thenThrow(Exception('boom'));
+        when(
+          () => repo.generateFullTournament(
+            leagueId: any(named: 'leagueId'),
+            groups: any(named: 'groups'),
+            advanceCount: any(named: 'advanceCount'),
+          ),
+        ).thenThrow(Exception('boom'));
         return buildWithLeague(_league());
       },
-      act: (bloc) =>
-          bloc.add(const GenerateFull(groups: [['U1', 'U2']], advanceCount: 1)),
+      act: (bloc) => bloc.add(
+        const GenerateFull(
+          groups: [
+            ['U1', 'U2'],
+          ],
+          advanceCount: 1,
+        ),
+      ),
       expect: () => [
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'loading', ViewStatus.loading),
-        isA<TournamentDetailState>()
-            .having((s) => s.viewStatus, 'failure', ViewStatus.failure),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'loading',
+          ViewStatus.loading,
+        ),
+        isA<TournamentDetailState>().having(
+          (s) => s.viewStatus,
+          'failure',
+          ViewStatus.failure,
+        ),
       ],
     );
   });

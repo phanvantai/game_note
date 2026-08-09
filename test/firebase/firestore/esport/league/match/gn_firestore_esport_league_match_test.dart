@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/round_robin_scheduler.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
@@ -260,10 +261,7 @@ void main() {
     });
 
     test('4 người chơi tạo 3 vòng, mỗi vòng 2 trận', () async {
-      await fs.generateRound(
-        leagueId: 'L1',
-        teamIds: ['u1', 'u2', 'u3', 'u4'],
-      );
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2', 'u3', 'u4']);
 
       final matchdays = await matchdaysOf('L1');
       expect(matchdays, hasLength(6));
@@ -273,23 +271,14 @@ void main() {
     });
 
     test('ghi matchdayCount lên league document', () async {
-      await fs.generateRound(
-        leagueId: 'L1',
-        teamIds: ['u1', 'u2', 'u3', 'u4'],
-      );
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2', 'u3', 'u4']);
 
       expect(await matchdayCounterOf('L1'), 3);
     });
 
     test('lượt thứ hai tiếp số vòng thay vì bắt đầu lại', () async {
-      await fs.generateRound(
-        leagueId: 'L1',
-        teamIds: ['u1', 'u2', 'u3', 'u4'],
-      );
-      await fs.generateRound(
-        leagueId: 'L1',
-        teamIds: ['u1', 'u2', 'u3', 'u4'],
-      );
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2', 'u3', 'u4']);
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2', 'u3', 'u4']);
 
       final matchdays = await matchdaysOf('L1');
       expect(matchdays, hasLength(12));
@@ -322,6 +311,28 @@ void main() {
       expect(await matchdaysOf('L1'), [2]);
       expect(await matchdayCounterOf('L1'), 2);
     });
+
+    test(
+      'counter đi trước lịch đã đọc thì đảo chiều sân cho khớp nhịp lượt',
+      () async {
+        // Mô phỏng trạng thái mà một client khác đã cấp thêm lượt sau khi
+        // client này đọc danh sách trận để tính chiều sân: counter = 1 nhưng
+        // không còn trận nào để suy ra chiều. Lệch đúng một lượt trọn vẹn
+        // nên lịch vừa dựng phải được đảo.
+        await fakeFirestore
+            .collection(GNEsportLeague.collectionName)
+            .doc('L1')
+            .set({GNEsportLeague.fieldMatchdayCount: 1});
+
+        await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2']);
+
+        final snapshot = await matchesCollection('L1').get();
+        final match = snapshot.docs.single.data();
+        expect(match[GNEsportMatch.fieldHomeTeamId], 'u2');
+        expect(match[GNEsportMatch.fieldAwayTeamId], 'u1');
+        expect(match[GNEsportMatch.fieldMatchday], 2);
+      },
+    );
 
     test('league cũ chưa có counter thì seed từ matchday lớn nhất', () async {
       await matchesCollection('L1').add({
@@ -370,8 +381,7 @@ void main() {
   });
 
   group('generateRound - giới hạn ghi nguyên tử', () {
-    List<String> teams(int count) =>
-        List.generate(count, (i) => 'u${i + 1}');
+    List<String> teams(int count) => List.generate(count, (i) => 'u${i + 1}');
 
     test('32 người chơi vẫn tạo được lượt', () async {
       await fs.generateRound(leagueId: 'L1', teamIds: teams(32));

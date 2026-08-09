@@ -14,7 +14,9 @@ import 'package:pes_arena/l10n/app_text.dart';
 import '../../../../../domain/repositories/esport/esport_league_repository.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_esport_match.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart'
-    show ConcurrentMatchUpdateException, RoundTooLargeException;
+    show ConcurrentMatchUpdateException;
+import '../../../../../firebase/firestore/esport/league/match/round_robin_scheduler.dart'
+    show RoundTooLargeException;
 
 part 'tournament_detail_event.dart';
 part 'tournament_detail_state.dart';

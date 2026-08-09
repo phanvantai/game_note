@@ -2,6 +2,37 @@ import 'package:equatable/equatable.dart';
 
 import 'gn_esport_match.dart';
 
+/// Largest participant count whose round-robin leg still fits a single
+/// Firestore transaction: `n(n - 1) / 2` match writes plus one counter update
+/// must stay within Firestore's 500-operation ceiling. 32 players → 496
+/// matches; 33 → 528.
+const int kMaxRoundRobinParticipants = 32;
+
+/// Thrown when a league has so many participants that one round-robin leg
+/// cannot be written in a single Firestore transaction.
+///
+/// A leg is written atomically on purpose: chunked writes can leave a leg
+/// half-created, and no retry path can tell the difference between "finish
+/// this leg" and "start another one". Failing early with a clear error beats
+/// partial state that nothing repairs.
+///
+/// Lives here rather than in the Firestore layer so the presentation layer can
+/// catch it without importing a Firestore extension.
+class RoundTooLargeException implements Exception {
+  final int participantCount;
+  final int maxParticipants;
+
+  RoundTooLargeException({
+    required this.participantCount,
+    required this.maxParticipants,
+  });
+
+  @override
+  String toString() =>
+      'RoundTooLargeException: $participantCount participants exceeds the '
+      'maximum of $maxParticipants for a single atomically written leg.';
+}
+
 /// One fixture produced by [buildRoundRobinSchedule].
 ///
 /// [matchday] is 1-based and **relative to the leg being generated**. The
@@ -92,6 +123,42 @@ List<ScheduledPairing> buildRoundRobinSchedule({
   }
 
   return schedule;
+}
+
+/// Whether a schedule built before the matchday range was reserved still has
+/// the right home/away orientation.
+///
+/// Orientation comes from a read of the existing matches taken *before* the
+/// transaction, because Firestore transactions cannot run collection queries —
+/// only `get` on a document. If another client reserved legs in between, that
+/// read is one or more legs stale, and the schedule sits on the wrong side of
+/// the home/away alternation. Each whole leg missed flips the correct side, so
+/// an odd number of missed legs means the built schedule must be flipped.
+///
+/// [expectedAllocated] is how many matchdays existed when orientation was
+/// computed; [actualAllocated] is what the transaction actually found on the
+/// league document.
+bool shouldFlipForMissedLegs({
+  required int expectedAllocated,
+  required int actualAllocated,
+  required int matchdaysInLeg,
+}) {
+  if (matchdaysInLeg <= 0) return false;
+  final missed = actualAllocated - expectedAllocated;
+  if (missed <= 0) return false;
+  return (missed ~/ matchdaysInLeg).isOdd;
+}
+
+/// Swaps home and away in every pairing, leaving matchdays untouched.
+List<ScheduledPairing> flipPairings(List<ScheduledPairing> schedule) {
+  return [
+    for (final pairing in schedule)
+      ScheduledPairing(
+        homeId: pairing.awayId,
+        awayId: pairing.homeId,
+        matchday: pairing.matchday,
+      ),
+  ];
 }
 
 List<String> _distinctIds(List<String> teamIds) {

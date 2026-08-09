@@ -110,8 +110,14 @@ void main() {
         existingMatches: const [],
       );
 
-      expect(schedule.map((p) => p.matchday).reduce((a, b) => a < b ? a : b), 1);
-      expect(schedule.map((p) => p.matchday).reduce((a, b) => a > b ? a : b), 3);
+      expect(
+        schedule.map((p) => p.matchday).reduce((a, b) => a < b ? a : b),
+        1,
+      );
+      expect(
+        schedule.map((p) => p.matchday).reduce((a, b) => a > b ? a : b),
+        3,
+      );
     });
   });
 
@@ -244,7 +250,10 @@ void main() {
 
     test('ít hơn 2 người chơi trả về danh sách rỗng', () {
       expect(
-        buildRoundRobinSchedule(teamIds: const ['u1'], existingMatches: const []),
+        buildRoundRobinSchedule(
+          teamIds: const ['u1'],
+          existingMatches: const [],
+        ),
         isEmpty,
       );
       expect(
@@ -263,6 +272,106 @@ void main() {
       expect(a, b);
       expect(a, isNot(c));
       expect(a.toString(), contains('u1'));
+    });
+  });
+
+  group('shouldFlipForMissedLegs', () {
+    // Orientation is computed from a read taken before the transaction. If
+    // another client allocated legs in between, this decides whether the
+    // schedule we already built is still on the right side of the alternation.
+    test('không có lượt nào chen vào thì giữ nguyên chiều sân', () {
+      expect(
+        shouldFlipForMissedLegs(
+          expectedAllocated: 5,
+          actualAllocated: 5,
+          matchdaysInLeg: 5,
+        ),
+        isFalse,
+      );
+    });
+
+    test('một lượt chen vào thì đảo chiều sân', () {
+      expect(
+        shouldFlipForMissedLegs(
+          expectedAllocated: 5,
+          actualAllocated: 10,
+          matchdaysInLeg: 5,
+        ),
+        isTrue,
+      );
+    });
+
+    test('hai lượt chen vào thì giữ nguyên', () {
+      expect(
+        shouldFlipForMissedLegs(
+          expectedAllocated: 5,
+          actualAllocated: 15,
+          matchdaysInLeg: 5,
+        ),
+        isFalse,
+      );
+    });
+
+    test('ba lượt chen vào thì đảo', () {
+      expect(
+        shouldFlipForMissedLegs(
+          expectedAllocated: 0,
+          actualAllocated: 15,
+          matchdaysInLeg: 5,
+        ),
+        isTrue,
+      );
+    });
+
+    test('counter lùi lại (không nên xảy ra) thì giữ nguyên', () {
+      expect(
+        shouldFlipForMissedLegs(
+          expectedAllocated: 10,
+          actualAllocated: 5,
+          matchdaysInLeg: 5,
+        ),
+        isFalse,
+      );
+    });
+
+    test('lệch nhỏ hơn một lượt trọn vẹn thì giữ nguyên', () {
+      expect(
+        shouldFlipForMissedLegs(
+          expectedAllocated: 5,
+          actualAllocated: 8,
+          matchdaysInLeg: 5,
+        ),
+        isFalse,
+      );
+    });
+
+    test('matchdaysInLeg bằng 0 thì giữ nguyên, không chia cho 0', () {
+      expect(
+        shouldFlipForMissedLegs(
+          expectedAllocated: 0,
+          actualAllocated: 5,
+          matchdaysInLeg: 0,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('flipPairings', () {
+    test('đảo sân nhà/sân khách, giữ nguyên số vòng', () {
+      const schedule = [
+        ScheduledPairing(homeId: 'u1', awayId: 'u2', matchday: 1),
+        ScheduledPairing(homeId: 'u3', awayId: 'u4', matchday: 2),
+      ];
+
+      expect(flipPairings(schedule), [
+        const ScheduledPairing(homeId: 'u2', awayId: 'u1', matchday: 1),
+        const ScheduledPairing(homeId: 'u4', awayId: 'u3', matchday: 2),
+      ]);
+    });
+
+    test('danh sách rỗng trả về rỗng', () {
+      expect(flipPairings(const []), isEmpty);
     });
   });
 }
