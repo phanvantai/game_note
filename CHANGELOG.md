@@ -2,6 +2,22 @@
 
 All notable changes to PES Arena are documented here.
 
+## [3.5.0+47] - 2026-08-09
+
+### Added
+
+- **Vòng đấu cho giải league online**: lịch thi đấu giờ được chia theo vòng thay vì đổ ra một danh sách phẳng. Giải 6 người sinh 5 vòng, mỗi người đá đúng một trận mỗi vòng; số vòng chạy liên tục qua các lượt (lượt đi 1–5, lượt về 6–10). Trận của giải cũ và trận tự tạo gom vào mục "Trận khác" ở cuối, không cần migration.
+
+### Changed
+
+- **Lượt về giờ đảo sân thật**: trước đây tạo lượt mới sinh lại y hệt chiều sân nhà/sân khách của lượt đi — lượt về chỉ là bản sao. Chiều sân giờ quyết định theo lịch sử đối đầu của từng cặp nên vẫn đúng khi có người rời hoặc vào giải giữa các lượt.
+- **Một lượt được ghi nguyên tử**: số vòng được đặt trước từ counter trên document giải trong cùng transaction ghi các trận, nên hai người bấm tạo lượt cùng lúc không nhận trùng số vòng, và xoá hết trận của vòng cuối không giải phóng số vòng đó. Giải quá 32 người bị từ chối ngay kèm thông báo thay vì ghi dở dang.
+- **Đổi thuật ngữ**: nút "Thêm vòng" đổi thành "Thêm lượt đấu" cho khỏi nhầm với vòng đấu thật; các thông báo liên quan đổi theo.
+
+### Fixed
+
+- Màn tạo giải nuốt lỗi im lặng: `_submit` await callback tạo giải mà không bắt exception, nên mọi lỗi đều thoát ra async handler và wizard đứng im không báo gì. Giờ hiện thông báo và giữ wizard mở để người dùng sửa rồi thử lại.
+
 ## [3.3.0+42] - 2026-05-22
 
 ### Added

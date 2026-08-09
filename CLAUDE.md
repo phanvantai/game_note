@@ -105,6 +105,25 @@ The project follows **Clean Architecture** principles with clear layer separatio
 - Open a pull request targeting `main`, wait for review/checks, then merge.
 - After merge, delete the remote branch and any local branches that are no longer needed so `main` stays the clean baseline.
 
+### Releasing — every merge to `main` ships to production
+
+`.github/workflows/android-release.yml` runs on **every push to `main`** and
+uploads the AAB straight to the Google Play **production** track. There is no
+separate release step: merging a PR *is* a release.
+
+**Every PR that touches `lib/`, `android/`, or `ios/` MUST bump `version:` in
+`pubspec.yaml` in the same PR.** The build number after `+` must increase by at
+least 1 — Google Play rejects a re-used version code and the release job fails
+*after* the merge has already landed, so a forgotten bump can only be fixed by
+another PR.
+
+- Build number (`+N`): always `+1`. Never reuse, never go backwards.
+- Semantic part: minor bump (`3.4.2` → `3.5.0`) for a user-facing feature,
+  patch bump (`3.4.2` → `3.4.3`) for fixes and internal work.
+- Add a matching `CHANGELOG.md` entry under the new `[X.Y.Z+N]` heading.
+
+Docs-only or test-only PRs don't need a bump — nothing shippable changed.
+
 ## Key Features
 
 ### Tournament System
