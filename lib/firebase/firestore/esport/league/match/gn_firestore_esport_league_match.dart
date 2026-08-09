@@ -7,6 +7,7 @@ import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_es
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_match.dart';
+import 'round_robin_scheduler.dart';
 
 /// Thrown when a match update detects another writer has modified the match
 /// since the local copy was loaded. UI should toast and refresh — the
@@ -35,6 +36,16 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         });
   }
 
+  /// Generates one full round-robin leg, split into matchdays.
+  ///
+  /// Matchday numbers run continuously across legs — with 6 players the first
+  /// leg is 1..5 and the second 6..10. The range is reserved from
+  /// [GNEsportLeague.fieldMatchdayCount] inside the same transaction that
+  /// writes the matches, so two members generating at once get disjoint
+  /// ranges and deleting a matchday never frees its number for reuse.
+  ///
+  /// Throws [RoundTooLargeException] before writing anything if the leg would
+  /// exceed one transaction. See that class for why the leg is atomic.
   Future<void> generateRound({
     required String leagueId,
     required List<String> teamIds,
@@ -42,30 +53,91 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     final uniqueTeamIds = _uniqueTeamIds(teamIds);
     final matchPath =
         '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
-    final docs = <MapEntry<String, Map<String, dynamic>>>[];
 
-    for (int i = 0; i < uniqueTeamIds.length; i++) {
-      for (int j = i + 1; j < uniqueTeamIds.length; j++) {
-        final matchId = firestore.collection(matchPath).doc().id;
-        final match = GNEsportMatch(
-          id: matchId,
-          homeTeamId: uniqueTeamIds[i],
-          awayTeamId: uniqueTeamIds[j],
-          homeScore: 0,
-          awayScore: 0,
-          date: DateTime.now(),
-          isFinished: false,
-          leagueId: leagueId,
-        );
-        docs.add(MapEntry('$matchPath/$matchId', match.toMap()));
-      }
+    // Read outside the transaction. Used for two things: the head-to-head
+    // counts that decide home/away (cosmetic — a stale read only unbalances a
+    // pair), and the legacy seed for leagues that pre-date the counter.
+    final existingSnapshot = await firestore.collection(matchPath).get();
+    final existingMatches = existingSnapshot.docs
+        .map((doc) => GNEsportMatch.fromFirestore(doc))
+        .toList();
+
+    final schedule = buildRoundRobinSchedule(
+      teamIds: uniqueTeamIds,
+      existingMatches: existingMatches,
+    );
+
+    if (schedule.isEmpty) {
+      await _ensureLeagueStats(leagueId: leagueId, teamIds: uniqueTeamIds);
+      return;
     }
+
+    // One transaction slot goes to the counter update; the rest are matches.
+    if (schedule.length + 1 > _kTransactionLimit) {
+      throw RoundTooLargeException(
+        participantCount: uniqueTeamIds.length,
+        maxParticipants: kMaxRoundRobinParticipants,
+      );
+    }
+
+    final matchdaysInLeg = schedule
+        .map((pairing) => pairing.matchday)
+        .reduce(math.max);
+    final legacySeed = existingMatches
+        .map((match) => match.matchday ?? 0)
+        .fold(0, math.max);
 
     // Ensure stat docs before match docs: matches reference stats during score
     // entry via _statRefForUser. Only missing rows are created so extra
     // round generation preserves existing totals instead of adding zero rows.
     await _ensureLeagueStats(leagueId: leagueId, teamIds: uniqueTeamIds);
-    await _writeBatched(docs);
+
+    final leagueRef = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId);
+    final createdAt = DateTime.now();
+
+    await firestore.runTransaction((txn) async {
+      final leagueSnapshot = await txn.get(leagueRef);
+      final allocated =
+          (leagueSnapshot.data()?[GNEsportLeague.fieldMatchdayCount] as num?)
+              ?.toInt() ??
+          legacySeed;
+
+      txn.set(leagueRef, {
+        GNEsportLeague.fieldMatchdayCount: allocated + matchdaysInLeg,
+      }, SetOptions(merge: true));
+
+      // Another client may have reserved legs between the orientation read
+      // above and this transaction. Firestore retries the transaction body,
+      // but the schedule was built outside it and cannot be recomputed here —
+      // transactions cannot run collection queries. Correcting the
+      // alternation from the counter gap achieves the same result.
+      final pairings =
+          shouldFlipForMissedLegs(
+            expectedAllocated: legacySeed,
+            actualAllocated: allocated,
+            matchdaysInLeg: matchdaysInLeg,
+          )
+          ? flipPairings(schedule)
+          : schedule;
+
+      for (final pairing in pairings) {
+        final matchId = firestore.collection(matchPath).doc().id;
+        final match = GNEsportMatch(
+          id: matchId,
+          homeTeamId: pairing.homeId,
+          awayTeamId: pairing.awayId,
+          homeScore: 0,
+          awayScore: 0,
+          date: createdAt,
+          isFinished: false,
+          leagueId: leagueId,
+          matchday: allocated + pairing.matchday,
+        );
+        txn.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+      }
+    });
   }
 
   /// Generate an additional round-robin round for a specific group in full mode.
@@ -541,6 +613,9 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
   // --- Helpers --------------------------------------------------------------
 
   static const int _kBatchLimit = 499;
+
+  /// Firestore caps a transaction at 500 operations.
+  static const int _kTransactionLimit = 500;
 
   /// Writes [docs] (path → data pairs) in chunks of [_kBatchLimit] to stay
   /// under Firestore's 500-write-per-batch ceiling.

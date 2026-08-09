@@ -1,4 +1,3 @@
-// coverage:ignore-file
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
@@ -881,10 +880,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get tournamentGroupRoundMinimum =>
-      'Bảng cần ít nhất 2 người chơi để tạo vòng đấu';
+      'Bảng cần ít nhất 2 người chơi để tạo lượt đấu';
 
   @override
-  String get tournamentRoundCreated => 'Tạo vòng đấu thành công';
+  String get tournamentRoundCreated => 'Tạo lượt đấu thành công';
 
   @override
   String get tournamentMatchUpdated => 'Cập nhật trận đấu thành công';
@@ -1015,7 +1014,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get tournamentGroupMatchesTitle => 'Trận đấu bảng';
 
   @override
-  String get tournamentAddRound => 'Thêm vòng';
+  String get tournamentAddRound => 'Thêm lượt đấu';
 
   @override
   String get tournamentScheduleTitle => 'Lịch thi đấu';
@@ -1037,12 +1036,30 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String tournamentGenerateRoundWithExisting(int count) {
-    return 'Hiện có $count trận trong lịch. Tạo thêm một vòng mới?';
+    return 'Hiện có $count trận trong lịch. Tạo thêm một lượt mới, chia theo vòng?';
+  }
+
+  @override
+  String tournamentMatchdayLabel(int n) {
+    return 'Vòng $n';
+  }
+
+  @override
+  String tournamentMatchdayBadge(int n) {
+    return 'V$n';
+  }
+
+  @override
+  String get tournamentOtherMatches => 'Trận khác';
+
+  @override
+  String tournamentRoundTooLarge(int max) {
+    return 'Giải có quá nhiều người chơi để tạo một lượt (tối đa $max).';
   }
 
   @override
   String get tournamentGenerateRoundMessage =>
-      'Tạo vòng đấu round-robin cho tất cả người chơi?';
+      'Tạo lượt đấu mới? Các trận sẽ được chia theo vòng.';
 
   @override
   String get tournamentNoPlayersTitle => 'Chưa có người chơi nào';

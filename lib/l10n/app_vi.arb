@@ -404,8 +404,8 @@
       }
     }
   },
-  "tournamentGroupRoundMinimum": "Bảng cần ít nhất 2 người chơi để tạo vòng đấu",
-  "tournamentRoundCreated": "Tạo vòng đấu thành công",
+  "tournamentGroupRoundMinimum": "Bảng cần ít nhất 2 người chơi để tạo lượt đấu",
+  "tournamentRoundCreated": "Tạo lượt đấu thành công",
   "tournamentMatchUpdated": "Cập nhật trận đấu thành công",
   "tournamentMatchConcurrentUpdate": "Trận này vừa được người khác cập nhật. Vui lòng kiểm tra lại.",
   "tournamentBracketCreated": "Tạo bracket thành công",
@@ -466,14 +466,14 @@
   "tournamentShareStandings": "Chia sẻ BXH",
   "tournamentStatusMenu": "Trạng thái",
   "tournamentGroupMatchesTitle": "Trận đấu bảng",
-  "tournamentAddRound": "Thêm vòng",
+  "tournamentAddRound": "Thêm lượt đấu",
   "tournamentScheduleTitle": "Lịch thi đấu",
   "tournamentCreateCustomMatchTooltip": "Tạo trận tùy chỉnh",
   "tournamentSearchPlayerHint": "Tìm theo tên người chơi (vd: A B)",
   "tournamentNoMatchesFound": "Không tìm thấy trận nào",
   "tournamentNoFixtures": "Chưa có lịch thi đấu",
   "tournamentNoResults": "Chưa có kết quả",
-  "tournamentGenerateRoundWithExisting": "Hiện có {count} trận trong lịch. Tạo thêm một vòng mới?",
+  "tournamentGenerateRoundWithExisting": "Hiện có {count} trận trong lịch. Tạo thêm một lượt mới, chia theo vòng?",
   "@tournamentGenerateRoundWithExisting": {
     "placeholders": {
       "count": {
@@ -481,7 +481,32 @@
       }
     }
   },
-  "tournamentGenerateRoundMessage": "Tạo vòng đấu round-robin cho tất cả người chơi?"
+  "tournamentMatchdayLabel": "Vòng {n}",
+  "@tournamentMatchdayLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentMatchdayBadge": "V{n}",
+  "@tournamentMatchdayBadge": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentOtherMatches": "Trận khác",
+  "tournamentRoundTooLarge": "Giải có quá nhiều người chơi để tạo một lượt (tối đa {max}).",
+  "@tournamentRoundTooLarge": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentGenerateRoundMessage": "Tạo lượt đấu mới? Các trận sẽ được chia theo vòng."
   ,"tournamentNoPlayersTitle": "Chưa có người chơi nào",
   "tournamentNoPlayersSubtitle": "Thêm người chơi để bắt đầu giải đấu",
   "tournamentShareStandingsTitle": "Bảng xếp hạng - {leagueName}",

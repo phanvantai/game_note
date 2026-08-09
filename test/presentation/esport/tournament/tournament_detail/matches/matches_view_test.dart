@@ -91,6 +91,7 @@ GNEsportMatch _match({
   bool finished = false,
   String homeName = 'Alice',
   String awayName = 'Bob',
+  int? matchday,
 }) {
   return GNEsportMatch(
     id: id,
@@ -103,6 +104,7 @@ GNEsportMatch _match({
     leagueId: 'l1',
     homeTeam: _user('u1', homeName),
     awayTeam: _user('u2', awayName),
+    matchday: matchday,
   );
 }
 
@@ -163,10 +165,10 @@ void main() {
 
     await tester.pumpWidget(_wrap(bloc, fixtures: true));
 
-    expect(find.text('Thêm vòng'), findsOneWidget);
+    expect(find.text('Thêm lượt đấu'), findsOneWidget);
     expect(find.text('Alice'), findsOneWidget);
 
-    await tester.tap(find.text('Thêm vòng'));
+    await tester.tap(find.text('Thêm lượt đấu'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Tạo'));
     await tester.pumpAndSettle();
@@ -220,6 +222,70 @@ void main() {
     await tester.enterText(find.byType(TextField), 'zzz');
     await tester.pump();
     expect(find.text('Không tìm thấy trận nào'), findsOneWidget);
+    await bloc.close();
+  });
+
+  testWidgets('lịch thi đấu nhóm theo vòng', (tester) async {
+    final bloc = _MockBloc();
+    when(() => bloc.state).thenReturn(
+      _MemberState(
+        league: _league(),
+        matches: [
+          _match(id: 'm1', matchday: 1),
+          _match(id: 'm2', matchday: 2),
+        ],
+        participants: [_stat('u1'), _stat('u2')],
+        member: true,
+      ),
+    );
+    when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
+
+    await tester.pumpWidget(_wrap(bloc, fixtures: true));
+
+    expect(find.text('Vòng 1'), findsOneWidget);
+    expect(find.text('Vòng 2'), findsOneWidget);
+    expect(find.text('Trận khác'), findsNothing);
+    await bloc.close();
+  });
+
+  testWidgets('trận không có vòng nằm dưới mục Trận khác', (tester) async {
+    final bloc = _MockBloc();
+    when(() => bloc.state).thenReturn(
+      _MemberState(
+        league: _league(),
+        matches: [
+          _match(id: 'm1', matchday: 1),
+          _match(id: 'm2'),
+        ],
+        participants: [_stat('u1'), _stat('u2')],
+        member: true,
+      ),
+    );
+    when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
+
+    await tester.pumpWidget(_wrap(bloc, fixtures: true));
+
+    expect(find.text('Vòng 1'), findsOneWidget);
+    expect(find.text('Trận khác'), findsOneWidget);
+    await bloc.close();
+  });
+
+  testWidgets('tab kết quả không nhóm theo vòng', (tester) async {
+    final bloc = _MockBloc();
+    when(() => bloc.state).thenReturn(
+      _MemberState(
+        league: _league(),
+        matches: [_match(id: 'm1', finished: true, matchday: 1)],
+        participants: [_stat('u1'), _stat('u2')],
+        member: true,
+      ),
+    );
+    when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
+
+    await tester.pumpWidget(_wrap(bloc, fixtures: false));
+
+    expect(find.text('Vòng 1'), findsNothing);
+    expect(find.text('V1'), findsOneWidget);
     await bloc.close();
   });
 }

@@ -1,4 +1,3 @@
-// coverage:ignore-file
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
@@ -882,10 +881,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tournamentGroupRoundMinimum =>
-      'Group needs at least 2 players to create a round';
+      'Group needs at least 2 players to create a leg';
 
   @override
-  String get tournamentRoundCreated => 'Round created successfully';
+  String get tournamentRoundCreated => 'Leg created successfully';
 
   @override
   String get tournamentMatchUpdated => 'Match updated successfully';
@@ -1017,7 +1016,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tournamentGroupMatchesTitle => 'Group matches';
 
   @override
-  String get tournamentAddRound => 'Add round';
+  String get tournamentAddRound => 'Add leg';
 
   @override
   String get tournamentScheduleTitle => 'Schedule';
@@ -1040,12 +1039,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String tournamentGenerateRoundWithExisting(int count) {
-    return 'There are $count matches in the schedule. Create another round?';
+    return 'There are $count fixtures already. Create another leg, split into matchdays?';
+  }
+
+  @override
+  String tournamentMatchdayLabel(int n) {
+    return 'Round $n';
+  }
+
+  @override
+  String tournamentMatchdayBadge(int n) {
+    return 'MD $n';
+  }
+
+  @override
+  String get tournamentOtherMatches => 'Other matches';
+
+  @override
+  String tournamentRoundTooLarge(int max) {
+    return 'This league has too many players to generate a leg in one go (max $max).';
   }
 
   @override
   String get tournamentGenerateRoundMessage =>
-      'Create a round-robin round for all players?';
+      'Create a new leg? Fixtures will be split into matchdays.';
 
   @override
   String get tournamentNoPlayersTitle => 'No players yet';

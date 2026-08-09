@@ -1709,13 +1709,13 @@ abstract class AppLocalizations {
   /// No description provided for @tournamentGroupRoundMinimum.
   ///
   /// In en, this message translates to:
-  /// **'Group needs at least 2 players to create a round'**
+  /// **'Group needs at least 2 players to create a leg'**
   String get tournamentGroupRoundMinimum;
 
   /// No description provided for @tournamentRoundCreated.
   ///
   /// In en, this message translates to:
-  /// **'Round created successfully'**
+  /// **'Leg created successfully'**
   String get tournamentRoundCreated;
 
   /// No description provided for @tournamentMatchUpdated.
@@ -1955,7 +1955,7 @@ abstract class AppLocalizations {
   /// No description provided for @tournamentAddRound.
   ///
   /// In en, this message translates to:
-  /// **'Add round'**
+  /// **'Add leg'**
   String get tournamentAddRound;
 
   /// No description provided for @tournamentScheduleTitle.
@@ -1997,13 +1997,37 @@ abstract class AppLocalizations {
   /// No description provided for @tournamentGenerateRoundWithExisting.
   ///
   /// In en, this message translates to:
-  /// **'There are {count} matches in the schedule. Create another round?'**
+  /// **'There are {count} fixtures already. Create another leg, split into matchdays?'**
   String tournamentGenerateRoundWithExisting(int count);
+
+  /// No description provided for @tournamentMatchdayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {n}'**
+  String tournamentMatchdayLabel(int n);
+
+  /// No description provided for @tournamentMatchdayBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'MD {n}'**
+  String tournamentMatchdayBadge(int n);
+
+  /// No description provided for @tournamentOtherMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Other matches'**
+  String get tournamentOtherMatches;
+
+  /// No description provided for @tournamentRoundTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This league has too many players to generate a leg in one go (max {max}).'**
+  String tournamentRoundTooLarge(int max);
 
   /// No description provided for @tournamentGenerateRoundMessage.
   ///
   /// In en, this message translates to:
-  /// **'Create a round-robin round for all players?'**
+  /// **'Create a new leg? Fixtures will be split into matchdays.'**
   String get tournamentGenerateRoundMessage;
 
   /// No description provided for @tournamentNoPlayersTitle.

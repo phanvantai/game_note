@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/data/sync/mapping_target.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/data/sync/migration_plan.dart';
 import 'package:pes_arena/data/sync/offline_to_online_migrator.dart';
 import 'package:pes_arena/data/sync/sync_remote_gateway.dart';
@@ -24,6 +25,92 @@ void main() {
       gateway,
       idGenerator: () => 'id${++counter}',
     );
+  });
+
+  group('buildPlan — matchday', () {
+    test('mỗi vòng offline giữ nguyên số vòng khi lên online', () {
+      final p1 = offlinePlayer(1, 'A');
+      final p2 = offlinePlayer(2, 'B');
+      final league = offlineLeagueFixture(
+        players: [p1, p2],
+        roundsMatches: [
+          [
+            offlineMatch(
+              matchId: 10,
+              roundId: 1,
+              home: p1,
+              away: p2,
+              homeScore: 3,
+              awayScore: 1,
+            ),
+          ],
+          [
+            offlineMatch(
+              matchId: 11,
+              roundId: 2,
+              home: p2,
+              away: p1,
+              homeScore: 0,
+              awayScore: 2,
+            ),
+          ],
+        ],
+      );
+
+      final plan = migrator.buildPlan(
+        offlineLeague: league,
+        groupId: 'G',
+        currentUserUid: 'currentUid',
+        mappings: {
+          1: const MapToExisting('uidA'),
+          2: const MapToExisting('uidB'),
+        },
+      );
+
+      expect(plan.matches.map((m) => m.matchday).toList(), [1, 2]);
+    });
+
+    test('league document mang matchdayCount bằng số vòng offline', () {
+      final p1 = offlinePlayer(1, 'A');
+      final p2 = offlinePlayer(2, 'B');
+      final league = offlineLeagueFixture(
+        players: [p1, p2],
+        roundsMatches: [
+          [
+            offlineMatch(
+              matchId: 10,
+              roundId: 1,
+              home: p1,
+              away: p2,
+              homeScore: 3,
+              awayScore: 1,
+            ),
+          ],
+          [
+            offlineMatch(
+              matchId: 11,
+              roundId: 2,
+              home: p2,
+              away: p1,
+              homeScore: 0,
+              awayScore: 2,
+            ),
+          ],
+        ],
+      );
+
+      final plan = migrator.buildPlan(
+        offlineLeague: league,
+        groupId: 'G',
+        currentUserUid: 'currentUid',
+        mappings: {
+          1: const MapToExisting('uidA'),
+          2: const MapToExisting('uidB'),
+        },
+      );
+
+      expect(plan.leagueData[GNEsportLeague.fieldMatchdayCount], 2);
+    });
   });
 
   group('buildPlan — happy path', () {
@@ -163,8 +250,10 @@ void main() {
 
     test('does not call gateway during plan-building', () {
       final p1 = offlinePlayer(1, 'A');
-      final league =
-          offlineLeagueFixture(players: [p1], roundsMatches: const []);
+      final league = offlineLeagueFixture(
+        players: [p1],
+        roundsMatches: const [],
+      );
       migrator.buildPlan(
         offlineLeague: league,
         groupId: 'G',
@@ -233,8 +322,10 @@ void main() {
 
     test('throws on unknown offline player id in mapping', () {
       final p1 = offlinePlayer(1, 'A');
-      final league =
-          offlineLeagueFixture(players: [p1], roundsMatches: const []);
+      final league = offlineLeagueFixture(
+        players: [p1],
+        roundsMatches: const [],
+      );
       expect(
         () => migrator.buildPlan(
           offlineLeague: league,
@@ -282,8 +373,13 @@ void main() {
             2: const MapToExisting('uidB'),
           },
         ),
-        throwsA(isA<PlanTooLargeException>()
-            .having((e) => e.totalOps, 'totalOps', greaterThan(500))),
+        throwsA(
+          isA<PlanTooLargeException>().having(
+            (e) => e.totalOps,
+            'totalOps',
+            greaterThan(500),
+          ),
+        ),
       );
     });
   });
@@ -292,8 +388,10 @@ void main() {
     test('forwards plan to gateway.commitBatch', () async {
       when(() => gateway.commitBatch(any())).thenAnswer((_) async {});
       final p1 = offlinePlayer(1, 'A');
-      final league =
-          offlineLeagueFixture(players: [p1], roundsMatches: const []);
+      final league = offlineLeagueFixture(
+        players: [p1],
+        roundsMatches: const [],
+      );
       final plan = migrator.buildPlan(
         offlineLeague: league,
         groupId: 'G',
@@ -307,8 +405,10 @@ void main() {
     test('propagates gateway errors as-is', () async {
       when(() => gateway.commitBatch(any())).thenThrow(StateError('quota'));
       final p1 = offlinePlayer(1, 'A');
-      final league =
-          offlineLeagueFixture(players: [p1], roundsMatches: const []);
+      final league = offlineLeagueFixture(
+        players: [p1],
+        roundsMatches: const [],
+      );
       final plan = migrator.buildPlan(
         offlineLeague: league,
         groupId: 'G',

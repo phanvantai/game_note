@@ -404,8 +404,8 @@
       }
     }
   },
-  "tournamentGroupRoundMinimum": "Group needs at least 2 players to create a round",
-  "tournamentRoundCreated": "Round created successfully",
+  "tournamentGroupRoundMinimum": "Group needs at least 2 players to create a leg",
+  "tournamentRoundCreated": "Leg created successfully",
   "tournamentMatchUpdated": "Match updated successfully",
   "tournamentMatchConcurrentUpdate": "This match was just updated by someone else. Please check again.",
   "tournamentBracketCreated": "Bracket created successfully",
@@ -466,14 +466,14 @@
   "tournamentShareStandings": "Share standings",
   "tournamentStatusMenu": "Status",
   "tournamentGroupMatchesTitle": "Group matches",
-  "tournamentAddRound": "Add round",
+  "tournamentAddRound": "Add leg",
   "tournamentScheduleTitle": "Schedule",
   "tournamentCreateCustomMatchTooltip": "Create custom match",
   "tournamentSearchPlayerHint": "Search by player name (for example: A B)",
   "tournamentNoMatchesFound": "No matches found",
   "tournamentNoFixtures": "No fixtures yet",
   "tournamentNoResults": "No results yet",
-  "tournamentGenerateRoundWithExisting": "There are {count} matches in the schedule. Create another round?",
+  "tournamentGenerateRoundWithExisting": "There are {count} fixtures already. Create another leg, split into matchdays?",
   "@tournamentGenerateRoundWithExisting": {
     "placeholders": {
       "count": {
@@ -481,7 +481,32 @@
       }
     }
   },
-  "tournamentGenerateRoundMessage": "Create a round-robin round for all players?"
+  "tournamentMatchdayLabel": "Round {n}",
+  "@tournamentMatchdayLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentMatchdayBadge": "MD {n}",
+  "@tournamentMatchdayBadge": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentOtherMatches": "Other matches",
+  "tournamentRoundTooLarge": "This league has too many players to generate a leg in one go (max {max}).",
+  "@tournamentRoundTooLarge": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentGenerateRoundMessage": "Create a new leg? Fixtures will be split into matchdays."
   ,"tournamentNoPlayersTitle": "No players yet",
   "tournamentNoPlayersSubtitle": "Add players to start the tournament",
   "tournamentShareStandingsTitle": "Standings - {leagueName}",

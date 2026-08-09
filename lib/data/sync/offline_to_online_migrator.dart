@@ -66,6 +66,9 @@ class OfflineToOnlineMigrator {
       GNEsportLeague.fieldRankPayoutEnabled: false,
       GNEsportLeague.fieldRankPayouts: const <int>[],
       GNEsportLeague.fieldDefaultMatchCost: 50000,
+      // Carry the offline round count over so the first online
+      // generateRound continues the numbering instead of restarting at 1.
+      GNEsportLeague.fieldMatchdayCount: offlineLeague.rounds.length,
     };
 
     // 3) Build matches first — stats reconciled from these.
@@ -148,7 +151,12 @@ class OfflineToOnlineMigrator {
     required Map<int, String> playerIdToUid,
   }) {
     final result = <GNEsportMatch>[];
-    for (final round in offlineLeague.rounds) {
+    for (
+      int roundIndex = 0;
+      roundIndex < offlineLeague.rounds.length;
+      roundIndex++
+    ) {
+      final round = offlineLeague.rounds[roundIndex];
       for (final m in round.matches) {
         if (!_isCompleted(m)) continue;
         final homeId = m.home!.playerModel.id;
@@ -166,6 +174,7 @@ class OfflineToOnlineMigrator {
             date: _parseDate(m.created) ?? offlineLeague.dateTime,
             isFinished: true,
             leagueId: leagueId,
+            matchday: roundIndex + 1,
           ),
         );
       }

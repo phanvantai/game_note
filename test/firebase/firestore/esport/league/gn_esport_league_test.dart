@@ -97,23 +97,25 @@ void main() {
       expect(restored.defaultCostPerGoal, 50000);
     });
 
-    test('rankPayouts là List<dynamic> (Firestore trả): parse thành List<int>',
-        () {
-      final data = <String, dynamic>{
-        GNEsportLeague.fieldOwnerId: 'owner',
-        GNEsportLeague.fieldGroupId: 'G1',
-        GNEsportLeague.fieldName: 'L',
-        GNEsportLeague.fieldStartDate: DateTime(2026, 1, 1),
-        GNEsportLeague.fieldIsActive: true,
-        GNEsportLeague.fieldDescription: '',
-        GNEsportLeague.fieldParticipants: <String>[],
-        GNEsportLeague.fieldRankPayoutEnabled: true,
-        GNEsportLeague.fieldRankPayouts: <dynamic>[50000, 100000, 150000],
-        GNEsportLeague.fieldDefaultMatchCost: 60000,
-      };
-      final restored = GNEsportLeague.fromMap(data, 'x');
-      expect(restored.rankPayouts, [50000, 100000, 150000]);
-    });
+    test(
+      'rankPayouts là List<dynamic> (Firestore trả): parse thành List<int>',
+      () {
+        final data = <String, dynamic>{
+          GNEsportLeague.fieldOwnerId: 'owner',
+          GNEsportLeague.fieldGroupId: 'G1',
+          GNEsportLeague.fieldName: 'L',
+          GNEsportLeague.fieldStartDate: DateTime(2026, 1, 1),
+          GNEsportLeague.fieldIsActive: true,
+          GNEsportLeague.fieldDescription: '',
+          GNEsportLeague.fieldParticipants: <String>[],
+          GNEsportLeague.fieldRankPayoutEnabled: true,
+          GNEsportLeague.fieldRankPayouts: <dynamic>[50000, 100000, 150000],
+          GNEsportLeague.fieldDefaultMatchCost: 60000,
+        };
+        final restored = GNEsportLeague.fromMap(data, 'x');
+        expect(restored.rankPayouts, [50000, 100000, 150000]);
+      },
+    );
 
     test('fromMap không có startDate: dùng DateTime.now()', () {
       final data = <String, dynamic>{
@@ -127,8 +129,14 @@ void main() {
       final before = DateTime.now();
       final restored = GNEsportLeague.fromMap(data, 'x');
       final after = DateTime.now();
-      expect(restored.startDate.isAfter(before.subtract(const Duration(seconds: 1))), isTrue);
-      expect(restored.startDate.isBefore(after.add(const Duration(seconds: 1))), isTrue);
+      expect(
+        restored.startDate.isAfter(before.subtract(const Duration(seconds: 1))),
+        isTrue,
+      );
+      expect(
+        restored.startDate.isBefore(after.add(const Duration(seconds: 1))),
+        isTrue,
+      );
     });
 
     test('fromMap với type lạ ở date field: trả null cho endDate', () {
@@ -263,13 +271,17 @@ void main() {
 
     test('"league" → TournamentMode.league', () {
       expect(
-          TournamentModeExtension.fromString('league'), TournamentMode.league);
+        TournamentModeExtension.fromString('league'),
+        TournamentMode.league,
+      );
     });
 
     test('null hoặc lạ → fallback TournamentMode.league', () {
       expect(TournamentModeExtension.fromString(null), TournamentMode.league);
       expect(
-          TournamentModeExtension.fromString('unknown'), TournamentMode.league);
+        TournamentModeExtension.fromString('unknown'),
+        TournamentMode.league,
+      );
     });
   });
 
@@ -309,30 +321,33 @@ void main() {
       expect(map[GNEsportLeague.fieldKnockoutSeeding], ['U1', 'U2']);
     });
 
-    test('fromMap roundtrip giữ nguyên mode full + groupCount + advanceCount', () {
-      final original = GNEsportLeague(
-        id: 'L1',
-        ownerId: 'owner',
-        groupId: 'G1',
-        name: 'Full',
-        startDate: DateTime(2026, 1, 1),
-        isActive: true,
-        description: '',
-        participants: const [],
-        mode: TournamentMode.full,
-        groupCount: 2,
-        advanceCount: 1,
-        knockoutSeeding: const ['U3'],
-      );
-      final map = Map<String, dynamic>.from(original.toMap());
-      map[GNEsportLeague.fieldStartDate] = original.startDate;
-      final restored = GNEsportLeague.fromMap(map, original.id);
+    test(
+      'fromMap roundtrip giữ nguyên mode full + groupCount + advanceCount',
+      () {
+        final original = GNEsportLeague(
+          id: 'L1',
+          ownerId: 'owner',
+          groupId: 'G1',
+          name: 'Full',
+          startDate: DateTime(2026, 1, 1),
+          isActive: true,
+          description: '',
+          participants: const [],
+          mode: TournamentMode.full,
+          groupCount: 2,
+          advanceCount: 1,
+          knockoutSeeding: const ['U3'],
+        );
+        final map = Map<String, dynamic>.from(original.toMap());
+        map[GNEsportLeague.fieldStartDate] = original.startDate;
+        final restored = GNEsportLeague.fromMap(map, original.id);
 
-      expect(restored.mode, TournamentMode.full);
-      expect(restored.groupCount, 2);
-      expect(restored.advanceCount, 1);
-      expect(restored.knockoutSeeding, ['U3']);
-    });
+        expect(restored.mode, TournamentMode.full);
+        expect(restored.groupCount, 2);
+        expect(restored.advanceCount, 1);
+        expect(restored.knockoutSeeding, ['U3']);
+      },
+    );
 
     test('document cũ thiếu mode → fallback TournamentMode.league', () {
       final legacy = <String, dynamic>{
@@ -350,6 +365,29 @@ void main() {
       expect(restored.groupCount, 1);
       expect(restored.advanceCount, 2);
       expect(restored.knockoutSeeding, isEmpty);
+    });
+  });
+
+  group('matchdayCount không nằm trong toMap', () {
+    // Guard, not a driver: updateLeague calls leagueRef.update(league.toMap()),
+    // so the day someone adds matchdayCount to toMap an ordinary league edit
+    // starts resetting the matchday counter.
+    test('toMap không chứa matchdayCount', () {
+      final league = GNEsportLeague(
+        id: 'L1',
+        ownerId: 'owner',
+        groupId: 'G1',
+        name: 'League',
+        startDate: DateTime(2026, 1, 1),
+        isActive: true,
+        description: '',
+        participants: const [],
+      );
+
+      expect(
+        league.toMap().containsKey(GNEsportLeague.fieldMatchdayCount),
+        isFalse,
+      );
     });
   });
 }

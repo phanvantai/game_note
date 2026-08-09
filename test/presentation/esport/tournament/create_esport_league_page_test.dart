@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/round_robin_scheduler.dart';
 import 'package:pes_arena/presentation/esport/tournament/create_esport_league_page.dart';
 
 GNEsportGroup _group(String id, String name, {List<String>? members}) =>
@@ -28,20 +31,20 @@ class _Captured {
   int callCount = 0;
 }
 
-Future<Map<String, MemberInfo>> _stubNameLoader(List<String> ids) async =>
-    {for (final id in ids) id: (name: id, photoUrl: null)};
+Future<Map<String, MemberInfo>> _stubNameLoader(List<String> ids) async => {
+  for (final id in ids) id: (name: id, photoUrl: null),
+};
 
 Widget _wrap({
   required List<GNEsportGroup> groups,
   required OnAddLeagueCallback onAddLeague,
-}) =>
-    MaterialApp(
-      home: CreateEsportLeaguePage(
-        groups: groups,
-        onAddLeague: onAddLeague,
-        memberNameLoader: _stubNameLoader,
-      ),
-    );
+}) => MaterialApp(
+  home: CreateEsportLeaguePage(
+    groups: groups,
+    onAddLeague: onAddLeague,
+    memberNameLoader: _stubNameLoader,
+  ),
+);
 
 /// Wrap dalam Navigator agar bisa test pop result.
 Widget _wrapWithNav({
@@ -50,29 +53,32 @@ Widget _wrapWithNav({
   required ValueNotifier<String?> popResult,
 }) {
   return MaterialApp(
-    home: Builder(builder: (ctx) {
-      return Scaffold(
-        body: ElevatedButton(
-          onPressed: () async {
-            final result = await Navigator.of(ctx).push<String>(
-              MaterialPageRoute(
-                builder: (_) => CreateEsportLeaguePage(
-                  groups: groups,
-                  onAddLeague: onAddLeague,
-                  memberNameLoader: _stubNameLoader,
+    home: Builder(
+      builder: (ctx) {
+        return Scaffold(
+          body: ElevatedButton(
+            onPressed: () async {
+              final result = await Navigator.of(ctx).push<String>(
+                MaterialPageRoute(
+                  builder: (_) => CreateEsportLeaguePage(
+                    groups: groups,
+                    onAddLeague: onAddLeague,
+                    memberNameLoader: _stubNameLoader,
+                  ),
                 ),
-              ),
-            );
-            popResult.value = result;
-          },
-          child: const Text('Open'),
-        ),
-      );
-    }),
+              );
+              popResult.value = result;
+            },
+            child: const Text('Open'),
+          ),
+        );
+      },
+    ),
   );
 }
 
-OnAddLeagueCallback _noopCallback() => ({
+OnAddLeagueCallback _noopCallback() =>
+    ({
       required name,
       required groupId,
       startDate,
@@ -93,7 +99,9 @@ OnAddLeagueCallback _noopCallback() => ({
 
 void main() {
   group('CreateEsportLeaguePage — wizard', () {
-    testWidgets('groups rỗng → hiện empty state, nút Tiếp theo disabled', (tester) async {
+    testWidgets('groups rỗng → hiện empty state, nút Tiếp theo disabled', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(groups: [], onAddLeague: _noopCallback()));
 
       expect(find.text('Bạn chưa tham gia nhóm nào'), findsOneWidget);
@@ -103,7 +111,9 @@ void main() {
       expect(btn.onPressed, isNull);
     });
 
-    testWidgets('chỉ 1 group → auto chọn, nút Tiếp theo enabled', (tester) async {
+    testWidgets('chỉ 1 group → auto chọn, nút Tiếp theo enabled', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(groups: [_group('g1', 'Nhóm 1')], onAddLeague: _noopCallback()),
       );
@@ -117,10 +127,7 @@ void main() {
 
     testWidgets('hiện step 1: danh sách nhóm + nút Tiếp theo', (tester) async {
       await tester.pumpWidget(
-        _wrap(
-          groups: [_group('g1', 'Nhóm 1')],
-          onAddLeague: _noopCallback(),
-        ),
+        _wrap(groups: [_group('g1', 'Nhóm 1')], onAddLeague: _noopCallback()),
       );
 
       expect(find.byType(Scaffold), findsOneWidget);
@@ -151,10 +158,7 @@ void main() {
 
     testWidgets('step 1 chọn nhóm → nút Tiếp theo enabled', (tester) async {
       await tester.pumpWidget(
-        _wrap(
-          groups: [_group('g1', 'Nhóm 1')],
-          onAddLeague: _noopCallback(),
-        ),
+        _wrap(groups: [_group('g1', 'Nhóm 1')], onAddLeague: _noopCallback()),
       );
 
       await tester.tap(find.text('Nhóm 1'));
@@ -171,7 +175,9 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _wrap(
-          groups: [_group('g1', 'Nhóm 1', members: ['p1', 'p2'])],
+          groups: [
+            _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+          ],
           onAddLeague: _noopCallback(),
         ),
       );
@@ -196,7 +202,9 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _wrap(
-          groups: [_group('g1', 'Nhóm 1', members: ['owner', 'p1', 'p2'])],
+          groups: [
+            _group('g1', 'Nhóm 1', members: ['owner', 'p1', 'p2']),
+          ],
           onAddLeague: _noopCallback(),
         ),
       );
@@ -213,8 +221,12 @@ void main() {
     });
 
     testWidgets('step 3 hiện 3 mode cards', (tester) async {
-      final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2', 'p3', 'p4'])];
-      await tester.pumpWidget(_wrap(groups: groups, onAddLeague: _noopCallback()));
+      final groups = [
+        _group('g1', 'Nhóm 1', members: ['p1', 'p2', 'p3', 'p4']),
+      ];
+      await tester.pumpWidget(
+        _wrap(groups: groups, onAddLeague: _noopCallback()),
+      );
 
       // Step 1: chọn nhóm
       await tester.tap(find.text('Nhóm 1'));
@@ -237,77 +249,90 @@ void main() {
     });
 
     testWidgets(
-        'step 3: Cup và Full có badge "Sắp ra mắt", tap không đổi mode',
-        (tester) async {
-      // Tạm thời tắt 2 mode này — chỉ cho phép tạo league cho tới khi
-      // luồng cup/full ổn định. Bài test này đứng gác để khi ai bật lại
-      // phải xoá comingSoon flag và update lại assertion.
-      final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2', 'p3', 'p4'])];
-      await tester
-          .pumpWidget(_wrap(groups: groups, onAddLeague: _noopCallback()));
+      'step 3: Cup và Full có badge "Sắp ra mắt", tap không đổi mode',
+      (tester) async {
+        // Tạm thời tắt 2 mode này — chỉ cho phép tạo league cho tới khi
+        // luồng cup/full ổn định. Bài test này đứng gác để khi ai bật lại
+        // phải xoá comingSoon flag và update lại assertion.
+        final groups = [
+          _group('g1', 'Nhóm 1', members: ['p1', 'p2', 'p3', 'p4']),
+        ];
+        await tester.pumpWidget(
+          _wrap(groups: groups, onAddLeague: _noopCallback()),
+        );
 
-      // → step 3
-      await tester.tap(find.text('Nhóm 1'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('p1'));
-      await tester.tap(find.text('p2'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
-      await tester.pumpAndSettle();
+        // → step 3
+        await tester.tap(find.text('Nhóm 1'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('p1'));
+        await tester.tap(find.text('p2'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+        await tester.pumpAndSettle();
 
-      // Badge "Sắp ra mắt" xuất hiện đúng 2 lần (Cup + Full).
-      expect(find.text('Sắp ra mắt'), findsNWidgets(2));
+        // Badge "Sắp ra mắt" xuất hiện đúng 2 lần (Cup + Full).
+        expect(find.text('Sắp ra mắt'), findsNWidgets(2));
 
-      // Selected indicator (check_circle) ban đầu chỉ ở mode League
-      // (default selected). Tap Cup không được phép → không có thêm tick.
-      expect(find.byIcon(Icons.check_circle), findsOneWidget);
-      await tester.tap(find.text('Cup'));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.check_circle), findsOneWidget,
-          reason: 'Cup bị disable → mode không đổi sang Cup');
+        // Selected indicator (check_circle) ban đầu chỉ ở mode League
+        // (default selected). Tap Cup không được phép → không có thêm tick.
+        expect(find.byIcon(Icons.check_circle), findsOneWidget);
+        await tester.tap(find.text('Cup'));
+        await tester.pumpAndSettle();
+        expect(
+          find.byIcon(Icons.check_circle),
+          findsOneWidget,
+          reason: 'Cup bị disable → mode không đổi sang Cup',
+        );
 
-      // Tap Full cũng vô hiệu.
-      await tester.tap(find.text('Full'));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.check_circle), findsOneWidget,
-          reason: 'Full bị disable → mode không đổi sang Full');
-    });
+        // Tap Full cũng vô hiệu.
+        await tester.tap(find.text('Full'));
+        await tester.pumpAndSettle();
+        expect(
+          find.byIcon(Icons.check_circle),
+          findsOneWidget,
+          reason: 'Full bị disable → mode không đổi sang Full',
+        );
+      },
+    );
 
     testWidgets('chọn mode League → callback nhận mode=league', (tester) async {
       final captured = _Captured();
-      final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2'])];
+      final groups = [
+        _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+      ];
       await tester.pumpWidget(
         _wrap(
           groups: groups,
-          onAddLeague: ({
-            required name,
-            required groupId,
-            startDate,
-            endDate,
-            required description,
-            required rankPayoutEnabled,
-            required rankPayouts,
-            required defaultMatchCost,
-            required defaultPerGoalEnabled,
-            required defaultCostPerGoal,
-            required mode,
-            required participants,
-            required groupCount,
-            required advanceCount,
-            required knockoutSeeding,
-            required groupAssignment,
-          }) async {
-            captured.callCount++;
-            captured.name = name;
-            captured.groupId = groupId;
-            captured.mode = mode;
-            captured.participants = participants;
-            captured.knockoutSeeding = knockoutSeeding;
-            captured.groupAssignment = groupAssignment;
-            return 'test-id';
-          },
+          onAddLeague:
+              ({
+                required name,
+                required groupId,
+                startDate,
+                endDate,
+                required description,
+                required rankPayoutEnabled,
+                required rankPayouts,
+                required defaultMatchCost,
+                required defaultPerGoalEnabled,
+                required defaultCostPerGoal,
+                required mode,
+                required participants,
+                required groupCount,
+                required advanceCount,
+                required knockoutSeeding,
+                required groupAssignment,
+              }) async {
+                captured.callCount++;
+                captured.name = name;
+                captured.groupId = groupId;
+                captured.mode = mode;
+                captured.participants = participants;
+                captured.knockoutSeeding = knockoutSeeding;
+                captured.groupAssignment = groupAssignment;
+                return 'test-id';
+              },
         ),
       );
 
@@ -350,31 +375,38 @@ void main() {
       expect(captured.groupAssignment, isEmpty);
     });
 
-    testWidgets('tạo thành công → page pop với leagueId trả về', (tester) async {
+    testWidgets('tạo thành công → page pop với leagueId trả về', (
+      tester,
+    ) async {
       final popResult = ValueNotifier<String?>(null);
-      final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2'])];
-      await tester.pumpWidget(_wrapWithNav(
-        groups: groups,
-        onAddLeague: ({
-          required name,
-          required groupId,
-          startDate,
-          endDate,
-          required description,
-          required rankPayoutEnabled,
-          required rankPayouts,
-          required defaultMatchCost,
-          required defaultPerGoalEnabled,
-          required defaultCostPerGoal,
-          required mode,
-          required participants,
-          required groupCount,
-          required advanceCount,
-          required knockoutSeeding,
-          required groupAssignment,
-        }) async => 'created-id',
-        popResult: popResult,
-      ));
+      final groups = [
+        _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+      ];
+      await tester.pumpWidget(
+        _wrapWithNav(
+          groups: groups,
+          onAddLeague:
+              ({
+                required name,
+                required groupId,
+                startDate,
+                endDate,
+                required description,
+                required rankPayoutEnabled,
+                required rankPayouts,
+                required defaultMatchCost,
+                required defaultPerGoalEnabled,
+                required defaultCostPerGoal,
+                required mode,
+                required participants,
+                required groupCount,
+                required advanceCount,
+                required knockoutSeeding,
+                required groupAssignment,
+              }) async => 'created-id',
+          popResult: popResult,
+        ),
+      );
 
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
@@ -401,7 +433,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Step 5: info
-      await tester.enterText(find.widgetWithText(TextField, 'Tên giải đấu'), 'Giải test');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Tên giải đấu'),
+        'Giải test',
+      );
       await tester.pump();
       await tester.tap(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
       await tester.pumpAndSettle();
@@ -409,9 +444,15 @@ void main() {
       expect(popResult.value, 'created-id');
     });
 
-    testWidgets('step 5 chưa nhập tên → nút Tạo giải đấu disabled', (tester) async {
-      final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2'])];
-      await tester.pumpWidget(_wrap(groups: groups, onAddLeague: _noopCallback()));
+    testWidgets('step 5 chưa nhập tên → nút Tạo giải đấu disabled', (
+      tester,
+    ) async {
+      final groups = [
+        _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+      ];
+      await tester.pumpWidget(
+        _wrap(groups: groups, onAddLeague: _noopCallback()),
+      );
 
       await tester.tap(find.text('Nhóm 1'));
       await tester.pumpAndSettle();
@@ -436,8 +477,12 @@ void main() {
     });
 
     testWidgets('step 5 nhập tên → nút Tạo giải đấu enabled', (tester) async {
-      final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2'])];
-      await tester.pumpWidget(_wrap(groups: groups, onAddLeague: _noopCallback()));
+      final groups = [
+        _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+      ];
+      await tester.pumpWidget(
+        _wrap(groups: groups, onAddLeague: _noopCallback()),
+      );
 
       await tester.tap(find.text('Nhóm 1'));
       await tester.pumpAndSettle();
@@ -455,7 +500,10 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(TextField, 'Tên giải đấu'), 'Giải test');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Tên giải đấu'),
+        'Giải test',
+      );
       await tester.pump();
 
       final btn = tester.widget<FilledButton>(
@@ -467,8 +515,12 @@ void main() {
     testWidgets('step 5 hiện nút Tạo giải đấu (không phải Tiếp theo)', (
       tester,
     ) async {
-      final groups = [_group('g1', 'Nhóm 1', members: ['p1', 'p2'])];
-      await tester.pumpWidget(_wrap(groups: groups, onAddLeague: _noopCallback()));
+      final groups = [
+        _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+      ];
+      await tester.pumpWidget(
+        _wrap(groups: groups, onAddLeague: _noopCallback()),
+      );
 
       // Navigate through all steps
       await tester.tap(find.text('Nhóm 1'));
@@ -494,6 +546,109 @@ void main() {
       expect(find.text('5/5'), findsOneWidget);
       expect(find.widgetWithText(FilledButton, 'Tạo giải đấu'), findsOneWidget);
       expect(find.text('Cấu hình chi phí'), findsOneWidget);
+    });
+  });
+
+  group('lỗi khi tạo giải', () {
+    late List<String> toasts;
+
+    setUp(() {
+      toasts = [];
+      setShowToastImpl(
+        (message, {gravity = ToastGravity.BOTTOM}) => toasts.add(message),
+      );
+    });
+
+    tearDown(resetShowToast);
+
+    Future<void> driveToSubmit(WidgetTester tester) async {
+      await tester.tap(find.text('Nhóm 1'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('p1'));
+      await tester.tap(find.text('p2'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Tên giải đấu'),
+        'Giải test',
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
+      await tester.pumpAndSettle();
+    }
+
+    OnAddLeagueCallback throwing(Object error) =>
+        ({
+          required name,
+          required groupId,
+          startDate,
+          endDate,
+          required description,
+          required rankPayoutEnabled,
+          required rankPayouts,
+          required defaultMatchCost,
+          required defaultPerGoalEnabled,
+          required defaultCostPerGoal,
+          required mode,
+          required participants,
+          required groupCount,
+          required advanceCount,
+          required knockoutSeeding,
+          required groupAssignment,
+        }) async {
+          throw error;
+        };
+
+    testWidgets('quá giới hạn người chơi → toast đã dịch, wizard không đóng', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          groups: [
+            _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+          ],
+          onAddLeague: throwing(
+            RoundTooLargeException(
+              participantCount: 33,
+              maxParticipants: kMaxRoundRobinParticipants,
+            ),
+          ),
+        ),
+      );
+
+      await driveToSubmit(tester);
+
+      expect(toasts.single, contains('32'));
+      expect(toasts.single, isNot(contains('RoundTooLargeException')));
+      expect(find.widgetWithText(FilledButton, 'Tạo giải đấu'), findsOneWidget);
+    });
+
+    testWidgets('lỗi bất kỳ khi tạo giải → toast lỗi, wizard không đóng', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          groups: [
+            _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+          ],
+          onAddLeague: throwing(Exception('network down')),
+        ),
+      );
+
+      await driveToSubmit(tester);
+
+      expect(toasts, hasLength(1));
+      expect(find.widgetWithText(FilledButton, 'Tạo giải đấu'), findsOneWidget);
     });
   });
 }

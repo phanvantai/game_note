@@ -141,6 +141,16 @@ class GNEsportLeague extends Equatable {
   static const String fieldAdvanceCount = 'advanceCount';
   static const String fieldKnockoutSeeding = 'knockoutSeeding';
 
+  /// Number of matchdays allocated so far in league mode. Owned exclusively by
+  /// `generateRound`, which reserves a range inside a transaction so two
+  /// simultaneous generations cannot claim the same matchday numbers.
+  ///
+  /// Deliberately absent from the entity and from [toMap]: `updateLeague`
+  /// calls `leagueRef.update(league.toMap())`, and `update` only touches the
+  /// keys it is given, so leaving this out stops an ordinary league edit from
+  /// clobbering the counter.
+  static const String fieldMatchdayCount = 'matchdayCount';
+
   /// Seeding for knockout bracket:
   /// - League: `[]`
   /// - Cup: ordered user IDs (seed 1 first)
