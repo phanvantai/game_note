@@ -7,6 +7,7 @@ import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_es
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 
 import 'gn_esport_match.dart';
+import 'round_robin_scheduler.dart';
 
 /// Thrown when a match update detects another writer has modified the match
 /// since the local copy was loaded. UI should toast and refresh — the
@@ -19,6 +20,28 @@ class ConcurrentMatchUpdateException implements Exception {
   String toString() =>
       'ConcurrentMatchUpdateException: match $matchId was updated by '
       'someone else while you were editing it.';
+}
+
+/// Thrown when a league has so many participants that one round-robin leg
+/// cannot be written in a single Firestore transaction.
+///
+/// A leg is written atomically on purpose: chunked writes can leave a leg
+/// half-created, and no retry path can tell the difference between "finish
+/// this leg" and "start another one". Failing early with a clear error beats
+/// partial state that nothing repairs.
+class RoundTooLargeException implements Exception {
+  final int participantCount;
+  final int maxParticipants;
+
+  RoundTooLargeException({
+    required this.participantCount,
+    required this.maxParticipants,
+  });
+
+  @override
+  String toString() =>
+      'RoundTooLargeException: $participantCount participants exceeds the '
+      'maximum of $maxParticipants for a single atomically written leg.';
 }
 
 extension GnFirestoreEsportLeagueMatch on GNFirestore {
@@ -35,6 +58,16 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         });
   }
 
+  /// Generates one full round-robin leg, split into matchdays.
+  ///
+  /// Matchday numbers run continuously across legs — with 6 players the first
+  /// leg is 1..5 and the second 6..10. The range is reserved from
+  /// [GNEsportLeague.fieldMatchdayCount] inside the same transaction that
+  /// writes the matches, so two members generating at once get disjoint
+  /// ranges and deleting a matchday never frees its number for reuse.
+  ///
+  /// Throws [RoundTooLargeException] before writing anything if the leg would
+  /// exceed one transaction. See that class for why the leg is atomic.
   Future<void> generateRound({
     required String leagueId,
     required List<String> teamIds,
@@ -42,30 +75,77 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     final uniqueTeamIds = _uniqueTeamIds(teamIds);
     final matchPath =
         '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
-    final docs = <MapEntry<String, Map<String, dynamic>>>[];
 
-    for (int i = 0; i < uniqueTeamIds.length; i++) {
-      for (int j = i + 1; j < uniqueTeamIds.length; j++) {
-        final matchId = firestore.collection(matchPath).doc().id;
-        final match = GNEsportMatch(
-          id: matchId,
-          homeTeamId: uniqueTeamIds[i],
-          awayTeamId: uniqueTeamIds[j],
-          homeScore: 0,
-          awayScore: 0,
-          date: DateTime.now(),
-          isFinished: false,
-          leagueId: leagueId,
-        );
-        docs.add(MapEntry('$matchPath/$matchId', match.toMap()));
-      }
+    // Read outside the transaction. Used for two things: the head-to-head
+    // counts that decide home/away (cosmetic — a stale read only unbalances a
+    // pair), and the legacy seed for leagues that pre-date the counter.
+    final existingSnapshot = await firestore.collection(matchPath).get();
+    final existingMatches = existingSnapshot.docs
+        .map((doc) => GNEsportMatch.fromFirestore(doc))
+        .toList();
+
+    final schedule = buildRoundRobinSchedule(
+      teamIds: uniqueTeamIds,
+      existingMatches: existingMatches,
+    );
+
+    if (schedule.isEmpty) {
+      await _ensureLeagueStats(leagueId: leagueId, teamIds: uniqueTeamIds);
+      return;
     }
+
+    // One transaction slot goes to the counter update; the rest are matches.
+    if (schedule.length + 1 > _kTransactionLimit) {
+      throw RoundTooLargeException(
+        participantCount: uniqueTeamIds.length,
+        maxParticipants: _maxParticipantsPerLeg,
+      );
+    }
+
+    final matchdaysInLeg = schedule
+        .map((pairing) => pairing.matchday)
+        .reduce(math.max);
+    final legacySeed = existingMatches
+        .map((match) => match.matchday ?? 0)
+        .fold(0, math.max);
 
     // Ensure stat docs before match docs: matches reference stats during score
     // entry via _statRefForUser. Only missing rows are created so extra
     // round generation preserves existing totals instead of adding zero rows.
     await _ensureLeagueStats(leagueId: leagueId, teamIds: uniqueTeamIds);
-    await _writeBatched(docs);
+
+    final leagueRef = firestore
+        .collection(GNEsportLeague.collectionName)
+        .doc(leagueId);
+    final createdAt = DateTime.now();
+
+    await firestore.runTransaction((txn) async {
+      final leagueSnapshot = await txn.get(leagueRef);
+      final allocated =
+          (leagueSnapshot.data()?[GNEsportLeague.fieldMatchdayCount] as num?)
+              ?.toInt() ??
+          legacySeed;
+
+      txn.set(leagueRef, {
+        GNEsportLeague.fieldMatchdayCount: allocated + matchdaysInLeg,
+      }, SetOptions(merge: true));
+
+      for (final pairing in schedule) {
+        final matchId = firestore.collection(matchPath).doc().id;
+        final match = GNEsportMatch(
+          id: matchId,
+          homeTeamId: pairing.homeId,
+          awayTeamId: pairing.awayId,
+          homeScore: 0,
+          awayScore: 0,
+          date: createdAt,
+          isFinished: false,
+          leagueId: leagueId,
+          matchday: allocated + pairing.matchday,
+        );
+        txn.set(firestore.doc('$matchPath/$matchId'), match.toMap());
+      }
+    });
   }
 
   /// Generate an additional round-robin round for a specific group in full mode.
@@ -541,6 +621,14 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
   // --- Helpers --------------------------------------------------------------
 
   static const int _kBatchLimit = 499;
+
+  /// Firestore caps a transaction at 500 operations.
+  static const int _kTransactionLimit = 500;
+
+  /// Largest participant count whose leg still fits one transaction:
+  /// `n(n - 1) / 2` matches plus the counter update must stay within
+  /// [_kTransactionLimit]. 32 players → 496 matches; 33 → 528.
+  static const int _maxParticipantsPerLeg = 32;
 
   /// Writes [docs] (path → data pairs) in chunks of [_kBatchLimit] to stay
   /// under Firestore's 500-write-per-batch ceiling.

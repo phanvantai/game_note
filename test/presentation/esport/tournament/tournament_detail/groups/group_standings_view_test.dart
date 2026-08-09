@@ -395,7 +395,7 @@ void main() {
       }
     });
 
-    testWidgets('non-admin không thấy nút Thêm vòng', (tester) async {
+    testWidgets('non-admin không thấy nút Thêm lượt đấu', (tester) async {
       // currentUserIsLeagueAdmin = false khi Firebase không init
       final matches = [_groupMatch(id: 'M1', groupId: 'A')];
       when(
@@ -403,10 +403,10 @@ void main() {
       ).thenReturn(_buildState(league: _league(), matches: matches));
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
-      expect(find.text('Thêm vòng'), findsNothing);
+      expect(find.text('Thêm lượt đấu'), findsNothing);
     });
 
-    testWidgets('non-admin không thấy nút Thêm vòng khi có matches', (
+    testWidgets('non-admin không thấy nút Thêm lượt đấu khi có matches', (
       tester,
     ) async {
       final matches = [_groupMatch(id: 'M1', groupId: 'A')];
@@ -416,10 +416,10 @@ void main() {
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
       // Admin = false in test env (no Firebase) → button hidden
-      expect(find.text('Thêm vòng'), findsNothing);
+      expect(find.text('Thêm lượt đấu'), findsNothing);
     });
 
-    testWidgets('admin thấy nút Thêm vòng và bấm để tạo vòng mới', (
+    testWidgets('admin thấy nút Thêm lượt đấu và bấm để tạo vòng mới', (
       tester,
     ) async {
       final matches = [_groupMatch(id: 'M1', groupId: 'A')];
@@ -431,7 +431,7 @@ void main() {
       await tester.pumpWidget(_wrap(bloc));
       await tester.pump();
 
-      await tester.tap(find.text('Thêm vòng'));
+      await tester.tap(find.text('Thêm lượt đấu'));
       await tester.pump();
 
       verify(() => bloc.add(any(that: isA<GenerateGroupRound>()))).called(1);

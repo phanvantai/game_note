@@ -14,7 +14,7 @@ import 'package:pes_arena/l10n/app_text.dart';
 import '../../../../../domain/repositories/esport/esport_league_repository.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_esport_match.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart'
-    show ConcurrentMatchUpdateException;
+    show ConcurrentMatchUpdateException, RoundTooLargeException;
 
 part 'tournament_detail_event.dart';
 part 'tournament_detail_state.dart';
@@ -697,6 +697,12 @@ class TournamentDetailBloc
       );
       add(GetMatches(leagueId));
       showToast(appText.tournamentRoundCreated);
+    } on RoundTooLargeException catch (e) {
+      // Nothing was written, so this is a plain rejection rather than a
+      // failure state — tell the user the limit instead of leaking the
+      // exception's toString() into errorMessage.
+      emit(state.copyWith(viewStatus: ViewStatus.initial));
+      showToast(appText.tournamentRoundTooLarge(e.maxParticipants));
     } catch (e) {
       emit(
         state.copyWith(

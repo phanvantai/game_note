@@ -352,4 +352,27 @@ void main() {
       expect(restored.knockoutSeeding, isEmpty);
     });
   });
+
+  group('matchdayCount không nằm trong toMap', () {
+    // Guard, not a driver: updateLeague calls leagueRef.update(league.toMap()),
+    // so the day someone adds matchdayCount to toMap an ordinary league edit
+    // starts resetting the matchday counter.
+    test('toMap không chứa matchdayCount', () {
+      final league = GNEsportLeague(
+        id: 'L1',
+        ownerId: 'owner',
+        groupId: 'G1',
+        name: 'League',
+        startDate: DateTime(2026, 1, 1),
+        isActive: true,
+        description: '',
+        participants: const [],
+      );
+
+      expect(
+        league.toMap().containsKey(GNEsportLeague.fieldMatchdayCount),
+        isFalse,
+      );
+    });
+  });
 }

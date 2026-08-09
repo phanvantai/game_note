@@ -9,6 +9,7 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
@@ -511,7 +512,36 @@ void main() {
               teamIds: captureAny(named: 'teamIds'),
             )).captured;
         expect(captured.single, ['A', 'B', 'C']);
-        expect(toasts.any((t) => t.contains('Tạo vòng đấu')), isTrue);
+        expect(toasts.any((t) => t.contains('Tạo lượt đấu')), isTrue);
+      },
+    );
+
+    blocTest<TournamentDetailBloc, TournamentDetailState>(
+      'RoundTooLargeException hiện toast đã dịch thay vì e.toString()',
+      build: () {
+        when(
+          () => repo.generateRound(
+            leagueId: any(named: 'leagueId'),
+            teamIds: any(named: 'teamIds'),
+          ),
+        ).thenThrow(
+          RoundTooLargeException(participantCount: 33, maxParticipants: 32),
+        );
+        final bloc = buildWithLeague(_league());
+        bloc.emit(
+          bloc.state.copyWith(participants: [_stat('A'), _stat('B')]),
+        );
+        return bloc;
+      },
+      act: (bloc) => bloc.add(const GenerateRound()),
+      verify: (bloc) {
+        expect(toasts.any((t) => t.contains('32')), isTrue);
+        expect(
+          toasts.any((t) => t.contains('RoundTooLargeException')),
+          isFalse,
+        );
+        expect(bloc.state.viewStatus, isNot(ViewStatus.loading));
+        expect(bloc.state.errorMessage, isNot(contains('RoundTooLarge')));
       },
     );
   });

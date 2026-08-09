@@ -287,16 +287,34 @@ tests in the same change.
 |---|---|
 | `test/firebase/firestore/esport/league/match/round_robin_scheduler_test.dart` (new) | 6 teams → 5 matchdays × 3 matches; every pair appears exactly once; every team appears exactly once per matchday; 5 teams (odd) → 5 matchdays with one team resting each; second leg mirrors home/away of the first; a pair that skipped a leg still orients correctly; duplicate ids de-duplicated; fewer than 2 teams → empty |
 | `test/firebase/firestore/esport/league/match/gn_firestore_esport_league_match_test.dart` (extend) | matchday persisted on generated docs; `matchdayCount` written to the league doc; a second `generateRound` continues from 6; a legacy league with no counter seeds from `max(matchday)`; a legacy league with no matchday at all starts at 1; **two sequential reservations never overlap** (fake_cloud_firestore is single-threaded, so this asserts the counter contract rather than a true race); **deleting every match of the last matchday does not free its number**; 33 participants throws `RoundTooLargeException` and writes nothing; 32 participants succeeds |
-| `test/firebase/firestore/esport/league/match/gn_esport_match_test.dart` (new — no test file exists for this model yet) | `matchday` round-trips through `toMap`/`fromMap`; absent field → `null`; `copyWith` and `props` include it |
+| `test/firebase/firestore/esport/league/gn_esport_match_test.dart` (extend) | `matchday` round-trips through `toMap`/`fromMap`; absent field → `null`; `copyWith` and `props` include it |
 | `test/firebase/firestore/esport/league/gn_esport_league_test.dart` (extend) | `toMap()` does **not** contain `matchdayCount`, so `updateLeague` cannot clobber it |
 | `test/presentation/esport/tournament/tournament_detail/matches/fixture_grouping_test.dart` (new) | ascending matchday order; null-matchday matches land in the trailing section; empty input; all-null input produces only the other section; gaps in matchday numbers render as-is |
-| `test/presentation/esport/tournament/tournament_detail/matches/matches_view_test.dart` (extend) | matchday headers render; "other matches" header renders only when such matches exist |
+| `test/presentation/esport/tournament/tournament_detail/matches/matches_view_test.dart` (extend) | matchday headers render; "other matches" header renders only when such matches exist; the results tab stays flat |
 | `test/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item_test.dart` (extend) | badge shown when `matchday != null`, hidden otherwise; renders `V3` under `vi` and `MD 3` under `en` |
 | `test/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc_test.dart` (extend) | `RoundTooLargeException` surfaces the localized toast, not `e.toString()` |
 | `test/data/sync/offline_to_online_migrator_test.dart` (extend) | migrated matches carry `matchday = roundIndex + 1`; league doc carries `matchdayCount = rounds.length` |
 
+Renaming `tournamentAddRound`, `tournamentRoundCreated`, and
+`tournamentGroupRoundMinimum` also requires updating the assertions that match
+on their old text in `matches_view_test.dart`, `group_standings_view_test.dart`,
+and `tournament_detail_bloc_test.dart`.
+
 Verification: `flutter analyze` clean, `flutter test --coverage` with no new
 uncovered lines under `lib/`.
+
+### Result
+
+964 tests pass, `flutter analyze` reports no issues. Every file this change
+touches is at 100% line coverage except two with pre-existing gaps that the
+change does not widen — verified by measuring the same files on `main`:
+
+| File | Uncovered | Status |
+|---|---|---|
+| `offline_to_online_migrator.dart` | `_defaultIdGenerator` (Firebase glue), `_parseDate` | Identical on `main` |
+| `tournament_detail_bloc.dart` | `_auditStats` debug block, `_AuditTotals` | Identical on `main` |
+
+Not verified on a device — no manual run of the app was performed.
 
 ## Review notes
 
@@ -317,3 +335,9 @@ Revised after review feedback. Changes from the first draft:
 - **Terminology rename extended** to `tournamentRoundCreated` and
   `tournamentGroupRoundMinimum`, and the shared league/group usage is
   documented rather than split.
+
+Corrected during implementation: the first draft put the `GNEsportMatch` model
+test at `test/firebase/firestore/esport/league/match/gn_esport_match_test.dart`
+and called it new. That file already exists one directory up, at
+`test/firebase/firestore/esport/league/gn_esport_match_test.dart`; the matchday
+cases were added there instead of creating a duplicate.

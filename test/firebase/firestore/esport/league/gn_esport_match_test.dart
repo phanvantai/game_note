@@ -138,4 +138,65 @@ void main() {
       expect(restored.date, isNotNull);
     });
   });
+
+  group('matchday', () {
+    GNEsportMatch withMatchday(int? matchday) {
+      return GNEsportMatch(
+        id: 'M1',
+        homeTeamId: 'A',
+        awayTeamId: 'B',
+        date: DateTime(2026, 1, 1),
+        isFinished: false,
+        leagueId: 'L1',
+        matchday: matchday,
+      );
+    }
+
+    test('toMap ghi matchday khi có giá trị', () {
+      expect(withMatchday(3).toMap()[GNEsportMatch.fieldMatchday], 3);
+    });
+
+    test('toMap bỏ qua matchday khi null', () {
+      expect(
+        withMatchday(null).toMap().containsKey(GNEsportMatch.fieldMatchday),
+        isFalse,
+      );
+    });
+
+    test('fromMap đọc matchday', () {
+      final restored = GNEsportMatch.fromMap({
+        GNEsportMatch.fieldHomeTeamId: 'A',
+        GNEsportMatch.fieldAwayTeamId: 'B',
+        GNEsportMatch.fieldIsFinished: false,
+        GNEsportMatch.fieldLeagueId: 'L1',
+        GNEsportMatch.fieldMatchday: 7,
+      }, 'M1');
+
+      expect(restored.matchday, 7);
+    });
+
+    test('fromMap trả về null cho document cũ không có matchday', () {
+      final restored = GNEsportMatch.fromMap({
+        GNEsportMatch.fieldHomeTeamId: 'A',
+        GNEsportMatch.fieldAwayTeamId: 'B',
+        GNEsportMatch.fieldIsFinished: false,
+        GNEsportMatch.fieldLeagueId: 'L1',
+      }, 'M1');
+
+      expect(restored.matchday, isNull);
+    });
+
+    test('copyWith giữ matchday cũ khi không truyền', () {
+      expect(withMatchday(4).copyWith(homeTeamId: 'Z').matchday, 4);
+    });
+
+    test('copyWith đổi được matchday', () {
+      expect(withMatchday(4).copyWith(matchday: 9).matchday, 9);
+    });
+
+    test('matchday tham gia so sánh bằng giá trị', () {
+      expect(withMatchday(1), isNot(withMatchday(2)));
+      expect(withMatchday(1), withMatchday(1));
+    });
+  });
 }

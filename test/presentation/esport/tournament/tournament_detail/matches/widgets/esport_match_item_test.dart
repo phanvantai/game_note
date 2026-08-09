@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item.dart';
 
 GNEsportMatch _match({
@@ -12,6 +13,7 @@ GNEsportMatch _match({
   DateTime? date,
   GNUser? homeTeam,
   GNUser? awayTeam,
+  int? matchday,
 }) => GNEsportMatch(
   id: 'm1',
   homeTeamId: 'h1',
@@ -23,6 +25,7 @@ GNEsportMatch _match({
   leagueId: 'l1',
   homeTeam: homeTeam,
   awayTeam: awayTeam,
+  matchday: matchday,
 );
 
 GNUser _user(String id, String name) => GNUser(
@@ -35,8 +38,11 @@ GNUser _user(String id, String name) => GNUser(
   fcmToken: '',
 );
 
-Widget _wrap(Widget child) {
+Widget _wrap(Widget child, {Locale locale = const Locale('vi')}) {
   return MaterialApp(
+    locale: locale,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: Center(child: child)),
   );
 }
@@ -107,5 +113,59 @@ void main() {
 
     expect(longPressed, isTrue);
     expect(tapped, isFalse);
+  });
+
+  testWidgets('hiển thị badge vòng đấu bằng tiếng Việt', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        EsportMatchItem(
+          match: _match(
+            isFinished: false,
+            matchday: 3,
+            homeTeam: _user('h1', 'Home Team'),
+            awayTeam: _user('a1', 'Away Team'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('V3'), findsOneWidget);
+  });
+
+  testWidgets('hiển thị badge vòng đấu bằng tiếng Anh', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        EsportMatchItem(
+          match: _match(
+            isFinished: false,
+            matchday: 3,
+            homeTeam: _user('h1', 'Home Team'),
+            awayTeam: _user('a1', 'Away Team'),
+          ),
+        ),
+        locale: const Locale('en'),
+      ),
+    );
+
+    expect(find.text('MD 3'), findsOneWidget);
+  });
+
+  testWidgets('không hiển thị badge khi trận không thuộc vòng nào', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        EsportMatchItem(
+          match: _match(
+            isFinished: false,
+            homeTeam: _user('h1', 'Home Team'),
+            awayTeam: _user('a1', 'Away Team'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.textContaining('V'), findsNothing);
+    expect(find.textContaining('MD'), findsNothing);
   });
 }

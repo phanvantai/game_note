@@ -236,6 +236,182 @@ void main() {
     );
   });
 
+  group('generateRound - matchday', () {
+    Future<List<int?>> matchdaysOf(String leagueId) async {
+      final snapshot = await matchesCollection(leagueId).get();
+      return snapshot.docs
+          .map((d) => (d.data()[GNEsportMatch.fieldMatchday] as num?)?.toInt())
+          .toList();
+    }
+
+    Future<int?> matchdayCounterOf(String leagueId) async {
+      final snapshot = await fakeFirestore
+          .collection(GNEsportLeague.collectionName)
+          .doc(leagueId)
+          .get();
+      return (snapshot.data()?[GNEsportLeague.fieldMatchdayCount] as num?)
+          ?.toInt();
+    }
+
+    test('gán số vòng cho từng trận của lượt', () async {
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2', 'u3']);
+
+      expect(await matchdaysOf('L1'), unorderedEquals([1, 2, 3]));
+    });
+
+    test('4 người chơi tạo 3 vòng, mỗi vòng 2 trận', () async {
+      await fs.generateRound(
+        leagueId: 'L1',
+        teamIds: ['u1', 'u2', 'u3', 'u4'],
+      );
+
+      final matchdays = await matchdaysOf('L1');
+      expect(matchdays, hasLength(6));
+      expect(matchdays.where((m) => m == 1), hasLength(2));
+      expect(matchdays.where((m) => m == 2), hasLength(2));
+      expect(matchdays.where((m) => m == 3), hasLength(2));
+    });
+
+    test('ghi matchdayCount lên league document', () async {
+      await fs.generateRound(
+        leagueId: 'L1',
+        teamIds: ['u1', 'u2', 'u3', 'u4'],
+      );
+
+      expect(await matchdayCounterOf('L1'), 3);
+    });
+
+    test('lượt thứ hai tiếp số vòng thay vì bắt đầu lại', () async {
+      await fs.generateRound(
+        leagueId: 'L1',
+        teamIds: ['u1', 'u2', 'u3', 'u4'],
+      );
+      await fs.generateRound(
+        leagueId: 'L1',
+        teamIds: ['u1', 'u2', 'u3', 'u4'],
+      );
+
+      final matchdays = await matchdaysOf('L1');
+      expect(matchdays, hasLength(12));
+      expect(matchdays.toSet(), {1, 2, 3, 4, 5, 6});
+      expect(await matchdayCounterOf('L1'), 6);
+    });
+
+    test('lượt thứ hai đảo sân nhà so với lượt đầu', () async {
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2']);
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2']);
+
+      final snapshot = await matchesCollection('L1').get();
+      final homes = snapshot.docs
+          .map((d) => d.data()[GNEsportMatch.fieldHomeTeamId] as String)
+          .toList();
+
+      expect(homes, unorderedEquals(['u1', 'u2']));
+    });
+
+    test('xoá hết trận của vòng cuối không giải phóng số vòng', () async {
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2']);
+
+      final existing = await matchesCollection('L1').get();
+      for (final doc in existing.docs) {
+        await doc.reference.delete();
+      }
+
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2']);
+
+      expect(await matchdaysOf('L1'), [2]);
+      expect(await matchdayCounterOf('L1'), 2);
+    });
+
+    test('league cũ chưa có counter thì seed từ matchday lớn nhất', () async {
+      await matchesCollection('L1').add({
+        GNEsportMatch.fieldHomeTeamId: 'u1',
+        GNEsportMatch.fieldAwayTeamId: 'u2',
+        GNEsportMatch.fieldDate: Timestamp.fromDate(DateTime(2026, 5, 10)),
+        GNEsportMatch.fieldIsFinished: false,
+        GNEsportMatch.fieldLeagueId: 'L1',
+        GNEsportMatch.fieldMatchday: 4,
+      });
+
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u1', 'u2']);
+
+      final matchdays = await matchdaysOf('L1');
+      expect(matchdays, unorderedEquals([4, 5]));
+      expect(await matchdayCounterOf('L1'), 5);
+    });
+
+    test('league cũ toàn trận không có matchday thì bắt đầu từ 1', () async {
+      await seedMatch(leagueId: 'L1', home: 'u1', away: 'u2');
+
+      await fs.generateRound(leagueId: 'L1', teamIds: ['u3', 'u4']);
+
+      final matchdays = await matchdaysOf('L1');
+      expect(matchdays, unorderedEquals([null, 1]));
+    });
+
+    test('trận knockout không được gán matchday', () async {
+      await fs.generateCupBracket(
+        leagueId: 'L1',
+        seededTeamIds: ['u1', 'u2', 'u3', 'u4'],
+      );
+
+      expect(await matchdaysOf('L1'), everyElement(isNull));
+    });
+
+    test('trận vòng bảng không được gán matchday', () async {
+      await fs.generateGroupRound(
+        leagueId: 'L1',
+        groupId: 'A',
+        teamIds: ['u1', 'u2', 'u3'],
+      );
+
+      expect(await matchdaysOf('L1'), everyElement(isNull));
+    });
+  });
+
+  group('generateRound - giới hạn ghi nguyên tử', () {
+    List<String> teams(int count) =>
+        List.generate(count, (i) => 'u${i + 1}');
+
+    test('32 người chơi vẫn tạo được lượt', () async {
+      await fs.generateRound(leagueId: 'L1', teamIds: teams(32));
+
+      final matches = await matchesCollection('L1').get();
+      expect(matches.docs, hasLength(496));
+    });
+
+    test('33 người chơi ném RoundTooLargeException', () async {
+      expect(
+        () => fs.generateRound(leagueId: 'L1', teamIds: teams(33)),
+        throwsA(isA<RoundTooLargeException>()),
+      );
+    });
+
+    test('33 người chơi không ghi match hay stat nào', () async {
+      await expectLater(
+        fs.generateRound(leagueId: 'L1', teamIds: teams(33)),
+        throwsA(isA<RoundTooLargeException>()),
+      );
+
+      final matches = await matchesCollection('L1').get();
+      final stats = await statsCollection('L1').get();
+      expect(matches.docs, isEmpty);
+      expect(stats.docs, isEmpty);
+    });
+
+    test('RoundTooLargeException mô tả số người chơi và giới hạn', () {
+      final error = RoundTooLargeException(
+        participantCount: 33,
+        maxParticipants: 32,
+      );
+
+      expect(error.participantCount, 33);
+      expect(error.maxParticipants, 32);
+      expect(error.toString(), contains('33'));
+      expect(error.toString(), contains('32'));
+    });
+  });
+
   group('generateGroupRound', () {
     test('tạo group matches đúng groupId và không tạo stat mới', () async {
       await fs.generateGroupRound(

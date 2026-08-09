@@ -38,6 +38,12 @@ class GNEsportMatch extends Equatable {
   // ID of the match the winner advances to. Null for the final.
   final String? nextMatchId;
 
+  /// 1-based matchday within the league. Continuous across legs: with 6
+  /// players the first leg is 1..5 and the second leg 6..10. Null on
+  /// legacy documents, on custom one-off matches, and on group/knockout
+  /// matches, which are not organised into matchdays.
+  final int? matchday;
+
   final GNUser? homeTeam;
   final GNUser? awayTeam;
 
@@ -61,6 +67,7 @@ class GNEsportMatch extends Equatable {
   static const String fieldKnockoutRound = 'knockoutRound';
   static const String fieldKnockoutSlot = 'knockoutSlot';
   static const String fieldNextMatchId = 'nextMatchId';
+  static const String fieldMatchday = 'matchday';
 
   const GNEsportMatch({
     required this.id,
@@ -81,6 +88,7 @@ class GNEsportMatch extends Equatable {
     this.knockoutRound,
     this.knockoutSlot,
     this.nextMatchId,
+    this.matchday,
   });
 
   @override
@@ -101,6 +109,7 @@ class GNEsportMatch extends Equatable {
     knockoutRound,
     knockoutSlot,
     nextMatchId,
+    matchday,
   ];
 
   GNEsportMatch copyWith({
@@ -122,6 +131,7 @@ class GNEsportMatch extends Equatable {
     int? knockoutRound,
     int? knockoutSlot,
     String? nextMatchId,
+    int? matchday,
   }) {
     return GNEsportMatch(
       id: id ?? this.id,
@@ -142,6 +152,7 @@ class GNEsportMatch extends Equatable {
       knockoutRound: knockoutRound ?? this.knockoutRound,
       knockoutSlot: knockoutSlot ?? this.knockoutSlot,
       nextMatchId: nextMatchId ?? this.nextMatchId,
+      matchday: matchday ?? this.matchday,
     );
   }
 
@@ -161,6 +172,7 @@ class GNEsportMatch extends Equatable {
       if (knockoutRound != null) fieldKnockoutRound: knockoutRound,
       if (knockoutSlot != null) fieldKnockoutSlot: knockoutSlot,
       if (nextMatchId != null) fieldNextMatchId: nextMatchId,
+      if (matchday != null) fieldMatchday: matchday,
     };
   }
 
@@ -195,6 +207,7 @@ class GNEsportMatch extends Equatable {
       knockoutRound: (data[fieldKnockoutRound] as num?)?.toInt(),
       knockoutSlot: (data[fieldKnockoutSlot] as num?)?.toInt(),
       nextMatchId: data[fieldNextMatchId] as String?,
+      matchday: (data[fieldMatchday] as num?)?.toInt(),
     );
   }
 }

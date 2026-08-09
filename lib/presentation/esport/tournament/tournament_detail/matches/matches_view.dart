@@ -5,11 +5,52 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/l10n/l10n.dart';
+import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/fixture_grouping.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/create_custom_match_dialog.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/esport_match_item.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/update_match_score_dialog.dart';
 
 import '../bloc/tournament_detail_bloc.dart';
+
+/// A row in the flattened fixtures list: either a matchday header or a match.
+sealed class _FixtureRow {
+  const _FixtureRow();
+}
+
+class _HeaderRow extends _FixtureRow {
+  /// Null for the trailing "other matches" bucket.
+  final int? matchday;
+  const _HeaderRow(this.matchday);
+}
+
+class _MatchRow extends _FixtureRow {
+  final GNEsportMatch match;
+  const _MatchRow(this.match);
+}
+
+class _MatchdayHeader extends StatelessWidget {
+  final int? matchday;
+
+  const _MatchdayHeader({required this.matchday});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = matchday == null
+        ? context.l10n.tournamentOtherMatches
+        : context.l10n.tournamentMatchdayLabel(matchday!);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 4),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
 
 class EsportMatchesView extends StatefulWidget {
   final bool isFixtures;
@@ -215,6 +256,12 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
       );
     }
 
+    // Fixtures are organised into matchdays; results stay a flat list so the
+    // name search keeps behaving like a plain filter.
+    final rows = isFixtures
+        ? _flatten(groupFixturesByMatchday(matches))
+        : matches.map(_MatchRow.new).toList();
+
     return RefreshIndicator(
       onRefresh: () => _refresh(context),
       child: Padding(
@@ -222,7 +269,11 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
         child: ListView.separated(
           physics: const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, index) {
-            final match = matches[index];
+            final row = rows[index];
+            if (row is _HeaderRow) {
+              return _MatchdayHeader(matchday: row.matchday);
+            }
+            final match = (row as _MatchRow).match;
             return Slidable(
               endActionPane: ActionPane(
                 motion: const StretchMotion(),
@@ -256,11 +307,20 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
             );
           },
           separatorBuilder: (context, index) => const SizedBox(height: 8),
-          itemCount: matches.length,
+          itemCount: rows.length,
           padding: const EdgeInsets.symmetric(vertical: 8),
         ),
       ),
     );
+  }
+
+  List<_FixtureRow> _flatten(List<FixtureSection> sections) {
+    return [
+      for (final section in sections) ...[
+        _HeaderRow(section.matchday),
+        ...section.matches.map(_MatchRow.new),
+      ],
+    ];
   }
 
   Future<void> _confirmGenerateRound(

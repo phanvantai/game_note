@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/l10n/l10n.dart';
 import 'package:intl/intl.dart';
 
 import 'esport_match_team.dart';
@@ -36,18 +37,30 @@ class EsportMatchItem extends StatelessWidget {
             children: [
               Expanded(
                 flex: 1,
-                child: Center(
-                  child: Text(
-                    match.isFinished
-                        ? 'FT'
-                        : DateFormat('d MMM').format(match.date),
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.5),
-                      fontWeight: match.isFinished
-                          ? FontWeight.w600
-                          : FontWeight.normal,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      match.isFinished
+                          ? 'FT'
+                          : DateFormat('d MMM').format(match.date),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                        fontWeight: match.isFinished
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
                     ),
-                  ),
+                    if (match.matchday != null)
+                      Text(
+                        context.l10n.tournamentMatchdayBadge(match.matchday!),
+                        style: textTheme.labelSmall?.copyWith(
+                          fontSize: 10,
+                          color: colorScheme.onSurface.withValues(alpha: 0.38),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               Expanded(
