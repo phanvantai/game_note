@@ -532,6 +532,8 @@
   "tournamentManagedTab": "Managed",
   "tournamentOtherTab": "Other",
   "tournamentJoinGroupFirst": "You have not joined any groups. Join a group first",
+  "tournamentCreatingLeague": "Creating league…",
+  "tournamentSavingMatch": "Saving result",
   "tournamentCreateSuccess": "Tournament created successfully",
   "tournamentCreateButton": "Create tournament",
   "tournamentEmptyTitle": "No tournaments",

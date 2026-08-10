@@ -532,6 +532,8 @@
   "tournamentManagedTab": "Quản lý",
   "tournamentOtherTab": "Khác",
   "tournamentJoinGroupFirst": "Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước",
+  "tournamentCreatingLeague": "Đang tạo giải…",
+  "tournamentSavingMatch": "Đang lưu kết quả",
   "tournamentCreateSuccess": "Tạo giải đấu thành công",
   "tournamentCreateButton": "Tạo giải đấu",
   "tournamentEmptyTitle": "Không có giải đấu nào",

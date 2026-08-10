@@ -1120,6 +1120,12 @@ class AppLocalizationsVi extends AppLocalizations {
       'Bạn chưa tham gia nhóm nào. Hãy tham gia nhóm trước';
 
   @override
+  String get tournamentCreatingLeague => 'Đang tạo giải…';
+
+  @override
+  String get tournamentSavingMatch => 'Đang lưu kết quả';
+
+  @override
   String get tournamentCreateSuccess => 'Tạo giải đấu thành công';
 
   @override

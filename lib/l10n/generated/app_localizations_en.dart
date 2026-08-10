@@ -1123,6 +1123,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'You have not joined any groups. Join a group first';
 
   @override
+  String get tournamentCreatingLeague => 'Creating league…';
+
+  @override
+  String get tournamentSavingMatch => 'Saving result';
+
+  @override
   String get tournamentCreateSuccess => 'Tournament created successfully';
 
   @override
