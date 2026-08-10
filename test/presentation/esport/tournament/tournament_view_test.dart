@@ -1,6 +1,6 @@
-import 'package:bloc_test/bloc_test.dart';
 import 'dart:async';
 
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -144,32 +144,33 @@ void _setCreateLeaguePageBuilder({
   int advanceCount = 2,
   Map<String, int> groupAssignment = const {'u1': 0, 'u2': 1},
   List<String> knockoutSeeding = const ['A1', 'A2'],
+  void Function(Object error, StackTrace stackTrace)? onError,
 }) {
-  tournamentCreatePageBuilder = ({
-    required List<GNEsportGroup> groups,
-    required OnAddLeagueCallback onAddLeague,
-  }) {
-    return _SubmitLeaguePage(
-      groupId: groups.first.id,
-      onAddLeague: onAddLeague,
-      mode: mode,
-      participants: participants,
-      groupCount: groupCount,
-      advanceCount: advanceCount,
-      groupAssignment: groupAssignment,
-      knockoutSeeding: knockoutSeeding,
-    );
-  };
+  tournamentCreatePageBuilder =
+      ({
+        required List<GNEsportGroup> groups,
+        required OnAddLeagueCallback onAddLeague,
+      }) {
+        return _SubmitLeaguePage(
+          groupId: groups.first.id,
+          onAddLeague: onAddLeague,
+          mode: mode,
+          participants: participants,
+          groupCount: groupCount,
+          advanceCount: advanceCount,
+          groupAssignment: groupAssignment,
+          knockoutSeeding: knockoutSeeding,
+          onError: onError,
+        );
+      };
 }
 
 void _restoreRealCreateLeaguePageBuilder() {
-  tournamentCreatePageBuilder = ({
-    required List<GNEsportGroup> groups,
-    required OnAddLeagueCallback onAddLeague,
-  }) => CreateEsportLeaguePage(
-    groups: groups,
-    onAddLeague: onAddLeague,
-  );
+  tournamentCreatePageBuilder =
+      ({
+        required List<GNEsportGroup> groups,
+        required OnAddLeagueCallback onAddLeague,
+      }) => CreateEsportLeaguePage(groups: groups, onAddLeague: onAddLeague);
 }
 
 class _SubmitLeaguePage extends StatefulWidget {
@@ -181,6 +182,7 @@ class _SubmitLeaguePage extends StatefulWidget {
   final int advanceCount;
   final Map<String, int> groupAssignment;
   final List<String> knockoutSeeding;
+  final void Function(Object error, StackTrace stackTrace)? onError;
 
   const _SubmitLeaguePage({
     required this.groupId,
@@ -191,6 +193,7 @@ class _SubmitLeaguePage extends StatefulWidget {
     required this.advanceCount,
     required this.groupAssignment,
     required this.knockoutSeeding,
+    this.onError,
   });
 
   @override
@@ -232,7 +235,8 @@ class _SubmitLeaguePageState extends State<_SubmitLeaguePage> {
       if (mounted) {
         Navigator.of(context).pop(leagueId);
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      widget.onError?.call(error, stackTrace);
       if (mounted) {
         Navigator.of(context).pop();
       }
@@ -241,6 +245,24 @@ class _SubmitLeaguePageState extends State<_SubmitLeaguePage> {
 
   @override
   Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+class _CreateGenerationException implements Exception {
+  final String message;
+
+  const _CreateGenerationException(this.message);
+
+  @override
+  String toString() => '_CreateGenerationException: $message';
+}
+
+class _RollbackException implements Exception {
+  final String message;
+
+  const _RollbackException(this.message);
+
+  @override
+  String toString() => '_RollbackException: $message';
 }
 
 void _resetGetIt() {
@@ -396,121 +418,150 @@ void main() {
     await tester.pump(const Duration(milliseconds: 20));
   });
 
-  testWidgets('Create callback handles league mode and navigates to detail', (
-    tester,
-  ) async {
-    final tournamentBloc = _MockTournamentBloc();
-    final groupBloc = _MockGroupBloc();
-    final leagueRepo = _MockLeagueRepository();
-    final firestore = _MockFirestore();
-    final toastMessages = <String>[];
-    String? toastMessage;
+  testWidgets(
+    'Create callback creates league fixtures before toast and defers reload until detail pop',
+    (tester) async {
+      final tournamentBloc = _MockTournamentBloc();
+      final groupBloc = _MockGroupBloc();
+      final leagueRepo = _MockLeagueRepository();
+      final firestore = _MockFirestore();
+      final toastMessages = <String>[];
+      final addLeagueCompleter = Completer<String>();
+      final fixturesCompleter = Completer<void>();
 
-    setShowToastImpl((message, {gravity = ToastGravity.BOTTOM}) {
-      toastMessages.add(message);
-      toastMessage = message;
-    });
-    when(
-      () => firestore.getUsersById(any<List<String>>()),
-    ).thenAnswer((_) async => <String, GNUser>{});
-    _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+      setShowToastImpl((message, {gravity = ToastGravity.BOTTOM}) {
+        toastMessages.add(message);
+      });
+      when(
+        () => firestore.getUsersById(any<List<String>>()),
+      ).thenAnswer((_) async => <String, GNUser>{});
+      _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
 
-    when(() => leagueRepo.addLeague(
-      name: any(named: 'name'),
-      groupId: any(named: 'groupId'),
-      description: any(named: 'description'),
-      rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
-      rankPayouts: any(named: 'rankPayouts'),
-      defaultMatchCost: any(named: 'defaultMatchCost'),
-      defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
-      defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
-      mode: any(named: 'mode'),
-      groupCount: any(named: 'groupCount'),
-      advanceCount: any(named: 'advanceCount'),
-      participants: any(named: 'participants'),
-      knockoutSeeding: any(named: 'knockoutSeeding'),
-    )).thenAnswer((_) async => 'league-league');
-    when(() => leagueRepo.addMultipleParticipants(
-      leagueId: any(named: 'leagueId'),
-      userIds: any(named: 'userIds'),
-    )).thenAnswer((_) async {});
-    when(() => leagueRepo.generateRound(
-      leagueId: any(named: 'leagueId'),
-      teamIds: any(named: 'teamIds'),
-    )).thenAnswer((_) async {});
-    when(() => leagueRepo.deleteLeague(any())).thenAnswer((_) async {});
+      when(
+        () => leagueRepo.addLeague(
+          name: any(named: 'name'),
+          groupId: any(named: 'groupId'),
+          description: any(named: 'description'),
+          rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
+          rankPayouts: any(named: 'rankPayouts'),
+          defaultMatchCost: any(named: 'defaultMatchCost'),
+          defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
+          defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
+          mode: any(named: 'mode'),
+          groupCount: any(named: 'groupCount'),
+          advanceCount: any(named: 'advanceCount'),
+          participants: any(named: 'participants'),
+          knockoutSeeding: any(named: 'knockoutSeeding'),
+        ),
+      ).thenAnswer((_) => addLeagueCompleter.future);
+      when(
+        () => leagueRepo.addMultipleParticipants(
+          leagueId: any(named: 'leagueId'),
+          userIds: any(named: 'userIds'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => leagueRepo.generateRound(
+          leagueId: any(named: 'leagueId'),
+          teamIds: any(named: 'teamIds'),
+        ),
+      ).thenAnswer((_) => fixturesCompleter.future);
+      when(() => leagueRepo.deleteLeague(any())).thenAnswer((_) async {});
 
-    when(() => tournamentBloc.state).thenReturn(
-      const TournamentState(
-        myStatus: ViewStatus.success,
-        managedStatus: ViewStatus.success,
-        otherStatus: ViewStatus.success,
-      ),
-    );
-    when(
-      () => groupBloc.state,
-    ).thenReturn(_groupState(userGroups: [_group('g1', 'Nhóm Một')]));
+      when(() => tournamentBloc.state).thenReturn(
+        const TournamentState(
+          myStatus: ViewStatus.success,
+          managedStatus: ViewStatus.success,
+          otherStatus: ViewStatus.success,
+        ),
+      );
+      when(
+        () => groupBloc.state,
+      ).thenReturn(_groupState(userGroups: [_group('g1', 'Nhóm Một')]));
 
-    _setCreateLeaguePageBuilder(mode: TournamentMode.league);
+      _setCreateLeaguePageBuilder(mode: TournamentMode.league);
 
-    await tester.pumpWidget(
-      _wrap(tournamentBloc: tournamentBloc, groupBloc: groupBloc),
-    );
+      await tester.pumpWidget(
+        _wrap(tournamentBloc: tournamentBloc, groupBloc: groupBloc),
+      );
 
-    await tester.tap(find.text('Tạo giải đấu'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Tạo giải đấu'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('tournament league-league'), findsOneWidget);
-    expect(toastMessage, isNotNull);
+      expect(toastMessages, isEmpty);
+      verify(
+        () => leagueRepo.addLeague(
+          name: 'Test League',
+          groupId: 'g1',
+          description: '',
+          rankPayoutEnabled: false,
+          rankPayouts: const [],
+          defaultMatchCost: 10,
+          defaultPerGoalEnabled: false,
+          defaultCostPerGoal: 0,
+          mode: TournamentMode.league,
+          groupCount: 2,
+          advanceCount: 2,
+          participants: const ['u1', 'u2'],
+          knockoutSeeding: const ['A1', 'A2'],
+        ),
+      ).called(1);
 
-    verify(
-      () => leagueRepo.addLeague(
-        name: 'Test League',
-        groupId: 'g1',
-        description: '',
-        rankPayoutEnabled: false,
-        rankPayouts: const [],
-        defaultMatchCost: 10,
-        defaultPerGoalEnabled: false,
-        defaultCostPerGoal: 0,
-        mode: TournamentMode.league,
-        groupCount: 2,
-        advanceCount: 2,
-        participants: const ['u1', 'u2'],
-        knockoutSeeding: const ['A1', 'A2'],
-      ),
-    ).called(1);
-    verify(
-      () => leagueRepo.addMultipleParticipants(
-        leagueId: 'league-league',
-        userIds: const ['u1', 'u2'],
-      ),
-    ).called(1);
-    verify(
-      () => leagueRepo.generateRound(
-        leagueId: 'league-league',
-        teamIds: const ['u1', 'u2'],
-      ),
-    ).called(1);
-    verifyNever(() => leagueRepo.generateCupBracket(
-      leagueId: any(named: 'leagueId'),
-      seededTeamIds: any(named: 'seededTeamIds'),
-    ));
-    verifyNever(() => leagueRepo.generateFullTournament(
-      leagueId: any(named: 'leagueId'),
-      groups: any(named: 'groups'),
-      advanceCount: any(named: 'advanceCount'),
-      knockoutSeeding: any(named: 'knockoutSeeding'),
-    ));
-    verifyNever(() => leagueRepo.deleteLeague(any()));
-    verify(
-      () => tournamentBloc.add(any(that: isA<LoadMyLeagues>())),
-    ).called(1);
-    verify(
-      () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
-    ).called(1);
-    expect(toastMessages, isNotEmpty);
-  });
+      addLeagueCompleter.complete('league-league');
+      await tester.pump();
+
+      expect(toastMessages, isEmpty);
+      verify(
+        () => leagueRepo.generateRound(
+          leagueId: 'league-league',
+          teamIds: const ['u1', 'u2'],
+        ),
+      ).called(1);
+
+      fixturesCompleter.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.text('tournament league-league'), findsOneWidget);
+      expect(toastMessages, hasLength(1));
+
+      verifyNever(() => tournamentBloc.add(any(that: isA<LoadMyLeagues>())));
+      verifyNever(
+        () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      verifyNever(
+        () => leagueRepo.addMultipleParticipants(
+          leagueId: 'league-league',
+          userIds: const ['u1', 'u2'],
+        ),
+      );
+      verifyNever(
+        () => leagueRepo.generateCupBracket(
+          leagueId: any(named: 'leagueId'),
+          seededTeamIds: any(named: 'seededTeamIds'),
+        ),
+      );
+      verifyNever(
+        () => leagueRepo.generateFullTournament(
+          leagueId: any(named: 'leagueId'),
+          groups: any(named: 'groups'),
+          advanceCount: any(named: 'advanceCount'),
+          knockoutSeeding: any(named: 'knockoutSeeding'),
+        ),
+      );
+      verifyNever(() => leagueRepo.deleteLeague(any()));
+      verify(
+        () => tournamentBloc.add(any(that: isA<LoadMyLeagues>())),
+      ).called(1);
+      verify(
+        () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
+      ).called(1);
+      expect(toastMessages, hasLength(1));
+    },
+  );
 
   testWidgets('Create callback handles cup mode and creates cup bracket', (
     tester,
@@ -525,29 +576,35 @@ void main() {
     ).thenAnswer((_) async => <String, GNUser>{});
     _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
 
-    when(() => leagueRepo.addLeague(
-      name: any(named: 'name'),
-      groupId: any(named: 'groupId'),
-      description: any(named: 'description'),
-      rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
-      rankPayouts: any(named: 'rankPayouts'),
-      defaultMatchCost: any(named: 'defaultMatchCost'),
-      defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
-      defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
-      mode: any(named: 'mode'),
-      groupCount: any(named: 'groupCount'),
-      advanceCount: any(named: 'advanceCount'),
-      participants: any(named: 'participants'),
-      knockoutSeeding: any(named: 'knockoutSeeding'),
-    )).thenAnswer((_) async => 'league-cup');
-    when(() => leagueRepo.addMultipleParticipants(
-      leagueId: any(named: 'leagueId'),
-      userIds: any(named: 'userIds'),
-    )).thenAnswer((_) async {});
-    when(() => leagueRepo.generateCupBracket(
-      leagueId: any(named: 'leagueId'),
-      seededTeamIds: any(named: 'seededTeamIds'),
-    )).thenAnswer((_) async {});
+    when(
+      () => leagueRepo.addLeague(
+        name: any(named: 'name'),
+        groupId: any(named: 'groupId'),
+        description: any(named: 'description'),
+        rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
+        rankPayouts: any(named: 'rankPayouts'),
+        defaultMatchCost: any(named: 'defaultMatchCost'),
+        defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
+        defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
+        mode: any(named: 'mode'),
+        groupCount: any(named: 'groupCount'),
+        advanceCount: any(named: 'advanceCount'),
+        participants: any(named: 'participants'),
+        knockoutSeeding: any(named: 'knockoutSeeding'),
+      ),
+    ).thenAnswer((_) async => 'league-cup');
+    when(
+      () => leagueRepo.addMultipleParticipants(
+        leagueId: any(named: 'leagueId'),
+        userIds: any(named: 'userIds'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => leagueRepo.generateCupBracket(
+        leagueId: any(named: 'leagueId'),
+        seededTeamIds: any(named: 'seededTeamIds'),
+      ),
+    ).thenAnswer((_) async {});
     when(() => leagueRepo.deleteLeague(any())).thenAnswer((_) async {});
 
     when(() => tournamentBloc.state).thenReturn(
@@ -575,61 +632,223 @@ void main() {
 
     expect(find.text('tournament league-cup'), findsOneWidget);
     verify(
+      () => leagueRepo.addLeague(
+        name: 'Test League',
+        groupId: 'g1',
+        description: '',
+        rankPayoutEnabled: false,
+        rankPayouts: const [],
+        defaultMatchCost: 10,
+        defaultPerGoalEnabled: false,
+        defaultCostPerGoal: 0,
+        mode: TournamentMode.cup,
+        groupCount: 2,
+        advanceCount: 2,
+        participants: const ['u1', 'u2', 'u3', 'u4'],
+        knockoutSeeding: const ['u1', 'u2', 'u3', 'u4'],
+      ),
+    ).called(1);
+    verifyNever(
+      () => leagueRepo.addMultipleParticipants(
+        leagueId: any(named: 'leagueId'),
+        userIds: any(named: 'userIds'),
+      ),
+    );
+    verify(
       () => leagueRepo.generateCupBracket(
         leagueId: 'league-cup',
         seededTeamIds: const ['u1', 'u2', 'u3', 'u4'],
       ),
     ).called(1);
-    verifyNever(() => leagueRepo.generateRound(
-      leagueId: any(named: 'leagueId'),
-      teamIds: any(named: 'teamIds'),
-    ));
-    verifyNever(() => leagueRepo.generateFullTournament(
-      leagueId: any(named: 'leagueId'),
-      groups: any(named: 'groups'),
-      advanceCount: any(named: 'advanceCount'),
-      knockoutSeeding: any(named: 'knockoutSeeding'),
-    ));
+    verifyNever(
+      () => leagueRepo.generateRound(
+        leagueId: any(named: 'leagueId'),
+        teamIds: any(named: 'teamIds'),
+      ),
+    );
+    verifyNever(
+      () => leagueRepo.generateFullTournament(
+        leagueId: any(named: 'leagueId'),
+        groups: any(named: 'groups'),
+        advanceCount: any(named: 'advanceCount'),
+        knockoutSeeding: any(named: 'knockoutSeeding'),
+      ),
+    );
   });
 
-  testWidgets('Create callback handles full mode and creates full tournament groups', (
+  testWidgets(
+    'Create callback handles full mode and creates full tournament groups',
+    (tester) async {
+      final tournamentBloc = _MockTournamentBloc();
+      final groupBloc = _MockGroupBloc();
+      final leagueRepo = _MockLeagueRepository();
+      final firestore = _MockFirestore();
+
+      when(
+        () => firestore.getUsersById(any<List<String>>()),
+      ).thenAnswer((_) async => <String, GNUser>{});
+      _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+
+      when(
+        () => leagueRepo.addLeague(
+          name: any(named: 'name'),
+          groupId: any(named: 'groupId'),
+          description: any(named: 'description'),
+          rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
+          rankPayouts: any(named: 'rankPayouts'),
+          defaultMatchCost: any(named: 'defaultMatchCost'),
+          defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
+          defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
+          mode: any(named: 'mode'),
+          groupCount: any(named: 'groupCount'),
+          advanceCount: any(named: 'advanceCount'),
+          participants: any(named: 'participants'),
+          knockoutSeeding: any(named: 'knockoutSeeding'),
+        ),
+      ).thenAnswer((_) async => 'league-full');
+      when(
+        () => leagueRepo.addMultipleParticipants(
+          leagueId: any(named: 'leagueId'),
+          userIds: any(named: 'userIds'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => leagueRepo.generateFullTournament(
+          leagueId: any(named: 'leagueId'),
+          groups: any(named: 'groups'),
+          advanceCount: any(named: 'advanceCount'),
+          knockoutSeeding: any(named: 'knockoutSeeding'),
+        ),
+      ).thenAnswer((_) async {});
+      when(() => leagueRepo.deleteLeague(any())).thenAnswer((_) async {});
+
+      when(() => tournamentBloc.state).thenReturn(
+        const TournamentState(
+          myStatus: ViewStatus.success,
+          managedStatus: ViewStatus.success,
+          otherStatus: ViewStatus.success,
+        ),
+      );
+      when(
+        () => groupBloc.state,
+      ).thenReturn(_groupState(userGroups: [_group('g1', 'Nhóm Một')]));
+
+      _setCreateLeaguePageBuilder(
+        mode: TournamentMode.full,
+        participants: const ['u1', 'u2', 'u3', 'u4'],
+        groupCount: 2,
+        advanceCount: 2,
+        knockoutSeeding: const ['A1', 'A2', 'A3', 'A4'],
+        groupAssignment: const {'u1': 0, 'u2': 1, 'u3': 0, 'u4': 1},
+      );
+
+      await tester.pumpWidget(
+        _wrap(tournamentBloc: tournamentBloc, groupBloc: groupBloc),
+      );
+      await tester.tap(find.text('Tạo giải đấu'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('tournament league-full'), findsOneWidget);
+      verify(
+        () => leagueRepo.addLeague(
+          name: 'Test League',
+          groupId: 'g1',
+          description: '',
+          rankPayoutEnabled: false,
+          rankPayouts: const [],
+          defaultMatchCost: 10,
+          defaultPerGoalEnabled: false,
+          defaultCostPerGoal: 0,
+          mode: TournamentMode.full,
+          groupCount: 2,
+          advanceCount: 2,
+          participants: const ['u1', 'u2', 'u3', 'u4'],
+          knockoutSeeding: const ['A1', 'A2', 'A3', 'A4'],
+        ),
+      ).called(1);
+      verifyNever(
+        () => leagueRepo.addMultipleParticipants(
+          leagueId: any(named: 'leagueId'),
+          userIds: any(named: 'userIds'),
+        ),
+      );
+      verify(
+        () => leagueRepo.generateFullTournament(
+          leagueId: 'league-full',
+          groups: const [
+            ['u1', 'u3'],
+            ['u2', 'u4'],
+          ],
+          advanceCount: 2,
+          knockoutSeeding: const ['A1', 'A2', 'A3', 'A4'],
+        ),
+      ).called(1);
+      verifyNever(
+        () => leagueRepo.generateRound(
+          leagueId: any(named: 'leagueId'),
+          teamIds: any(named: 'teamIds'),
+        ),
+      );
+      verifyNever(
+        () => leagueRepo.generateCupBracket(
+          leagueId: any(named: 'leagueId'),
+          seededTeamIds: any(named: 'seededTeamIds'),
+        ),
+      );
+    },
+  );
+
+  testWidgets('Create callback rolls back league when generation throws', (
     tester,
   ) async {
     final tournamentBloc = _MockTournamentBloc();
     final groupBloc = _MockGroupBloc();
     final leagueRepo = _MockLeagueRepository();
     final firestore = _MockFirestore();
+    const createError = _CreateGenerationException('fixture generation failed');
+    final createStack = StackTrace.fromString('create-generation-stack');
+    Object? observedError;
+    StackTrace? observedStack;
+    final toastMessages = <String>[];
+
+    setShowToastImpl((message, {gravity = ToastGravity.BOTTOM}) {
+      toastMessages.add(message);
+    });
 
     when(
       () => firestore.getUsersById(any<List<String>>()),
     ).thenAnswer((_) async => <String, GNUser>{});
     _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
 
-    when(() => leagueRepo.addLeague(
-      name: any(named: 'name'),
-      groupId: any(named: 'groupId'),
-      description: any(named: 'description'),
-      rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
-      rankPayouts: any(named: 'rankPayouts'),
-      defaultMatchCost: any(named: 'defaultMatchCost'),
-      defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
-      defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
-      mode: any(named: 'mode'),
-      groupCount: any(named: 'groupCount'),
-      advanceCount: any(named: 'advanceCount'),
-      participants: any(named: 'participants'),
-      knockoutSeeding: any(named: 'knockoutSeeding'),
-    )).thenAnswer((_) async => 'league-full');
-    when(() => leagueRepo.addMultipleParticipants(
-      leagueId: any(named: 'leagueId'),
-      userIds: any(named: 'userIds'),
-    )).thenAnswer((_) async {});
-    when(() => leagueRepo.generateFullTournament(
-      leagueId: any(named: 'leagueId'),
-      groups: any(named: 'groups'),
-      advanceCount: any(named: 'advanceCount'),
-      knockoutSeeding: any(named: 'knockoutSeeding'),
-    )).thenAnswer((_) async {});
+    when(
+      () => leagueRepo.addLeague(
+        name: any(named: 'name'),
+        groupId: any(named: 'groupId'),
+        description: any(named: 'description'),
+        rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
+        rankPayouts: any(named: 'rankPayouts'),
+        defaultMatchCost: any(named: 'defaultMatchCost'),
+        defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
+        defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
+        mode: any(named: 'mode'),
+        groupCount: any(named: 'groupCount'),
+        advanceCount: any(named: 'advanceCount'),
+        participants: any(named: 'participants'),
+        knockoutSeeding: any(named: 'knockoutSeeding'),
+      ),
+    ).thenAnswer((_) async => 'league-fail');
+    when(
+      () => leagueRepo.addMultipleParticipants(
+        leagueId: any(named: 'leagueId'),
+        userIds: any(named: 'userIds'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => leagueRepo.generateRound(
+        leagueId: any(named: 'leagueId'),
+        teamIds: any(named: 'teamIds'),
+      ),
+    ).thenAnswer((_) => Future<void>.error(createError, createStack));
     when(() => leagueRepo.deleteLeague(any())).thenAnswer((_) async {});
 
     when(() => tournamentBloc.state).thenReturn(
@@ -644,92 +863,12 @@ void main() {
     ).thenReturn(_groupState(userGroups: [_group('g1', 'Nhóm Một')]));
 
     _setCreateLeaguePageBuilder(
-      mode: TournamentMode.full,
-      participants: const ['u1', 'u2', 'u3', 'u4'],
-      groupCount: 2,
-      advanceCount: 2,
-      knockoutSeeding: const ['A1', 'A2', 'A3', 'A4'],
-      groupAssignment: const {'u1': 0, 'u2': 1, 'u3': 0, 'u4': 1},
+      mode: TournamentMode.league,
+      onError: (error, stackTrace) {
+        observedError = error;
+        observedStack = stackTrace;
+      },
     );
-
-    await tester.pumpWidget(
-      _wrap(tournamentBloc: tournamentBloc, groupBloc: groupBloc),
-    );
-    await tester.tap(find.text('Tạo giải đấu'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('tournament league-full'), findsOneWidget);
-    verify(
-      () => leagueRepo.generateFullTournament(
-        leagueId: 'league-full',
-        groups: const [
-          ['u1', 'u3'],
-          ['u2', 'u4'],
-        ],
-        advanceCount: 2,
-        knockoutSeeding: const ['A1', 'A2', 'A3', 'A4'],
-      ),
-    ).called(1);
-    verifyNever(() => leagueRepo.generateRound(
-      leagueId: any(named: 'leagueId'),
-      teamIds: any(named: 'teamIds'),
-    ));
-    verifyNever(() => leagueRepo.generateCupBracket(
-      leagueId: any(named: 'leagueId'),
-      seededTeamIds: any(named: 'seededTeamIds'),
-    ));
-  });
-
-  testWidgets('Create callback rolls back league when generation throws', (
-    tester,
-  ) async {
-    final tournamentBloc = _MockTournamentBloc();
-    final groupBloc = _MockGroupBloc();
-    final leagueRepo = _MockLeagueRepository();
-    final firestore = _MockFirestore();
-
-    when(
-      () => firestore.getUsersById(any<List<String>>()),
-    ).thenAnswer((_) async => <String, GNUser>{});
-    _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
-
-    when(() => leagueRepo.addLeague(
-      name: any(named: 'name'),
-      groupId: any(named: 'groupId'),
-      description: any(named: 'description'),
-      rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
-      rankPayouts: any(named: 'rankPayouts'),
-      defaultMatchCost: any(named: 'defaultMatchCost'),
-      defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
-      defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
-      mode: any(named: 'mode'),
-      groupCount: any(named: 'groupCount'),
-      advanceCount: any(named: 'advanceCount'),
-      participants: any(named: 'participants'),
-      knockoutSeeding: any(named: 'knockoutSeeding'),
-    )).thenAnswer((_) async => 'league-fail');
-    when(() => leagueRepo.addMultipleParticipants(
-      leagueId: any(named: 'leagueId'),
-      userIds: any(named: 'userIds'),
-    )).thenAnswer((_) async {});
-    when(() => leagueRepo.generateRound(
-      leagueId: any(named: 'leagueId'),
-      teamIds: any(named: 'teamIds'),
-    )).thenThrow(Exception('boom'));
-    when(() => leagueRepo.deleteLeague(any())).thenAnswer((_) async {});
-
-    when(() => tournamentBloc.state).thenReturn(
-      const TournamentState(
-        myStatus: ViewStatus.success,
-        managedStatus: ViewStatus.success,
-        otherStatus: ViewStatus.success,
-      ),
-    );
-    when(
-      () => groupBloc.state,
-    ).thenReturn(_groupState(userGroups: [_group('g1', 'Nhóm Một')]));
-
-    _setCreateLeaguePageBuilder(mode: TournamentMode.league);
 
     await tester.pumpWidget(
       _wrap(tournamentBloc: tournamentBloc, groupBloc: groupBloc),
@@ -738,8 +877,131 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => leagueRepo.deleteLeague('league-fail')).called(1);
+    expect(observedError, same(createError));
+    expect(observedError, isA<_CreateGenerationException>());
+    expect(observedError.toString(), contains('fixture generation failed'));
+    expect(observedStack.toString(), contains('create-generation-stack'));
     expect(find.text('tournament league-fail'), findsNothing);
+    verifyNever(() => tournamentBloc.add(any(that: isA<LoadMyLeagues>())));
+    verifyNever(() => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())));
+    expect(toastMessages, isEmpty);
   });
+
+  testWidgets(
+    'Create callback preserves generation error when rollback also throws',
+    (tester) async {
+      final tournamentBloc = _MockTournamentBloc();
+      final groupBloc = _MockGroupBloc();
+      final leagueRepo = _MockLeagueRepository();
+      final firestore = _MockFirestore();
+      const createError = _CreateGenerationException(
+        'original fixture generation failure',
+      );
+      const rollbackError = _RollbackException('delete failed');
+      final createStack = StackTrace.fromString('original-create-stack');
+      Object? observedError;
+      StackTrace? observedStack;
+      final toastMessages = <String>[];
+      final debugMessages = <String>[];
+      final previousDebugPrint = debugPrint;
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) debugMessages.add(message);
+      };
+      addTearDown(() => debugPrint = previousDebugPrint);
+
+      setShowToastImpl((message, {gravity = ToastGravity.BOTTOM}) {
+        toastMessages.add(message);
+      });
+      when(
+        () => firestore.getUsersById(any<List<String>>()),
+      ).thenAnswer((_) async => <String, GNUser>{});
+      _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+
+      when(
+        () => leagueRepo.addLeague(
+          name: any(named: 'name'),
+          groupId: any(named: 'groupId'),
+          description: any(named: 'description'),
+          rankPayoutEnabled: any(named: 'rankPayoutEnabled'),
+          rankPayouts: any(named: 'rankPayouts'),
+          defaultMatchCost: any(named: 'defaultMatchCost'),
+          defaultPerGoalEnabled: any(named: 'defaultPerGoalEnabled'),
+          defaultCostPerGoal: any(named: 'defaultCostPerGoal'),
+          mode: any(named: 'mode'),
+          groupCount: any(named: 'groupCount'),
+          advanceCount: any(named: 'advanceCount'),
+          participants: any(named: 'participants'),
+          knockoutSeeding: any(named: 'knockoutSeeding'),
+        ),
+      ).thenAnswer((_) async => 'league-rollback-fail');
+      when(
+        () => leagueRepo.addMultipleParticipants(
+          leagueId: any(named: 'leagueId'),
+          userIds: any(named: 'userIds'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => leagueRepo.generateRound(
+          leagueId: any(named: 'leagueId'),
+          teamIds: any(named: 'teamIds'),
+        ),
+      ).thenAnswer((_) => Future<void>.error(createError, createStack));
+      when(
+        () => leagueRepo.deleteLeague('league-rollback-fail'),
+      ).thenThrow(rollbackError);
+
+      when(() => tournamentBloc.state).thenReturn(
+        const TournamentState(
+          myStatus: ViewStatus.success,
+          managedStatus: ViewStatus.success,
+          otherStatus: ViewStatus.success,
+        ),
+      );
+      when(
+        () => groupBloc.state,
+      ).thenReturn(_groupState(userGroups: [_group('g1', 'Nhóm Một')]));
+
+      _setCreateLeaguePageBuilder(
+        mode: TournamentMode.league,
+        onError: (error, stackTrace) {
+          observedError = error;
+          observedStack = stackTrace;
+        },
+      );
+
+      try {
+        await tester.pumpWidget(
+          _wrap(tournamentBloc: tournamentBloc, groupBloc: groupBloc),
+        );
+        await tester.tap(find.text('Tạo giải đấu'));
+        await tester.pumpAndSettle();
+      } finally {
+        debugPrint = previousDebugPrint;
+      }
+
+      verify(() => leagueRepo.deleteLeague('league-rollback-fail')).called(1);
+      expect(observedError, same(createError));
+      expect(observedError, isA<_CreateGenerationException>());
+      expect(
+        observedError.toString(),
+        contains('original fixture generation failure'),
+      );
+      expect(observedStack.toString(), contains('original-create-stack'));
+      expect(
+        debugMessages.join('\n'),
+        allOf(
+          contains('League create rollback failed'),
+          contains(rollbackError.toString()),
+        ),
+      );
+      expect(find.text('tournament league-rollback-fail'), findsNothing);
+      verifyNever(() => tournamentBloc.add(any(that: isA<LoadMyLeagues>())));
+      verifyNever(
+        () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
+      );
+      expect(toastMessages, isEmpty);
+    },
+  );
 
   testWidgets(
     'Hero stat shows my count plus-sign, live count and players count',
@@ -977,44 +1239,42 @@ void main() {
     ).called(1);
   });
 
-  testWidgets(
-    'Other tab dispatches load-more when scrolled near the end',
-    (tester) async {
-      final tournamentBloc = _MockTournamentBloc();
-      final groupBloc = _MockGroupBloc();
+  testWidgets('Other tab dispatches load-more when scrolled near the end', (
+    tester,
+  ) async {
+    final tournamentBloc = _MockTournamentBloc();
+    final groupBloc = _MockGroupBloc();
 
-      when(() => tournamentBloc.state).thenReturn(
-        TournamentState(
-          myStatus: ViewStatus.success,
-          managedStatus: ViewStatus.success,
-          otherStatus: ViewStatus.success,
-          otherLeagues: List.generate(
-            15,
-            (index) => _league('o$index', 'Other $index', participants: []),
-          ),
-          otherHasMore: true,
+    when(() => tournamentBloc.state).thenReturn(
+      TournamentState(
+        myStatus: ViewStatus.success,
+        managedStatus: ViewStatus.success,
+        otherStatus: ViewStatus.success,
+        otherLeagues: List.generate(
+          15,
+          (index) => _league('o$index', 'Other $index', participants: []),
         ),
-      );
-      when(() => groupBloc.state).thenReturn(_groupState());
+        otherHasMore: true,
+      ),
+    );
+    when(() => groupBloc.state).thenReturn(_groupState());
 
-      await tester.pumpWidget(
-        _wrap(tournamentBloc: tournamentBloc, groupBloc: groupBloc),
-      );
-      await tester.tap(find.text('Khác'));
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _wrap(tournamentBloc: tournamentBloc, groupBloc: groupBloc),
+    );
+    await tester.tap(find.text('Khác'));
+    await tester.pumpAndSettle();
 
-      final list = find.ancestor(
-        of: find.text('Other 0'),
-        matching: find.byType(ListView),
-      ).first;
-      await tester.drag(list, const Offset(0, -3000));
-      await tester.pump(const Duration(milliseconds: 20));
+    final list = find
+        .ancestor(of: find.text('Other 0'), matching: find.byType(ListView))
+        .first;
+    await tester.drag(list, const Offset(0, -3000));
+    await tester.pump(const Duration(milliseconds: 20));
 
-      verify(
-        () => tournamentBloc.add(any(that: isA<LoadMoreOtherLeagues>())),
-      ).called(1);
-    },
-  );
+    verify(
+      () => tournamentBloc.add(any(that: isA<LoadMoreOtherLeagues>())),
+    ).called(1);
+  });
 
   testWidgets('Managed tab shows end marker when hasMore is false', (
     tester,
@@ -1104,7 +1364,9 @@ void main() {
     verify(() => tournamentBloc.add(RefreshTournaments())).called(1);
   });
 
-  testWidgets('Managed RefreshIndicator dispatches RefreshTournaments', (tester) async {
+  testWidgets('Managed RefreshIndicator dispatches RefreshTournaments', (
+    tester,
+  ) async {
     final tournamentBloc = _MockTournamentBloc();
     final groupBloc = _MockGroupBloc();
     final controller = StreamController<TournamentState>();
@@ -1115,11 +1377,7 @@ void main() {
       managedLeagues: [_league('m1', 'Managed Refresh')],
     );
     when(() => tournamentBloc.state).thenReturn(initial);
-    whenListen(
-      tournamentBloc,
-      controller.stream,
-      initialState: initial,
-    );
+    whenListen(tournamentBloc, controller.stream, initialState: initial);
     when(() => groupBloc.state).thenReturn(_groupState());
 
     await tester.pumpWidget(
@@ -1130,10 +1388,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final refresh = tester.widget<RefreshIndicator>(
-      find.ancestor(
-        of: find.text('Managed Refresh'),
-        matching: find.byType(RefreshIndicator),
-      ).first,
+      find
+          .ancestor(
+            of: find.text('Managed Refresh'),
+            matching: find.byType(RefreshIndicator),
+          )
+          .first,
     );
     final refreshFuture = refresh.onRefresh();
     controller.add(initial.copyWith(refreshTick: 1));
@@ -1143,7 +1403,9 @@ void main() {
     verify(() => tournamentBloc.add(RefreshTournaments())).called(1);
   });
 
-  testWidgets('Other RefreshIndicator dispatches RefreshTournaments', (tester) async {
+  testWidgets('Other RefreshIndicator dispatches RefreshTournaments', (
+    tester,
+  ) async {
     final tournamentBloc = _MockTournamentBloc();
     final groupBloc = _MockGroupBloc();
     final controller = StreamController<TournamentState>();
@@ -1154,11 +1416,7 @@ void main() {
       otherLeagues: [_league('o1', 'Other Refresh')],
     );
     when(() => tournamentBloc.state).thenReturn(initial);
-    whenListen(
-      tournamentBloc,
-      controller.stream,
-      initialState: initial,
-    );
+    whenListen(tournamentBloc, controller.stream, initialState: initial);
     when(() => groupBloc.state).thenReturn(_groupState());
 
     await tester.pumpWidget(
@@ -1169,10 +1427,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final refresh = tester.widget<RefreshIndicator>(
-      find.ancestor(
-        of: find.text('Other Refresh'),
-        matching: find.byType(RefreshIndicator),
-      ).first,
+      find
+          .ancestor(
+            of: find.text('Other Refresh'),
+            matching: find.byType(RefreshIndicator),
+          )
+          .first,
     );
     final refreshFuture = refresh.onRefresh();
     controller.add(initial.copyWith(refreshTick: 1));
@@ -1244,9 +1504,7 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    verify(
-      () => tournamentBloc.add(any(that: isA<LoadMyLeagues>())),
-    ).called(1);
+    verify(() => tournamentBloc.add(any(that: isA<LoadMyLeagues>()))).called(1);
   });
 
   testWidgets('TournamentItem renders fallback title and single date format', (
