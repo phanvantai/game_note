@@ -32,13 +32,6 @@ class EnsureDetailSubscriptions extends TournamentDetailEvent {
   List<Object?> get props => [leagueId];
 }
 
-/// Compatibility event for callers that have not yet migrated to
-/// [EnsureDetailSubscriptions].
-@Deprecated('Use EnsureDetailSubscriptions instead.')
-class GetParticipantsAndMatches extends EnsureDetailSubscriptions {
-  const GetParticipantsAndMatches(super.leagueId);
-}
-
 class RetryDetailSlice extends TournamentDetailEvent {
   final TournamentDetailSlice slice;
 

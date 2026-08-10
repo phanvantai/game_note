@@ -230,7 +230,6 @@ void main() {
 
   void verifyNoExplicitDetailReads() {
     verifyNever(() => repo.getLeague(any()));
-    verifyNever(() => repo.getParticipantsAndMatches(any()));
     verifyNever(() => repo.getLeagueStats(any()));
     verifyNever(() => repo.getMatches(any()));
   }
@@ -1088,13 +1087,6 @@ void main() {
           appText.tournamentMatchUpdated,
           appText.tournamentMatchUpdated,
         ]);
-        verifyNever(() => repo.updateMatch(any()));
-        verifyNever(
-          () => repo.applyMatchStatDelta(
-            previous: any(named: 'previous'),
-            updated: any(named: 'updated'),
-          ),
-        );
         verifyNoExplicitDetailReads();
       },
     );
@@ -1806,7 +1798,7 @@ void main() {
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
-      'success: gọi deleteMatch + add GetParticipantStats',
+      'success: gọi deleteMatch, stream tiếp tục sở hữu refresh',
       build: () {
         when(() => repo.deleteMatch(any())).thenAnswer((_) async {});
         when(() => repo.getLeagueStats(any())).thenAnswer((_) async => []);
@@ -2128,10 +2120,6 @@ void main() {
             teamIds: any(named: 'teamIds'),
           ),
         ).thenAnswer((_) async {});
-        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
-          (_) async =>
-              LeagueDetailData(participants: const [], matches: const []),
-        );
         final bloc = build();
         bloc.emit(
           bloc.state.copyWith(
@@ -2209,10 +2197,6 @@ void main() {
       'thành công → gọi recomputeLeagueStats',
       build: () {
         when(() => repo.recomputeLeagueStats(any())).thenAnswer((_) async {});
-        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
-          (_) async =>
-              LeagueDetailData(participants: const [], matches: const []),
-        );
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(RecomputeStats()),
@@ -2349,10 +2333,6 @@ void main() {
             advanceCount: any(named: 'advanceCount'),
           ),
         ).thenAnswer((_) async {});
-        when(() => repo.getParticipantsAndMatches(any())).thenAnswer(
-          (_) async =>
-              LeagueDetailData(participants: const [], matches: const []),
-        );
         return buildWithLeague(_league());
       },
       act: (bloc) => bloc.add(

@@ -21,10 +21,10 @@ class TournamentDetailState extends Equatable {
   final bool leagueDeleted;
   final String errorMessage;
 
-  /// Bumped every time `GetParticipantsAndMatches` finishes (success OR
-  /// failure). Lets pull-to-refresh detect completion even when the new
-  /// data equals the old data — without it Equatable suppresses the emit
-  /// and the RefreshIndicator spins forever.
+  /// Bumped when `EnsureDetailSubscriptions` finishes its subscription
+  /// health check. Lets pull-to-refresh detect completion even when no
+  /// detail data changed — otherwise Equatable suppresses the emit and the
+  /// RefreshIndicator spins forever.
   final int refreshTick;
   // full mode: which group tab is currently selected (null = no selection)
   final String? selectedGroupId;

@@ -201,7 +201,6 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(ChangeLeagueStatus(GNEsportLeagueStatus.ongoing));
-    registerFallbackValue(GetParticipantsAndMatches('l1'));
     registerFallbackValue(const EnsureDetailSubscriptions('l1'));
     registerFallbackValue(const GenerateRound());
     registerFallbackValue(RecomputeStats());
@@ -330,10 +329,12 @@ void main() {
       when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
 
       await tester.pumpWidget(_wrap(bloc));
+      clearInteractions(bloc);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
 
-      verify(() => bloc.add(const EnsureDetailSubscriptions('L1'))).called(1);
-      verifyNever(() => bloc.add(any(that: isA<GetParticipantsAndMatches>())));
+      final capturedEvents = verify(() => bloc.add(captureAny())).captured;
+      expect(capturedEvents, [const EnsureDetailSubscriptions('L1')]);
     },
   );
 

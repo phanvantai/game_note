@@ -155,7 +155,6 @@ Finder _rowContaining(String text) {
 void main() {
   setUpAll(() {
     registerFallbackValue(const EnsureDetailSubscriptions('l1'));
-    registerFallbackValue(GetParticipantsAndMatches('l1'));
     registerFallbackValue(const RetryDetailSlice(TournamentDetailSlice.stats));
   });
 
@@ -374,7 +373,6 @@ void main() {
       final events = verify(() => bloc.add(captureAny())).captured;
       expect(events, hasLength(1));
       expect(events.single.runtimeType, EnsureDetailSubscriptions);
-      expect(events.single, isNot(isA<GetParticipantsAndMatches>()));
       expect((events.single as EnsureDetailSubscriptions).leagueId, 'l1');
     },
   );

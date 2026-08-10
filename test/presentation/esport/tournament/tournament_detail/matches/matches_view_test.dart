@@ -132,7 +132,6 @@ Widget _wrap(TournamentDetailBloc bloc, {required bool fixtures}) {
 
 void main() {
   setUpAll(() {
-    registerFallbackValue(GetParticipantsAndMatches('l1'));
     registerFallbackValue(const EnsureDetailSubscriptions('l1'));
     registerFallbackValue(
       const RetryDetailSlice(TournamentDetailSlice.matches),
@@ -191,6 +190,7 @@ void main() {
     await tester.tap(find.text('Alice'));
     await tester.pumpAndSettle();
     expect(find.text('Cập nhật kết quả'), findsOneWidget);
+    clearInteractions(bloc);
 
     final refresh = tester.widget<RefreshIndicator>(
       find.byType(RefreshIndicator).first,
@@ -204,8 +204,8 @@ void main() {
     controller.add(state.copyWith(refreshTick: 1));
     await future;
     expect(refreshCompleted, isTrue);
-    verify(() => bloc.add(const EnsureDetailSubscriptions('l1'))).called(1);
-    verifyNever(() => bloc.add(GetParticipantsAndMatches('l1')));
+    final refreshEvents = verify(() => bloc.add(captureAny())).captured;
+    expect(refreshEvents, [const EnsureDetailSubscriptions('l1')]);
     await controller.close();
     await bloc.close();
   });

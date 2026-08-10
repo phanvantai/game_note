@@ -126,7 +126,6 @@ Finder _metricCell(String label) {
 
 void main() {
   setUpAll(() {
-    registerFallbackValue(GetParticipantsAndMatches('l1'));
     registerFallbackValue(const EnsureDetailSubscriptions('l1'));
     registerFallbackValue(const RetryDetailSlice(TournamentDetailSlice.stats));
   });
@@ -314,6 +313,7 @@ void main() {
     when(() => bloc.stream).thenAnswer((_) => controller.stream);
 
     await tester.pumpWidget(_wrap(bloc));
+    clearInteractions(bloc);
 
     final refresh = tester.widget<RefreshIndicator>(
       find.byType(RefreshIndicator),
@@ -332,8 +332,10 @@ void main() {
     await _emitState(tester, controller, initial.copyWith(refreshTick: 1));
     await future;
 
-    verify(() => bloc.add(const EnsureDetailSubscriptions('l1'))).called(1);
-    verifyNever(() => bloc.add(any(that: isA<GetParticipantsAndMatches>())));
+    final refreshEvents = verify(
+      () => bloc.add(captureAny()),
+    ).captured.cast<TournamentDetailEvent>();
+    expect(refreshEvents, [const EnsureDetailSubscriptions('l1')]);
 
     await controller.close();
     await bloc.close();

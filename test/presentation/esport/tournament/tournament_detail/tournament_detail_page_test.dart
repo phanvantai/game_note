@@ -250,7 +250,6 @@ void main() {
       verify(() => leagueRepository.listenForLeagueStats('L1')).called(1);
       verify(() => leagueRepository.listenForMatchesUpdated('L1')).called(1);
       verifyNever(() => leagueRepository.getLeague(any()));
-      verifyNever(() => leagueRepository.getParticipantsAndMatches(any()));
       verifyNever(() => leagueRepository.getLeagueStats(any()));
       verifyNever(() => leagueRepository.getMatches(any()));
 

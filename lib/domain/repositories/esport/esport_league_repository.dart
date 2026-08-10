@@ -7,14 +7,6 @@ import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 export 'package:pes_arena/firebase/firestore/esport/league/gn_firestore_esport_league.dart'
     show LeaguesPage;
 
-// Data class for parallel loading results
-class LeagueDetailData {
-  final List<GNEsportLeagueStat> participants;
-  final List<GNEsportMatch> matches;
-
-  const LeagueDetailData({required this.participants, required this.matches});
-}
-
 abstract class EsportLeagueRepository {
   /// Leagues the current user participates in as a player. Paginated.
   Future<LeaguesPage> getMyLeagues({Object? startAfter, int limit});
@@ -113,34 +105,16 @@ abstract class EsportLeagueRepository {
 
   Future<List<GNEsportMatch>> getMatches(String leagueId);
 
-  /// Write the match score/cost. Does NOT touch stat docs — callers must
-  /// follow up with [applyMatchStatDelta] (typically fire-and-forget) to
-  /// reconcile player totals. Returns before/after match state for the
-  /// caller to feed into the delta.
-  Future<({GNEsportMatch previous, GNEsportMatch updated})> updateMatch(
-    GNEsportMatch match,
-  );
-
   /// Atomically updates [match], its derived standings, and the next
   /// knockout slot when applicable. The nullable [GNEsportMatch.updatedAt]
   /// is used as the optimistic version for conflict detection.
   Future<void> updateMatchAtomically(GNEsportMatch match);
-
-  /// Apply the stat delta for a single match transition. Safe no-op for
-  /// knockout matches and TBD bracket slots.
-  Future<void> applyMatchStatDelta({
-    required GNEsportMatch previous,
-    required GNEsportMatch updated,
-  });
 
   Future<void> updateLeague(GNEsportLeague league);
   Future<void> inactiveLeague(GNEsportLeague league);
   Future<void> deleteLeague(String leagueId);
   Future<void> deleteMatch(GNEsportMatch match);
   Future<void> createCustomMatch(GNEsportMatch match);
-
-  // Parallel loading method to get both participants and matches efficiently
-  Future<LeagueDetailData> getParticipantsAndMatches(String leagueId);
 
   /// Admin-only: rebuild every stat doc in the league from its finished
   /// matches. Use to recover from drift caused by legacy update bugs or
