@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:ui' show SemanticsAction, Tristate;
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bracket/bracket_view.dart';
 
@@ -11,7 +15,12 @@ class _MockBloc extends MockBloc<TournamentDetailEvent, TournamentDetailState>
     implements TournamentDetailBloc {}
 
 class _AdminTournamentDetailState extends TournamentDetailState {
-  const _AdminTournamentDetailState({required super.matches});
+  const _AdminTournamentDetailState({
+    required super.matches,
+    super.participants,
+    super.pendingMatchIds,
+    super.matchErrorsById,
+  });
 
   @override
   bool get currentUserIsLeagueAdmin => true;
@@ -41,6 +50,31 @@ GNEsportMatch _knockoutMatch({
     phase: 'knockout',
   );
 }
+
+GNEsportLeagueStat _standing(String userId) => GNEsportLeagueStat(
+  id: 'S_$userId',
+  userId: userId,
+  leagueId: 'L1',
+  matchesPlayed: 1,
+  goals: 2,
+  goalsConceded: 1,
+  wins: 1,
+  draws: 0,
+  losses: 0,
+);
+
+GNEsportMatch _groupMatch({String id = 'G1'}) => GNEsportMatch(
+  id: id,
+  homeTeamId: 'GROUP_HOME',
+  awayTeamId: 'GROUP_AWAY',
+  homeScore: 2,
+  awayScore: 1,
+  date: DateTime(2026, 1, 1),
+  isFinished: true,
+  leagueId: 'L1',
+  phase: 'group',
+  groupId: 'A',
+);
 
 Widget _wrap(Widget child, TournamentDetailBloc bloc) => MaterialApp(
   home: BlocProvider<TournamentDetailBloc>.value(
@@ -240,5 +274,150 @@ void main() {
 
       expect(find.byType(AlertDialog), findsOneWidget);
     });
+
+    testWidgets(
+      'match error stays on its interactive card and pending hides stale error',
+      (tester) async {
+        final controller = StreamController<TournamentDetailState>.broadcast();
+        final matches = [
+          _knockoutMatch(id: 'M1', home: 'FAIL', away: 'WAIT'),
+          _knockoutMatch(id: 'M2', home: 'SAFE', away: 'PLAY'),
+        ];
+        const errorMessage = 'Không lưu được trận M1';
+        final errorState = _AdminTournamentDetailState(
+          matches: matches,
+          matchErrorsById: const {'M1': errorMessage},
+        );
+        when(() => bloc.state).thenReturn(errorState);
+        when(() => bloc.stream).thenAnswer((_) => controller.stream);
+
+        await tester.pumpWidget(_wrap(const BracketView(), bloc));
+
+        final errorCard = find.ancestor(
+          of: find.text('FAIL'),
+          matching: find.byType(GestureDetector),
+        );
+        final ordinaryCard = find.ancestor(
+          of: find.text('SAFE'),
+          matching: find.byType(GestureDetector),
+        );
+        expect(errorCard, findsOneWidget);
+        expect(ordinaryCard, findsOneWidget);
+        expect(
+          find.descendant(of: errorCard, matching: find.text(errorMessage)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: ordinaryCard, matching: find.text(errorMessage)),
+          findsNothing,
+        );
+
+        await tester.tap(find.text('FAIL'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.byType(AlertDialog), findsOneWidget);
+        await tester.tap(find.text('Huỷ'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        controller.add(
+          _AdminTournamentDetailState(
+            matches: matches,
+            pendingMatchIds: const {'M1'},
+            matchErrorsById: const {'M1': errorMessage},
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text('Đang lưu kết quả'), findsOneWidget);
+        expect(find.text(errorMessage), findsNothing);
+        await tester.tap(find.text('FAIL'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.byType(AlertDialog), findsNothing);
+
+        await controller.close();
+      },
+    );
+
+    testWidgets(
+      'pending knockout locks only its card and standings updates keep rounds',
+      (tester) async {
+        final controller = StreamController<TournamentDetailState>.broadcast();
+        final matches = [
+          _knockoutMatch(id: 'M1', home: 'LOCK', away: 'WAIT'),
+          _knockoutMatch(id: 'M2', home: 'OPEN', away: 'PLAY'),
+          _groupMatch(),
+        ];
+        final initialState = _AdminTournamentDetailState(
+          matches: matches,
+          pendingMatchIds: const {'M1'},
+        );
+        when(() => bloc.state).thenReturn(initialState);
+        when(() => bloc.stream).thenAnswer((_) => controller.stream);
+
+        await tester.pumpWidget(_wrap(const BracketView(), bloc));
+
+        expect(find.text('Đang lưu kết quả'), findsOneWidget);
+        final semanticsHandle = tester.ensureSemantics();
+        final pendingSemantics = tester.getSemantics(
+          find.bySemanticsLabel('Đang lưu kết quả'),
+        );
+        expect(pendingSemantics.label, 'Đang lưu kết quả');
+        expect(pendingSemantics.flagsCollection.isEnabled, Tristate.isFalse);
+        expect(
+          pendingSemantics.getSemanticsData().hasAction(SemanticsAction.tap),
+          isFalse,
+        );
+        semanticsHandle.dispose();
+
+        await tester.tap(find.text('LOCK'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.byType(AlertDialog), findsNothing);
+
+        await tester.tap(find.text('OPEN'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.byType(AlertDialog), findsOneWidget);
+        await tester.tap(find.text('Huỷ'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        final bracketRounds = find.byKey(
+          const Key('tournament-bracket-rounds'),
+        );
+        expect(bracketRounds, findsOneWidget);
+        final initialRounds = tester.widget(bracketRounds);
+
+        controller.add(
+          _AdminTournamentDetailState(
+            matches: matches,
+            participants: [_standing('u1')],
+            pendingMatchIds: const {'M1'},
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(tester.widget(bracketRounds), same(initialRounds));
+
+        controller.add(
+          _AdminTournamentDetailState(
+            matches: matches,
+            participants: [_standing('u1')],
+            pendingMatchIds: const {'M1', 'G1'},
+            matchErrorsById: const {'G1': 'Không lưu được trận vòng bảng'},
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(tester.widget(bracketRounds), same(initialRounds));
+
+        await controller.close();
+      },
+    );
   });
 }

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ui' show SemanticsAction, Tristate;
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +29,12 @@ class _FakeTournamentDetailState extends Fake
     implements TournamentDetailState {}
 
 class _AdminTournamentDetailState extends TournamentDetailState {
-  const _AdminTournamentDetailState({super.league, super.matches});
+  const _AdminTournamentDetailState({
+    super.league,
+    super.matches,
+    super.pendingMatchIds,
+    super.matchErrorsById,
+  });
 
   @override
   bool get currentUserIsLeagueAdmin => true;
@@ -461,6 +469,161 @@ void main() {
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.text('Cập nhật kết quả'), findsOneWidget);
     });
+
+    testWidgets(
+      'chỉ khóa trận bảng đang lưu, giữ trận khác tương tác và không thay group content khi đổi tên giải',
+      (tester) async {
+        final controller = StreamController<TournamentDetailState>.broadcast();
+        final matches = [
+          _groupMatch(
+            id: 'pending-match',
+            groupId: 'A',
+            home: 'pending-home',
+            away: 'pending-away',
+            homeTeam: _user('pending-home'),
+            awayTeam: _user('pending-away'),
+          ),
+          _groupMatch(
+            id: 'interactive-match',
+            groupId: 'A',
+            home: 'interactive-home',
+            away: 'interactive-away',
+            homeTeam: _user('interactive-home'),
+            awayTeam: _user('interactive-away'),
+          ),
+        ];
+        final initial = _AdminTournamentDetailState(
+          league: _league(),
+          matches: matches,
+          pendingMatchIds: const {'pending-match'},
+        );
+        when(() => bloc.state).thenReturn(initial);
+        when(() => bloc.stream).thenAnswer((_) => controller.stream);
+
+        await tester.pumpWidget(_wrap(bloc));
+        await tester.pump();
+
+        expect(find.text('Đang lưu kết quả'), findsOneWidget);
+        final semanticsHandle = tester.ensureSemantics();
+        final pendingStatus = tester.getSemantics(
+          find.bySemanticsLabel('Đang lưu kết quả'),
+        );
+        expect(pendingStatus.label, 'Đang lưu kết quả');
+        expect(pendingStatus.flagsCollection.isEnabled, Tristate.isFalse);
+        expect(
+          pendingStatus.getSemanticsData().hasAction(SemanticsAction.tap),
+          isFalse,
+        );
+        semanticsHandle.dispose();
+
+        await tester.tap(find.text('Player pending-home'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.text('Cập nhật kết quả'), findsNothing);
+
+        await tester.tap(find.text('Player interactive-home'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.text('Cập nhật kết quả'), findsOneWidget);
+        await tester.tap(find.text('Huỷ'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        final groupContent = find.byKey(const Key('tournament-group-content'));
+        expect(groupContent, findsOneWidget);
+        final initialContentWidget = tester.widget(groupContent);
+
+        controller.add(
+          _AdminTournamentDetailState(
+            league: _league().copyWith(name: 'League renamed remotely'),
+            matches: matches,
+            pendingMatchIds: const {'pending-match'},
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        expect(tester.widget(groupContent), same(initialContentWidget));
+
+        await controller.close();
+      },
+    );
+
+    testWidgets(
+      'lỗi chỉ hiện dưới đúng trận và trận đó tương tác lại sau khi hết pending',
+      (tester) async {
+        const errorMessage = 'Không lưu được kết quả trận lỗi';
+        final controller = StreamController<TournamentDetailState>.broadcast();
+        final matches = [
+          _groupMatch(
+            id: 'error-match',
+            groupId: 'A',
+            home: 'error-home',
+            away: 'error-away',
+            homeTeam: _user('error-home'),
+            awayTeam: _user('error-away'),
+          ),
+          _groupMatch(
+            id: 'other-match',
+            groupId: 'A',
+            home: 'other-home',
+            away: 'other-away',
+            homeTeam: _user('other-home'),
+            awayTeam: _user('other-away'),
+          ),
+        ];
+        final pending = _AdminTournamentDetailState(
+          league: _league(),
+          matches: matches,
+          pendingMatchIds: const {'error-match'},
+          matchErrorsById: const {'error-match': errorMessage},
+        );
+        when(() => bloc.state).thenReturn(pending);
+        when(() => bloc.stream).thenAnswer((_) => controller.stream);
+
+        await tester.pumpWidget(_wrap(bloc));
+        await tester.pump();
+
+        expect(find.text('Đang lưu kết quả'), findsOneWidget);
+        expect(find.text(errorMessage), findsNothing);
+
+        controller.add(
+          _AdminTournamentDetailState(
+            league: _league(),
+            matches: matches,
+            matchErrorsById: const {'error-match': errorMessage},
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        final errorRow = find.ancestor(
+          of: find.text('Player error-home'),
+          matching: find.byType(GestureDetector),
+        );
+        final otherRow = find.ancestor(
+          of: find.text('Player other-home'),
+          matching: find.byType(GestureDetector),
+        );
+        expect(errorRow, findsOneWidget);
+        expect(otherRow, findsOneWidget);
+        expect(
+          find.descendant(of: errorRow, matching: find.text(errorMessage)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: otherRow, matching: find.text(errorMessage)),
+          findsNothing,
+        );
+
+        await tester.tap(find.text('Player error-home'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.text('Cập nhật kết quả'), findsOneWidget);
+
+        await controller.close();
+      },
+    );
   });
 
   group('TournamentDetailState.allGroupMatchesFinished', () {
