@@ -632,9 +632,7 @@ void main() {
 
     expect(find.text('tournament league-cup'), findsOneWidget);
     verifyNever(() => tournamentBloc.add(any(that: isA<LoadMyLeagues>())));
-    verifyNever(
-      () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
-    );
+    verifyNever(() => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())));
 
     await tester.pageBack();
     await tester.pumpAndSettle();
@@ -682,9 +680,7 @@ void main() {
         knockoutSeeding: any(named: 'knockoutSeeding'),
       ),
     );
-    verify(
-      () => tournamentBloc.add(any(that: isA<LoadMyLeagues>())),
-    ).called(1);
+    verify(() => tournamentBloc.add(any(that: isA<LoadMyLeagues>()))).called(1);
     verify(
       () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
     ).called(1);
