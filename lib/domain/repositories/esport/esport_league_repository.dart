@@ -121,6 +121,11 @@ abstract class EsportLeagueRepository {
     GNEsportMatch match,
   );
 
+  /// Atomically updates [match], its derived standings, and the next
+  /// knockout slot when applicable. The nullable [GNEsportMatch.updatedAt]
+  /// is used as the optimistic version for conflict detection.
+  Future<void> updateMatchAtomically(GNEsportMatch match);
+
   /// Apply the stat delta for a single match transition. Safe no-op for
   /// knockout matches and TBD bracket slots.
   Future<void> applyMatchStatDelta({
@@ -145,6 +150,7 @@ abstract class EsportLeagueRepository {
   // Streams
   Stream<List<GNEsportLeagueStat>> listenForLeagueStats(String leagueId);
   Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId);
+
   /// Emits null when the league document has been deleted.
   Stream<GNEsportLeague?> listenForLeagueUpdated(String leagueId);
 }

@@ -210,6 +210,19 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
+  Future<void> updateMatchAtomically(GNEsportMatch match) {
+    return getIt<GNFirestore>().updateMatchAtomically(
+      matchId: match.id,
+      leagueId: match.leagueId,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+      matchCost: match.matchCost,
+      costPerGoal: match.costPerGoal,
+      expectedUpdatedAt: match.updatedAt,
+    );
+  }
+
+  @override
   Future<void> applyMatchStatDelta({
     required GNEsportMatch previous,
     required GNEsportMatch updated,
