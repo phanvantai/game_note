@@ -52,6 +52,7 @@ class TournamentDetailBloc
     on<CreateCustomMatch>(_onCreateCustomMatch);
 
     on<UpdateLeague>(_onUpdateLeague);
+    on<LeagueDeleted>(_onLeagueDeleted);
     on<UpdateLeagueCostConfig>(_onUpdateLeagueCostConfig);
     on<UpdateMatches>(_onUpdateMatches);
 
@@ -79,7 +80,7 @@ class TournamentDetailBloc
 
   StreamSubscription<List<GNEsportMatch>>? _matchesSubscription;
   StreamSubscription<List<GNEsportLeagueStat>>? _participantsSubscription;
-  StreamSubscription<GNEsportLeague>? _leagueSubscription;
+  StreamSubscription<GNEsportLeague?>? _leagueSubscription;
 
   Future<void> _onGetLeague(
     GetLeague event,
@@ -117,7 +118,11 @@ class TournamentDetailBloc
         .listenForLeagueUpdated(event.leagueId)
         .listen(
           (league) {
-            add(UpdateLeague(league));
+            if (league == null) {
+              add(LeagueDeleted());
+            } else {
+              add(UpdateLeague(league));
+            }
           },
           onError: (e) {
             //add(LoadLeagueError(e.toString()));
@@ -308,6 +313,18 @@ class TournamentDetailBloc
     if (event.league.isActive) {
       add(GetParticipantsAndMatches(event.league.id));
     }
+  }
+
+  void _onLeagueDeleted(
+    LeagueDeleted event,
+    Emitter<TournamentDetailState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        viewStatus: ViewStatus.failure,
+        errorMessage: 'Không tìm thấy giải đấu',
+      ),
+    );
   }
 
   Future<void> _onUpdateLeagueCostConfig(

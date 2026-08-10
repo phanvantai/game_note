@@ -145,5 +145,6 @@ abstract class EsportLeagueRepository {
   // Streams
   Stream<List<GNEsportLeagueStat>> listenForLeagueStats(String leagueId);
   Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId);
-  Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId);
+  /// Emits null when the league document has been deleted.
+  Stream<GNEsportLeague?> listenForLeagueUpdated(String leagueId);
 }

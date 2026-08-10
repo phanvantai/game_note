@@ -270,7 +270,7 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId) {
+  Stream<GNEsportLeague?> listenForLeagueUpdated(String leagueId) {
     return getIt<GNFirestore>().listenForLeagueUpdated(leagueId);
   }
 
