@@ -63,6 +63,7 @@ class CreateEsportLeaguePage extends StatefulWidget {
 class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
   final _pageController = PageController();
   int _currentStep = 0;
+  bool _isSubmitting = false;
 
   // Step 1
   GNEsportGroup? _selectedGroup;
@@ -215,6 +216,7 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
   }
 
   void _goBack() {
+    if (_isSubmitting) return;
     if (_currentStep > 0) {
       setState(() => _currentStep--);
       _pageController.animateToPage(
@@ -228,6 +230,7 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
   }
 
   Future<void> _submit() async {
+    if (_isSubmitting) return;
     if (_nameController.text.trim().isEmpty) {
       showToast(context.l10n.tournamentNameRequired);
       return;
@@ -262,9 +265,9 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
       }
     }
 
-    final String leagueId;
+    setState(() => _isSubmitting = true);
     try {
-      leagueId = await widget.onAddLeague(
+      final leagueId = await widget.onAddLeague(
         name: _nameController.text.trim(),
         groupId: _selectedGroup!.id,
         startDate: _startDate,
@@ -282,20 +285,21 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
         knockoutSeeding: knockoutSeeding,
         groupAssignment: groupAssignment,
       );
+      if (!mounted) return;
+      Navigator.of(context).pop(leagueId);
     } on RoundTooLargeException catch (e) {
       // Nothing was persisted — the creation flow rolls the league doc back.
       // Keep the wizard open so the user can drop a few players and retry.
-      if (mounted) {
-        showToast(context.l10n.tournamentRoundTooLarge(e.maxParticipants));
-      }
-      return;
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      showToast(context.l10n.tournamentRoundTooLarge(e.maxParticipants));
     } catch (_) {
       // Without this the failure escapes an async button handler and the
       // wizard just sits there, giving the user no sign anything went wrong.
-      if (mounted) showToast(context.l10n.commonErrorTitle);
-      return;
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      showToast(context.l10n.commonErrorTitle);
     }
-    if (mounted) Navigator.of(context).pop(leagueId);
   }
 
   @override
@@ -303,116 +307,122 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.secondary.withValues(alpha: 0.16),
-              theme.scaffoldBackgroundColor,
-              colorScheme.primary.withValues(alpha: 0.06),
-            ],
-            stops: const [0, 0.46, 1],
+    return PopScope(
+      canPop: !_isSubmitting,
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.secondary.withValues(alpha: 0.16),
+                theme.scaffoldBackgroundColor,
+                colorScheme.primary.withValues(alpha: 0.06),
+              ],
+              stops: const [0, 0.46, 1],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              _buildStepIndicator(context),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _Step1SelectGroup(
-                      groups: widget.groups,
-                      selected: _selectedGroup,
-                      onSelect: (g) {
-                        setState(() {
-                          _selectedGroup = g;
-                          _selectedParticipantIds.clear();
-                          _seededOrder.clear();
-                          _memberInfo = {};
-                        });
-                        widget.memberNameLoader(g.members).then((info) {
-                          if (mounted) setState(() => _memberInfo = info);
-                        });
-                      },
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context),
+                _buildStepIndicator(context),
+                Expanded(
+                  child: AbsorbPointer(
+                    absorbing: _isSubmitting,
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _Step1SelectGroup(
+                          groups: widget.groups,
+                          selected: _selectedGroup,
+                          onSelect: (g) {
+                            setState(() {
+                              _selectedGroup = g;
+                              _selectedParticipantIds.clear();
+                              _seededOrder.clear();
+                              _memberInfo = {};
+                            });
+                            widget.memberNameLoader(g.members).then((info) {
+                              if (mounted) setState(() => _memberInfo = info);
+                            });
+                          },
+                        ),
+                        _Step2AddParticipants(
+                          memberIds: _activeMembers,
+                          memberInfo: _memberInfo,
+                          selected: _selectedParticipantIds,
+                          onToggle: (id) => setState(() {
+                            if (_selectedParticipantIds.contains(id)) {
+                              _selectedParticipantIds.remove(id);
+                            } else {
+                              _selectedParticipantIds.add(id);
+                            }
+                          }),
+                        ),
+                        _Step3ModeConfig(
+                          mode: _mode,
+                          onModeChange: (m) => setState(() => _mode = m),
+                        ),
+                        _Step4ConfigPreview(
+                          mode: _mode,
+                          participants: _selectedParticipantIds,
+                          memberInfo: _memberInfo,
+                          seededOrder: _seededOrder,
+                          groupCount: _groupCount,
+                          advanceCount: _advanceCount,
+                          groupAssignment: _groupAssignment,
+                          knockoutSeeding: _knockoutSeeding,
+                          onSeededOrderChange: (order) =>
+                              setState(() => _seededOrder = order),
+                          onGroupCountChange: (v) => setState(() {
+                            _groupCount = v;
+                            _groupAssignment = {
+                              for (
+                                int i = 0;
+                                i < _selectedParticipantIds.length;
+                                i++
+                              )
+                                _selectedParticipantIds[i]: i % v,
+                            };
+                            _knockoutSeeding = _defaultKnockoutSeeding();
+                          }),
+                          onAdvanceCountChange: (v) => setState(() {
+                            _advanceCount = v;
+                            _knockoutSeeding = _defaultKnockoutSeeding();
+                          }),
+                          onGroupAssignmentChange: (a) =>
+                              setState(() => _groupAssignment = a),
+                          onKnockoutSeedingChange: (s) =>
+                              setState(() => _knockoutSeeding = s),
+                        ),
+                        _Step4Info(
+                          nameController: _nameController,
+                          descController: _descController,
+                          startDate: _startDate,
+                          endDate: _endDate,
+                          costFormKey: _costFormKey,
+                          isBracketMode:
+                              _mode == TournamentMode.cup ||
+                              _mode == TournamentMode.full,
+                          onStartDatePicked: (d) => setState(() {
+                            _startDate = d;
+                            if (_endDate != null && d.isAfter(_endDate!)) {
+                              _endDate = null;
+                            }
+                          }),
+                          onEndDatePicked: (d) => setState(() => _endDate = d),
+                        ),
+                      ],
                     ),
-                    _Step2AddParticipants(
-                      memberIds: _activeMembers,
-                      memberInfo: _memberInfo,
-                      selected: _selectedParticipantIds,
-                      onToggle: (id) => setState(() {
-                        if (_selectedParticipantIds.contains(id)) {
-                          _selectedParticipantIds.remove(id);
-                        } else {
-                          _selectedParticipantIds.add(id);
-                        }
-                      }),
-                    ),
-                    _Step3ModeConfig(
-                      mode: _mode,
-                      onModeChange: (m) => setState(() => _mode = m),
-                    ),
-                    _Step4ConfigPreview(
-                      mode: _mode,
-                      participants: _selectedParticipantIds,
-                      memberInfo: _memberInfo,
-                      seededOrder: _seededOrder,
-                      groupCount: _groupCount,
-                      advanceCount: _advanceCount,
-                      groupAssignment: _groupAssignment,
-                      knockoutSeeding: _knockoutSeeding,
-                      onSeededOrderChange: (order) =>
-                          setState(() => _seededOrder = order),
-                      onGroupCountChange: (v) => setState(() {
-                        _groupCount = v;
-                        _groupAssignment = {
-                          for (
-                            int i = 0;
-                            i < _selectedParticipantIds.length;
-                            i++
-                          )
-                            _selectedParticipantIds[i]: i % v,
-                        };
-                        _knockoutSeeding = _defaultKnockoutSeeding();
-                      }),
-                      onAdvanceCountChange: (v) => setState(() {
-                        _advanceCount = v;
-                        _knockoutSeeding = _defaultKnockoutSeeding();
-                      }),
-                      onGroupAssignmentChange: (a) =>
-                          setState(() => _groupAssignment = a),
-                      onKnockoutSeedingChange: (s) =>
-                          setState(() => _knockoutSeeding = s),
-                    ),
-                    _Step4Info(
-                      nameController: _nameController,
-                      descController: _descController,
-                      startDate: _startDate,
-                      endDate: _endDate,
-                      costFormKey: _costFormKey,
-                      isBracketMode:
-                          _mode == TournamentMode.cup ||
-                          _mode == TournamentMode.full,
-                      onStartDatePicked: (d) => setState(() {
-                        _startDate = d;
-                        if (_endDate != null && d.isAfter(_endDate!)) {
-                          _endDate = null;
-                        }
-                      }),
-                      onEndDatePicked: (d) => setState(() => _endDate = d),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              _buildNavButtons(context),
-            ],
+                _buildNavButtons(context),
+              ],
+            ),
           ),
         ),
       ),
@@ -475,7 +485,9 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
           ),
           const SizedBox(width: 8),
           IconButton(
-            onPressed: () => Navigator.of(context).maybePop(),
+            onPressed: _isSubmitting
+                ? null
+                : () => Navigator.of(context).maybePop(),
             icon: const Icon(Icons.close),
             style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
@@ -512,12 +524,15 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isLast = _currentStep == 4;
+    final actionLabel = _isSubmitting
+        ? context.l10n.tournamentCreatingLeague
+        : (isLast ? 'Tạo giải đấu' : 'Tiếp theo');
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Row(
         children: [
           OutlinedButton(
-            onPressed: _goBack,
+            onPressed: _isSubmitting ? null : _goBack,
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(50, 50),
               shape: RoundedRectangleBorder(
@@ -531,23 +546,42 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: FilledButton.icon(
-              onPressed: _canProceed ? _goNext : null,
-              icon: Icon(
-                isLast
-                    ? Icons.check_circle_outline_rounded
-                    : Icons.arrow_forward_rounded,
-                size: 20,
-              ),
-              label: Text(isLast ? 'Tạo giải đấu' : 'Tiếp theo'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-                backgroundColor: colorScheme.secondary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                textStyle: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
+            child: ExcludeFocus(
+              excluding: _isSubmitting,
+              child: Semantics(
+                container: _isSubmitting,
+                button: _isSubmitting,
+                enabled: !_isSubmitting,
+                focusable: false,
+                label: _isSubmitting ? actionLabel : null,
+                excludeSemantics: _isSubmitting,
+                child: FilledButton.icon(
+                  onPressed: _isSubmitting || !_canProceed ? null : _goNext,
+                  icon: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: _isSubmitting
+                        ? const ExcludeSemantics(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            isLast
+                                ? Icons.check_circle_outline_rounded
+                                : Icons.arrow_forward_rounded,
+                            size: 20,
+                          ),
+                  ),
+                  label: Text(actionLabel),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: colorScheme.secondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    textStyle: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ),

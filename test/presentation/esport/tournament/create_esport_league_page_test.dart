@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -96,6 +98,68 @@ OnAddLeagueCallback _noopCallback() =>
       required knockoutSeeding,
       required groupAssignment,
     }) async => 'test-id';
+
+Future<void> _driveToFinalStep(
+  WidgetTester tester,
+  OnAddLeagueCallback onAddLeague,
+) async {
+  await tester.pumpWidget(
+    _wrap(
+      groups: [
+        _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+      ],
+      onAddLeague: onAddLeague,
+    ),
+  );
+  await _navigateToFinalStep(tester);
+}
+
+Future<void> _navigateToFinalStep(WidgetTester tester) async {
+  await tester.tap(find.text('Nhóm 1'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('p1'));
+  await tester.tap(find.text('p2'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(FilledButton, 'Tiếp theo'));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.widgetWithText(TextField, 'Tên giải đấu'),
+    'Giải chờ xử lý',
+  );
+  await tester.pump();
+}
+
+OnAddLeagueCallback _pendingCallback(
+  Completer<String> completer, {
+  VoidCallback? onCalled,
+}) =>
+    ({
+      required name,
+      required groupId,
+      startDate,
+      endDate,
+      required description,
+      required rankPayoutEnabled,
+      required rankPayouts,
+      required defaultMatchCost,
+      required defaultPerGoalEnabled,
+      required defaultCostPerGoal,
+      required mode,
+      required participants,
+      required groupCount,
+      required advanceCount,
+      required knockoutSeeding,
+      required groupAssignment,
+    }) {
+      onCalled?.call();
+      return completer.future;
+    };
 
 void main() {
   group('CreateEsportLeaguePage — wizard', () {
@@ -547,6 +611,192 @@ void main() {
       expect(find.widgetWithText(FilledButton, 'Tạo giải đấu'), findsOneWidget);
       expect(find.text('Cấu hình chi phí'), findsOneWidget);
     });
+  });
+
+  group('tạo giải trong khi pending', () {
+    late List<String> toasts;
+
+    setUp(() {
+      toasts = [];
+      setShowToastImpl(
+        (message, {gravity = ToastGravity.BOTTOM}) => toasts.add(message),
+      );
+    });
+
+    tearDown(resetShowToast);
+
+    testWidgets(
+      'pending hiển thị loading, khóa wizard và chỉ gọi callback một lần',
+      (tester) async {
+        final completer = Completer<String>();
+        var calls = 0;
+        await _driveToFinalStep(
+          tester,
+          _pendingCallback(completer, onCalled: () => calls++),
+        );
+        final createButton = find.widgetWithText(FilledButton, 'Tạo giải đấu');
+        final buttonSize = tester.getSize(createButton);
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pump();
+
+        await tester.tap(createButton);
+        await tester.pump();
+
+        expect(find.text('Đang tạo giải…'), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(tester.getSize(find.byType(FilledButton)), buttonSize);
+        expect(calls, 1);
+        expect(toasts, isEmpty);
+
+        final semanticsHandle = tester.ensureSemantics();
+        expect(
+          tester.getSemantics(find.text('Đang tạo giải…')),
+          matchesSemantics(
+            label: 'Đang tạo giải…',
+            isButton: true,
+            hasEnabledState: true,
+            isEnabled: false,
+            hasTapAction: false,
+            hasFocusAction: true,
+            isFocusable: true,
+          ),
+        );
+        semanticsHandle.dispose();
+
+        await tester.tap(find.text('Đang tạo giải…'));
+        await tester.pump();
+        expect(calls, 1);
+
+        final closeButton = tester.widget<IconButton>(
+          find.widgetWithIcon(IconButton, Icons.close),
+        );
+        final backButton = tester.widget<OutlinedButton>(
+          find.byType(OutlinedButton),
+        );
+        expect(closeButton.onPressed, isNull);
+        expect(backButton.onPressed, isNull);
+
+        await tester.tap(
+          find.widgetWithText(TextField, 'Tên giải đấu'),
+          warnIfMissed: false,
+        );
+        await tester.pump();
+        final nameInput = tester.widget<EditableText>(
+          find.descendant(
+            of: find.widgetWithText(TextField, 'Tên giải đấu'),
+            matching: find.byType(EditableText),
+          ),
+        );
+        expect(nameInput.focusNode.hasFocus, isFalse);
+        expect(
+          tester
+              .widget<TextField>(find.widgetWithText(TextField, 'Tên giải đấu'))
+              .controller!
+              .text,
+          'Giải chờ xử lý',
+        );
+        expect(await tester.binding.handlePopRoute(), isTrue);
+        expect(find.text('5/5'), findsOneWidget);
+        expect(toasts, isEmpty);
+      },
+    );
+
+    testWidgets('pending RoundTooLarge khôi phục form và nút tạo', (
+      tester,
+    ) async {
+      final completer = Completer<String>();
+      await _driveToFinalStep(tester, _pendingCallback(completer));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
+      await tester.pump();
+      expect(find.text('Đang tạo giải…'), findsOneWidget);
+      completer.completeError(
+        RoundTooLargeException(
+          participantCount: 33,
+          maxParticipants: kMaxRoundRobinParticipants,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(FilledButton, 'Tạo giải đấu'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Tạo giải đấu'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.widgetWithText(TextField, 'Tên giải đấu'))
+            .controller!
+            .text,
+        'Giải chờ xử lý',
+      );
+      expect(toasts, [
+        'Giải có quá nhiều người chơi để tạo một lượt (tối đa 32).',
+      ]);
+    });
+
+    testWidgets('pending lỗi chung khôi phục form và nút tạo', (tester) async {
+      final completer = Completer<String>();
+      await _driveToFinalStep(tester, _pendingCallback(completer));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
+      await tester.pump();
+      expect(find.text('Đang tạo giải…'), findsOneWidget);
+      completer.completeError(Exception('network'));
+      await tester.pump();
+
+      expect(find.widgetWithText(FilledButton, 'Tạo giải đấu'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Tạo giải đấu'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      expect(
+        tester
+            .widget<TextField>(find.widgetWithText(TextField, 'Tên giải đấu'))
+            .controller!
+            .text,
+        'Giải chờ xử lý',
+      );
+      expect(toasts, ['Đã xảy ra lỗi']);
+    });
+
+    testWidgets(
+      'pending thành công pop đúng leagueId không quay lại nhãn thường',
+      (tester) async {
+        final completer = Completer<String>();
+        final popResult = ValueNotifier<String?>(null);
+        await tester.pumpWidget(
+          _wrapWithNav(
+            groups: [
+              _group('g1', 'Nhóm 1', members: ['p1', 'p2']),
+            ],
+            onAddLeague: _pendingCallback(completer),
+            popResult: popResult,
+          ),
+        );
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+        await _navigateToFinalStep(tester);
+
+        await tester.tap(find.widgetWithText(FilledButton, 'Tạo giải đấu'));
+        await tester.pump();
+        expect(find.text('Đang tạo giải…'), findsOneWidget);
+        completer.complete('L1');
+        await tester.pump();
+
+        expect(find.widgetWithText(FilledButton, 'Tạo giải đấu'), findsNothing);
+        await tester.pumpAndSettle();
+        expect(popResult.value, 'L1');
+      },
+    );
   });
 
   group('lỗi khi tạo giải', () {
