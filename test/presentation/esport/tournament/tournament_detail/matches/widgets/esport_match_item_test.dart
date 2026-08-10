@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsAction, Tristate;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -48,6 +50,102 @@ Widget _wrap(Widget child, {Locale locale = const Locale('vi')}) {
 }
 
 void main() {
+  testWidgets(
+    'pending match shows localized progress semantics and ignores gestures',
+    (tester) async {
+      var taps = 0;
+      var longPresses = 0;
+
+      await tester.pumpWidget(
+        _wrap(
+          EsportMatchItem(
+            match: _match(
+              isFinished: true,
+              homeScore: 2,
+              awayScore: 1,
+              homeTeam: _user('h1', 'Home Team'),
+              awayTeam: _user('a1', 'Away Team'),
+            ),
+            isPending: true,
+            onTap: () => taps++,
+            onLongPress: () => longPresses++,
+          ),
+        ),
+      );
+
+      expect(find.text('Đang lưu kết quả'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(
+        tester.getSize(find.byType(CircularProgressIndicator)).longestSide,
+        lessThanOrEqualTo(24),
+      );
+
+      final semanticsHandle = tester.ensureSemantics();
+      final pendingSemantics = tester.getSemantics(
+        find.bySemanticsLabel('Đang lưu kết quả'),
+      );
+      expect(pendingSemantics.label, 'Đang lưu kết quả');
+      expect(pendingSemantics.flagsCollection.isEnabled, Tristate.isFalse);
+      expect(
+        pendingSemantics.getSemanticsData().hasAction(SemanticsAction.tap),
+        isFalse,
+      );
+      expect(
+        pendingSemantics.getSemanticsData().hasAction(
+          SemanticsAction.longPress,
+        ),
+        isFalse,
+      );
+      expect(find.bySemanticsLabel('Home Team'), findsOneWidget);
+      expect(find.bySemanticsLabel('Away Team'), findsOneWidget);
+      semanticsHandle.dispose();
+
+      await tester.tap(find.byType(InkWell), warnIfMissed: false);
+      await tester.longPress(find.byType(InkWell), warnIfMissed: false);
+      await tester.pump();
+
+      expect(taps, 0);
+      expect(longPresses, 0);
+    },
+  );
+
+  testWidgets(
+    'error message is readable and non-pending row stays interactive',
+    (tester) async {
+      var taps = 0;
+      var longPresses = 0;
+
+      await tester.pumpWidget(
+        _wrap(
+          EsportMatchItem(
+            match: _match(
+              isFinished: true,
+              homeScore: 2,
+              awayScore: 1,
+              homeTeam: _user('h1', 'Home Team'),
+              awayTeam: _user('a1', 'Away Team'),
+            ),
+            errorMessage: 'Không thể lưu kết quả. Vui lòng thử lại.',
+            onTap: () => taps++,
+            onLongPress: () => longPresses++,
+          ),
+        ),
+      );
+
+      expect(
+        find.text('Không thể lưu kết quả. Vui lòng thử lại.'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byType(InkWell));
+      await tester.longPress(find.byType(InkWell));
+      await tester.pump();
+
+      expect(taps, 1);
+      expect(longPresses, 1);
+    },
+  );
+
   testWidgets('render finished match with teams and call onTap', (
     tester,
   ) async {

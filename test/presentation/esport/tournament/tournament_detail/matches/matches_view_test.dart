@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
@@ -19,17 +20,26 @@ class _MockBloc extends MockBloc<TournamentDetailEvent, TournamentDetailState>
 
 class _MemberState extends TournamentDetailState {
   final bool member;
+  final bool admin;
 
   _MemberState({
     super.league,
     super.matches,
     super.participants,
     List<GNUser> users = const [],
+    super.pendingMatchIds,
+    super.matchErrorsById,
+    super.streamErrors,
+    super.matchesSliceStatus,
     this.member = false,
+    this.admin = false,
   }) : super(usersById: {for (final user in users) user.id: user});
 
   @override
   bool get currentUserIsMember => member;
+
+  @override
+  bool get currentUserIsLeagueAdmin => admin;
 }
 
 GNUser _user(String id, String name) {
@@ -123,6 +133,10 @@ Widget _wrap(TournamentDetailBloc bloc, {required bool fixtures}) {
 void main() {
   setUpAll(() {
     registerFallbackValue(GetParticipantsAndMatches('l1'));
+    registerFallbackValue(const EnsureDetailSubscriptions('l1'));
+    registerFallbackValue(
+      const RetryDetailSlice(TournamentDetailSlice.matches),
+    );
     registerFallbackValue(const GenerateRound());
     registerFallbackValue(DeleteEsportMatch(_match()));
     registerFallbackValue(
@@ -182,12 +196,278 @@ void main() {
       find.byType(RefreshIndicator).first,
     );
     final future = refresh.onRefresh();
+    var refreshCompleted = false;
+    unawaited(future.then((_) => refreshCompleted = true));
+    controller.add(state.copyWith(league: _league().copyWith(name: 'Renamed')));
+    await tester.pump();
+    expect(refreshCompleted, isFalse);
     controller.add(state.copyWith(refreshTick: 1));
     await future;
-    verify(
-      () => bloc.add(any(that: isA<GetParticipantsAndMatches>())),
-    ).called(1);
+    expect(refreshCompleted, isTrue);
+    verify(() => bloc.add(const EnsureDetailSubscriptions('l1'))).called(1);
+    verifyNever(() => bloc.add(GetParticipantsAndMatches('l1')));
     await controller.close();
+    await bloc.close();
+  });
+
+  testWidgets(
+    'admin without membership cannot create, generate, score or delete matches',
+    (tester) async {
+      final fixtureBloc = _MockBloc();
+      when(() => fixtureBloc.state).thenReturn(
+        _MemberState(
+          league: _league(),
+          matches: [_match(id: 'fixture', homeName: 'Admin Fixture')],
+          participants: [_stat('u1'), _stat('u2')],
+          users: [_user('u1', 'Alice'), _user('u2', 'Bob')],
+          member: false,
+          admin: true,
+        ),
+      );
+      when(() => fixtureBloc.stream).thenAnswer((_) => const Stream.empty());
+
+      await tester.pumpWidget(_wrap(fixtureBloc, fixtures: true));
+
+      expect(find.byIcon(Icons.add), findsNothing);
+      expect(find.text('Thêm lượt đấu'), findsNothing);
+
+      final fixtureSlidable = tester.widget<Slidable>(
+        find.ancestor(
+          of: find.text('Admin Fixture'),
+          matching: find.byType(Slidable),
+        ),
+      );
+      final fixtureDeleteActions =
+          fixtureSlidable.endActionPane?.children.whereType<SlidableAction>() ??
+          const <SlidableAction>[];
+      expect(fixtureDeleteActions, isEmpty);
+
+      await tester.tap(find.text('Admin Fixture'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Cập nhật kết quả'), findsNothing);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      await fixtureBloc.close();
+
+      final resultBloc = _MockBloc();
+      when(() => resultBloc.state).thenReturn(
+        _MemberState(
+          league: _league(),
+          matches: [
+            _match(id: 'result', finished: true, homeName: 'Admin Result'),
+          ],
+          participants: [_stat('u1'), _stat('u2')],
+          member: false,
+          admin: true,
+        ),
+      );
+      when(() => resultBloc.stream).thenAnswer((_) => const Stream.empty());
+
+      await tester.pumpWidget(_wrap(resultBloc, fixtures: false));
+
+      final resultSlidable = tester.widget<Slidable>(
+        find.ancestor(
+          of: find.text('Admin Result'),
+          matching: find.byType(Slidable),
+        ),
+      );
+      final resultDeleteActions =
+          resultSlidable.endActionPane?.children.whereType<SlidableAction>() ??
+          const <SlidableAction>[];
+      expect(resultDeleteActions, isEmpty);
+
+      await tester.longPress(find.text('Admin Result'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Cập nhật kết quả'), findsNothing);
+
+      await resultBloc.close();
+    },
+  );
+
+  testWidgets(
+    'pending and error state stay local to one match while another remains interactive',
+    (tester) async {
+      final bloc = _MockBloc();
+      final controller = StreamController<TournamentDetailState>.broadcast();
+      final matches = [
+        _match(id: 'm1', homeName: 'M1 Home', awayName: 'M1 Away'),
+        _match(id: 'm2', homeName: 'M2 Home', awayName: 'M2 Away'),
+      ];
+      final participants = [_stat('u1'), _stat('u2')];
+      final pendingState = _MemberState(
+        league: _league(),
+        matches: matches,
+        participants: participants,
+        users: [_user('u1', 'Alice'), _user('u2', 'Bob')],
+        pendingMatchIds: const {'m1'},
+        matchErrorsById: const {'m1': 'Không lưu được M1'},
+        member: true,
+      );
+      when(() => bloc.state).thenReturn(pendingState);
+      when(() => bloc.stream).thenAnswer((_) => controller.stream);
+
+      await tester.pumpWidget(_wrap(bloc, fixtures: true));
+
+      final m1Slidable = find.ancestor(
+        of: find.text('M1 Home'),
+        matching: find.byType(Slidable),
+      );
+      final m2Slidable = find.ancestor(
+        of: find.text('M2 Home'),
+        matching: find.byType(Slidable),
+      );
+      expect(m1Slidable, findsOneWidget);
+      expect(m2Slidable, findsOneWidget);
+      expect(find.text('Đang lưu kết quả'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Không lưu được M1'), findsNothing);
+
+      final m1Widget = tester.widget<Slidable>(m1Slidable);
+      final m2Widget = tester.widget<Slidable>(m2Slidable);
+      final m1Delete =
+          m1Widget.endActionPane!.children.single as SlidableAction;
+      final m2Delete =
+          m2Widget.endActionPane!.children.single as SlidableAction;
+      expect(m1Delete.onPressed, isNull);
+      expect(m2Delete.onPressed, isNotNull);
+
+      await tester.tap(find.text('M1 Home'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Cập nhật kết quả'), findsNothing);
+
+      await tester.tap(find.text('M2 Home'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Cập nhật kết quả'), findsOneWidget);
+      await tester.tap(find.text('Huỷ'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      controller.add(
+        _MemberState(
+          league: _league(),
+          matches: matches,
+          participants: participants,
+          users: [_user('u1', 'Alice'), _user('u2', 'Bob')],
+          pendingMatchIds: const {},
+          matchErrorsById: const {'m1': 'Không lưu được M1'},
+          member: true,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Đang lưu kết quả'), findsNothing);
+      expect(
+        find.descendant(
+          of: m1Slidable,
+          matching: find.text('Không lưu được M1'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: m2Slidable,
+          matching: find.text('Không lưu được M1'),
+        ),
+        findsNothing,
+      );
+
+      await controller.close();
+      await bloc.close();
+    },
+  );
+
+  testWidgets(
+    'match-list subtree ignores league metadata but rebuilds for match snapshots',
+    (tester) async {
+      final bloc = _MockBloc();
+      final controller = StreamController<TournamentDetailState>.broadcast();
+      final matches = [_match(id: 'm1', homeName: 'Original Home')];
+      final participants = [_stat('u1'), _stat('u2')];
+      final initialState = _MemberState(
+        league: _league(),
+        matches: matches,
+        participants: participants,
+        member: true,
+      );
+      when(() => bloc.state).thenReturn(initialState);
+      when(() => bloc.stream).thenAnswer((_) => controller.stream);
+
+      await tester.pumpWidget(_wrap(bloc, fixtures: true));
+
+      final matchList = find.byKey(const Key('tournament-match-list'));
+      expect(matchList, findsOneWidget);
+      final initialSubtree = tester.widget(matchList);
+
+      controller.add(
+        _MemberState(
+          league: _league().copyWith(name: 'League Renamed Elsewhere'),
+          matches: matches,
+          participants: participants,
+          member: true,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(tester.widget(matchList), same(initialSubtree));
+
+      controller.add(
+        _MemberState(
+          league: _league().copyWith(name: 'League Renamed Elsewhere'),
+          matches: [_match(id: 'm1', homeName: 'Realtime Home')],
+          participants: participants,
+          member: true,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Original Home'), findsNothing);
+      expect(find.text('Realtime Home'), findsOneWidget);
+
+      await controller.close();
+      await bloc.close();
+    },
+  );
+
+  testWidgets('failed matches slice keeps rows and retries only that slice', (
+    tester,
+  ) async {
+    final bloc = _MockBloc();
+    when(() => bloc.state).thenReturn(
+      _MemberState(
+        league: _league(),
+        matches: [_match(id: 'm1', homeName: 'Cached Home')],
+        participants: [_stat('u1'), _stat('u2')],
+        matchesSliceStatus: DetailSliceStatus.failed,
+        streamErrors: const {
+          TournamentDetailSlice.matches: 'Không thể tải trận mới',
+        },
+        member: true,
+      ),
+    );
+    when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
+
+    await tester.pumpWidget(_wrap(bloc, fixtures: true));
+
+    expect(find.text('Cached Home'), findsOneWidget);
+    expect(find.text('Thử lại'), findsOneWidget);
+    expect(find.text('Không thể tải trận mới'), findsOneWidget);
+
+    await tester.tap(find.text('Thử lại'));
+    await tester.pump();
+
+    verify(
+      () => bloc.add(const RetryDetailSlice(TournamentDetailSlice.matches)),
+    ).called(1);
+    expect(find.text('Cached Home'), findsOneWidget);
+
     await bloc.close();
   });
 
