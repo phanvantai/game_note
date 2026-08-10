@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,6 +13,74 @@ import '../../../../../firebase/firestore/esport/league/stats/gn_esport_league_s
 import 'widgets/table_fixed_column_header.dart';
 import 'widgets/table_scrollable_column_header.dart';
 import 'widgets/table_scrollable_column_item.dart';
+
+class _TableViewData extends Equatable {
+  final List<GNEsportLeagueStat> participants;
+  final DetailSliceStatus statsSliceStatus;
+  final String? statsError;
+  final String? leagueId;
+  final int refreshTick;
+
+  _TableViewData.fromState(TournamentDetailState state)
+    : participants = List.unmodifiable(state.participants),
+      statsSliceStatus = state.statsSliceStatus,
+      statsError = state.streamErrors[TournamentDetailSlice.stats],
+      leagueId = state.league?.id,
+      refreshTick = state.refreshTick;
+
+  @override
+  List<Object?> get props => [
+    participants,
+    statsSliceStatus,
+    statsError,
+    leagueId,
+    refreshTick,
+  ];
+}
+
+class _LeagueMetricData extends Equatable {
+  final String? leagueId;
+  final String? status;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String? groupName;
+  final int participantCount;
+  final int matchCount;
+
+  const _LeagueMetricData({
+    required this.leagueId,
+    required this.status,
+    required this.startDate,
+    required this.endDate,
+    required this.groupName,
+    required this.participantCount,
+    required this.matchCount,
+  });
+
+  factory _LeagueMetricData.fromState(TournamentDetailState state) {
+    final league = state.league;
+    return _LeagueMetricData(
+      leagueId: league?.id,
+      status: league?.status,
+      startDate: league?.startDate,
+      endDate: league?.endDate,
+      groupName: league?.group?.groupName,
+      participantCount: state.participants.length,
+      matchCount: state.matches.length,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    leagueId,
+    status,
+    startDate,
+    endDate,
+    groupName,
+    participantCount,
+    matchCount,
+  ];
+}
 
 class EsportTableView extends StatelessWidget {
   const EsportTableView({super.key});
@@ -81,29 +150,38 @@ class EsportTableView extends StatelessWidget {
     ),
   );
 
-  Future<void> _refresh(BuildContext context) async {
+  Future<void> _refresh(
+    BuildContext context,
+    String? leagueId,
+    int refreshTick,
+  ) async {
     final bloc = context.read<TournamentDetailBloc>();
-    final leagueId = bloc.state.league?.id;
     if (leagueId == null) return;
-    final tickBefore = bloc.state.refreshTick;
-    bloc.add(GetParticipantsAndMatches(leagueId));
-    // Wait until the bloc bumps the refresh tick. We can't watch viewStatus
-    // because reactive refreshes don't toggle it, and we can't watch list
-    // contents because Equatable suppresses emits when nothing changed.
-    await bloc.stream.firstWhere((s) => s.refreshTick > tickBefore);
+    final refreshed = bloc.stream.firstWhere(
+      (state) => state.refreshTick > refreshTick,
+    );
+    bloc.add(EnsureDetailSubscriptions(leagueId));
+    await refreshed;
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
-      builder: (context, state) {
-        final league = state.league;
-        return RefreshIndicator(
-          onRefresh: () => _refresh(context),
-          child: state.participants.isEmpty
+    return BlocSelector<
+      TournamentDetailBloc,
+      TournamentDetailState,
+      _TableViewData
+    >(
+      selector: _TableViewData.fromState,
+      builder: (context, data) => RefreshIndicator(
+        onRefresh: () => _refresh(context, data.leagueId, data.refreshTick),
+        child: KeyedSubtree(
+          key: const Key('league-table-content'),
+          child: data.participants.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
+                    if (data.statsSliceStatus == DetailSliceStatus.failed)
+                      _buildStatsError(context, data.statsError),
                     SizedBox(
                       height: 400,
                       child: AppEmptyState(
@@ -120,6 +198,8 @@ class EsportTableView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (data.statsSliceStatus == DetailSliceStatus.failed)
+                        _buildStatsError(context, data.statsError),
                       Container(
                         width: double.infinity,
                         clipBehavior: Clip.antiAlias,
@@ -136,7 +216,7 @@ class EsportTableView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: _buildFixColumns(
                                 context,
-                                state.participants,
+                                data.participants,
                               ),
                             ),
                             Flexible(
@@ -147,7 +227,7 @@ class EsportTableView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: _buildScrollableColumns(
                                     context,
-                                    state.participants,
+                                    data.participants,
                                   ),
                                 ),
                               ),
@@ -155,20 +235,61 @@ class EsportTableView extends StatelessWidget {
                           ],
                         ),
                       ),
-                      if (league != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: _LeagueMetricSummary(
-                            league: league,
-                            participantCount: state.participants.length,
-                            matchCount: state.matches.length,
-                          ),
-                        ),
+                      BlocSelector<
+                        TournamentDetailBloc,
+                        TournamentDetailState,
+                        _LeagueMetricData
+                      >(
+                        selector: _LeagueMetricData.fromState,
+                        builder: (context, metric) {
+                          if (metric.leagueId == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: _LeagueMetricSummary(
+                              status: metric.status,
+                              startDate: metric.startDate!,
+                              endDate: metric.endDate,
+                              groupName: metric.groupName,
+                              participantCount: metric.participantCount,
+                              matchCount: metric.matchCount,
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsError(BuildContext context, String? message) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          if (message != null && message.trim().isNotEmpty)
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+            )
+          else
+            const Spacer(),
+          TextButton(
+            onPressed: () => context.read<TournamentDetailBloc>().add(
+              const RetryDetailSlice(TournamentDetailSlice.stats),
+            ),
+            child: Text(context.l10n.commonRetry),
+          ),
+        ],
+      ),
     );
   }
 
@@ -296,12 +417,18 @@ class _RankBadge extends StatelessWidget {
 }
 
 class _LeagueMetricSummary extends StatelessWidget {
-  final GNEsportLeague league;
+  final String? status;
+  final DateTime startDate;
+  final DateTime? endDate;
+  final String? groupName;
   final int participantCount;
   final int matchCount;
 
   const _LeagueMetricSummary({
-    required this.league,
+    required this.status,
+    required this.startDate,
+    required this.endDate,
+    required this.groupName,
     required this.participantCount,
     required this.matchCount,
   });
@@ -310,11 +437,11 @@ class _LeagueMetricSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final status = GNEsportLeagueStatusExtension.fromString(league.status);
-    final dateRange = league.endDate == null
-        ? DateFormat('dd/MM/yyyy').format(league.startDate)
-        : '${DateFormat('dd/MM').format(league.startDate)} – ${DateFormat('dd/MM/yyyy').format(league.endDate!)}';
-    final groupName = league.group?.groupName ?? 'Chưa rõ nhóm';
+    final leagueStatus = GNEsportLeagueStatusExtension.fromString(status);
+    final dateRange = endDate == null
+        ? DateFormat('dd/MM/yyyy').format(startDate)
+        : '${DateFormat('dd/MM').format(startDate)} – ${DateFormat('dd/MM/yyyy').format(endDate!)}';
+    final resolvedGroupName = groupName ?? 'Chưa rõ nhóm';
 
     return Container(
       width: double.infinity,
@@ -353,10 +480,10 @@ class _LeagueMetricSummary extends StatelessWidget {
                 ),
                 Expanded(
                   child: _StatCell(
-                    value: status.name,
+                    value: leagueStatus.name,
                     label: 'Trạng thái',
                     icon: Icons.flag_outlined,
-                    valueColor: status.color,
+                    valueColor: leagueStatus.color,
                   ),
                 ),
               ],
@@ -392,7 +519,7 @@ class _LeagueMetricSummary extends StatelessWidget {
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
-                    groupName,
+                    resolvedGroupName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
