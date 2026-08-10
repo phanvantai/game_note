@@ -391,155 +391,168 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     return matches;
   }
 
-  /// Update a match's score/cost. Writes the match doc only — stat docs are
-  /// NOT touched here. Callers must follow up with [applyMatchStatDelta]
-  /// (typically fire-and-forget from the bloc) to keep player stats in sync.
+  /// Atomically updates a match together with every document derived from its
+  /// result: league/group standings and, for knockout matches, the next slot.
   ///
-  /// Returns the match state before and after the write so the caller can
-  /// compute the delta without re-reading.
+  /// Stat documents use legacy random IDs, so their references are resolved
+  /// before entering the transaction. The transaction then re-reads their
+  /// contents, allowing Firestore to retry safely when another match updates
+  /// a shared player's standing at the same time.
   ///
-  /// Knockout matches: this still atomically advances the winner into the
-  /// next bracket slot — that's structural data the user expects to see
-  /// immediately and which has nothing to do with player stats.
-  ///
-  /// [expectedUpdatedAt] — if provided, throws [ConcurrentMatchUpdateException]
-  /// when the stored `updatedAt` differs (optimistic-lock).
-  Future<({GNEsportMatch previous, GNEsportMatch updated})> updateMatch({
+  /// [expectedUpdatedAt] is the caller's nullable version, not an opt-out from
+  /// optimistic locking. Two null versions match for the first write to a
+  /// legacy document; once that write assigns a server timestamp, another
+  /// caller still holding null is rejected.
+  Future<void> updateMatchAtomically({
     required String matchId,
     required String leagueId,
     int? homeScore,
     int? awayScore,
     int? matchCost,
+    int? costPerGoal,
     Timestamp? expectedUpdatedAt,
   }) async {
     final matchPath =
         '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
     final matchRef = firestore.doc('$matchPath/$matchId');
 
-    late GNEsportMatch previous;
-    late GNEsportMatch updated;
+    // Firestore transactions cannot run the legacy userId query needed to
+    // locate random-ID stat rows. Resolve stable references up front, while
+    // still re-reading and validating the rows inside the transaction.
+    final initialMatchSnap = await matchRef.get();
+    if (!initialMatchSnap.exists) throw Exception('Match not found');
+    final initialMatch = GNEsportMatch.fromFirestore(initialMatchSnap);
+
+    DocumentReference<Map<String, dynamic>>? homeStatRef;
+    DocumentReference<Map<String, dynamic>>? awayStatRef;
+    if (initialMatch.phase != 'knockout') {
+      final refs = await Future.wait([
+        _statRefForUser(
+          leagueId,
+          initialMatch.homeTeamId,
+          groupId: initialMatch.groupId,
+        ),
+        _statRefForUser(
+          leagueId,
+          initialMatch.awayTeamId,
+          groupId: initialMatch.groupId,
+        ),
+      ]);
+      homeStatRef = refs[0];
+      awayStatRef = refs[1];
+    }
 
     await firestore.runTransaction((txn) async {
       final matchSnap = await txn.get(matchRef);
       if (!matchSnap.exists) throw Exception('Match not found');
       final current = GNEsportMatch.fromFirestore(matchSnap);
 
-      if (expectedUpdatedAt != null &&
-          current.updatedAt != null &&
-          current.updatedAt != expectedUpdatedAt) {
+      if (current.phase != initialMatch.phase ||
+          current.homeTeamId != initialMatch.homeTeamId ||
+          current.awayTeamId != initialMatch.awayTeamId ||
+          current.groupId != initialMatch.groupId) {
+        throw Exception('Match participants changed during update');
+      }
+
+      if (current.updatedAt != expectedUpdatedAt) {
         throw ConcurrentMatchUpdateException(matchId);
       }
 
-      final newMatch = current.copyWith(
+      final updated = current.copyWith(
         homeScore: homeScore,
         awayScore: awayScore,
-        isFinished: homeScore != null && awayScore != null,
+        isFinished: homeScore != null && awayScore != null
+            ? true
+            : current.isFinished,
         matchCost: matchCost ?? current.matchCost,
+        costPerGoal: costPerGoal ?? current.costPerGoal,
       );
 
-      previous = current;
-      updated = newMatch;
+      DocumentSnapshot<Map<String, dynamic>>? homeStatSnap;
+      DocumentSnapshot<Map<String, dynamic>>? awayStatSnap;
+      if (current.phase != 'knockout') {
+        if (homeStatRef == null || awayStatRef == null) {
+          throw Exception('Match participants changed during update');
+        }
+        homeStatSnap = await txn.get(homeStatRef);
+        awayStatSnap = await txn.get(awayStatRef);
+      }
 
-      txn.update(matchRef, {
-        ...newMatch.toMap(),
-        GNEsportMatch.fieldUpdatedAt: FieldValue.serverTimestamp(),
-      });
+      DocumentReference<Map<String, dynamic>>? nextMatchRef;
+      DocumentSnapshot<Map<String, dynamic>>? nextMatchSnap;
+      if (current.phase == 'knockout' &&
+          updated.isFinished &&
+          current.nextMatchId != null) {
+        nextMatchRef = firestore.doc('$matchPath/${current.nextMatchId}');
+        nextMatchSnap = await txn.get(nextMatchRef);
+      }
 
-      // Knockout winner advancement stays here — it's not a stat update,
-      // it's bracket structure that must move atomically with the score.
-      final isKnockout = current.phase == 'knockout';
-      if (isKnockout && newMatch.isFinished && current.nextMatchId != null) {
-        final nextRef = firestore.doc('$matchPath/${current.nextMatchId}');
-        final winnerId = newMatch.homeScore! >= newMatch.awayScore!
+      // Validate every transaction read before staging the first write. A stat
+      // deleted after reference lookup therefore cannot leave partial data.
+      if (current.phase != 'knockout' &&
+          (homeStatSnap == null ||
+              !homeStatSnap.exists ||
+              awayStatSnap == null ||
+              !awayStatSnap.exists)) {
+        throw Exception('Match stats no longer exist');
+      }
+      if (nextMatchSnap != null && !nextMatchSnap.exists) {
+        throw Exception('Next knockout match not found');
+      }
+
+      if (current.phase != 'knockout') {
+        var homeDelta = _zeroDelta;
+        var awayDelta = _zeroDelta;
+        if (current.isFinished &&
+            current.homeScore != null &&
+            current.awayScore != null) {
+          final undo = _statContribution(
+            current.homeScore!,
+            current.awayScore!,
+            sign: -1,
+          );
+          homeDelta = homeDelta + undo.home;
+          awayDelta = awayDelta + undo.away;
+        }
+        if (updated.isFinished &&
+            updated.homeScore != null &&
+            updated.awayScore != null) {
+          final apply = _statContribution(
+            updated.homeScore!,
+            updated.awayScore!,
+            sign: 1,
+          );
+          homeDelta = homeDelta + apply.home;
+          awayDelta = awayDelta + apply.away;
+        }
+
+        final homeStats = GNEsportLeagueStat.fromFirestore(homeStatSnap!);
+        final awayStats = GNEsportLeagueStat.fromFirestore(awayStatSnap!);
+        if (homeDelta.isNotEmpty) {
+          txn.update(homeStatRef!, _applyDeltaMap(homeStats, homeDelta));
+        }
+        if (awayDelta.isNotEmpty) {
+          txn.update(awayStatRef!, _applyDeltaMap(awayStats, awayDelta));
+        }
+      }
+
+      if (nextMatchRef != null) {
+        final winnerId = updated.homeScore! >= updated.awayScore!
             ? current.homeTeamId
             : current.awayTeamId;
         final isEvenSlot = (current.knockoutSlot ?? 0).isEven;
-        txn.update(nextRef, {
+        txn.update(nextMatchRef, {
           isEvenSlot
                   ? GNEsportMatch.fieldHomeTeamId
                   : GNEsportMatch.fieldAwayTeamId:
               winnerId,
         });
       }
-    });
 
-    return (previous: previous, updated: updated);
-  }
-
-  /// Apply a per-match stat delta — undoes [previous]'s contribution (if it
-  /// was finished) and applies [updated]'s contribution (if it is). Designed
-  /// to run asynchronously after [updateMatch] returns; the bloc fires this
-  /// without awaiting so match save latency isn't penalised by stat I/O.
-  ///
-  /// No-op cases (silently):
-  /// - Knockout matches (no stat tracking for bracket rounds).
-  /// - Empty home/away IDs (TBD bracket slots before winners advance).
-  /// - When delta is zero (e.g. only matchCost changed).
-  ///
-  /// Throws if a stat doc is missing for either player — the bloc swallows
-  /// this so the user isn't blocked; the manual "đồng bộ điểm số" action
-  /// reconciles drift via [recomputeLeagueStats].
-  Future<void> applyMatchStatDelta({
-    required GNEsportMatch previous,
-    required GNEsportMatch updated,
-  }) async {
-    if (previous.phase == 'knockout') return;
-    if (previous.homeTeamId.isEmpty || previous.awayTeamId.isEmpty) return;
-
-    var homeDelta = _zeroDelta;
-    var awayDelta = _zeroDelta;
-    if (previous.isFinished &&
-        previous.homeScore != null &&
-        previous.awayScore != null) {
-      final undo = _statContribution(
-        previous.homeScore!,
-        previous.awayScore!,
-        sign: -1,
-      );
-      homeDelta = homeDelta + undo.home;
-      awayDelta = awayDelta + undo.away;
-    }
-    if (updated.isFinished &&
-        updated.homeScore != null &&
-        updated.awayScore != null) {
-      final apply = _statContribution(
-        updated.homeScore!,
-        updated.awayScore!,
-        sign: 1,
-      );
-      homeDelta = homeDelta + apply.home;
-      awayDelta = awayDelta + apply.away;
-    }
-
-    if (!homeDelta.isNotEmpty && !awayDelta.isNotEmpty) return;
-
-    final refs = await Future.wait([
-      _statRefForUser(
-        previous.leagueId,
-        previous.homeTeamId,
-        groupId: previous.groupId,
-      ),
-      _statRefForUser(
-        previous.leagueId,
-        previous.awayTeamId,
-        groupId: previous.groupId,
-      ),
-    ]);
-    final homeStatRef = refs[0];
-    final awayStatRef = refs[1];
-
-    await firestore.runTransaction((txn) async {
-      final homeStatSnap = await txn.get(homeStatRef);
-      final awayStatSnap = await txn.get(awayStatRef);
-      final homeStats = GNEsportLeagueStat.fromFirestore(homeStatSnap);
-      final awayStats = GNEsportLeagueStat.fromFirestore(awayStatSnap);
-
-      if (homeDelta.isNotEmpty) {
-        txn.update(homeStatRef, _applyDeltaMap(homeStats, homeDelta));
-      }
-      if (awayDelta.isNotEmpty) {
-        txn.update(awayStatRef, _applyDeltaMap(awayStats, awayDelta));
-      }
+      txn.update(matchRef, {
+        ...updated.toMap(),
+        GNEsportMatch.fieldUpdatedAt: FieldValue.serverTimestamp(),
+      });
     });
   }
 

@@ -2138,6 +2138,18 @@ abstract class AppLocalizations {
   /// **'You have not joined any groups. Join a group first'**
   String get tournamentJoinGroupFirst;
 
+  /// No description provided for @tournamentCreatingLeague.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating league…'**
+  String get tournamentCreatingLeague;
+
+  /// No description provided for @tournamentSavingMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving result'**
+  String get tournamentSavingMatch;
+
   /// No description provided for @tournamentCreateSuccess.
   ///
   /// In en, this message translates to:

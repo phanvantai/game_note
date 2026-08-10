@@ -4,43 +4,78 @@ abstract class TournamentDetailEvent extends Equatable {
   const TournamentDetailEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class GetLeague extends TournamentDetailEvent {
+class OpenLeagueDetail extends TournamentDetailEvent {
   final String leagueId;
 
-  const GetLeague(this.leagueId);
+  const OpenLeagueDetail(this.leagueId);
 
   @override
-  List<Object> get props => [leagueId];
+  List<Object?> get props => [leagueId];
 }
 
-class GetParticipantsAndMatches extends TournamentDetailEvent {
+/// Compatibility event for callers that have not yet migrated to
+/// [OpenLeagueDetail].
+@Deprecated('Use OpenLeagueDetail instead.')
+class GetLeague extends OpenLeagueDetail {
+  const GetLeague(super.leagueId);
+}
+
+class EnsureDetailSubscriptions extends TournamentDetailEvent {
   final String leagueId;
 
-  const GetParticipantsAndMatches(this.leagueId);
+  const EnsureDetailSubscriptions(this.leagueId);
 
   @override
-  List<Object> get props => [leagueId];
+  List<Object?> get props => [leagueId];
 }
 
-class GetParticipantStats extends TournamentDetailEvent {
-  final String tournamentId;
+class RetryDetailSlice extends TournamentDetailEvent {
+  final TournamentDetailSlice slice;
 
-  const GetParticipantStats(this.tournamentId);
+  const RetryDetailSlice(this.slice);
 
   @override
-  List<Object> get props => [tournamentId];
+  List<Object?> get props => [slice];
 }
 
-class GetMatches extends TournamentDetailEvent {
-  final String tournamentId;
+class LeagueSnapshotReceived extends TournamentDetailEvent {
+  final GNEsportLeague? league;
 
-  const GetMatches(this.tournamentId);
+  const LeagueSnapshotReceived(this.league);
 
   @override
-  List<Object> get props => [tournamentId];
+  List<Object?> get props => [league];
+}
+
+class StatsSnapshotReceived extends TournamentDetailEvent {
+  final List<GNEsportLeagueStat> stats;
+
+  const StatsSnapshotReceived(this.stats);
+
+  @override
+  List<Object?> get props => [stats];
+}
+
+class MatchesSnapshotReceived extends TournamentDetailEvent {
+  final List<GNEsportMatch> matches;
+
+  const MatchesSnapshotReceived(this.matches);
+
+  @override
+  List<Object?> get props => [matches];
+}
+
+class DetailStreamFailed extends TournamentDetailEvent {
+  final TournamentDetailSlice slice;
+  final Object error;
+
+  const DetailStreamFailed(this.slice, this.error);
+
+  @override
+  List<Object?> get props => [slice, error];
 }
 
 class AddParticipant extends TournamentDetailEvent {
@@ -98,20 +133,6 @@ class UpdateEsportMatch extends TournamentDetailEvent {
   List<Object> get props => [match];
 }
 
-/// Internal: fired right after [UpdateEsportMatch] succeeds. Drives the
-/// stat-delta write on a separate handler so match save latency isn't
-/// coupled to stat I/O. Failures here are swallowed — manual "đồng bộ điểm
-/// số" reconciles drift.
-class ApplyMatchStatDelta extends TournamentDetailEvent {
-  final GNEsportMatch previous;
-  final GNEsportMatch updated;
-
-  const ApplyMatchStatDelta({required this.previous, required this.updated});
-
-  @override
-  List<Object> get props => [previous, updated];
-}
-
 // delete match
 class DeleteEsportMatch extends TournamentDetailEvent {
   final GNEsportMatch match;
@@ -137,15 +158,6 @@ class InactiveLeague extends TournamentDetailEvent {}
 
 class LeagueDeleted extends TournamentDetailEvent {}
 
-class UpdateLeague extends TournamentDetailEvent {
-  final GNEsportLeague league;
-
-  const UpdateLeague(this.league);
-
-  @override
-  List<Object> get props => [league];
-}
-
 class UpdateLeagueCostConfig extends TournamentDetailEvent {
   final bool rankPayoutEnabled;
   final List<int> rankPayouts;
@@ -169,24 +181,6 @@ class UpdateLeagueCostConfig extends TournamentDetailEvent {
     defaultPerGoalEnabled,
     defaultCostPerGoal,
   ];
-}
-
-class UpdateMatches extends TournamentDetailEvent {
-  final List<GNEsportMatch> matches;
-
-  const UpdateMatches(this.matches);
-
-  @override
-  List<Object> get props => [matches];
-}
-
-class LoadLeagueError extends TournamentDetailEvent {
-  final String message;
-
-  const LoadLeagueError(this.message);
-
-  @override
-  List<Object> get props => [message];
 }
 
 /// Admin-only: rebuild stats for the current league from its finished

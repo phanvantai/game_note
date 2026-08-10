@@ -193,30 +193,15 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<({GNEsportMatch previous, GNEsportMatch updated})> updateMatch(
-    GNEsportMatch match,
-  ) {
-    // The match instance the UI is submitting still carries the `updatedAt`
-    // it had when the dialog opened — pass it down for the optimistic-lock
-    // check inside the transaction.
-    return getIt<GNFirestore>().updateMatch(
+  Future<void> updateMatchAtomically(GNEsportMatch match) {
+    return getIt<GNFirestore>().updateMatchAtomically(
       matchId: match.id,
       leagueId: match.leagueId,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
       matchCost: match.matchCost,
+      costPerGoal: match.costPerGoal,
       expectedUpdatedAt: match.updatedAt,
-    );
-  }
-
-  @override
-  Future<void> applyMatchStatDelta({
-    required GNEsportMatch previous,
-    required GNEsportMatch updated,
-  }) {
-    return getIt<GNFirestore>().applyMatchStatDelta(
-      previous: previous,
-      updated: updated,
     );
   }
 
@@ -251,26 +236,12 @@ class EsportLeagueRepositoryImpl implements EsportLeagueRepository {
   }
 
   @override
-  Future<LeagueDetailData> getParticipantsAndMatches(String leagueId) async {
-    // Load participants and matches in parallel to improve performance
-    final results = await Future.wait([
-      getIt<GNFirestore>().getLeagueStats(leagueId),
-      getIt<GNFirestore>().getMatches(leagueId),
-    ]);
-
-    return LeagueDetailData(
-      participants: results[0] as List<GNEsportLeagueStat>,
-      matches: results[1] as List<GNEsportMatch>,
-    );
-  }
-
-  @override
   Stream<List<GNEsportMatch>> listenForMatchesUpdated(String leagueId) {
     return getIt<GNFirestore>().listenForMatchesUpdated(leagueId);
   }
 
   @override
-  Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId) {
+  Stream<GNEsportLeague?> listenForLeagueUpdated(String leagueId) {
     return getIt<GNFirestore>().listenForLeagueUpdated(leagueId);
   }
 

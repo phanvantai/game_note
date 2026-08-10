@@ -1,9 +1,12 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/fixture_grouping.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/matches/widgets/create_custom_match_dialog.dart';
@@ -26,6 +29,58 @@ class _HeaderRow extends _FixtureRow {
 class _MatchRow extends _FixtureRow {
   final GNEsportMatch match;
   const _MatchRow(this.match);
+}
+
+class _MatchesViewData extends Equatable {
+  final List<GNEsportMatch> matches;
+  final List<List<Object?>> matchRenderData;
+  final List<GNEsportLeagueStat> participants;
+  final Map<String, GNUser> usersById;
+  final bool isMember;
+  final Set<String> pendingMatchIds;
+  final Map<String, String> matchErrorsById;
+  final DetailSliceStatus matchesSliceStatus;
+  final String? matchesError;
+  final int refreshTick;
+  final String? leagueId;
+
+  _MatchesViewData.fromState(TournamentDetailState state)
+    : matches = List.unmodifiable(state.matches),
+      matchRenderData = List.unmodifiable(
+        state.matches.map(
+          (match) => List<Object?>.unmodifiable([
+            match,
+            match.homeTeam,
+            match.awayTeam,
+          ]),
+        ),
+      ),
+      participants = List.unmodifiable(state.participants),
+      usersById = Map.unmodifiable(state.usersById),
+      isMember = state.currentUserIsMember,
+      pendingMatchIds = Set.unmodifiable(state.pendingMatchIds),
+      matchErrorsById = Map.unmodifiable(state.matchErrorsById),
+      matchesSliceStatus = state.matchesSliceStatus,
+      matchesError = state.streamErrors[TournamentDetailSlice.matches],
+      refreshTick = state.refreshTick,
+      leagueId = state.league?.id;
+
+  List<GNUser> get users => usersById.values.toList(growable: false);
+
+  @override
+  List<Object?> get props => [
+    matches,
+    matchRenderData,
+    participants,
+    usersById,
+    isMember,
+    pendingMatchIds,
+    matchErrorsById,
+    matchesSliceStatus,
+    matchesError,
+    refreshTick,
+    leagueId,
+  ];
 }
 
 class _MatchdayHeader extends StatelessWidget {
@@ -75,16 +130,25 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
-      builder: (context, state) {
-        final allMatches = isFixtures ? state.fixtures : state.results;
+    return BlocSelector<
+      TournamentDetailBloc,
+      TournamentDetailState,
+      _MatchesViewData
+    >(
+      selector: _MatchesViewData.fromState,
+      builder: (context, data) {
+        final allMatches = isFixtures
+            ? data.matches
+                  .where(
+                    (match) => !match.isFinished && match.phase != 'knockout',
+                  )
+                  .toList()
+            : data.matches.where((match) => match.isFinished).toList();
         final matches = isFixtures
             ? allMatches
             : _filterByPlayerNames(allMatches, _searchQuery);
         final showActions =
-            isFixtures &&
-            state.currentUserIsMember &&
-            state.participants.length > 1;
+            isFixtures && data.isMember && data.participants.length > 1;
 
         return Column(
           children: [
@@ -115,7 +179,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                         showDialog(
                           context: context,
                           builder: (cxt) => CreateCustomMatchDialog(
-                            users: state.users,
+                            users: data.users,
                             onMatchCreated: (home, away) {
                               context.read<TournamentDetailBloc>().add(
                                 CreateCustomMatch(
@@ -132,7 +196,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                     ),
                     FilledButton.tonal(
                       onPressed: () =>
-                          _confirmGenerateRound(context, state.fixtures.length),
+                          _confirmGenerateRound(context, allMatches.length),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         shape: RoundedRectangleBorder(
@@ -144,7 +208,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                   ],
                 ),
               ),
-            if (!isFixtures && state.results.isNotEmpty)
+            if (!isFixtures && allMatches.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: TextField(
@@ -192,7 +256,14 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                   ),
                 ),
               ),
-            Expanded(child: _buildMatchList(context, matches, state)),
+            if (data.matchesSliceStatus == DetailSliceStatus.failed)
+              _buildMatchesError(context, data.matchesError),
+            Expanded(
+              child: KeyedSubtree(
+                key: const Key('tournament-match-list'),
+                child: _buildMatchList(context, matches, data),
+              ),
+            ),
           ],
         );
       },
@@ -219,19 +290,51 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
     }).toList();
   }
 
-  Future<void> _refresh(BuildContext context) async {
+  Future<void> _refresh(
+    BuildContext context,
+    String? leagueId,
+    int refreshTick,
+  ) async {
     final bloc = context.read<TournamentDetailBloc>();
-    final leagueId = bloc.state.league?.id;
     if (leagueId == null) return;
-    final tickBefore = bloc.state.refreshTick;
-    bloc.add(GetParticipantsAndMatches(leagueId));
-    await bloc.stream.firstWhere((s) => s.refreshTick > tickBefore);
+    final refreshed = bloc.stream.firstWhere(
+      (state) => state.refreshTick > refreshTick,
+    );
+    bloc.add(EnsureDetailSubscriptions(leagueId));
+    await refreshed;
+  }
+
+  Widget _buildMatchesError(BuildContext context, String? message) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Row(
+        children: [
+          if (message != null && message.trim().isNotEmpty)
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+            )
+          else
+            const Spacer(),
+          TextButton(
+            onPressed: () => context.read<TournamentDetailBloc>().add(
+              const RetryDetailSlice(TournamentDetailSlice.matches),
+            ),
+            child: Text(context.l10n.commonRetry),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildMatchList(
     BuildContext context,
     List<GNEsportMatch> matches,
-    TournamentDetailState state,
+    _MatchesViewData data,
   ) {
     if (matches.isEmpty) {
       final empty = !isFixtures && _searchQuery.isNotEmpty
@@ -248,7 +351,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
                   : context.l10n.tournamentNoResults, // coverage:ignore-line
             );
       return RefreshIndicator(
-        onRefresh: () => _refresh(context),
+        onRefresh: () => _refresh(context, data.leagueId, data.refreshTick),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [SizedBox(height: 400, child: empty)],
@@ -263,7 +366,7 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
         : matches.map(_MatchRow.new).toList();
 
     return RefreshIndicator(
-      onRefresh: () => _refresh(context),
+      onRefresh: () => _refresh(context, data.leagueId, data.refreshTick),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ListView.separated(
@@ -274,32 +377,37 @@ class _EsportMatchesViewState extends State<EsportMatchesView> {
               return _MatchdayHeader(matchday: row.matchday);
             }
             final match = (row as _MatchRow).match;
+            final isPending = data.pendingMatchIds.contains(match.id);
             return Slidable(
               endActionPane: ActionPane(
                 motion: const StretchMotion(),
                 children: [
-                  if (state.currentUserIsMember)
+                  if (data.isMember)
                     SlidableAction(
                       borderRadius: BorderRadius.circular(16),
                       backgroundColor: Theme.of(context).colorScheme.error,
                       icon: Icons.delete_outline,
                       // coverage:ignore-start
-                      onPressed: (context) {
-                        context.read<TournamentDetailBloc>().add(
-                          DeleteEsportMatch(match),
-                        );
-                      },
+                      onPressed: isPending
+                          ? null
+                          : (context) {
+                              context.read<TournamentDetailBloc>().add(
+                                DeleteEsportMatch(match),
+                              );
+                            },
                       // coverage:ignore-end
                     ),
                 ],
               ),
               child: EsportMatchItem(
                 match: match,
-                onTap: isFixtures && state.currentUserIsMember
+                isPending: isPending,
+                errorMessage: data.matchErrorsById[match.id],
+                onTap: isFixtures && data.isMember && !isPending
                     ? () => showUpdateMatchScoreDialog(context, match)
                     : null,
                 // coverage:ignore-start
-                onLongPress: !isFixtures && state.currentUserIsMember
+                onLongPress: !isFixtures && data.isMember && !isPending
                     ? () => showUpdateMatchScoreDialog(context, match)
                     : null,
                 // coverage:ignore-end

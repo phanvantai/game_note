@@ -392,12 +392,6 @@ Future<void> openCreateTournament(BuildContext context) async {
                 knockoutSeeding: knockoutSeeding,
               );
               try {
-                if (participants.isNotEmpty) {
-                  await repo.addMultipleParticipants(
-                    leagueId: id,
-                    userIds: participants,
-                  );
-                }
                 if (participants.length >= 2) {
                   switch (mode) {
                     case TournamentMode.league:
@@ -428,22 +422,30 @@ Future<void> openCreateTournament(BuildContext context) async {
                       );
                   }
                 }
-              } catch (e) {
+              } catch (createError, createStack) {
                 // Roll back the league document so no zombie league is left behind.
-                await repo.deleteLeague(id);
-                rethrow;
+                try {
+                  await repo.deleteLeague(id);
+                } catch (rollbackError, rollbackStack) {
+                  debugPrint(
+                    'League create rollback failed: $rollbackError\n$rollbackStack',
+                  );
+                }
+                Error.throwWithStackTrace(createError, createStack);
               }
-              tournamentBloc.add(LoadMyLeagues());
-              tournamentBloc.add(LoadManagedLeagues());
-              showToast(createSuccessMessage);
               return id;
             },
       ),
     ),
   );
 
-  if (leagueId != null && context.mounted) {
-    context.push(Routing.tournamentDetailPath(leagueId));
+  if (leagueId == null || !context.mounted) return;
+  showToast(createSuccessMessage);
+  try {
+    await context.push(Routing.tournamentDetailPath(leagueId));
+  } finally {
+    tournamentBloc.add(LoadMyLeagues());
+    tournamentBloc.add(LoadManagedLeagues());
   }
 }
 

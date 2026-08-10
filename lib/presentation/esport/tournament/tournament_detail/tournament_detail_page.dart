@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/domain/repositories/esport/esport_group_repository.dart';
+import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/injection_container.dart';
-import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 
 import 'bloc/tournament_detail_bloc.dart';
@@ -15,22 +15,19 @@ class TournamentDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => TournamentDetailBloc(getIt())..add(GetLeague(leagueId)),
+      create: (_) => TournamentDetailBloc(
+        getIt<EsportLeagueRepository>(),
+        getIt<EsportGroupRepository>(),
+      )..add(OpenLeagueDetail(leagueId)),
       child: BlocListener<TournamentDetailBloc, TournamentDetailState>(
-        listener: (context, state) {
-          if (state.errorMessage.isNotEmpty) {
-            showToast(state.errorMessage);
-          }
-          if (state.league != null && !state.league!.isActive) {
-            showToast(context.l10n.tournamentEnded);
-            context.smartBack();
-            return;
-          }
-          if (state.errorMessage == 'Không tìm thấy giải đấu') {
-            context.smartBack();
-            return;
-          }
+        listenWhen: (previous, current) {
+          final previousIsTerminal =
+              previous.leagueDeleted || previous.league?.isActive == false;
+          final currentIsTerminal =
+              current.leagueDeleted || current.league?.isActive == false;
+          return !previousIsTerminal && currentIsTerminal;
         },
+        listener: (context, state) => context.smartBack(),
         child: const TournamentDetailView(),
       ),
     );

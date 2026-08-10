@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,40 @@ import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_leagu
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_firestore_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
+
+final class _ControlledTransactionFirestore extends FakeFirebaseFirestore {
+  Future<void> Function()? beforeNextTransaction;
+  Future<void> _transactionTail = Future<void>.value();
+
+  @override
+  Future<T> runTransaction<T>(
+    TransactionHandler<T> transactionHandler, {
+    Duration timeout = const Duration(seconds: 30),
+    int maxAttempts = 5,
+  }) {
+    final completer = Completer<T>();
+    _transactionTail = _transactionTail.then((_) async {
+      try {
+        final beforeTransaction = beforeNextTransaction;
+        beforeNextTransaction = null;
+        if (beforeTransaction != null) await beforeTransaction();
+
+        final result = await super.runTransaction(
+          transactionHandler,
+          timeout: timeout,
+          maxAttempts: maxAttempts,
+        );
+        // fake_cloud_firestore does not await the dummy transaction's writes.
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+        completer.complete(result);
+      } catch (error, stackTrace) {
+        completer.completeError(error, stackTrace);
+      }
+    });
+    return completer.future;
+  }
+}
 
 void main() {
   late FakeFirebaseFirestore fakeFirestore;
@@ -45,6 +81,7 @@ void main() {
     int homeScore = 0,
     int awayScore = 0,
     int? matchCost,
+    int? costPerGoal,
     Timestamp? updatedAt,
   }) async {
     final matchRef = await matchesCollection(leagueId).add({
@@ -60,6 +97,7 @@ void main() {
       GNEsportMatch.fieldKnockoutSlot: ?knockoutSlot,
       GNEsportMatch.fieldNextMatchId: ?nextMatchId,
       GNEsportMatch.fieldMatchCost: ?matchCost,
+      GNEsportMatch.fieldCostPerGoal: ?costPerGoal,
       GNEsportMatch.fieldUpdatedAt: ?updatedAt,
     });
     return matchRef.id;
@@ -585,417 +623,898 @@ void main() {
     });
   });
 
-  group('updateMatch — chỉ ghi match doc, không động vào stats', () {
-    Future<String> seedMatch({
+  group('updateMatchAtomically', () {
+    Future<DocumentReference<Map<String, dynamic>>> seedStat({
+      required String id,
       required String leagueId,
-      required String home,
-      required String away,
-      String? phase,
+      required String userId,
       String? groupId,
-      int? knockoutSlot,
-      String? nextMatchId,
-      bool finished = false,
-      int homeScore = 0,
-      int awayScore = 0,
-      int? matchCost,
-      Timestamp? updatedAt,
+      int matchesPlayed = 0,
+      int goals = 0,
+      int goalsConceded = 0,
+      int wins = 0,
+      int draws = 0,
+      int losses = 0,
     }) async {
-      final matchRef = await fakeFirestore
-          .collection(GNEsportLeague.collectionName)
-          .doc(leagueId)
-          .collection(GNEsportMatch.collectionName)
-          .add({
-            GNEsportMatch.fieldHomeTeamId: home,
-            GNEsportMatch.fieldAwayTeamId: away,
-            GNEsportMatch.fieldHomeScore: homeScore,
-            GNEsportMatch.fieldAwayScore: awayScore,
-            GNEsportMatch.fieldDate: Timestamp.fromDate(DateTime(2026, 5, 10)),
-            GNEsportMatch.fieldIsFinished: finished,
-            GNEsportMatch.fieldLeagueId: leagueId,
-            GNEsportMatch.fieldPhase: ?phase,
-            GNEsportMatch.fieldGroupId: ?groupId,
-            GNEsportMatch.fieldKnockoutSlot: ?knockoutSlot,
-            GNEsportMatch.fieldNextMatchId: ?nextMatchId,
-            GNEsportMatch.fieldMatchCost: ?matchCost,
-            GNEsportMatch.fieldUpdatedAt: ?updatedAt,
-          });
-      return matchRef.id;
+      final ref = statsCollection(leagueId).doc(id);
+      await ref.set({
+        GNEsportLeagueStat.fieldUserId: userId,
+        GNEsportLeagueStat.fieldLeagueId: leagueId,
+        GNEsportLeagueStat.fieldMatchesPlayed: matchesPlayed,
+        GNEsportLeagueStat.fieldGoals: goals,
+        GNEsportLeagueStat.fieldGoalsConceded: goalsConceded,
+        GNEsportLeagueStat.fieldWins: wins,
+        GNEsportLeagueStat.fieldDraws: draws,
+        GNEsportLeagueStat.fieldLosses: losses,
+        GNEsportLeagueStat.fieldGroupId: ?groupId,
+      });
+      return ref;
     }
 
-    test('updateMatch ghi score nhưng KHÔNG đụng stat doc — '
-        'kể cả khi stat chưa tồn tại', () async {
-      // Repro: legacy league chưa có stat doc nào. updateMatch lean
-      // không được throw "No stats found" — đó là việc của
-      // applyMatchStatDelta về sau.
-      final matchId = await seedMatch(leagueId: 'L1', home: 'u1', away: 'u2');
+    Future<Map<String, dynamic>> statFor(
+      String leagueId,
+      String userId, {
+      String? groupId,
+    }) async {
+      final snapshot = await statsCollection(
+        leagueId,
+      ).where(GNEsportLeagueStat.fieldUserId, isEqualTo: userId).get();
+      return snapshot.docs
+          .singleWhere(
+            (doc) =>
+                (doc.data()[GNEsportLeagueStat.fieldGroupId] as String?) ==
+                groupId,
+          )
+          .data();
+    }
 
-      final result = await fs.updateMatch(
-        matchId: matchId,
-        leagueId: 'L1',
-        homeScore: 3,
-        awayScore: 1,
-      );
+    Future<Object?> capture(Future<void> operation) async {
+      try {
+        await operation;
+        return null;
+      } catch (error) {
+        return error;
+      }
+    }
 
-      // Match doc đã update.
-      final matchDoc = await fakeFirestore
-          .collection(GNEsportLeague.collectionName)
-          .doc('L1')
-          .collection(GNEsportMatch.collectionName)
-          .doc(matchId)
-          .get();
-      expect(matchDoc.data()?[GNEsportMatch.fieldHomeScore], 3);
-      expect(matchDoc.data()?[GNEsportMatch.fieldAwayScore], 1);
-      expect(matchDoc.data()?[GNEsportMatch.fieldIsFinished], true);
+    test(
+      'league first result writes match, random-ID stats, and costPerGoal',
+      () async {
+        final matchId = await seedMatch(leagueId: 'atomic-1');
+        await seedStat(
+          id: 'random-home-stat-7',
+          leagueId: 'atomic-1',
+          userId: 'u1',
+        );
+        await seedStat(
+          id: 'random-away-stat-9',
+          leagueId: 'atomic-1',
+          userId: 'u2',
+        );
 
-      // previous/updated trả về để caller tự apply delta.
-      expect(result.previous.homeScore, 0);
-      expect(result.previous.isFinished, false);
-      expect(result.updated.homeScore, 3);
-      expect(result.updated.isFinished, true);
-
-      // Stat collection rỗng — updateMatch không tự tạo.
-      final stats = await fakeFirestore
-          .collection(GNEsportLeague.collectionName)
-          .doc('L1')
-          .collection(GNEsportLeagueStat.collectionName)
-          .get();
-      expect(
-        stats.docs,
-        isEmpty,
-        reason: 'updateMatch không được tự khởi tạo stat',
-      );
-    });
-
-    test('updateMatch knockout: vẫn advance winner vào next bracket slot '
-        'atomic với score', () async {
-      final nextId = await seedMatch(
-        leagueId: 'L1',
-        home: '',
-        away: '',
-        phase: 'knockout',
-      );
-      final firstMatchRef = await fakeFirestore
-          .collection(GNEsportLeague.collectionName)
-          .doc('L1')
-          .collection(GNEsportMatch.collectionName)
-          .add({
-            GNEsportMatch.fieldHomeTeamId: 'u1',
-            GNEsportMatch.fieldAwayTeamId: 'u2',
-            GNEsportMatch.fieldHomeScore: 0,
-            GNEsportMatch.fieldAwayScore: 0,
-            GNEsportMatch.fieldDate: Timestamp.fromDate(DateTime(2026, 5, 10)),
-            GNEsportMatch.fieldIsFinished: false,
-            GNEsportMatch.fieldLeagueId: 'L1',
-            GNEsportMatch.fieldPhase: 'knockout',
-            GNEsportMatch.fieldKnockoutSlot: 0,
-            GNEsportMatch.fieldNextMatchId: nextId,
-          });
-
-      await fs.updateMatch(
-        matchId: firstMatchRef.id,
-        leagueId: 'L1',
-        homeScore: 3,
-        awayScore: 1,
-      );
-
-      final next = await fakeFirestore
-          .collection(GNEsportLeague.collectionName)
-          .doc('L1')
-          .collection(GNEsportMatch.collectionName)
-          .doc(nextId)
-          .get();
-      expect(
-        next.data()?[GNEsportMatch.fieldHomeTeamId],
-        'u1',
-        reason: 'winner phải advance vào slot tiếp theo',
-      );
-    });
-
-    test('updateMatch throw khi match không tồn tại', () async {
-      expect(
-        () => fs.updateMatch(
-          matchId: 'missing',
-          leagueId: 'L1',
-          homeScore: 1,
-          awayScore: 0,
-        ),
-        throwsA(isA<Exception>()),
-      );
-    });
-
-    test('updateMatch phát hiện concurrent update', () async {
-      final storedUpdatedAt = Timestamp.fromDate(DateTime(2026, 5, 10));
-      final staleUpdatedAt = Timestamp.fromDate(DateTime(2026, 5, 9));
-      final matchId = await seedMatch(
-        leagueId: 'L1',
-        home: 'u1',
-        away: 'u2',
-        updatedAt: storedUpdatedAt,
-      );
-
-      expect(
-        () => fs.updateMatch(
+        await fs.updateMatchAtomically(
           matchId: matchId,
-          leagueId: 'L1',
+          leagueId: 'atomic-1',
+          homeScore: 4,
+          awayScore: 2,
+          matchCost: 90000,
+          costPerGoal: 12000,
+        );
+
+        final match = (await matchesCollection(
+          'atomic-1',
+        ).doc(matchId).get()).data()!;
+        expect(match[GNEsportMatch.fieldHomeScore], 4);
+        expect(match[GNEsportMatch.fieldAwayScore], 2);
+        expect(match[GNEsportMatch.fieldIsFinished], true);
+        expect(match[GNEsportMatch.fieldMatchCost], 90000);
+        expect(match[GNEsportMatch.fieldCostPerGoal], 12000);
+        expect(match[GNEsportMatch.fieldUpdatedAt], isA<Timestamp>());
+
+        final statDocs = await statsCollection('atomic-1').get();
+        expect(
+          statDocs.docs.map((doc) => doc.id),
+          unorderedEquals(['random-home-stat-7', 'random-away-stat-9']),
+        );
+        expect(await statFor('atomic-1', 'u1'), {
+          GNEsportLeagueStat.fieldUserId: 'u1',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-1',
+          GNEsportLeagueStat.fieldMatchesPlayed: 1,
+          GNEsportLeagueStat.fieldGoals: 4,
+          GNEsportLeagueStat.fieldGoalsConceded: 2,
+          GNEsportLeagueStat.fieldWins: 1,
+          GNEsportLeagueStat.fieldDraws: 0,
+          GNEsportLeagueStat.fieldLosses: 0,
+        });
+        expect(await statFor('atomic-1', 'u2'), {
+          GNEsportLeagueStat.fieldUserId: 'u2',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-1',
+          GNEsportLeagueStat.fieldMatchesPlayed: 1,
+          GNEsportLeagueStat.fieldGoals: 2,
+          GNEsportLeagueStat.fieldGoalsConceded: 4,
+          GNEsportLeagueStat.fieldWins: 0,
+          GNEsportLeagueStat.fieldDraws: 0,
+          GNEsportLeagueStat.fieldLosses: 1,
+        });
+      },
+    );
+
+    test(
+      'finished edit undoes old result and applies new result once',
+      () async {
+        final version = Timestamp.fromDate(DateTime(2026, 6, 1));
+        final matchId = await seedMatch(
+          leagueId: 'atomic-2',
+          finished: true,
+          homeScore: 3,
+          awayScore: 1,
+          updatedAt: version,
+        );
+        await seedStat(
+          id: 'old-home',
+          leagueId: 'atomic-2',
+          userId: 'u1',
+          matchesPlayed: 1,
+          goals: 3,
+          goalsConceded: 1,
+          wins: 1,
+        );
+        await seedStat(
+          id: 'old-away',
+          leagueId: 'atomic-2',
+          userId: 'u2',
+          matchesPlayed: 1,
+          goals: 1,
+          goalsConceded: 3,
+          losses: 1,
+        );
+
+        await fs.updateMatchAtomically(
+          matchId: matchId,
+          leagueId: 'atomic-2',
           homeScore: 1,
-          awayScore: 0,
-          expectedUpdatedAt: staleUpdatedAt,
-        ),
-        throwsA(isA<ConcurrentMatchUpdateException>()),
+          awayScore: 1,
+          expectedUpdatedAt: version,
+        );
+
+        expect(await statFor('atomic-2', 'u1'), {
+          GNEsportLeagueStat.fieldUserId: 'u1',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-2',
+          GNEsportLeagueStat.fieldMatchesPlayed: 1,
+          GNEsportLeagueStat.fieldGoals: 1,
+          GNEsportLeagueStat.fieldGoalsConceded: 1,
+          GNEsportLeagueStat.fieldWins: 0,
+          GNEsportLeagueStat.fieldDraws: 1,
+          GNEsportLeagueStat.fieldLosses: 0,
+        });
+        expect(await statFor('atomic-2', 'u2'), {
+          GNEsportLeagueStat.fieldUserId: 'u2',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-2',
+          GNEsportLeagueStat.fieldMatchesPlayed: 1,
+          GNEsportLeagueStat.fieldGoals: 1,
+          GNEsportLeagueStat.fieldGoalsConceded: 1,
+          GNEsportLeagueStat.fieldWins: 0,
+          GNEsportLeagueStat.fieldDraws: 1,
+          GNEsportLeagueStat.fieldLosses: 0,
+        });
+      },
+    );
+
+    test(
+      'cost-only update preserves finished score and stat contribution',
+      () async {
+        final version = Timestamp.fromDate(DateTime(2026, 6, 2));
+        final matchId = await seedMatch(
+          leagueId: 'atomic-cost-only',
+          finished: true,
+          homeScore: 3,
+          awayScore: 1,
+          matchCost: 50000,
+          costPerGoal: 4000,
+          updatedAt: version,
+        );
+        final homeStatRef = await seedStat(
+          id: 'cost-only-home-random',
+          leagueId: 'atomic-cost-only',
+          userId: 'u1',
+          matchesPlayed: 1,
+          goals: 3,
+          goalsConceded: 1,
+          wins: 1,
+        );
+        final awayStatRef = await seedStat(
+          id: 'cost-only-away-random',
+          leagueId: 'atomic-cost-only',
+          userId: 'u2',
+          matchesPlayed: 1,
+          goals: 1,
+          goalsConceded: 3,
+          losses: 1,
+        );
+        final homeStatBefore = (await homeStatRef.get()).data();
+        final awayStatBefore = (await awayStatRef.get()).data();
+
+        await fs.updateMatchAtomically(
+          matchId: matchId,
+          leagueId: 'atomic-cost-only',
+          matchCost: 90000,
+          costPerGoal: 12000,
+          expectedUpdatedAt: version,
+        );
+
+        final match = (await matchesCollection(
+          'atomic-cost-only',
+        ).doc(matchId).get()).data()!;
+        expect(match[GNEsportMatch.fieldHomeScore], 3);
+        expect(match[GNEsportMatch.fieldAwayScore], 1);
+        expect(match[GNEsportMatch.fieldIsFinished], true);
+        expect(match[GNEsportMatch.fieldMatchCost], 90000);
+        expect(match[GNEsportMatch.fieldCostPerGoal], 12000);
+        expect(match[GNEsportMatch.fieldUpdatedAt], isA<Timestamp>());
+        expect(match[GNEsportMatch.fieldUpdatedAt], isNot(version));
+        expect((await homeStatRef.get()).data(), homeStatBefore);
+        expect((await awayStatRef.get()).data(), awayStatBefore);
+      },
+    );
+
+    test(
+      'participant changed after stat lookup aborts score and stat writes',
+      () async {
+        final controlled = _ControlledTransactionFirestore();
+        fakeFirestore = controlled;
+        fs = GNFirestore(controlled);
+        final version = Timestamp.fromDate(DateTime(2026, 6, 3));
+        final matchId = await seedMatch(
+          leagueId: 'atomic-identity-race',
+          matchCost: 5000,
+          updatedAt: version,
+        );
+        final homeStatRef = await seedStat(
+          id: 'identity-home-random',
+          leagueId: 'atomic-identity-race',
+          userId: 'u1',
+        );
+        final awayStatRef = await seedStat(
+          id: 'identity-away-random',
+          leagueId: 'atomic-identity-race',
+          userId: 'u2',
+        );
+        final homeStatBefore = (await homeStatRef.get()).data();
+        final awayStatBefore = (await awayStatRef.get()).data();
+        controlled.beforeNextTransaction = () {
+          return matchesCollection(
+            'atomic-identity-race',
+          ).doc(matchId).update({GNEsportMatch.fieldHomeTeamId: 'u3'});
+        };
+
+        await expectLater(
+          fs.updateMatchAtomically(
+            matchId: matchId,
+            leagueId: 'atomic-identity-race',
+            homeScore: 2,
+            awayScore: 0,
+            matchCost: 80000,
+            expectedUpdatedAt: version,
+          ),
+          throwsA(isA<Exception>()),
+        );
+
+        final match = (await matchesCollection(
+          'atomic-identity-race',
+        ).doc(matchId).get()).data()!;
+        expect(match[GNEsportMatch.fieldHomeTeamId], 'u3');
+        expect(match[GNEsportMatch.fieldAwayTeamId], 'u2');
+        expect(match[GNEsportMatch.fieldHomeScore], 0);
+        expect(match[GNEsportMatch.fieldAwayScore], 0);
+        expect(match[GNEsportMatch.fieldIsFinished], false);
+        expect(match[GNEsportMatch.fieldMatchCost], 5000);
+        expect(match[GNEsportMatch.fieldUpdatedAt], version);
+        expect((await homeStatRef.get()).data(), homeStatBefore);
+        expect((await awayStatRef.get()).data(), awayStatBefore);
+      },
+    );
+
+    test('group result changes only stats with the matching groupId', () async {
+      final matchId = await seedMatch(
+        leagueId: 'atomic-3',
+        phase: 'group',
+        groupId: 'B',
       );
+      for (final groupId in ['A', 'B']) {
+        await seedStat(
+          id: '$groupId-home-random',
+          leagueId: 'atomic-3',
+          userId: 'u1',
+          groupId: groupId,
+        );
+        await seedStat(
+          id: '$groupId-away-random',
+          leagueId: 'atomic-3',
+          userId: 'u2',
+          groupId: groupId,
+        );
+      }
+
+      await fs.updateMatchAtomically(
+        matchId: matchId,
+        leagueId: 'atomic-3',
+        homeScore: 2,
+        awayScore: 0,
+      );
+
+      expect(await statFor('atomic-3', 'u1', groupId: 'A'), {
+        GNEsportLeagueStat.fieldUserId: 'u1',
+        GNEsportLeagueStat.fieldLeagueId: 'atomic-3',
+        GNEsportLeagueStat.fieldMatchesPlayed: 0,
+        GNEsportLeagueStat.fieldGoals: 0,
+        GNEsportLeagueStat.fieldGoalsConceded: 0,
+        GNEsportLeagueStat.fieldWins: 0,
+        GNEsportLeagueStat.fieldDraws: 0,
+        GNEsportLeagueStat.fieldLosses: 0,
+        GNEsportLeagueStat.fieldGroupId: 'A',
+      });
+      expect(await statFor('atomic-3', 'u1', groupId: 'B'), {
+        GNEsportLeagueStat.fieldUserId: 'u1',
+        GNEsportLeagueStat.fieldLeagueId: 'atomic-3',
+        GNEsportLeagueStat.fieldMatchesPlayed: 1,
+        GNEsportLeagueStat.fieldGoals: 2,
+        GNEsportLeagueStat.fieldGoalsConceded: 0,
+        GNEsportLeagueStat.fieldWins: 1,
+        GNEsportLeagueStat.fieldDraws: 0,
+        GNEsportLeagueStat.fieldLosses: 0,
+        GNEsportLeagueStat.fieldGroupId: 'B',
+      });
+      expect(await statFor('atomic-3', 'u2', groupId: 'A'), {
+        GNEsportLeagueStat.fieldUserId: 'u2',
+        GNEsportLeagueStat.fieldLeagueId: 'atomic-3',
+        GNEsportLeagueStat.fieldMatchesPlayed: 0,
+        GNEsportLeagueStat.fieldGoals: 0,
+        GNEsportLeagueStat.fieldGoalsConceded: 0,
+        GNEsportLeagueStat.fieldWins: 0,
+        GNEsportLeagueStat.fieldDraws: 0,
+        GNEsportLeagueStat.fieldLosses: 0,
+        GNEsportLeagueStat.fieldGroupId: 'A',
+      });
+      expect(await statFor('atomic-3', 'u2', groupId: 'B'), {
+        GNEsportLeagueStat.fieldUserId: 'u2',
+        GNEsportLeagueStat.fieldLeagueId: 'atomic-3',
+        GNEsportLeagueStat.fieldMatchesPlayed: 1,
+        GNEsportLeagueStat.fieldGoals: 0,
+        GNEsportLeagueStat.fieldGoalsConceded: 2,
+        GNEsportLeagueStat.fieldWins: 0,
+        GNEsportLeagueStat.fieldDraws: 0,
+        GNEsportLeagueStat.fieldLosses: 1,
+        GNEsportLeagueStat.fieldGroupId: 'B',
+      });
     });
 
     test(
-      'updateMatch cập nhật matchCost và advance away vào odd slot',
+      'knockout writes both next slots and leaves standings unchanged',
       () async {
         final nextId = await seedMatch(
-          leagueId: 'L1',
+          leagueId: 'atomic-4',
           home: '',
           away: '',
           phase: 'knockout',
         );
-        final matchId = await seedMatch(
-          leagueId: 'L1',
+        final evenMatchId = await seedMatch(
+          leagueId: 'atomic-4',
           home: 'u1',
           away: 'u2',
+          phase: 'knockout',
+          knockoutSlot: 0,
+          nextMatchId: nextId,
+        );
+        final oddMatchId = await seedMatch(
+          leagueId: 'atomic-4',
+          home: 'u3',
+          away: 'u4',
           phase: 'knockout',
           knockoutSlot: 1,
           nextMatchId: nextId,
         );
-
-        final result = await fs.updateMatch(
-          matchId: matchId,
-          leagueId: 'L1',
-          homeScore: 1,
-          awayScore: 4,
-          matchCost: 75000,
-        );
-
-        expect(result.updated.matchCost, 75000);
-        final next = await matchesCollection('L1').doc(nextId).get();
-        expect(next.data()?[GNEsportMatch.fieldAwayTeamId], 'u2');
-      },
-    );
-  });
-
-  group('applyMatchStatDelta', () {
-    GNEsportMatch matchOf({
-      required bool finished,
-      int? homeScore,
-      int? awayScore,
-      String home = 'u1',
-      String away = 'u2',
-      String? phase,
-      String? groupId,
-    }) {
-      return GNEsportMatch(
-        id: 'm1',
-        leagueId: 'L1',
-        homeTeamId: home,
-        awayTeamId: away,
-        homeScore: homeScore,
-        awayScore: awayScore,
-        date: DateTime(2026, 5, 10),
-        isFinished: finished,
-        phase: phase,
-        groupId: groupId,
-      );
-    }
-
-    test(
-      'apply delta lần đầu (previous chưa finished → only apply new)',
-      () async {
-        await fs.addLeagueStat(userId: 'u1', leagueId: 'L1');
-        await fs.addLeagueStat(userId: 'u2', leagueId: 'L1');
-
-        await fs.applyMatchStatDelta(
-          previous: matchOf(finished: false),
-          updated: matchOf(finished: true, homeScore: 3, awayScore: 1),
-        );
-
-        final stats = await fakeFirestore
-            .collection(GNEsportLeague.collectionName)
-            .doc('L1')
-            .collection(GNEsportLeagueStat.collectionName)
-            .get();
-        final byUser = {
-          for (final d in stats.docs)
-            d.data()[GNEsportLeagueStat.fieldUserId] as String: d.data(),
+        for (final userId in ['u1', 'u2', 'u3', 'u4']) {
+          await seedStat(
+            id: 'standing-$userId',
+            leagueId: 'atomic-4',
+            userId: userId,
+            matchesPlayed: 5,
+            goals: 9,
+            goalsConceded: 7,
+            wins: 3,
+            draws: 1,
+            losses: 1,
+          );
+        }
+        final standingsBefore = {
+          for (final doc in (await statsCollection('atomic-4').get()).docs)
+            doc.id: doc.data(),
         };
-        expect(byUser['u1']?[GNEsportLeagueStat.fieldGoals], 3);
-        expect(byUser['u1']?[GNEsportLeagueStat.fieldWins], 1);
-        expect(byUser['u2']?[GNEsportLeagueStat.fieldLosses], 1);
-      },
-    );
 
-    test(
-      'apply delta khi sửa từ finished sang finished khác → undo + apply',
-      () async {
-        await fs.addLeagueStat(userId: 'u1', leagueId: 'L1');
-        await fs.addLeagueStat(userId: 'u2', leagueId: 'L1');
-        // Trận trước: 3-1 (u1 win)
-        await fs.applyMatchStatDelta(
-          previous: matchOf(finished: false),
-          updated: matchOf(finished: true, homeScore: 3, awayScore: 1),
-        );
-        // Đổi tỉ số sang 1-1 (hòa)
-        await fs.applyMatchStatDelta(
-          previous: matchOf(finished: true, homeScore: 3, awayScore: 1),
-          updated: matchOf(finished: true, homeScore: 1, awayScore: 1),
-        );
-
-        final stats = await fakeFirestore
-            .collection(GNEsportLeague.collectionName)
-            .doc('L1')
-            .collection(GNEsportLeagueStat.collectionName)
-            .get();
-        final byUser = {
-          for (final d in stats.docs)
-            d.data()[GNEsportLeagueStat.fieldUserId] as String: d.data(),
-        };
-        expect(byUser['u1']?[GNEsportLeagueStat.fieldGoals], 1);
-        expect(byUser['u1']?[GNEsportLeagueStat.fieldWins], 0);
-        expect(byUser['u1']?[GNEsportLeagueStat.fieldDraws], 1);
-        expect(byUser['u2']?[GNEsportLeagueStat.fieldDraws], 1);
-      },
-    );
-
-    test('knockout match → no-op, không đụng stats', () async {
-      await fs.addLeagueStat(userId: 'u1', leagueId: 'L1');
-      await fs.addLeagueStat(userId: 'u2', leagueId: 'L1');
-
-      await fs.applyMatchStatDelta(
-        previous: matchOf(finished: false, phase: 'knockout'),
-        updated: matchOf(
-          finished: true,
-          phase: 'knockout',
-          homeScore: 3,
-          awayScore: 1,
-        ),
-      );
-
-      final stats = await fakeFirestore
-          .collection(GNEsportLeague.collectionName)
-          .doc('L1')
-          .collection(GNEsportLeagueStat.collectionName)
-          .get();
-      // Stats vẫn ở mức zero — knockout không track.
-      for (final doc in stats.docs) {
-        expect(doc.data()[GNEsportLeagueStat.fieldMatchesPlayed], 0);
-      }
-    });
-
-    test('homeTeamId rỗng (TBD bracket slot) → no-op', () async {
-      // Không cần seed stat — phải bail out trước khi resolve refs.
-      await fs.applyMatchStatDelta(
-        previous: matchOf(finished: false, home: '', away: ''),
-        updated: matchOf(
-          finished: true,
-          home: '',
-          away: '',
-          homeScore: 1,
+        await fs.updateMatchAtomically(
+          matchId: evenMatchId,
+          leagueId: 'atomic-4',
+          homeScore: 2,
           awayScore: 0,
-        ),
-      );
-      // Không throw là pass.
-    });
+        );
+        await fs.updateMatchAtomically(
+          matchId: oddMatchId,
+          leagueId: 'atomic-4',
+          homeScore: 1,
+          awayScore: 3,
+        );
 
-    test(
-      'stat doc thiếu cho user → throw (bloc swallow, manual sync cứu)',
-      () async {
-        await fs.addLeagueStat(userId: 'u1', leagueId: 'L1');
-        // u2 không có stat doc
-
+        final next = (await matchesCollection(
+          'atomic-4',
+        ).doc(nextId).get()).data()!;
+        expect(next[GNEsportMatch.fieldHomeTeamId], 'u1');
+        expect(next[GNEsportMatch.fieldAwayTeamId], 'u4');
         expect(
-          () => fs.applyMatchStatDelta(
-            previous: matchOf(finished: false),
-            updated: matchOf(finished: true, homeScore: 1, awayScore: 0),
+          (await matchesCollection(
+            'atomic-4',
+          ).doc(evenMatchId).get()).data()?[GNEsportMatch.fieldIsFinished],
+          true,
+        );
+        expect(
+          (await matchesCollection(
+            'atomic-4',
+          ).doc(oddMatchId).get()).data()?[GNEsportMatch.fieldIsFinished],
+          true,
+        );
+        expect({
+          for (final doc in (await statsCollection('atomic-4').get()).docs)
+            doc.id: doc.data(),
+        }, standingsBefore);
+      },
+    );
+
+    test('missing either stat throws before writing the match', () async {
+      for (final missingUserId in ['u1', 'u2']) {
+        final leagueId = 'atomic-5-missing-$missingUserId';
+        final matchId = await seedMatch(leagueId: leagueId);
+        final existingUserId = missingUserId == 'u1' ? 'u2' : 'u1';
+        await seedStat(
+          id: 'only-existing-stat',
+          leagueId: leagueId,
+          userId: existingUserId,
+        );
+        final matchBefore = (await matchesCollection(
+          leagueId,
+        ).doc(matchId).get()).data();
+        final statBefore = await statFor(leagueId, existingUserId);
+
+        await expectLater(
+          fs.updateMatchAtomically(
+            matchId: matchId,
+            leagueId: leagueId,
+            homeScore: 1,
+            awayScore: 0,
           ),
           throwsA(isA<Exception>()),
         );
+
+        expect(
+          (await matchesCollection(leagueId).doc(matchId).get()).data(),
+          matchBefore,
+        );
+        expect(await statFor(leagueId, existingUserId), statBefore);
+      }
+    });
+
+    test(
+      'stat deleted after lookup aborts match, other stat, and next slot writes',
+      () async {
+        final controlled = _ControlledTransactionFirestore();
+        fakeFirestore = controlled;
+        fs = GNFirestore(controlled);
+        final nextId = await seedMatch(
+          leagueId: 'atomic-6',
+          home: 'waiting-home',
+          away: 'waiting-away',
+        );
+        final matchId = await seedMatch(
+          leagueId: 'atomic-6',
+          nextMatchId: nextId,
+        );
+        final homeStatRef = await seedStat(
+          id: 'home-stays',
+          leagueId: 'atomic-6',
+          userId: 'u1',
+        );
+        final deletedStatRef = await seedStat(
+          id: 'away-deleted-during-update',
+          leagueId: 'atomic-6',
+          userId: 'u2',
+        );
+        final matchBefore = (await matchesCollection(
+          'atomic-6',
+        ).doc(matchId).get()).data();
+        final homeBefore = (await homeStatRef.get()).data();
+        final nextBefore = (await matchesCollection(
+          'atomic-6',
+        ).doc(nextId).get()).data();
+        controlled.beforeNextTransaction = deletedStatRef.delete;
+
+        await expectLater(
+          fs.updateMatchAtomically(
+            matchId: matchId,
+            leagueId: 'atomic-6',
+            homeScore: 2,
+            awayScore: 1,
+          ),
+          throwsA(isA<Exception>()),
+        );
+
+        expect(
+          (await matchesCollection('atomic-6').doc(matchId).get()).data(),
+          matchBefore,
+        );
+        expect((await homeStatRef.get()).data(), homeBefore);
+        expect((await deletedStatRef.get()).exists, false);
+        expect(
+          (await matchesCollection('atomic-6').doc(nextId).get()).data(),
+          nextBefore,
+        );
       },
     );
 
-    test('stat doc thiếu trong group → throw kèm group id', () async {
-      await fs.addLeagueStat(userId: 'u1', leagueId: 'L1', groupId: 'A');
+    test('stale expectedUpdatedAt writes no document', () async {
+      final currentVersion = Timestamp.fromDate(DateTime(2026, 7, 2));
+      final staleVersion = Timestamp.fromDate(DateTime(2026, 7, 1));
+      final matchId = await seedMatch(
+        leagueId: 'atomic-7',
+        updatedAt: currentVersion,
+      );
+      final homeRef = await seedStat(
+        id: 'stale-home',
+        leagueId: 'atomic-7',
+        userId: 'u1',
+      );
+      final awayRef = await seedStat(
+        id: 'stale-away',
+        leagueId: 'atomic-7',
+        userId: 'u2',
+      );
+      final matchBefore = (await matchesCollection(
+        'atomic-7',
+      ).doc(matchId).get()).data();
+      final homeBefore = (await homeRef.get()).data();
+      final awayBefore = (await awayRef.get()).data();
+
+      await expectLater(
+        fs.updateMatchAtomically(
+          matchId: matchId,
+          leagueId: 'atomic-7',
+          homeScore: 7,
+          awayScore: 0,
+          expectedUpdatedAt: staleVersion,
+        ),
+        throwsA(isA<ConcurrentMatchUpdateException>()),
+      );
 
       expect(
-        () => fs.applyMatchStatDelta(
-          previous: matchOf(finished: false, groupId: 'A'),
-          updated: matchOf(
-            finished: true,
-            homeScore: 1,
-            awayScore: 0,
-            groupId: 'A',
-          ),
-        ),
-        throwsA(
-          predicate((e) => e is Exception && e.toString().contains('group A')),
-        ),
+        (await matchesCollection('atomic-7').doc(matchId).get()).data(),
+        matchBefore,
       );
+      expect((await homeRef.get()).data(), homeBefore);
+      expect((await awayRef.get()).data(), awayBefore);
     });
 
-    test('finished → unfinished undo toàn bộ delta', () async {
-      await fs.addLeagueStat(userId: 'u1', leagueId: 'L1');
-      await fs.addLeagueStat(userId: 'u2', leagueId: 'L1');
-      await fs.applyMatchStatDelta(
-        previous: matchOf(finished: false),
-        updated: matchOf(finished: true, homeScore: 0, awayScore: 2),
-      );
+    test(
+      'legacy null timestamp updates once then rejects a stale version',
+      () async {
+        final matchId = await seedMatch(leagueId: 'atomic-8');
+        await seedStat(id: 'legacy-home', leagueId: 'atomic-8', userId: 'u1');
+        await seedStat(id: 'legacy-away', leagueId: 'atomic-8', userId: 'u2');
 
-      await fs.applyMatchStatDelta(
-        previous: matchOf(finished: true, homeScore: 0, awayScore: 2),
-        updated: matchOf(finished: false),
-      );
-
-      final stats = await statsCollection('L1').get();
-      for (final doc in stats.docs) {
-        expect(doc.data()[GNEsportLeagueStat.fieldMatchesPlayed], 0);
-        expect(doc.data()[GNEsportLeagueStat.fieldGoals], 0);
-        expect(doc.data()[GNEsportLeagueStat.fieldLosses], 0);
-      }
-    });
-
-    test('finished cùng tỉ số và cost-only change → no-op', () async {
-      await fs.addLeagueStat(userId: 'u1', leagueId: 'L1');
-      await fs.addLeagueStat(userId: 'u2', leagueId: 'L1');
-
-      await fs.applyMatchStatDelta(
-        previous: matchOf(finished: true, homeScore: 2, awayScore: 2),
-        updated: matchOf(finished: true, homeScore: 2, awayScore: 2),
-      );
-
-      final stats = await statsCollection('L1').get();
-      for (final doc in stats.docs) {
-        expect(doc.data()[GNEsportLeagueStat.fieldMatchesPlayed], 0);
-      }
-    });
-
-    test('group stat lookup chỉ dùng stat đúng group', () async {
-      await fs.addLeagueStat(userId: 'u1', leagueId: 'L1', groupId: 'A');
-      await fs.addLeagueStat(userId: 'u2', leagueId: 'L1', groupId: 'A');
-      await fs.addLeagueStat(userId: 'u1', leagueId: 'L1', groupId: 'B');
-      await fs.addLeagueStat(userId: 'u2', leagueId: 'L1', groupId: 'B');
-
-      await fs.applyMatchStatDelta(
-        previous: matchOf(finished: false, groupId: 'B'),
-        updated: matchOf(
-          finished: true,
+        await fs.updateMatchAtomically(
+          matchId: matchId,
+          leagueId: 'atomic-8',
           homeScore: 2,
-          awayScore: 0,
-          groupId: 'B',
-        ),
-      );
+          awayScore: 1,
+        );
+        final firstWrite = (await matchesCollection(
+          'atomic-8',
+        ).doc(matchId).get()).data()!;
+        expect(firstWrite[GNEsportMatch.fieldUpdatedAt], isA<Timestamp>());
 
-      final stats = await statsCollection('L1').get();
-      final byGroup = {
-        for (final d in stats.docs)
-          '${d.data()[GNEsportLeagueStat.fieldUserId]}-${d.data()[GNEsportLeagueStat.fieldGroupId]}':
-              d.data(),
-      };
-      expect(byGroup['u1-A']?[GNEsportLeagueStat.fieldMatchesPlayed], 0);
-      expect(byGroup['u1-B']?[GNEsportLeagueStat.fieldMatchesPlayed], 1);
-    });
+        await expectLater(
+          fs.updateMatchAtomically(
+            matchId: matchId,
+            leagueId: 'atomic-8',
+            homeScore: 0,
+            awayScore: 3,
+            expectedUpdatedAt: Timestamp.fromDate(DateTime(2020)),
+          ),
+          throwsA(isA<ConcurrentMatchUpdateException>()),
+        );
+
+        final afterConflict = (await matchesCollection(
+          'atomic-8',
+        ).doc(matchId).get()).data()!;
+        expect(afterConflict[GNEsportMatch.fieldHomeScore], 2);
+        expect(afterConflict[GNEsportMatch.fieldAwayScore], 1);
+        expect(await statFor('atomic-8', 'u1'), {
+          GNEsportLeagueStat.fieldUserId: 'u1',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-8',
+          GNEsportLeagueStat.fieldMatchesPlayed: 1,
+          GNEsportLeagueStat.fieldGoals: 2,
+          GNEsportLeagueStat.fieldGoalsConceded: 1,
+          GNEsportLeagueStat.fieldWins: 1,
+          GNEsportLeagueStat.fieldDraws: 0,
+          GNEsportLeagueStat.fieldLosses: 0,
+        });
+        expect(await statFor('atomic-8', 'u2'), {
+          GNEsportLeagueStat.fieldUserId: 'u2',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-8',
+          GNEsportLeagueStat.fieldMatchesPlayed: 1,
+          GNEsportLeagueStat.fieldGoals: 1,
+          GNEsportLeagueStat.fieldGoalsConceded: 2,
+          GNEsportLeagueStat.fieldWins: 0,
+          GNEsportLeagueStat.fieldDraws: 0,
+          GNEsportLeagueStat.fieldLosses: 1,
+        });
+      },
+    );
+
+    test(
+      'concurrent legacy null version allows one success and one conflict',
+      () async {
+        final controlled = _ControlledTransactionFirestore();
+        fakeFirestore = controlled;
+        fs = GNFirestore(controlled);
+        final matchId = await seedMatch(leagueId: 'atomic-legacy-race');
+        await seedStat(
+          id: 'legacy-race-home-random',
+          leagueId: 'atomic-legacy-race',
+          userId: 'u1',
+        );
+        await seedStat(
+          id: 'legacy-race-away-random',
+          leagueId: 'atomic-legacy-race',
+          userId: 'u2',
+        );
+
+        final outcomes = await Future.wait([
+          capture(
+            fs.updateMatchAtomically(
+              matchId: matchId,
+              leagueId: 'atomic-legacy-race',
+              homeScore: 2,
+              awayScore: 0,
+              expectedUpdatedAt: null,
+            ),
+          ),
+          capture(
+            fs.updateMatchAtomically(
+              matchId: matchId,
+              leagueId: 'atomic-legacy-race',
+              homeScore: 4,
+              awayScore: 1,
+              expectedUpdatedAt: null,
+            ),
+          ),
+        ]);
+
+        expect(outcomes.where((result) => result == null), hasLength(1));
+        expect(
+          outcomes.whereType<ConcurrentMatchUpdateException>(),
+          hasLength(1),
+        );
+        final match = (await matchesCollection(
+          'atomic-legacy-race',
+        ).doc(matchId).get()).data()!;
+        final homeStat = await statFor('atomic-legacy-race', 'u1');
+        final awayStat = await statFor('atomic-legacy-race', 'u2');
+        expect(match[GNEsportMatch.fieldUpdatedAt], isA<Timestamp>());
+        expect(
+          (
+            homeScore: match[GNEsportMatch.fieldHomeScore],
+            awayScore: match[GNEsportMatch.fieldAwayScore],
+            homeGoals: homeStat[GNEsportLeagueStat.fieldGoals],
+            homeConceded: homeStat[GNEsportLeagueStat.fieldGoalsConceded],
+            awayGoals: awayStat[GNEsportLeagueStat.fieldGoals],
+            awayConceded: awayStat[GNEsportLeagueStat.fieldGoalsConceded],
+          ),
+          anyOf(
+            (
+              homeScore: 2,
+              awayScore: 0,
+              homeGoals: 2,
+              homeConceded: 0,
+              awayGoals: 0,
+              awayConceded: 2,
+            ),
+            (
+              homeScore: 4,
+              awayScore: 1,
+              homeGoals: 4,
+              homeConceded: 1,
+              awayGoals: 1,
+              awayConceded: 4,
+            ),
+          ),
+        );
+        expect(homeStat[GNEsportLeagueStat.fieldMatchesPlayed], 1);
+        expect(homeStat[GNEsportLeagueStat.fieldWins], 1);
+        expect(homeStat[GNEsportLeagueStat.fieldDraws], 0);
+        expect(homeStat[GNEsportLeagueStat.fieldLosses], 0);
+        expect(awayStat[GNEsportLeagueStat.fieldMatchesPlayed], 1);
+        expect(awayStat[GNEsportLeagueStat.fieldWins], 0);
+        expect(awayStat[GNEsportLeagueStat.fieldDraws], 0);
+        expect(awayStat[GNEsportLeagueStat.fieldLosses], 1);
+      },
+    );
+
+    test(
+      'concurrent different matches sharing a player preserve both deltas',
+      () async {
+        final controlled = _ControlledTransactionFirestore();
+        fakeFirestore = controlled;
+        fs = GNFirestore(controlled);
+        final firstVersion = Timestamp.fromDate(DateTime(2026, 8, 1, 10));
+        final secondVersion = Timestamp.fromDate(DateTime(2026, 8, 1, 11));
+        final firstMatchId = await seedMatch(
+          leagueId: 'atomic-9',
+          home: 'u1',
+          away: 'u2',
+          updatedAt: firstVersion,
+        );
+        final secondMatchId = await seedMatch(
+          leagueId: 'atomic-9',
+          home: 'u3',
+          away: 'u1',
+          updatedAt: secondVersion,
+        );
+        for (final userId in ['u1', 'u2', 'u3']) {
+          await seedStat(
+            id: 'shared-$userId',
+            leagueId: 'atomic-9',
+            userId: userId,
+          );
+        }
+
+        await Future.wait<void>([
+          () async {
+            await fs.updateMatchAtomically(
+              matchId: firstMatchId,
+              leagueId: 'atomic-9',
+              homeScore: 2,
+              awayScore: 0,
+              expectedUpdatedAt: firstVersion,
+            );
+          }(),
+          () async {
+            await fs.updateMatchAtomically(
+              matchId: secondMatchId,
+              leagueId: 'atomic-9',
+              homeScore: 1,
+              awayScore: 3,
+              expectedUpdatedAt: secondVersion,
+            );
+          }(),
+        ]);
+
+        expect(await statFor('atomic-9', 'u1'), {
+          GNEsportLeagueStat.fieldUserId: 'u1',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-9',
+          GNEsportLeagueStat.fieldMatchesPlayed: 2,
+          GNEsportLeagueStat.fieldGoals: 5,
+          GNEsportLeagueStat.fieldGoalsConceded: 1,
+          GNEsportLeagueStat.fieldWins: 2,
+          GNEsportLeagueStat.fieldDraws: 0,
+          GNEsportLeagueStat.fieldLosses: 0,
+        });
+        expect(await statFor('atomic-9', 'u2'), {
+          GNEsportLeagueStat.fieldUserId: 'u2',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-9',
+          GNEsportLeagueStat.fieldMatchesPlayed: 1,
+          GNEsportLeagueStat.fieldGoals: 0,
+          GNEsportLeagueStat.fieldGoalsConceded: 2,
+          GNEsportLeagueStat.fieldWins: 0,
+          GNEsportLeagueStat.fieldDraws: 0,
+          GNEsportLeagueStat.fieldLosses: 1,
+        });
+        expect(await statFor('atomic-9', 'u3'), {
+          GNEsportLeagueStat.fieldUserId: 'u3',
+          GNEsportLeagueStat.fieldLeagueId: 'atomic-9',
+          GNEsportLeagueStat.fieldMatchesPlayed: 1,
+          GNEsportLeagueStat.fieldGoals: 1,
+          GNEsportLeagueStat.fieldGoalsConceded: 3,
+          GNEsportLeagueStat.fieldWins: 0,
+          GNEsportLeagueStat.fieldDraws: 0,
+          GNEsportLeagueStat.fieldLosses: 1,
+        });
+      },
+    );
+
+    test(
+      'concurrent same version allows one success and one conflict',
+      () async {
+        final controlled = _ControlledTransactionFirestore();
+        fakeFirestore = controlled;
+        fs = GNFirestore(controlled);
+        final version = Timestamp.fromDate(DateTime(2026, 8, 2));
+        final matchId = await seedMatch(
+          leagueId: 'atomic-10',
+          updatedAt: version,
+        );
+        await seedStat(
+          id: 'conflict-home',
+          leagueId: 'atomic-10',
+          userId: 'u1',
+        );
+        await seedStat(
+          id: 'conflict-away',
+          leagueId: 'atomic-10',
+          userId: 'u2',
+        );
+
+        final outcomes = await Future.wait([
+          capture(
+            fs.updateMatchAtomically(
+              matchId: matchId,
+              leagueId: 'atomic-10',
+              homeScore: 2,
+              awayScore: 0,
+              expectedUpdatedAt: version,
+            ),
+          ),
+          capture(
+            fs.updateMatchAtomically(
+              matchId: matchId,
+              leagueId: 'atomic-10',
+              homeScore: 4,
+              awayScore: 1,
+              expectedUpdatedAt: version,
+            ),
+          ),
+        ]);
+
+        expect(outcomes.where((result) => result == null), hasLength(1));
+        expect(
+          outcomes.whereType<ConcurrentMatchUpdateException>(),
+          hasLength(1),
+        );
+        final match = (await matchesCollection(
+          'atomic-10',
+        ).doc(matchId).get()).data()!;
+        final homeStat = await statFor('atomic-10', 'u1');
+        final awayStat = await statFor('atomic-10', 'u2');
+        expect(
+          (
+            homeScore: match[GNEsportMatch.fieldHomeScore],
+            awayScore: match[GNEsportMatch.fieldAwayScore],
+            homeGoals: homeStat[GNEsportLeagueStat.fieldGoals],
+            homeConceded: homeStat[GNEsportLeagueStat.fieldGoalsConceded],
+            awayGoals: awayStat[GNEsportLeagueStat.fieldGoals],
+            awayConceded: awayStat[GNEsportLeagueStat.fieldGoalsConceded],
+          ),
+          anyOf(
+            (
+              homeScore: 2,
+              awayScore: 0,
+              homeGoals: 2,
+              homeConceded: 0,
+              awayGoals: 0,
+              awayConceded: 2,
+            ),
+            (
+              homeScore: 4,
+              awayScore: 1,
+              homeGoals: 4,
+              homeConceded: 1,
+              awayGoals: 1,
+              awayConceded: 4,
+            ),
+          ),
+        );
+        expect(homeStat[GNEsportLeagueStat.fieldMatchesPlayed], 1);
+        expect(homeStat[GNEsportLeagueStat.fieldWins], 1);
+        expect(awayStat[GNEsportLeagueStat.fieldMatchesPlayed], 1);
+        expect(awayStat[GNEsportLeagueStat.fieldLosses], 1);
+      },
+    );
   });
 
   group('createCustomMatch', () {
@@ -1068,31 +1587,12 @@ void main() {
     test('finished match bị xoá và stats được undo', () async {
       await fs.addLeagueStat(userId: 'u1', leagueId: 'L1');
       await fs.addLeagueStat(userId: 'u2', leagueId: 'L1');
-      final matchId = await seedMatch(
+      final matchId = await seedMatch(leagueId: 'L1');
+      await fs.updateMatchAtomically(
+        matchId: matchId,
         leagueId: 'L1',
-        finished: true,
         homeScore: 3,
         awayScore: 1,
-      );
-      await fs.applyMatchStatDelta(
-        previous: GNEsportMatch(
-          id: matchId,
-          leagueId: 'L1',
-          homeTeamId: 'u1',
-          awayTeamId: 'u2',
-          date: DateTime(2026, 5, 10),
-          isFinished: false,
-        ),
-        updated: GNEsportMatch(
-          id: matchId,
-          leagueId: 'L1',
-          homeTeamId: 'u1',
-          awayTeamId: 'u2',
-          homeScore: 3,
-          awayScore: 1,
-          date: DateTime(2026, 5, 10),
-          isFinished: true,
-        ),
       );
 
       await fs.deleteMatch(

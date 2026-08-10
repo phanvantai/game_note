@@ -1,50 +1,114 @@
 part of 'tournament_detail_bloc.dart';
 
+enum TournamentDetailSlice { league, stats, matches }
+
+enum DetailSliceStatus { waiting, ready, failed }
+
+enum DetailBootstrapStatus { loading, ready, failure }
+
 class TournamentDetailState extends Equatable {
   final ViewStatus viewStatus;
+  final DetailSliceStatus leagueSliceStatus;
+  final DetailSliceStatus statsSliceStatus;
+  final DetailSliceStatus matchesSliceStatus;
   final GNEsportLeague? league;
   final List<GNEsportLeagueStat> participants;
   final List<GNEsportMatch> matches;
-  final List<GNUser> users;
+  final Map<String, GNUser> usersById;
+  final Set<String> pendingMatchIds;
+  final Map<String, String> matchErrorsById;
+  final Map<TournamentDetailSlice, String> streamErrors;
+  final bool leagueDeleted;
   final String errorMessage;
 
-  /// Bumped every time `GetParticipantsAndMatches` finishes (success OR
-  /// failure). Lets pull-to-refresh detect completion even when the new
-  /// data equals the old data — without it Equatable suppresses the emit
-  /// and the RefreshIndicator spins forever.
+  /// Bumped when `EnsureDetailSubscriptions` finishes its subscription
+  /// health check. Lets pull-to-refresh detect completion even when no
+  /// detail data changed — otherwise Equatable suppresses the emit and the
+  /// RefreshIndicator spins forever.
   final int refreshTick;
   // full mode: which group tab is currently selected (null = no selection)
   final String? selectedGroupId;
 
   const TournamentDetailState({
     this.viewStatus = ViewStatus.initial,
+    this.leagueSliceStatus = DetailSliceStatus.waiting,
+    this.statsSliceStatus = DetailSliceStatus.waiting,
+    this.matchesSliceStatus = DetailSliceStatus.waiting,
     this.league,
     this.participants = const [],
     this.matches = const [],
     this.errorMessage = '',
-    this.users = const [],
+    this.usersById = const {},
+    this.pendingMatchIds = const {},
+    this.matchErrorsById = const {},
+    this.streamErrors = const {},
+    this.leagueDeleted = false,
     this.refreshTick = 0,
     this.selectedGroupId,
   });
 
+  List<GNUser> get users => usersById.values.toList(growable: false);
+
+  DetailBootstrapStatus get bootstrapStatus {
+    if (leagueDeleted ||
+        (league == null && leagueSliceStatus == DetailSliceStatus.failed)) {
+      return DetailBootstrapStatus.failure;
+    }
+
+    if (league != null &&
+        statsSliceStatus != DetailSliceStatus.waiting &&
+        matchesSliceStatus != DetailSliceStatus.waiting) {
+      return DetailBootstrapStatus.ready;
+    }
+
+    return DetailBootstrapStatus.loading;
+  }
+
   TournamentDetailState copyWith({
     ViewStatus? viewStatus,
+    DetailSliceStatus? leagueSliceStatus,
+    DetailSliceStatus? statsSliceStatus,
+    DetailSliceStatus? matchesSliceStatus,
     GNEsportLeague? league,
     List<GNEsportLeagueStat>? participants,
     List<GNEsportMatch>? matches,
     String? errorMessage,
+    Map<String, GNUser>? usersById,
+    Set<String>? pendingMatchIds,
+    Map<String, String>? matchErrorsById,
+    Map<TournamentDetailSlice, String>? streamErrors,
+    bool? leagueDeleted,
+    // Temporary compatibility for callers migrating to the keyed cache.
     List<GNUser>? users,
     int? refreshTick,
     String? selectedGroupId,
+    bool clearLeague = false,
     bool clearSelectedGroupId = false,
   }) {
+    final nextUsersById =
+        usersById ??
+        (users == null
+            ? this.usersById
+            : {for (final user in users) user.id: user});
+
     return TournamentDetailState(
       viewStatus: viewStatus ?? this.viewStatus,
-      league: league ?? this.league,
-      participants: participants ?? this.participants,
-      matches: matches ?? this.matches,
+      leagueSliceStatus: leagueSliceStatus ?? this.leagueSliceStatus,
+      statsSliceStatus: statsSliceStatus ?? this.statsSliceStatus,
+      matchesSliceStatus: matchesSliceStatus ?? this.matchesSliceStatus,
+      league: clearLeague ? null : (league ?? this.league),
+      participants: List.unmodifiable(participants ?? this.participants),
+      matches: List.unmodifiable(matches ?? this.matches),
       errorMessage: errorMessage ?? this.errorMessage,
-      users: users ?? this.users,
+      usersById: Map.unmodifiable(nextUsersById),
+      pendingMatchIds: Set.unmodifiable(
+        pendingMatchIds ?? this.pendingMatchIds,
+      ),
+      matchErrorsById: Map.unmodifiable(
+        matchErrorsById ?? this.matchErrorsById,
+      ),
+      streamErrors: Map.unmodifiable(streamErrors ?? this.streamErrors),
+      leagueDeleted: leagueDeleted ?? this.leagueDeleted,
       refreshTick: refreshTick ?? this.refreshTick,
       selectedGroupId: clearSelectedGroupId
           ? null
@@ -55,11 +119,18 @@ class TournamentDetailState extends Equatable {
   @override
   List<Object?> get props => [
     viewStatus,
+    leagueSliceStatus,
+    statsSliceStatus,
+    matchesSliceStatus,
     league,
     participants,
     matches,
     errorMessage,
-    users,
+    usersById,
+    pendingMatchIds,
+    matchErrorsById,
+    streamErrors,
+    leagueDeleted,
     refreshTick,
     selectedGroupId,
   ];

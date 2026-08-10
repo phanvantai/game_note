@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
+import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
@@ -25,6 +26,23 @@ import 'table/table_view.dart';
 import 'widgets/league_share_card.dart';
 import 'widgets/share_preview_bottom_sheet.dart';
 
+typedef _ShellSelection = ({
+  DetailBootstrapStatus bootstrapStatus,
+  TournamentMode mode,
+  bool leagueDeleted,
+});
+
+typedef _HeaderSelection = ({
+  String leagueName,
+  String groupName,
+  DateTime? startDate,
+  DateTime? endDate,
+  String? status,
+  bool canAddParticipant,
+  bool canShare,
+  bool isAdmin,
+});
+
 class TournamentDetailView extends StatefulWidget {
   const TournamentDetailView({super.key});
 
@@ -36,6 +54,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   BannerAd? _bannerAd;
   bool isAdsLoaded = false;
+  bool _renderShareCards = false;
+  _ShareRenderPayload? _sharePayload;
 
   @override
   void initState() {
@@ -54,7 +74,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       final bloc = context.read<TournamentDetailBloc>();
       final leagueId = bloc.state.league?.id;
       if (leagueId != null) {
-        bloc.add(GetParticipantsAndMatches(leagueId));
+        bloc.add(EnsureDetailSubscriptions(leagueId));
       }
     }
   }
@@ -72,190 +92,177 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
     super.build(context);
     final theme = Theme.of(context);
 
-    return BlocBuilder<TournamentDetailBloc, TournamentDetailState>(
-      builder: (context, state) {
-        final mode = state.league?.mode ?? TournamentMode.league;
+    return Stack(
+      children: [
+        BlocSelector<
+          TournamentDetailBloc,
+          TournamentDetailState,
+          _ShellSelection
+        >(
+          selector: (state) => (
+            bootstrapStatus: state.bootstrapStatus,
+            mode: state.league?.mode ?? TournamentMode.league,
+            leagueDeleted: state.leagueDeleted,
+          ),
+          builder: (context, shell) {
+            final mode = shell.mode;
 
-        final List<Tab> tabs;
-        final List<Widget> tabViews;
-        switch (mode) {
-          case TournamentMode.cup:
-            tabs = [
-              Tab(text: context.l10n.tournamentTabBracket),
-              Tab(text: context.l10n.tournamentTabResults),
-              Tab(text: context.l10n.tournamentTabCost),
-            ];
-            tabViews = const [
-              BracketView(),
-              EsportMatchesView(isFixtures: false),
-              CostSplitView(),
-            ];
-          case TournamentMode.full:
-            tabs = [
-              Tab(text: context.l10n.tournamentTabGroups),
-              Tab(text: context.l10n.tournamentTabBracket),
-              Tab(text: context.l10n.tournamentTabResults),
-              Tab(text: context.l10n.tournamentTabCost),
-            ];
-            tabViews = const [
-              GroupStandingsView(),
-              BracketView(),
-              EsportMatchesView(isFixtures: false),
-              CostSplitView(),
-            ];
-          case TournamentMode.league:
-            tabs = [
-              Tab(text: context.l10n.tournamentTabStandings),
-              Tab(text: context.l10n.tournamentTabFixtures),
-              Tab(text: context.l10n.tournamentTabResults),
-              Tab(text: context.l10n.tournamentTabCost),
-            ];
-            tabViews = const [
-              EsportTableView(),
-              EsportMatchesView(isFixtures: true),
-              EsportMatchesView(isFixtures: false),
-              CostSplitView(),
-            ];
-        }
+            final List<Tab> tabs;
+            final List<Widget> tabViews;
+            switch (mode) {
+              case TournamentMode.cup:
+                tabs = [
+                  Tab(text: context.l10n.tournamentTabBracket),
+                  Tab(text: context.l10n.tournamentTabResults),
+                  Tab(text: context.l10n.tournamentTabCost),
+                ];
+                tabViews = const [
+                  BracketView(),
+                  EsportMatchesView(isFixtures: false),
+                  CostSplitView(),
+                ];
+              case TournamentMode.full:
+                tabs = [
+                  Tab(text: context.l10n.tournamentTabGroups),
+                  Tab(text: context.l10n.tournamentTabBracket),
+                  Tab(text: context.l10n.tournamentTabResults),
+                  Tab(text: context.l10n.tournamentTabCost),
+                ];
+                tabViews = const [
+                  GroupStandingsView(),
+                  BracketView(),
+                  EsportMatchesView(isFixtures: false),
+                  CostSplitView(),
+                ];
+              case TournamentMode.league:
+                tabs = [
+                  Tab(text: context.l10n.tournamentTabStandings),
+                  Tab(text: context.l10n.tournamentTabFixtures),
+                  Tab(text: context.l10n.tournamentTabResults),
+                  Tab(text: context.l10n.tournamentTabCost),
+                ];
+                tabViews = const [
+                  EsportTableView(),
+                  EsportMatchesView(isFixtures: true),
+                  EsportMatchesView(isFixtures: false),
+                  CostSplitView(),
+                ];
+            }
 
-        return DefaultTabController(
-          key: ValueKey(mode),
-          length: tabs.length,
-          child: Scaffold(
-            backgroundColor: theme.scaffoldBackgroundColor,
-            body: AppPageBackground(
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    _TournamentDetailHero(
-                      state: state,
-                      leagueName: _leagueName(state),
-                      // coverage:ignore-start
-                      onBack: () => Navigator.of(context).maybePop(),
-                      onAddParticipant:
-                          state.currentUserIsMember &&
-                              state.league?.status !=
-                                  GNEsportLeagueStatus.finished.value
-                          ? () => _addParticipant(context, state)
-                          : null,
-                      // coverage:ignore-end
-                      onMenuSelected: (value) {
-                        switch (value) {
-                          case 'share':
-                            _shareStandings(state); // coverage:ignore-line
-                            break;
-                          case 'change_status':
-                            _changeStatus(context, state);
-                            break;
-                          case 'recompute_stats':
-                            _recomputeStats(context);
-                            break;
-                          case 'delete':
-                            _deleteLeague(context);
-                            break;
-                        }
-                      },
-                    ),
-                    _TournamentDetailTabBar(tabs: tabs),
-                    Expanded(
-                      child: Stack(
+            return KeyedSubtree(
+              key: const Key('tournament-detail-shell'),
+              child: DefaultTabController(
+                key: ValueKey(mode),
+                length: tabs.length,
+                child: Scaffold(
+                  backgroundColor: theme.scaffoldBackgroundColor,
+                  body: AppPageBackground(
+                    child: SafeArea(
+                      child: Column(
                         children: [
-                          TabBarView(children: tabViews),
-                          if (state.viewStatus.isLoading)
-                            const Positioned(
-                              top: 0,
-                              right: 0,
-                              left: 0,
-                              child: LinearProgressIndicator(minHeight: 3),
+                          BlocSelector<
+                            TournamentDetailBloc,
+                            TournamentDetailState,
+                            _HeaderSelection
+                          >(
+                            selector: (state) => (
+                              leagueName: _leagueName(state),
+                              groupName:
+                                  state.league?.group?.groupName ??
+                                  'Chưa rõ nhóm',
+                              startDate: state.league?.startDate,
+                              endDate: state.league?.endDate,
+                              status: state.league?.status,
+                              canAddParticipant:
+                                  state.currentUserIsMember &&
+                                  state.league?.status !=
+                                      GNEsportLeagueStatus.finished.value,
+                              canShare:
+                                  !kIsWeb && state.participants.isNotEmpty,
+                              isAdmin: state.currentUserIsLeagueAdmin,
                             ),
-
-                          // coverage:ignore-start
-                          // Off-screen share cards (dark + light) — outside visible area
-                          // so Flutter fully paints them (required for toImage()).
-                          Positioned(
-                            left: -_shareCardWidth - 10,
-                            top: 0,
-                            child: RepaintBoundary(
-                              key: _shareCardKey,
-                              child: LeagueShareCard(
-                                leagueName: _leagueName(state),
-                                participants: state.participants,
-                                cardWidth: _shareCardWidth,
-                                isDark: true,
-                              ),
+                            builder: (context, header) => _TournamentDetailHero(
+                              key: const Key('tournament-detail-header'),
+                              leagueName: header.leagueName,
+                              groupName: header.groupName,
+                              startDate: header.startDate,
+                              endDate: header.endDate,
+                              status: header.status,
+                              canShare: header.canShare,
+                              isAdmin: header.isAdmin,
+                              // coverage:ignore-start
+                              onBack: () => Navigator.of(context).maybePop(),
+                              onAddParticipant: header.canAddParticipant
+                                  ? () => _addParticipant(
+                                      context,
+                                      context
+                                          .read<TournamentDetailBloc>()
+                                          .state,
+                                    )
+                                  : null,
+                              // coverage:ignore-end
+                              onMenuSelected: (value) {
+                                final latestState = context
+                                    .read<TournamentDetailBloc>()
+                                    .state;
+                                switch (value) {
+                                  case 'share':
+                                    _shareStandings(
+                                      latestState,
+                                    ); // coverage:ignore-line
+                                    break;
+                                  case 'change_status':
+                                    _changeStatus(context, latestState);
+                                    break;
+                                  case 'recompute_stats':
+                                    _recomputeStats(context);
+                                    break;
+                                  case 'delete':
+                                    _deleteLeague(context);
+                                    break;
+                                }
+                              },
                             ),
                           ),
-                          Positioned(
-                            left: -_shareCardWidth - 10,
-                            top: 0,
-                            child: RepaintBoundary(
-                              key: _shareCardLightKey,
-                              child: LeagueShareCard(
-                                leagueName: _leagueName(state),
-                                participants: state.participants,
-                                cardWidth: _shareCardWidth,
-                                isDark: false,
-                              ),
+                          _TournamentDetailTabBar(tabs: tabs),
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                TabBarView(children: tabViews),
+                                if (shell.bootstrapStatus ==
+                                    DetailBootstrapStatus.loading)
+                                  const Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    left: 0,
+                                    child: LinearProgressIndicator(
+                                      minHeight: 3,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                          if (_canShareCost(state)) ...[
-                            Positioned(
-                              left: -_shareCardWidth - 10,
-                              top: 0,
-                              child: RepaintBoundary(
-                                key: _shareCardCostKey,
-                                child: LeagueShareCard(
-                                  leagueName: _leagueName(state),
-                                  participants: state.participants,
-                                  cardWidth: _shareCardWidth,
-                                  isDark: true,
-                                  includeRankCost: true,
-                                  rankPayouts: state.league!.rankPayouts,
-                                  matches: state.matches,
-                                  knockoutMatches: state.knockoutMatches,
-                                  isBracketMode: _isBracketMode(state),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: -_shareCardWidth - 10,
-                              top: 0,
-                              child: RepaintBoundary(
-                                key: _shareCardLightCostKey,
-                                child: LeagueShareCard(
-                                  leagueName: _leagueName(state),
-                                  participants: state.participants,
-                                  cardWidth: _shareCardWidth,
-                                  isDark: false,
-                                  includeRankCost: true,
-                                  rankPayouts: state.league!.rankPayouts,
-                                  matches: state.matches,
-                                  knockoutMatches: state.knockoutMatches,
-                                  isBracketMode: _isBracketMode(state),
-                                ),
-                              ),
-                            ),
-                          ],
-                          // coverage:ignore-end
                         ],
                       ),
                     ),
-                  ],
+                  ),
+                  // coverage:ignore-start
+                  bottomNavigationBar: (!kIsWeb && _bannerAd != null)
+                      ? SizedBox(
+                          width: _bannerAd!.size.width.toDouble(),
+                          height: _bannerAd!.size.height.toDouble(),
+                          child: AdWidget(ad: _bannerAd!),
+                        )
+                      : null,
+                  // coverage:ignore-end
                 ),
               ),
-            ),
-            // coverage:ignore-start
-            bottomNavigationBar: (!kIsWeb && _bannerAd != null)
-                ? SizedBox(
-                    width: _bannerAd!.size.width.toDouble(),
-                    height: _bannerAd!.size.height.toDouble(),
-                    child: AdWidget(ad: _bannerAd!),
-                  )
-                : null,
-            // coverage:ignore-end
-          ),
-        );
-      },
+            );
+          },
+        ),
+        if (_renderShareCards && _sharePayload != null)
+          _buildShareLayer(_sharePayload!),
+      ],
     );
   }
 
@@ -287,6 +294,48 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   // coverage:ignore-end
 
   // coverage:ignore-start
+  Widget _buildShareLayer(_ShareRenderPayload payload) {
+    Widget card({
+      required GlobalKey key,
+      required bool isDark,
+      bool cost = false,
+    }) {
+      return Positioned(
+        left: -_shareCardWidth - 10,
+        top: 0,
+        child: RepaintBoundary(
+          key: key,
+          child: LeagueShareCard(
+            leagueName: payload.leagueName,
+            participants: payload.participants,
+            cardWidth: _shareCardWidth,
+            isDark: isDark,
+            includeRankCost: cost,
+            rankPayouts: cost ? payload.rankPayouts : const [],
+            matches: cost ? payload.matches : const [],
+            knockoutMatches: cost ? payload.knockoutMatches : const [],
+            isBracketMode: cost && payload.isBracketMode,
+          ),
+        ),
+      );
+    }
+
+    return Positioned.fill(
+      key: const Key('tournament-share-layer'),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          card(key: _shareCardKey, isDark: true),
+          card(key: _shareCardLightKey, isDark: false),
+          if (payload.includeCost) ...[
+            card(key: _shareCardCostKey, isDark: true, cost: true),
+            card(key: _shareCardLightCostKey, isDark: false, cost: true),
+          ],
+        ],
+      ),
+    );
+  }
+
   Future<void> _shareStandings(TournamentDetailState state) async {
     Future<Uint8List?> capture(GlobalKey key) async {
       final boundary =
@@ -297,28 +346,55 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
       return byteData?.buffer.asUint8List();
     }
 
-    final includeCost = _canShareCost(state);
-    final results = await Future.wait([
-      capture(_shareCardKey),
-      capture(_shareCardLightKey),
-      if (includeCost) capture(_shareCardCostKey),
-      if (includeCost) capture(_shareCardLightCostKey),
-    ]);
-    final darkBytes = results[0];
-    final lightBytes = results[1];
-    if (darkBytes == null || lightBytes == null) return;
-    final darkCostBytes = includeCost ? results[2] : null;
-    final lightCostBytes = includeCost ? results[3] : null;
+    if (_renderShareCards || !mounted) return;
 
-    if (!mounted) return;
-    await showSharePreviewBottomSheet(
-      context: context,
-      darkImageBytes: darkBytes,
-      lightImageBytes: lightBytes,
+    final payload = _ShareRenderPayload(
       leagueName: _leagueName(state),
-      darkCostImageBytes: darkCostBytes,
-      lightCostImageBytes: lightCostBytes,
+      participants: state.participants,
+      includeCost: _canShareCost(state),
+      rankPayouts: state.league?.rankPayouts ?? const [],
+      matches: state.matches,
+      knockoutMatches: state.knockoutMatches,
+      isBracketMode: _isBracketMode(state),
     );
+    setState(() {
+      _sharePayload = payload;
+      _renderShareCards = true;
+    });
+
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+
+      final results = await Future.wait([
+        capture(_shareCardKey),
+        capture(_shareCardLightKey),
+        if (payload.includeCost) capture(_shareCardCostKey),
+        if (payload.includeCost) capture(_shareCardLightCostKey),
+      ]);
+      final darkBytes = results[0];
+      final lightBytes = results[1];
+      if (darkBytes == null || lightBytes == null) return;
+      final darkCostBytes = payload.includeCost ? results[2] : null;
+      final lightCostBytes = payload.includeCost ? results[3] : null;
+
+      if (!mounted) return;
+      await showSharePreviewBottomSheet(
+        context: context,
+        darkImageBytes: darkBytes,
+        lightImageBytes: lightBytes,
+        leagueName: payload.leagueName,
+        darkCostImageBytes: darkCostBytes,
+        lightCostImageBytes: lightCostBytes,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _renderShareCards = false;
+          _sharePayload = null;
+        });
+      }
+    }
   }
   // coverage:ignore-end
 
@@ -468,16 +544,50 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   // coverage:ignore-end
 }
 
-class _TournamentDetailHero extends StatelessWidget {
-  final TournamentDetailState state;
+class _ShareRenderPayload {
   final String leagueName;
+  final List<GNEsportLeagueStat> participants;
+  final bool includeCost;
+  final List<int> rankPayouts;
+  final List<GNEsportMatch> matches;
+  final List<GNEsportMatch> knockoutMatches;
+  final bool isBracketMode;
+
+  _ShareRenderPayload({
+    required this.leagueName,
+    required List<GNEsportLeagueStat> participants,
+    required this.includeCost,
+    required List<int> rankPayouts,
+    required List<GNEsportMatch> matches,
+    required List<GNEsportMatch> knockoutMatches,
+    required this.isBracketMode,
+  }) : participants = List.unmodifiable(participants),
+       rankPayouts = List.unmodifiable(rankPayouts),
+       matches = List.unmodifiable(matches),
+       knockoutMatches = List.unmodifiable(knockoutMatches);
+}
+
+class _TournamentDetailHero extends StatelessWidget {
+  final String leagueName;
+  final String groupName;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String? status;
+  final bool canShare;
+  final bool isAdmin;
   final VoidCallback onBack;
   final VoidCallback? onAddParticipant;
   final ValueChanged<String> onMenuSelected;
 
   const _TournamentDetailHero({
-    required this.state,
+    super.key,
     required this.leagueName,
+    required this.groupName,
+    required this.startDate,
+    required this.endDate,
+    required this.status,
+    required this.canShare,
+    required this.isAdmin,
     required this.onBack,
     required this.onAddParticipant,
     required this.onMenuSelected,
@@ -487,18 +597,14 @@ class _TournamentDetailHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final league = state.league;
-    final status = GNEsportLeagueStatusExtension.fromString(league?.status);
-    final groupName = league?.group?.groupName ?? 'Chưa rõ nhóm';
-    final hasMenuActions =
-        (!kIsWeb && state.participants.isNotEmpty) ||
-        state.currentUserIsLeagueAdmin;
+    final leagueStatus = GNEsportLeagueStatusExtension.fromString(status);
+    final hasMenuActions = canShare || isAdmin;
     // coverage:ignore-start
-    final dateLabel = league == null
+    final dateLabel = startDate == null
         ? 'Đang tải'
-        : league.endDate == null
-        ? DateFormat('dd/MM/yyyy').format(league.startDate)
-        : '${DateFormat('dd/MM').format(league.startDate)} - ${DateFormat('dd/MM/yyyy').format(league.endDate!)}';
+        : endDate == null
+        ? DateFormat('dd/MM/yyyy').format(startDate!)
+        : '${DateFormat('dd/MM').format(startDate!)} - ${DateFormat('dd/MM/yyyy').format(endDate!)}';
     // coverage:ignore-end
     final metadata = '$groupName • $dateLabel';
 
@@ -547,7 +653,7 @@ class _TournamentDetailHero extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _StatusPill(status: status),
+                        _StatusPill(status: leagueStatus),
                       ],
                     ),
                     const SizedBox(height: 3),
@@ -578,7 +684,7 @@ class _TournamentDetailHero extends StatelessWidget {
                   onSelected: onMenuSelected,
                   icon: Icon(Icons.more_horiz, color: colorScheme.onSurface),
                   itemBuilder: (context) => [
-                    if (!kIsWeb && state.participants.isNotEmpty)
+                    if (canShare)
                       PopupMenuItem(
                         value: 'share',
                         child: ListTile(
@@ -587,7 +693,7 @@ class _TournamentDetailHero extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
-                    if (state.currentUserIsLeagueAdmin)
+                    if (isAdmin)
                       PopupMenuItem(
                         value: 'change_status',
                         child: ListTile(
@@ -596,7 +702,7 @@ class _TournamentDetailHero extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
-                    if (state.currentUserIsLeagueAdmin)
+                    if (isAdmin)
                       PopupMenuItem(
                         value: 'recompute_stats',
                         child: ListTile(
@@ -607,7 +713,7 @@ class _TournamentDetailHero extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
-                    if (state.currentUserIsLeagueAdmin)
+                    if (isAdmin)
                       PopupMenuItem(
                         value: 'delete',
                         child: ListTile(

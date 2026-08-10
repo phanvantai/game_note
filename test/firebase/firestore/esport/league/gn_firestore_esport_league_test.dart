@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -64,5 +66,19 @@ void main() {
 
     final snap = await ref.get();
     expect(snap.data()?[GNEsportLeague.fieldOwnerId], 'u1');
+  });
+
+  test('deleted document emits null without a mapping error', () async {
+    final ref = await createLeague(ownerId: 'owner');
+    final stream = StreamIterator(fs.listenForLeagueUpdated(ref.id));
+    addTearDown(stream.cancel);
+
+    expect(await stream.moveNext(), isTrue);
+    expect(stream.current, isNotNull);
+
+    await ref.delete();
+
+    expect(await stream.moveNext(), isTrue);
+    expect(stream.current, isNull);
   });
 }
