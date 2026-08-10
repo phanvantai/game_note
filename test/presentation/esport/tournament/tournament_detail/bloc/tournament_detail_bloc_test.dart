@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -25,6 +26,16 @@ class _MockGroupRepo extends Mock implements EsportGroupRepository {}
 class _FakeMatch extends Fake implements GNEsportMatch {}
 
 class _FakeLeague extends Fake implements GNEsportLeague {}
+
+class _RecordingBlocObserver extends BlocObserver {
+  final List<Object?> events = [];
+
+  @override
+  void onEvent(Bloc<dynamic, dynamic> bloc, Object? event) {
+    super.onEvent(bloc, event);
+    if (bloc is TournamentDetailBloc) events.add(event);
+  }
+}
 
 class _LeagueStreams {
   final league = StreamController<GNEsportLeague?>.broadcast();
@@ -381,6 +392,101 @@ void main() {
     );
 
     test(
+      'user cache race late L1 completion cannot clear the in-flight L2 marker',
+      () async {
+        final l1 = _LeagueStreams();
+        final l2 = _LeagueStreams();
+        addTearDown(l1.close);
+        addTearDown(l2.close);
+        _stubStreams(repo, l1, 'L1');
+        _stubStreams(repo, l2, 'L2');
+        final l1Started = Completer<void>();
+        final l2Started = Completer<void>();
+        final duplicateStarted = Completer<void>();
+        final l1Users = Completer<Map<String, GNUser>>();
+        final l2Users = Completer<Map<String, GNUser>>();
+        final duplicateUsers = Completer<Map<String, GNUser>>();
+        final batches = <List<String>>[];
+        when(() => repo.getUsersByIds(any())).thenAnswer((invocation) {
+          final ids = List<String>.of(
+            invocation.positionalArguments.single as List<String>,
+          );
+          batches.add(ids);
+          switch (batches.length) {
+            case 1:
+              l1Started.complete();
+              return l1Users.future;
+            case 2:
+              l2Started.complete();
+              return l2Users.future;
+            default:
+              if (!duplicateStarted.isCompleted) duplicateStarted.complete();
+              return duplicateUsers.future;
+          }
+        });
+        final bloc = build();
+        addTearDown(bloc.close);
+        addTearDown(() {
+          if (!l1Users.isCompleted) l1Users.complete(const {});
+          if (!l2Users.isCompleted) l2Users.complete(const {});
+          if (!duplicateUsers.isCompleted) duplicateUsers.complete(const {});
+        });
+
+        bloc.add(const OpenLeagueDetail('L1'));
+        await _flush();
+        l1.league.add(_league(participants: const ['A'], group: _group('G1')));
+        await l1Started.future.timeout(const Duration(seconds: 1));
+        expect(batches, [
+          ['A'],
+        ]);
+
+        bloc.add(const OpenLeagueDetail('L2'));
+        await _flush(20);
+        l2.league.add(
+          _league(
+            id: 'L2',
+            groupId: 'G2',
+            participants: const ['A'],
+            group: _group('G2'),
+          ),
+        );
+        await l2Started.future.timeout(const Duration(seconds: 1));
+        expect(batches, [
+          ['A'],
+          ['A'],
+        ]);
+
+        l1Users.complete({'A': _user('A', name: 'stale L1')});
+        await _flush(20);
+        expect(bloc.state.league?.id, 'L2');
+        expect(bloc.state.usersById, isEmpty);
+
+        l2.league.add(
+          _league(
+            id: 'L2',
+            groupId: 'G2',
+            name: 'L2 second snapshot',
+            participants: const ['A'],
+            group: _group('G2'),
+          ),
+        );
+        await _flush(20);
+
+        expect(batches, hasLength(2));
+        expect(duplicateStarted.isCompleted, isFalse);
+        verify(() => repo.getUsersByIds(['A'])).called(2);
+
+        l2Users.complete({'A': _user('A', name: 'current L2')});
+        await _waitForState(
+          bloc,
+          (s) => s.usersById['A']?.displayName == 'current L2',
+        );
+        expect(bloc.state.league?.id, 'L2');
+        expect(bloc.state.usersById['A']?.displayName, 'current L2');
+      },
+    );
+
+    test(
       'group cache reuses embedded group and fetches a new groupId once',
       () async {
         final streams = _LeagueStreams();
@@ -461,12 +567,19 @@ void main() {
 
         await firstStats.close();
         await _flush();
+        final refreshTickBeforeRebind = bloc.state.refreshTick;
         bloc.add(const EnsureDetailSubscriptions('L1'));
+        await _waitForState(
+          bloc,
+          (s) => s.refreshTick == refreshTickBeforeRebind + 1,
+        );
         await _flush();
 
         verify(() => repo.listenForLeagueStats('L1')).called(2);
         verify(() => repo.listenForLeagueUpdated('L1')).called(1);
         verify(() => repo.listenForMatchesUpdated('L1')).called(1);
+        expect(bloc.state.refreshTick, refreshTickBeforeRebind + 1);
+        expect(secondStats.hasListener, isTrue);
       },
     );
 
@@ -597,6 +710,272 @@ void main() {
       expect(streams.stats.hasListener, isFalse);
       expect(streams.matches.hasListener, isFalse);
     });
+
+    test(
+      'race latest open wins while previous subscription cancellation is suspended',
+      () async {
+        final cancelStarted = Completer<void>();
+        final releaseCancel = Completer<void>();
+        final l1League = StreamController<GNEsportLeague?>(
+          onCancel: () {
+            if (!cancelStarted.isCompleted) cancelStarted.complete();
+            return releaseCancel.future;
+          },
+        );
+        final l1Stats = StreamController<List<GNEsportLeagueStat>>.broadcast();
+        final l1Matches = StreamController<List<GNEsportMatch>>.broadcast();
+        final l2 = _LeagueStreams();
+        final l3 = _LeagueStreams();
+        addTearDown(() async {
+          if (!releaseCancel.isCompleted) releaseCancel.complete();
+          await l1League.close();
+          await l1Stats.close();
+          await l1Matches.close();
+          await l2.close();
+          await l3.close();
+        });
+        when(
+          () => repo.listenForLeagueUpdated('L1'),
+        ).thenAnswer((_) => l1League.stream);
+        when(
+          () => repo.listenForLeagueStats('L1'),
+        ).thenAnswer((_) => l1Stats.stream);
+        when(
+          () => repo.listenForMatchesUpdated('L1'),
+        ).thenAnswer((_) => l1Matches.stream);
+        _stubStreams(repo, l2, 'L2');
+        _stubStreams(repo, l3, 'L3');
+        final bloc = build();
+        addTearDown(bloc.close);
+        bloc.add(const OpenLeagueDetail('L1'));
+        await _flush();
+        expect(l1League.hasListener, isTrue);
+
+        bloc.add(const OpenLeagueDetail('L2'));
+        await cancelStarted.future.timeout(const Duration(seconds: 1));
+        bloc.add(const OpenLeagueDetail('L3'));
+        await _flush();
+        expect(l3.league.hasListener, isTrue);
+
+        releaseCancel.complete();
+        await _flush(20);
+
+        verifyNever(() => repo.listenForLeagueUpdated('L2'));
+        verifyNever(() => repo.listenForLeagueStats('L2'));
+        verifyNever(() => repo.listenForMatchesUpdated('L2'));
+        verify(() => repo.listenForLeagueUpdated('L3')).called(1);
+        verify(() => repo.listenForLeagueStats('L3')).called(1);
+        verify(() => repo.listenForMatchesUpdated('L3')).called(1);
+        expect(l2.league.hasListener, isFalse);
+        expect(l2.stats.hasListener, isFalse);
+        expect(l2.matches.hasListener, isFalse);
+        expect(l3.league.hasListener, isTrue);
+
+        l3.league.add(_league(id: 'L3', groupId: 'G3', group: _group('G3')));
+        await _flush(20);
+        expect(bloc.state.league?.id, 'L3');
+        l1League.add(_league(id: 'L1', name: 'stale L1'));
+        l2.league.add(_league(id: 'L2', name: 'stale L2'));
+        await _flush();
+        expect(bloc.state.league?.id, 'L3');
+      },
+    );
+
+    test(
+      'race close during suspended open never attaches the next league',
+      () async {
+        final cancelStarted = Completer<void>();
+        final releaseCancel = Completer<void>();
+        final l1League = StreamController<GNEsportLeague?>(
+          onCancel: () {
+            if (!cancelStarted.isCompleted) cancelStarted.complete();
+            return releaseCancel.future;
+          },
+        );
+        final l1Stats = StreamController<List<GNEsportLeagueStat>>.broadcast();
+        final l1Matches = StreamController<List<GNEsportMatch>>.broadcast();
+        final l2 = _LeagueStreams();
+        addTearDown(() async {
+          if (!releaseCancel.isCompleted) releaseCancel.complete();
+          await l1League.close();
+          await l1Stats.close();
+          await l1Matches.close();
+          await l2.close();
+        });
+        when(
+          () => repo.listenForLeagueUpdated('L1'),
+        ).thenAnswer((_) => l1League.stream);
+        when(
+          () => repo.listenForLeagueStats('L1'),
+        ).thenAnswer((_) => l1Stats.stream);
+        when(
+          () => repo.listenForMatchesUpdated('L1'),
+        ).thenAnswer((_) => l1Matches.stream);
+        _stubStreams(repo, l2, 'L2');
+        final bloc = build();
+        bloc.add(const OpenLeagueDetail('L1'));
+        await _flush();
+
+        bloc.add(const OpenLeagueDetail('L2'));
+        await cancelStarted.future.timeout(const Duration(seconds: 1));
+        final closeFuture = bloc.close();
+        releaseCancel.complete();
+        await closeFuture.timeout(const Duration(seconds: 1));
+        await _flush(20);
+
+        expect(bloc.isClosed, isTrue);
+        verifyNever(() => repo.listenForLeagueUpdated('L2'));
+        verifyNever(() => repo.listenForLeagueStats('L2'));
+        verifyNever(() => repo.listenForMatchesUpdated('L2'));
+        expect(l2.league.hasListener, isFalse);
+        expect(l2.stats.hasListener, isFalse);
+        expect(l2.matches.hasListener, isFalse);
+      },
+    );
+
+    test(
+      'race queued Ensure during suspended close cannot reopen another league',
+      () async {
+        final cancelStarted = Completer<void>();
+        final releaseCancel = Completer<void>();
+        final l1League = StreamController<GNEsportLeague?>(
+          onCancel: () {
+            if (!cancelStarted.isCompleted) cancelStarted.complete();
+            return releaseCancel.future;
+          },
+        );
+        final l1Stats = StreamController<List<GNEsportLeagueStat>>.broadcast();
+        final l1Matches = StreamController<List<GNEsportMatch>>.broadcast();
+        final l2 = _LeagueStreams();
+        final uncaughtErrors = <Object>[];
+        final observer = _RecordingBlocObserver();
+        final previousObserver = Bloc.observer;
+        Bloc.observer = observer;
+        late TournamentDetailBloc bloc;
+        addTearDown(() => Bloc.observer = previousObserver);
+        addTearDown(() async {
+          if (!releaseCancel.isCompleted) releaseCancel.complete();
+          await l1League.close();
+          await l1Stats.close();
+          await l1Matches.close();
+          await l2.close();
+        });
+        when(
+          () => repo.listenForLeagueUpdated('L1'),
+        ).thenAnswer((_) => l1League.stream);
+        when(
+          () => repo.listenForLeagueStats('L1'),
+        ).thenAnswer((_) => l1Stats.stream);
+        when(
+          () => repo.listenForMatchesUpdated('L1'),
+        ).thenAnswer((_) => l1Matches.stream);
+        _stubStreams(repo, l2, 'L2');
+
+        await runZonedGuarded<Future<void>>(() async {
+          bloc = build();
+          bloc.add(const OpenLeagueDetail('L1'));
+          await _flush();
+          observer.events.clear();
+          final closeFuture = bloc.close();
+          await cancelStarted.future.timeout(const Duration(seconds: 1));
+
+          bloc.add(const EnsureDetailSubscriptions('L2'));
+          await _flush(20);
+          releaseCancel.complete();
+          await closeFuture.timeout(const Duration(seconds: 1));
+
+          l2.league.add(_league(id: 'L2', groupId: 'G2', group: _group('G2')));
+          await _flush(20);
+        }, (error, _) => uncaughtErrors.add(error));
+
+        expect(bloc.isClosed, isTrue);
+        expect(uncaughtErrors, isEmpty);
+        expect(
+          observer.events.whereType<OpenLeagueDetail>(),
+          isEmpty,
+          reason: 'Ensure queued during close must not enqueue a new open',
+        );
+        verifyNever(() => repo.listenForLeagueUpdated('L2'));
+        verifyNever(() => repo.listenForLeagueStats('L2'));
+        verifyNever(() => repo.listenForMatchesUpdated('L2'));
+        expect(l2.league.hasListener, isFalse);
+        expect(l2.stats.hasListener, isFalse);
+        expect(l2.matches.hasListener, isFalse);
+      },
+    );
+
+    test(
+      'latest group snapshot wins when an older same-league lookup completes later',
+      () async {
+        final streams = _LeagueStreams();
+        addTearDown(streams.close);
+        _stubStreams(repo, streams, 'L1');
+        final g1LookupStarted = Completer<void>();
+        final g1Result = Completer<GNEsportGroup?>();
+        when(() => groupRepo.getGroup('G1')).thenAnswer((_) {
+          g1LookupStarted.complete();
+          return g1Result.future;
+        });
+        when(
+          () => groupRepo.getGroup('G2'),
+        ).thenAnswer((_) async => _group('G2'));
+        final bloc = build();
+        addTearDown(bloc.close);
+        bloc.add(const OpenLeagueDetail('L1'));
+        await _flush();
+
+        streams.league.add(_league(groupId: 'G1', name: 'older'));
+        await g1LookupStarted.future.timeout(const Duration(seconds: 1));
+        streams.league.add(_league(groupId: 'G2', name: 'newer'));
+        await _waitForState(
+          bloc,
+          (s) => s.league?.name == 'newer' && s.league?.group?.id == 'G2',
+        );
+
+        g1Result.complete(_group('G1'));
+        await _flush(20);
+
+        expect(bloc.state.league?.name, 'newer');
+        expect(bloc.state.league?.groupId, 'G2');
+        expect(bloc.state.league?.group?.id, 'G2');
+        verify(() => groupRepo.getGroup('G1')).called(1);
+        verify(() => groupRepo.getGroup('G2')).called(1);
+      },
+    );
+
+    test(
+      'race direct LeagueDeleted terminally cancels listeners, retries, and stale snapshots',
+      () async {
+        final streams = _LeagueStreams();
+        addTearDown(streams.close);
+        _stubStreams(repo, streams, 'L1');
+        final bloc = build();
+        addTearDown(bloc.close);
+        bloc.add(const OpenLeagueDetail('L1'));
+        await _flush();
+        streams.league.add(_league(group: _group('G1')));
+        await _waitForState(bloc, (s) => s.league?.id == 'L1');
+        streams.stats.addError(Exception('stats down'));
+        await _waitForState(
+          bloc,
+          (s) => s.streamErrors.containsKey(TournamentDetailSlice.stats),
+        );
+
+        bloc.add(LeagueDeleted());
+        await _waitForState(bloc, (s) => s.leagueDeleted);
+        streams.league.add(_league(name: 'zombie', group: _group('G1')));
+        await _flush(20);
+
+        expect(streams.league.hasListener, isFalse);
+        expect(streams.stats.hasListener, isFalse);
+        expect(streams.matches.hasListener, isFalse);
+        expect(bloc.state.leagueDeleted, isTrue);
+        expect(bloc.state.league, isNull);
+        await Future<void>.delayed(const Duration(milliseconds: 1100));
+        verify(() => repo.listenForLeagueStats('L1')).called(1);
+      },
+      timeout: const Timeout(Duration(seconds: 3)),
+    );
 
     test(
       'opening a different league cancels old streams and clears caches',

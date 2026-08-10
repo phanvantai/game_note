@@ -21,12 +21,11 @@ class TournamentDetailPage extends StatelessWidget {
       )..add(OpenLeagueDetail(leagueId)),
       child: BlocListener<TournamentDetailBloc, TournamentDetailState>(
         listenWhen: (previous, current) {
-          final leagueWasDeleted =
-              !previous.leagueDeleted && current.leagueDeleted;
-          final leagueBecameInactive =
-              previous.league?.isActive != false &&
-              current.league?.isActive == false;
-          return leagueWasDeleted || leagueBecameInactive;
+          final previousIsTerminal =
+              previous.leagueDeleted || previous.league?.isActive == false;
+          final currentIsTerminal =
+              current.leagueDeleted || current.league?.isActive == false;
+          return !previousIsTerminal && currentIsTerminal;
         },
         listener: (context, state) => context.smartBack(),
         child: const TournamentDetailView(),

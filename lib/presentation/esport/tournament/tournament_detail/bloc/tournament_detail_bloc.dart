@@ -37,9 +37,12 @@ class TournamentDetailBloc
   StreamSubscription<List<GNEsportMatch>>? _matchesSubscription;
 
   String? _activeLeagueId;
+  int _lifecycleEpoch = 0;
+  int _leagueSnapshotSequence = 0;
   int _leagueGeneration = 0;
   int _statsGeneration = 0;
   int _matchesGeneration = 0;
+  bool _isClosing = false;
 
   final Map<TournamentDetailSlice, int> _retryAttempts = {
     TournamentDetailSlice.league: 0,
@@ -55,7 +58,7 @@ class TournamentDetailBloc
   final Map<String, GNEsportGroup> _groupsById = {};
   final Set<String> _resolvedGroupIds = {};
   final Map<String, Future<GNEsportGroup?>> _loadingGroups = {};
-  final Set<String> _loadingUserIds = {};
+  final Map<String, int> _loadingUserEpochById = {};
 
   TournamentDetailBloc(
     EsportLeagueRepository leagueRepository,
@@ -101,18 +104,21 @@ class TournamentDetailBloc
     OpenLeagueDetail event,
     Emitter<TournamentDetailState> emit,
   ) async {
+    if (_isClosing || isClosed || emit.isDone) return;
     if (_activeLeagueId == event.leagueId) {
       _ensureSubscriptions(event.leagueId, emit);
       return;
     }
 
+    final lifecycleEpoch = ++_lifecycleEpoch;
     await _cancelLifecycle(clearActiveLeague: true);
+    if (!_canContinueLifecycle(lifecycleEpoch, emit)) return;
     _activeLeagueId = event.leagueId;
     _resetRetryState();
     _groupsById.clear();
     _resolvedGroupIds.clear();
     _loadingGroups.clear();
-    _loadingUserIds.clear();
+    _loadingUserEpochById.clear();
 
     emit(
       const TournamentDetailState().copyWith(
@@ -129,8 +135,9 @@ class TournamentDetailBloc
     EnsureDetailSubscriptions event,
     Emitter<TournamentDetailState> emit,
   ) {
+    if (_isClosing || isClosed || emit.isDone) return;
     if (_activeLeagueId != event.leagueId) {
-      add(OpenLeagueDetail(event.leagueId));
+      _addIfOpen(OpenLeagueDetail(event.leagueId));
       return;
     }
     _ensureSubscriptions(event.leagueId, emit);
@@ -140,30 +147,44 @@ class TournamentDetailBloc
     String leagueId,
     Emitter<TournamentDetailState> emit,
   ) {
+    if (_isClosing || isClosed || emit.isDone) return;
     final allActive =
         _leagueSubscription != null &&
         _statsSubscription != null &&
         _matchesSubscription != null;
-    if (allActive) {
-      emit(state.copyWith(refreshTick: state.refreshTick + 1));
-      return;
+    if (!allActive) {
+      if (_leagueSubscription == null) _bindLeagueStream(leagueId);
+      if (_statsSubscription == null) _bindStatsStream(leagueId);
+      if (_matchesSubscription == null) _bindMatchesStream(leagueId);
     }
-    if (_leagueSubscription == null) _bindLeagueStream(leagueId);
-    if (_statsSubscription == null) _bindStatsStream(leagueId);
-    if (_matchesSubscription == null) _bindMatchesStream(leagueId);
+    emit(state.copyWith(refreshTick: state.refreshTick + 1));
   }
 
   void _bindLeagueStream(String leagueId) {
-    if (_leagueSubscription != null || _activeLeagueId != leagueId) return;
+    if (_isClosing ||
+        isClosed ||
+        _leagueSubscription != null ||
+        _activeLeagueId != leagueId) {
+      return;
+    }
     final generation = ++_leagueGeneration;
     try {
       _leagueSubscription = _leagueRepository
           .listenForLeagueUpdated(leagueId)
           .listen(
-            (league) => add(
-              _SourcedLeagueSnapshotReceived(leagueId, generation, league),
-            ),
-            onError: (Object error) => add(
+            (league) {
+              if (_isClosing || isClosed) return;
+              final sequence = ++_leagueSnapshotSequence;
+              add(
+                _SourcedLeagueSnapshotReceived(
+                  leagueId,
+                  generation,
+                  sequence,
+                  league,
+                ),
+              );
+            },
+            onError: (Object error) => _addIfOpen(
               _SourcedDetailStreamFailed(
                 leagueId,
                 generation,
@@ -171,7 +192,7 @@ class TournamentDetailBloc
                 error,
               ),
             ),
-            onDone: () => add(
+            onDone: () => _addIfOpen(
               _DetailStreamCompleted(
                 leagueId,
                 generation,
@@ -181,7 +202,7 @@ class TournamentDetailBloc
             cancelOnError: true,
           );
     } catch (error) {
-      add(
+      _addIfOpen(
         _SourcedDetailStreamFailed(
           leagueId,
           generation,
@@ -193,15 +214,21 @@ class TournamentDetailBloc
   }
 
   void _bindStatsStream(String leagueId) {
-    if (_statsSubscription != null || _activeLeagueId != leagueId) return;
+    if (_isClosing ||
+        isClosed ||
+        _statsSubscription != null ||
+        _activeLeagueId != leagueId) {
+      return;
+    }
     final generation = ++_statsGeneration;
     try {
       _statsSubscription = _leagueRepository
           .listenForLeagueStats(leagueId)
           .listen(
-            (stats) =>
-                add(_SourcedStatsSnapshotReceived(leagueId, generation, stats)),
-            onError: (Object error) => add(
+            (stats) => _addIfOpen(
+              _SourcedStatsSnapshotReceived(leagueId, generation, stats),
+            ),
+            onError: (Object error) => _addIfOpen(
               _SourcedDetailStreamFailed(
                 leagueId,
                 generation,
@@ -209,7 +236,7 @@ class TournamentDetailBloc
                 error,
               ),
             ),
-            onDone: () => add(
+            onDone: () => _addIfOpen(
               _DetailStreamCompleted(
                 leagueId,
                 generation,
@@ -219,7 +246,7 @@ class TournamentDetailBloc
             cancelOnError: true,
           );
     } catch (error) {
-      add(
+      _addIfOpen(
         _SourcedDetailStreamFailed(
           leagueId,
           generation,
@@ -231,16 +258,21 @@ class TournamentDetailBloc
   }
 
   void _bindMatchesStream(String leagueId) {
-    if (_matchesSubscription != null || _activeLeagueId != leagueId) return;
+    if (_isClosing ||
+        isClosed ||
+        _matchesSubscription != null ||
+        _activeLeagueId != leagueId) {
+      return;
+    }
     final generation = ++_matchesGeneration;
     try {
       _matchesSubscription = _leagueRepository
           .listenForMatchesUpdated(leagueId)
           .listen(
-            (matches) => add(
+            (matches) => _addIfOpen(
               _SourcedMatchesSnapshotReceived(leagueId, generation, matches),
             ),
-            onError: (Object error) => add(
+            onError: (Object error) => _addIfOpen(
               _SourcedDetailStreamFailed(
                 leagueId,
                 generation,
@@ -248,7 +280,7 @@ class TournamentDetailBloc
                 error,
               ),
             ),
-            onDone: () => add(
+            onDone: () => _addIfOpen(
               _DetailStreamCompleted(
                 leagueId,
                 generation,
@@ -258,7 +290,7 @@ class TournamentDetailBloc
             cancelOnError: true,
           );
     } catch (error) {
-      add(
+      _addIfOpen(
         _SourcedDetailStreamFailed(
           leagueId,
           generation,
@@ -276,29 +308,40 @@ class TournamentDetailBloc
     if (!_isCurrentEvent(event, TournamentDetailSlice.league)) return;
     final sourceLeagueId = _sourceLeagueId(event) ?? _activeLeagueId;
     if (sourceLeagueId == null) return;
+    final lifecycleEpoch = _lifecycleEpoch;
+    final snapshotSequence = event is _SourcedLeagueSnapshotReceived
+        ? event.sequence
+        : ++_leagueSnapshotSequence;
 
     final league = event.league;
     if (league == null) {
-      emit(
-        state.copyWith(
-          clearLeague: true,
-          leagueDeleted: true,
-          leagueSliceStatus: DetailSliceStatus.failed,
-          errorMessage: appText.commonErrorTitle,
-        ),
-      );
-      // A synchronous Firestore/controller callback can keep a subscription's
-      // cancel Future pending until the current delivery unwinds. Publish the
-      // terminal state first so navigation is never coupled to cancellation.
-      // The cleanup call still clears all owned references/timers immediately,
-      // while this guarded Future handles any delayed cancellation error.
-      unawaited(_cleanupDeletedLeagueLifecycle());
+      _terminateDeletedLeague(emit);
       return;
     }
+    if (!_isCurrentLeagueSnapshot(
+      sourceLeagueId,
+      lifecycleEpoch,
+      snapshotSequence,
+    )) {
+      return;
+    }
+
     if (league.id != sourceLeagueId) return;
 
-    final group = await _resolveGroup(league, sourceLeagueId);
-    if (_activeLeagueId != sourceLeagueId) return;
+    final group = await _resolveGroup(
+      league,
+      sourceLeagueId,
+      lifecycleEpoch,
+      snapshotSequence,
+    );
+    if (emit.isDone ||
+        !_isCurrentLeagueSnapshot(
+          sourceLeagueId,
+          lifecycleEpoch,
+          snapshotSequence,
+        )) {
+      return;
+    }
     final nextLeague = league.copyWith(group: group);
     _markSliceSuccessful(TournamentDetailSlice.league);
     final streamErrors = Map<TournamentDetailSlice, String>.of(
@@ -312,16 +355,22 @@ class TournamentDetailBloc
         streamErrors: streamErrors,
       ),
     );
-    await _loadMissingUsers(emit, sourceLeagueId);
+    await _loadMissingUsers(emit, sourceLeagueId, lifecycleEpoch);
   }
 
   Future<GNEsportGroup?> _resolveGroup(
     GNEsportLeague league,
     String sourceLeagueId,
+    int lifecycleEpoch,
+    int snapshotSequence,
   ) async {
     final embedded = league.group;
     if (embedded != null) {
-      if (_activeLeagueId == sourceLeagueId) {
+      if (_isCurrentLeagueSnapshot(
+        sourceLeagueId,
+        lifecycleEpoch,
+        snapshotSequence,
+      )) {
         _groupsById[league.groupId] = embedded;
         _resolvedGroupIds.add(league.groupId);
       }
@@ -342,19 +391,27 @@ class TournamentDetailBloc
     );
     try {
       final group = await future;
-      if (_activeLeagueId == sourceLeagueId) {
+      if (_isCurrentLeagueSnapshot(
+        sourceLeagueId,
+        lifecycleEpoch,
+        snapshotSequence,
+      )) {
         _resolvedGroupIds.add(league.groupId);
         if (group != null) _groupsById[league.groupId] = group;
       }
       return group;
     } catch (error) {
-      if (_activeLeagueId == sourceLeagueId) {
+      if (_isCurrentLeagueSnapshot(
+        sourceLeagueId,
+        lifecycleEpoch,
+        snapshotSequence,
+      )) {
         _resolvedGroupIds.add(league.groupId);
       }
       debugPrint('Unable to enrich league detail group: $error');
       return null;
     } finally {
-      if (_activeLeagueId == sourceLeagueId) {
+      if (identical(_loadingGroups[league.groupId], future)) {
         _loadingGroups.remove(league.groupId);
       }
     }
@@ -367,6 +424,7 @@ class TournamentDetailBloc
     if (!_isCurrentEvent(event, TournamentDetailSlice.stats)) return;
     final sourceLeagueId = _sourceLeagueId(event) ?? _activeLeagueId;
     if (sourceLeagueId == null) return;
+    final lifecycleEpoch = _lifecycleEpoch;
 
     final participants = _sortParticipants(
       _deduplicateStats(event.stats)
@@ -385,7 +443,7 @@ class TournamentDetailBloc
       ),
     );
     _auditStats(state.league, participants, state.matches);
-    await _loadMissingUsers(emit, sourceLeagueId);
+    await _loadMissingUsers(emit, sourceLeagueId, lifecycleEpoch);
   }
 
   Future<void> _onMatchesSnapshotReceived(
@@ -395,6 +453,7 @@ class TournamentDetailBloc
     if (!_isCurrentEvent(event, TournamentDetailSlice.matches)) return;
     final sourceLeagueId = _sourceLeagueId(event) ?? _activeLeagueId;
     if (sourceLeagueId == null) return;
+    final lifecycleEpoch = _lifecycleEpoch;
 
     final matches = _deduplicateMatches(event.matches)
         .map(
@@ -416,7 +475,7 @@ class TournamentDetailBloc
       ),
     );
     _auditStats(state.league, state.participants, matches);
-    await _loadMissingUsers(emit, sourceLeagueId);
+    await _loadMissingUsers(emit, sourceLeagueId, lifecycleEpoch);
   }
 
   List<GNEsportLeagueStat> _deduplicateStats(List<GNEsportLeagueStat> stats) {
@@ -456,8 +515,12 @@ class TournamentDetailBloc
   Future<void> _loadMissingUsers(
     Emitter<TournamentDetailState> emit,
     String leagueId,
+    int lifecycleEpoch,
   ) async {
-    if (_activeLeagueId != leagueId) return;
+    if (!_canContinueLifecycle(lifecycleEpoch, emit) ||
+        _activeLeagueId != leagueId) {
+      return;
+    }
     final requiredIds = <String>{
       ...?state.league?.participants,
       ...state.participants.map((stat) => stat.userId),
@@ -469,15 +532,20 @@ class TournamentDetailBloc
     final missing =
         requiredIds
             .difference(state.usersById.keys.toSet())
-            .difference(_loadingUserIds)
+            .difference(_loadingUserEpochById.keys.toSet())
             .toList(growable: false)
           ..sort();
     if (missing.isEmpty) return;
 
-    _loadingUserIds.addAll(missing);
+    for (final userId in missing) {
+      _loadingUserEpochById[userId] = lifecycleEpoch;
+    }
     try {
       final users = await _leagueRepository.getUsersByIds(missing);
-      if (_activeLeagueId != leagueId) return;
+      if (!_canContinueLifecycle(lifecycleEpoch, emit) ||
+          _activeLeagueId != leagueId) {
+        return;
+      }
       final usersById = Map<String, GNUser>.of(state.usersById)..addAll(users);
       emit(
         state.copyWith(
@@ -498,7 +566,11 @@ class TournamentDetailBloc
     } catch (error) {
       debugPrint('Unable to enrich league detail users: $error');
     } finally {
-      _loadingUserIds.removeAll(missing);
+      for (final userId in missing) {
+        if (_loadingUserEpochById[userId] == lifecycleEpoch) {
+          _loadingUserEpochById.remove(userId);
+        }
+      }
     }
   }
 
@@ -507,7 +579,12 @@ class TournamentDetailBloc
     Emitter<TournamentDetailState> emit,
   ) async {
     if (!_isCurrentEvent(event, event.slice)) return;
+    final lifecycleEpoch = _lifecycleEpoch;
     await _cancelSliceSubscription(event.slice);
+    if (!_canContinueLifecycle(lifecycleEpoch, emit) ||
+        !_isCurrentEvent(event, event.slice)) {
+      return;
+    }
     final streamErrors = Map<TournamentDetailSlice, String>.of(
       state.streamErrors,
     )..[event.slice] = event.error.toString();
@@ -538,7 +615,7 @@ class TournamentDetailBloc
 
   void _scheduleRetry(TournamentDetailSlice slice) {
     final leagueId = _activeLeagueId;
-    if (leagueId == null) return;
+    if (_isClosing || isClosed || leagueId == null) return;
     final attempt = _retryAttempts[slice] ?? 0;
     if (attempt >= 3) return;
     _retryAttempts[slice] = attempt + 1;
@@ -554,6 +631,7 @@ class TournamentDetailBloc
     RetryDetailSlice event,
     Emitter<TournamentDetailState> emit,
   ) {
+    if (_isClosing || isClosed || emit.isDone) return;
     _retryTimers[event.slice] = null;
     final leagueId = _activeLeagueId;
     if (leagueId == null) return;
@@ -584,6 +662,33 @@ class TournamentDetailBloc
     final sourceGeneration = _sourceGeneration(event);
     if (sourceGeneration == null) return _activeLeagueId != null;
     return sourceGeneration == _generationFor(slice);
+  }
+
+  bool _canContinueLifecycle(
+    int lifecycleEpoch,
+    Emitter<TournamentDetailState> emit,
+  ) {
+    return !_isClosing &&
+        !isClosed &&
+        !emit.isDone &&
+        lifecycleEpoch == _lifecycleEpoch;
+  }
+
+  bool _isCurrentLeagueSnapshot(
+    String leagueId,
+    int lifecycleEpoch,
+    int snapshotSequence,
+  ) {
+    return !_isClosing &&
+        !isClosed &&
+        _activeLeagueId == leagueId &&
+        _lifecycleEpoch == lifecycleEpoch &&
+        _leagueSnapshotSequence == snapshotSequence;
+  }
+
+  void _addIfOpen(TournamentDetailEvent event) {
+    if (_isClosing || isClosed) return;
+    add(event);
   }
 
   String? _sourceLeagueId(TournamentDetailEvent event) {
@@ -660,6 +765,30 @@ class TournamentDetailBloc
     } catch (error) {
       debugPrint('Unable to clean up deleted league subscriptions: $error');
     }
+  }
+
+  void _terminateDeletedLeague(Emitter<TournamentDetailState> emit) {
+    if (_isClosing || isClosed || emit.isDone) return;
+    _lifecycleEpoch++;
+    _leagueSnapshotSequence++;
+    emit(
+      state.copyWith(
+        clearLeague: true,
+        leagueDeleted: true,
+        leagueSliceStatus: DetailSliceStatus.failed,
+        errorMessage: appText.commonErrorTitle,
+      ),
+    );
+    _groupsById.clear();
+    _resolvedGroupIds.clear();
+    _loadingGroups.clear();
+    _loadingUserEpochById.clear();
+    // A synchronous Firestore/controller callback can keep a subscription's
+    // cancel Future pending until the current delivery unwinds. Publish the
+    // terminal state first so navigation is never coupled to cancellation.
+    // The cleanup call still clears all owned references/timers immediately,
+    // while this guarded Future handles any delayed cancellation error.
+    unawaited(_cleanupDeletedLeagueLifecycle());
   }
 
   void _resetRetryState() {
@@ -768,14 +897,7 @@ class TournamentDetailBloc
     LeagueDeleted event,
     Emitter<TournamentDetailState> emit,
   ) {
-    emit(
-      state.copyWith(
-        clearLeague: true,
-        leagueDeleted: true,
-        leagueSliceStatus: DetailSliceStatus.failed,
-        errorMessage: appText.commonErrorTitle,
-      ),
-    );
+    _terminateDeletedLeague(emit);
   }
 
   Future<void> _onCreateCustomMatch(
@@ -1095,11 +1217,15 @@ class TournamentDetailBloc
 
   @override
   Future<void> close() async {
+    if (isClosed) return;
+    _isClosing = true;
+    _lifecycleEpoch++;
+    _leagueSnapshotSequence++;
     await _cancelLifecycle(clearActiveLeague: true);
     _groupsById.clear();
     _resolvedGroupIds.clear();
     _loadingGroups.clear();
-    _loadingUserIds.clear();
+    _loadingUserEpochById.clear();
     await super.close();
   }
 }
@@ -1107,15 +1233,17 @@ class TournamentDetailBloc
 class _SourcedLeagueSnapshotReceived extends LeagueSnapshotReceived {
   final String sourceLeagueId;
   final int generation;
+  final int sequence;
 
   const _SourcedLeagueSnapshotReceived(
     this.sourceLeagueId,
     this.generation,
+    this.sequence,
     super.league,
   );
 
   @override
-  List<Object?> get props => [sourceLeagueId, generation, league];
+  List<Object?> get props => [sourceLeagueId, generation, sequence, league];
 }
 
 class _SourcedStatsSnapshotReceived extends StatsSnapshotReceived {

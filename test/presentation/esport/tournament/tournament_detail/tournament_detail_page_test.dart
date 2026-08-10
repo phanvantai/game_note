@@ -40,6 +40,7 @@ class _DetailStreams {
 
 const _openDetailKey = Key('open-league-detail');
 const _markerKey = Key('league-list-marker');
+const _fallbackKey = Key('app-root-fallback');
 
 GNEsportGroup _group() {
   final now = DateTime(2026, 8, 10);
@@ -72,10 +73,15 @@ GNEsportLeague _league({required bool isActive}) {
 
 Widget _app() {
   final router = GoRouter(
-    initialLocation: '/',
+    initialLocation: '/leagues',
     routes: [
       GoRoute(
         path: '/',
+        builder: (context, state) =>
+            const Scaffold(body: Text('App root fallback', key: _fallbackKey)),
+      ),
+      GoRoute(
+        path: '/leagues',
         builder: (context, state) => Scaffold(
           body: Column(
             children: [
@@ -134,6 +140,16 @@ Future<void> _pumpUntil(
 }) async {
   for (var i = 0; i < maxPumps && !condition(); i++) {
     await tester.pump(const Duration(milliseconds: 10));
+  }
+}
+
+Future<void> _pumpFramesUntil(
+  WidgetTester tester,
+  bool Function() condition, {
+  int maxPumps = 20,
+}) async {
+  for (var i = 0; i < maxPumps && !condition(); i++) {
+    await tester.pump();
   }
 }
 
@@ -275,6 +291,37 @@ void main() {
     expect(find.byType(TournamentDetailPage), findsNothing);
     expect(toasts, isEmpty);
   });
+
+  testWidgets(
+    'inactive then deleted snapshots pop exactly once to the league list',
+    (tester) async {
+      await _openDetail(tester, streams);
+      final bloc = _detailBloc(tester);
+      streams.league.add(_league(isActive: true));
+      await _pumpUntil(tester, () => bloc.state.league?.id == 'L1');
+      expect(bloc.state.league?.isActive, isTrue);
+
+      streams.league.add(_league(isActive: false));
+      await _pumpFramesUntil(
+        tester,
+        () => bloc.state.league?.isActive == false,
+      );
+      expect(bloc.state.league?.isActive, isFalse);
+      expect(find.byType(TournamentDetailPage), findsOneWidget);
+
+      streams.league.add(null);
+      await _pumpFramesUntil(tester, () => bloc.state.leagueDeleted);
+      expect(bloc.state.leagueDeleted, isTrue);
+      await _waitForDetailToClose(tester);
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byKey(_markerKey), findsOneWidget);
+      expect(find.byKey(_openDetailKey), findsOneWidget);
+      expect(find.byKey(_fallbackKey), findsNothing);
+      expect(find.byType(TournamentDetailPage), findsNothing);
+      expect(toasts, isEmpty);
+    },
+  );
 
   testWidgets(
     'stats and matches stream errors keep detail open without toast',
