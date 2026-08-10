@@ -376,12 +376,15 @@ extension GNFirestoreEsportLeague on GNFirestore {
   }
 
   // listen for league updated
-  Stream<GNEsportLeague> listenForLeagueUpdated(String leagueId) {
+  Stream<GNEsportLeague?> listenForLeagueUpdated(String leagueId) {
     return firestore
         .collection(GNEsportLeague.collectionName)
         .doc(leagueId)
         .snapshots()
-        .map((snapshot) => GNEsportLeague.fromFirestore(snapshot));
+        .map(
+          (snapshot) =>
+              snapshot.exists ? GNEsportLeague.fromFirestore(snapshot) : null,
+        );
   }
 
   /// All leagues belonging to [groupId], including inactive/finished ones.
