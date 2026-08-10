@@ -391,6 +391,168 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
     return matches;
   }
 
+  /// Atomically updates a match together with every document derived from its
+  /// result: league/group standings and, for knockout matches, the next slot.
+  ///
+  /// Stat documents use legacy random IDs, so their references are resolved
+  /// before entering the transaction. The transaction then re-reads their
+  /// contents, allowing Firestore to retry safely when another match updates
+  /// a shared player's standing at the same time.
+  Future<void> updateMatchAtomically({
+    required String matchId,
+    required String leagueId,
+    int? homeScore,
+    int? awayScore,
+    int? matchCost,
+    int? costPerGoal,
+    Timestamp? expectedUpdatedAt,
+  }) async {
+    final matchPath =
+        '${GNEsportLeague.collectionName}/$leagueId/${GNEsportMatch.collectionName}';
+    final matchRef = firestore.doc('$matchPath/$matchId');
+
+    // Firestore transactions cannot run the legacy userId query needed to
+    // locate random-ID stat rows. Resolve stable references up front, while
+    // still re-reading and validating the rows inside the transaction.
+    final initialMatchSnap = await matchRef.get();
+    if (!initialMatchSnap.exists) throw Exception('Match not found');
+    final initialMatch = GNEsportMatch.fromFirestore(initialMatchSnap);
+
+    DocumentReference<Map<String, dynamic>>? homeStatRef;
+    DocumentReference<Map<String, dynamic>>? awayStatRef;
+    if (initialMatch.phase != 'knockout') {
+      final refs = await Future.wait([
+        _statRefForUser(
+          leagueId,
+          initialMatch.homeTeamId,
+          groupId: initialMatch.groupId,
+        ),
+        _statRefForUser(
+          leagueId,
+          initialMatch.awayTeamId,
+          groupId: initialMatch.groupId,
+        ),
+      ]);
+      homeStatRef = refs[0];
+      awayStatRef = refs[1];
+    }
+
+    await firestore.runTransaction((txn) async {
+      final matchSnap = await txn.get(matchRef);
+      if (!matchSnap.exists) throw Exception('Match not found');
+      final current = GNEsportMatch.fromFirestore(matchSnap);
+
+      if (current.phase != initialMatch.phase ||
+          current.homeTeamId != initialMatch.homeTeamId ||
+          current.awayTeamId != initialMatch.awayTeamId ||
+          current.groupId != initialMatch.groupId) {
+        throw Exception('Match participants changed during update');
+      }
+
+      if (expectedUpdatedAt != null &&
+          current.updatedAt != null &&
+          current.updatedAt != expectedUpdatedAt) {
+        throw ConcurrentMatchUpdateException(matchId);
+      }
+
+      final updated = current.copyWith(
+        homeScore: homeScore,
+        awayScore: awayScore,
+        isFinished: homeScore != null && awayScore != null
+            ? true
+            : current.isFinished,
+        matchCost: matchCost ?? current.matchCost,
+        costPerGoal: costPerGoal ?? current.costPerGoal,
+      );
+
+      DocumentSnapshot<Map<String, dynamic>>? homeStatSnap;
+      DocumentSnapshot<Map<String, dynamic>>? awayStatSnap;
+      if (current.phase != 'knockout') {
+        if (homeStatRef == null || awayStatRef == null) {
+          throw Exception('Match participants changed during update');
+        }
+        homeStatSnap = await txn.get(homeStatRef);
+        awayStatSnap = await txn.get(awayStatRef);
+      }
+
+      DocumentReference<Map<String, dynamic>>? nextMatchRef;
+      DocumentSnapshot<Map<String, dynamic>>? nextMatchSnap;
+      if (current.phase == 'knockout' &&
+          updated.isFinished &&
+          current.nextMatchId != null) {
+        nextMatchRef = firestore.doc('$matchPath/${current.nextMatchId}');
+        nextMatchSnap = await txn.get(nextMatchRef);
+      }
+
+      // Validate every transaction read before staging the first write. A stat
+      // deleted after reference lookup therefore cannot leave partial data.
+      if (current.phase != 'knockout' &&
+          (homeStatSnap == null ||
+              !homeStatSnap.exists ||
+              awayStatSnap == null ||
+              !awayStatSnap.exists)) {
+        throw Exception('Match stats no longer exist');
+      }
+      if (nextMatchSnap != null && !nextMatchSnap.exists) {
+        throw Exception('Next knockout match not found');
+      }
+
+      if (current.phase != 'knockout') {
+        var homeDelta = _zeroDelta;
+        var awayDelta = _zeroDelta;
+        if (current.isFinished &&
+            current.homeScore != null &&
+            current.awayScore != null) {
+          final undo = _statContribution(
+            current.homeScore!,
+            current.awayScore!,
+            sign: -1,
+          );
+          homeDelta = homeDelta + undo.home;
+          awayDelta = awayDelta + undo.away;
+        }
+        if (updated.isFinished &&
+            updated.homeScore != null &&
+            updated.awayScore != null) {
+          final apply = _statContribution(
+            updated.homeScore!,
+            updated.awayScore!,
+            sign: 1,
+          );
+          homeDelta = homeDelta + apply.home;
+          awayDelta = awayDelta + apply.away;
+        }
+
+        final homeStats = GNEsportLeagueStat.fromFirestore(homeStatSnap!);
+        final awayStats = GNEsportLeagueStat.fromFirestore(awayStatSnap!);
+        if (homeDelta.isNotEmpty) {
+          txn.update(homeStatRef!, _applyDeltaMap(homeStats, homeDelta));
+        }
+        if (awayDelta.isNotEmpty) {
+          txn.update(awayStatRef!, _applyDeltaMap(awayStats, awayDelta));
+        }
+      }
+
+      if (nextMatchRef != null) {
+        final winnerId = updated.homeScore! >= updated.awayScore!
+            ? current.homeTeamId
+            : current.awayTeamId;
+        final isEvenSlot = (current.knockoutSlot ?? 0).isEven;
+        txn.update(nextMatchRef, {
+          isEvenSlot
+                  ? GNEsportMatch.fieldHomeTeamId
+                  : GNEsportMatch.fieldAwayTeamId:
+              winnerId,
+        });
+      }
+
+      txn.update(matchRef, {
+        ...updated.toMap(),
+        GNEsportMatch.fieldUpdatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   /// Update a match's score/cost. Writes the match doc only — stat docs are
   /// NOT touched here. Callers must follow up with [applyMatchStatDelta]
   /// (typically fire-and-forget from the bloc) to keep player stats in sync.
