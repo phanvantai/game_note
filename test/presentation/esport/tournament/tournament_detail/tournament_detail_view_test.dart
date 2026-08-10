@@ -24,15 +24,15 @@ class _DetailState extends TournamentDetailState {
   final bool member;
   final bool admin;
 
-  const _DetailState({
+  _DetailState({
     super.viewStatus,
     super.league,
     super.participants,
     super.matches,
-    super.users,
+    List<GNUser> users = const [],
     this.member = false,
     this.admin = false,
-  });
+  }) : super(usersById: {for (final user in users) user.id: user});
 
   @override
   bool get currentUserIsMember => member;

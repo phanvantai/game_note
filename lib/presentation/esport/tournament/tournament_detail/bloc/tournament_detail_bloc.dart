@@ -6,11 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
+import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/l10n/app_text.dart';
 
+import '../../../../../domain/repositories/esport/esport_group_repository.dart';
 import '../../../../../domain/repositories/esport/esport_league_repository.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_esport_match.dart';
 import '../../../../../firebase/firestore/esport/league/match/gn_firestore_esport_league_match.dart'
@@ -27,36 +29,61 @@ class TournamentDetailBloc
     'DEBUG_AUDIT_TOURNAMENT_STATS',
   );
 
-  final EsportLeagueRepository _esportLeagueRepository;
+  final EsportLeagueRepository _leagueRepository;
+  final EsportGroupRepository _groupRepository;
 
-  TournamentDetailBloc(this._esportLeagueRepository)
-    : super(const TournamentDetailState()) {
-    on<GetParticipantStats>(_onGetParticipants);
-    on<GetMatches>(_onGetMatches);
-    on<GetParticipantsAndMatches>(_onGetParticipantsAndMatches);
+  StreamSubscription<GNEsportLeague?>? _leagueSubscription;
+  StreamSubscription<List<GNEsportLeagueStat>>? _statsSubscription;
+  StreamSubscription<List<GNEsportMatch>>? _matchesSubscription;
+
+  String? _activeLeagueId;
+  int _leagueGeneration = 0;
+  int _statsGeneration = 0;
+  int _matchesGeneration = 0;
+
+  final Map<TournamentDetailSlice, int> _retryAttempts = {
+    TournamentDetailSlice.league: 0,
+    TournamentDetailSlice.stats: 0,
+    TournamentDetailSlice.matches: 0,
+  };
+  final Map<TournamentDetailSlice, Timer?> _retryTimers = {
+    TournamentDetailSlice.league: null,
+    TournamentDetailSlice.stats: null,
+    TournamentDetailSlice.matches: null,
+  };
+
+  final Map<String, GNEsportGroup> _groupsById = {};
+  final Set<String> _resolvedGroupIds = {};
+  final Map<String, Future<GNEsportGroup?>> _loadingGroups = {};
+  final Set<String> _loadingUserIds = {};
+
+  TournamentDetailBloc(
+    EsportLeagueRepository leagueRepository,
+    EsportGroupRepository groupRepository,
+  ) : _leagueRepository = leagueRepository,
+      _groupRepository = groupRepository,
+      super(const TournamentDetailState()) {
+    on<OpenLeagueDetail>(_onOpenLeagueDetail);
+    on<EnsureDetailSubscriptions>(_onEnsureDetailSubscriptions);
+    on<RetryDetailSlice>(_onRetryDetailSlice);
+    on<LeagueSnapshotReceived>(_onLeagueSnapshotReceived);
+    on<StatsSnapshotReceived>(_onStatsSnapshotReceived);
+    on<MatchesSnapshotReceived>(_onMatchesSnapshotReceived);
+    on<DetailStreamFailed>(_onDetailStreamFailed);
+    on<_DetailStreamCompleted>(_onDetailStreamCompleted);
 
     on<AddParticipant>(_onAddParticipant);
     on<AddMultipleParticipants>(_onAddMultipleParticipants);
-
     on<GenerateRound>(_onGenerateRound);
     on<GenerateGroupRound>(_onGenerateGroupRound);
     on<UpdateEsportMatch>(_onUpdateMatch);
-    on<ApplyMatchStatDelta>(_onApplyMatchStatDelta);
-
     on<ChangeLeagueStatus>(_onChangeLeagueStatus);
     on<SubmitLeagueStatus>(_onSubmitLeagueStatus);
-
     on<InactiveLeague>(_onInactiveLeague);
-
     on<DeleteEsportMatch>(_onDeleteMatch);
     on<CreateCustomMatch>(_onCreateCustomMatch);
-
-    on<UpdateLeague>(_onUpdateLeague);
     on<LeagueDeleted>(_onLeagueDeleted);
     on<UpdateLeagueCostConfig>(_onUpdateLeagueCostConfig);
-    on<UpdateMatches>(_onUpdateMatches);
-
-    on<GetLeague>(_onGetLeague);
     on<RecomputeStats>(_onRecomputeStats);
     on<GenerateCup>(_onGenerateCup);
     on<GenerateFull>(_onGenerateFull);
@@ -68,112 +95,344 @@ class TournamentDetailBloc
         ),
       );
     });
-    on<LoadLeagueError>((event, emit) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: event.message,
-        ),
-      );
-    });
   }
 
-  StreamSubscription<List<GNEsportMatch>>? _matchesSubscription;
-  StreamSubscription<List<GNEsportLeagueStat>>? _participantsSubscription;
-  StreamSubscription<GNEsportLeague?>? _leagueSubscription;
-
-  Future<void> _onGetLeague(
-    GetLeague event,
+  Future<void> _onOpenLeagueDetail(
+    OpenLeagueDetail event,
     Emitter<TournamentDetailState> emit,
   ) async {
-    // Stats stream: any change to a league stat means a match was just
-    // recorded. Re-fetch the full participants+matches snapshot (with users)
-    // so the table updates with fresh user data. Matches stream alone is
-    // not enough — it doesn't refresh stats.
-    _participantsSubscription?.cancel();
-    _participantsSubscription = _esportLeagueRepository
-        .listenForLeagueStats(event.leagueId)
-        .skip(
-          1,
-        ) // skip initial snapshot — initial load is fired explicitly below
-        .listen((_) {
-          add(GetParticipantsAndMatches(event.leagueId));
-        });
+    if (_activeLeagueId == event.leagueId) {
+      _ensureSubscriptions(event.leagueId, emit);
+      return;
+    }
 
-    // Matches stream covers fixture-only changes (custom match created,
-    // match deleted) where stats don't change. Apply directly to state
-    // using cached users — no extra fetch. Don't skip(1) here: re-applying
-    // the initial snapshot is cheap (no network call), and we want to
-    // catch the case where the stream fires before the initial fetch
-    // completes.
-    _matchesSubscription?.cancel();
-    _matchesSubscription = _esportLeagueRepository
-        .listenForMatchesUpdated(event.leagueId)
-        .listen((matches) {
-          add(UpdateMatches(matches));
-        });
+    await _cancelLifecycle(clearActiveLeague: true);
+    _activeLeagueId = event.leagueId;
+    _resetRetryState();
+    _groupsById.clear();
+    _resolvedGroupIds.clear();
+    _loadingGroups.clear();
+    _loadingUserIds.clear();
 
-    _leagueSubscription?.cancel();
-    _leagueSubscription = _esportLeagueRepository
-        .listenForLeagueUpdated(event.leagueId)
-        .listen(
-          (league) {
-            if (league == null) {
-              add(LeagueDeleted());
-            } else {
-              add(UpdateLeague(league));
-            }
-          },
-          onError: (e) {
-            //add(LoadLeagueError(e.toString()));
-          },
-        );
+    emit(
+      const TournamentDetailState().copyWith(
+        viewStatus: ViewStatus.initial,
+        refreshTick: state.refreshTick,
+      ),
+    );
+    _bindLeagueStream(event.leagueId);
+    _bindStatsStream(event.leagueId);
+    _bindMatchesStream(event.leagueId);
+  }
 
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
+  void _onEnsureDetailSubscriptions(
+    EnsureDetailSubscriptions event,
+    Emitter<TournamentDetailState> emit,
+  ) {
+    if (_activeLeagueId != event.leagueId) {
+      add(OpenLeagueDetail(event.leagueId));
+      return;
+    }
+    _ensureSubscriptions(event.leagueId, emit);
+  }
+
+  void _ensureSubscriptions(
+    String leagueId,
+    Emitter<TournamentDetailState> emit,
+  ) {
+    final allActive =
+        _leagueSubscription != null &&
+        _statsSubscription != null &&
+        _matchesSubscription != null;
+    if (allActive) {
+      emit(state.copyWith(refreshTick: state.refreshTick + 1));
+      return;
+    }
+    if (_leagueSubscription == null) _bindLeagueStream(leagueId);
+    if (_statsSubscription == null) _bindStatsStream(leagueId);
+    if (_matchesSubscription == null) _bindMatchesStream(leagueId);
+  }
+
+  void _bindLeagueStream(String leagueId) {
+    if (_leagueSubscription != null || _activeLeagueId != leagueId) return;
+    final generation = ++_leagueGeneration;
     try {
-      // Load league + participants + matches in parallel so the screen
-      // shows full data on first paint instead of loading in two phases.
-      final results = await Future.wait([
-        _esportLeagueRepository.getLeague(event.leagueId),
-        _esportLeagueRepository.getParticipantsAndMatches(event.leagueId),
-      ]);
-      final league = results[0] as GNEsportLeague?;
-      var data = results[1] as LeagueDetailData;
-
-      if (league == null) {
-        emit(
-          state.copyWith(
-            viewStatus: ViewStatus.failure,
-            errorMessage: 'Không tìm thấy giải đấu',
-          ),
-        );
-        return;
-      }
-
-      final users = <GNUser>[
-        for (final p in data.participants)
-          if (p.user != null) p.user!,
-      ];
-
-      _auditStats(league, data.participants, data.matches);
-
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.success,
-          league: league,
-          participants: _sortParticipants(data.participants),
-          users: users,
-          matches: data.matches,
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+      _leagueSubscription = _leagueRepository
+          .listenForLeagueUpdated(leagueId)
+          .listen(
+            (league) => add(
+              _SourcedLeagueSnapshotReceived(leagueId, generation, league),
+            ),
+            onError: (Object error) => add(
+              _SourcedDetailStreamFailed(
+                leagueId,
+                generation,
+                TournamentDetailSlice.league,
+                error,
+              ),
+            ),
+            onDone: () => add(
+              _DetailStreamCompleted(
+                leagueId,
+                generation,
+                TournamentDetailSlice.league,
+              ),
+            ),
+            cancelOnError: true,
+          );
+    } catch (error) {
+      add(
+        _SourcedDetailStreamFailed(
+          leagueId,
+          generation,
+          TournamentDetailSlice.league,
+          error,
         ),
       );
     }
+  }
+
+  void _bindStatsStream(String leagueId) {
+    if (_statsSubscription != null || _activeLeagueId != leagueId) return;
+    final generation = ++_statsGeneration;
+    try {
+      _statsSubscription = _leagueRepository
+          .listenForLeagueStats(leagueId)
+          .listen(
+            (stats) =>
+                add(_SourcedStatsSnapshotReceived(leagueId, generation, stats)),
+            onError: (Object error) => add(
+              _SourcedDetailStreamFailed(
+                leagueId,
+                generation,
+                TournamentDetailSlice.stats,
+                error,
+              ),
+            ),
+            onDone: () => add(
+              _DetailStreamCompleted(
+                leagueId,
+                generation,
+                TournamentDetailSlice.stats,
+              ),
+            ),
+            cancelOnError: true,
+          );
+    } catch (error) {
+      add(
+        _SourcedDetailStreamFailed(
+          leagueId,
+          generation,
+          TournamentDetailSlice.stats,
+          error,
+        ),
+      );
+    }
+  }
+
+  void _bindMatchesStream(String leagueId) {
+    if (_matchesSubscription != null || _activeLeagueId != leagueId) return;
+    final generation = ++_matchesGeneration;
+    try {
+      _matchesSubscription = _leagueRepository
+          .listenForMatchesUpdated(leagueId)
+          .listen(
+            (matches) => add(
+              _SourcedMatchesSnapshotReceived(leagueId, generation, matches),
+            ),
+            onError: (Object error) => add(
+              _SourcedDetailStreamFailed(
+                leagueId,
+                generation,
+                TournamentDetailSlice.matches,
+                error,
+              ),
+            ),
+            onDone: () => add(
+              _DetailStreamCompleted(
+                leagueId,
+                generation,
+                TournamentDetailSlice.matches,
+              ),
+            ),
+            cancelOnError: true,
+          );
+    } catch (error) {
+      add(
+        _SourcedDetailStreamFailed(
+          leagueId,
+          generation,
+          TournamentDetailSlice.matches,
+          error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onLeagueSnapshotReceived(
+    LeagueSnapshotReceived event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    if (!_isCurrentEvent(event, TournamentDetailSlice.league)) return;
+    final sourceLeagueId = _sourceLeagueId(event) ?? _activeLeagueId;
+    if (sourceLeagueId == null) return;
+
+    final league = event.league;
+    if (league == null) {
+      emit(
+        state.copyWith(
+          clearLeague: true,
+          leagueDeleted: true,
+          leagueSliceStatus: DetailSliceStatus.failed,
+          errorMessage: appText.commonErrorTitle,
+        ),
+      );
+      // A synchronous Firestore/controller callback can keep a subscription's
+      // cancel Future pending until the current delivery unwinds. Publish the
+      // terminal state first so navigation is never coupled to cancellation.
+      // The cleanup call still clears all owned references/timers immediately,
+      // while this guarded Future handles any delayed cancellation error.
+      unawaited(_cleanupDeletedLeagueLifecycle());
+      return;
+    }
+    if (league.id != sourceLeagueId) return;
+
+    final group = await _resolveGroup(league, sourceLeagueId);
+    if (_activeLeagueId != sourceLeagueId) return;
+    final nextLeague = league.copyWith(group: group);
+    _markSliceSuccessful(TournamentDetailSlice.league);
+    final streamErrors = Map<TournamentDetailSlice, String>.of(
+      state.streamErrors,
+    )..remove(TournamentDetailSlice.league);
+    emit(
+      state.copyWith(
+        league: nextLeague,
+        leagueDeleted: false,
+        leagueSliceStatus: DetailSliceStatus.ready,
+        streamErrors: streamErrors,
+      ),
+    );
+    await _loadMissingUsers(emit, sourceLeagueId);
+  }
+
+  Future<GNEsportGroup?> _resolveGroup(
+    GNEsportLeague league,
+    String sourceLeagueId,
+  ) async {
+    final embedded = league.group;
+    if (embedded != null) {
+      if (_activeLeagueId == sourceLeagueId) {
+        _groupsById[league.groupId] = embedded;
+        _resolvedGroupIds.add(league.groupId);
+      }
+      return embedded;
+    }
+
+    final current = state.league;
+    if (current?.groupId == league.groupId && current?.group != null) {
+      return current!.group;
+    }
+    if (_resolvedGroupIds.contains(league.groupId)) {
+      return _groupsById[league.groupId];
+    }
+
+    final future = _loadingGroups.putIfAbsent(
+      league.groupId,
+      () => _groupRepository.getGroup(league.groupId),
+    );
+    try {
+      final group = await future;
+      if (_activeLeagueId == sourceLeagueId) {
+        _resolvedGroupIds.add(league.groupId);
+        if (group != null) _groupsById[league.groupId] = group;
+      }
+      return group;
+    } catch (error) {
+      if (_activeLeagueId == sourceLeagueId) {
+        _resolvedGroupIds.add(league.groupId);
+      }
+      debugPrint('Unable to enrich league detail group: $error');
+      return null;
+    } finally {
+      if (_activeLeagueId == sourceLeagueId) {
+        _loadingGroups.remove(league.groupId);
+      }
+    }
+  }
+
+  Future<void> _onStatsSnapshotReceived(
+    StatsSnapshotReceived event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    if (!_isCurrentEvent(event, TournamentDetailSlice.stats)) return;
+    final sourceLeagueId = _sourceLeagueId(event) ?? _activeLeagueId;
+    if (sourceLeagueId == null) return;
+
+    final participants = _sortParticipants(
+      _deduplicateStats(event.stats)
+          .map((stat) => stat.copyWith(user: state.usersById[stat.userId]))
+          .toList(growable: false),
+    );
+    _markSliceSuccessful(TournamentDetailSlice.stats);
+    final streamErrors = Map<TournamentDetailSlice, String>.of(
+      state.streamErrors,
+    )..remove(TournamentDetailSlice.stats);
+    emit(
+      state.copyWith(
+        participants: participants,
+        statsSliceStatus: DetailSliceStatus.ready,
+        streamErrors: streamErrors,
+      ),
+    );
+    _auditStats(state.league, participants, state.matches);
+    await _loadMissingUsers(emit, sourceLeagueId);
+  }
+
+  Future<void> _onMatchesSnapshotReceived(
+    MatchesSnapshotReceived event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    if (!_isCurrentEvent(event, TournamentDetailSlice.matches)) return;
+    final sourceLeagueId = _sourceLeagueId(event) ?? _activeLeagueId;
+    if (sourceLeagueId == null) return;
+
+    final matches = _deduplicateMatches(event.matches)
+        .map(
+          (match) => match.copyWith(
+            homeTeam: state.usersById[match.homeTeamId],
+            awayTeam: state.usersById[match.awayTeamId],
+          ),
+        )
+        .toList(growable: false);
+    _markSliceSuccessful(TournamentDetailSlice.matches);
+    final streamErrors = Map<TournamentDetailSlice, String>.of(
+      state.streamErrors,
+    )..remove(TournamentDetailSlice.matches);
+    emit(
+      state.copyWith(
+        matches: matches,
+        matchesSliceStatus: DetailSliceStatus.ready,
+        streamErrors: streamErrors,
+      ),
+    );
+    _auditStats(state.league, state.participants, matches);
+    await _loadMissingUsers(emit, sourceLeagueId);
+  }
+
+  List<GNEsportLeagueStat> _deduplicateStats(List<GNEsportLeagueStat> stats) {
+    final byId = <String, GNEsportLeagueStat>{
+      for (final stat in stats) stat.id: stat,
+    };
+    return byId.values.toList(growable: false);
+  }
+
+  List<GNEsportMatch> _deduplicateMatches(List<GNEsportMatch> matches) {
+    final byId = <String, GNEsportMatch>{
+      for (final match in matches) match.id: match,
+    };
+    final result = byId.values.toList(growable: false)
+      ..sort((a, b) => a.id.compareTo(b.id));
+    return result;
   }
 
   List<GNEsportLeagueStat> _sortParticipants(
@@ -186,98 +445,274 @@ class TournamentDetailBloc
           return b.goalDifference.compareTo(a.goalDifference);
         }
         if (a.goals != b.goals) return b.goals.compareTo(a.goals);
-        return b.matchesPlayed.compareTo(a.matchesPlayed);
+        if (a.matchesPlayed != b.matchesPlayed) {
+          return b.matchesPlayed.compareTo(a.matchesPlayed);
+        }
+        return a.id.compareTo(b.id);
       });
     return sorted;
   }
 
-  /// Debug-only audit: recompute stats from the finished-matches list and
-  /// diff against the stat docs in DB. Logs every mismatch + every finished
-  /// match for cross-reference. Helps catch ghost/orphan matches that
-  /// updateMatch's old non-transactional flow could leave behind.
-  void _auditStats(
-    GNEsportLeague? league,
-    List<GNEsportLeagueStat> participants,
-    List<GNEsportMatch> matches,
+  Future<void> _loadMissingUsers(
+    Emitter<TournamentDetailState> emit,
+    String leagueId,
+  ) async {
+    if (_activeLeagueId != leagueId) return;
+    final requiredIds = <String>{
+      ...?state.league?.participants,
+      ...state.participants.map((stat) => stat.userId),
+      for (final match in state.matches) ...[
+        if (match.homeTeamId.isNotEmpty) match.homeTeamId,
+        if (match.awayTeamId.isNotEmpty) match.awayTeamId,
+      ],
+    };
+    final missing =
+        requiredIds
+            .difference(state.usersById.keys.toSet())
+            .difference(_loadingUserIds)
+            .toList(growable: false)
+          ..sort();
+    if (missing.isEmpty) return;
+
+    _loadingUserIds.addAll(missing);
+    try {
+      final users = await _leagueRepository.getUsersByIds(missing);
+      if (_activeLeagueId != leagueId) return;
+      final usersById = Map<String, GNUser>.of(state.usersById)..addAll(users);
+      emit(
+        state.copyWith(
+          usersById: usersById,
+          participants: state.participants
+              .map((stat) => stat.copyWith(user: usersById[stat.userId]))
+              .toList(growable: false),
+          matches: state.matches
+              .map(
+                (match) => match.copyWith(
+                  homeTeam: usersById[match.homeTeamId],
+                  awayTeam: usersById[match.awayTeamId],
+                ),
+              )
+              .toList(growable: false),
+        ),
+      );
+    } catch (error) {
+      debugPrint('Unable to enrich league detail users: $error');
+    } finally {
+      _loadingUserIds.removeAll(missing);
+    }
+  }
+
+  Future<void> _onDetailStreamFailed(
+    DetailStreamFailed event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    if (!_isCurrentEvent(event, event.slice)) return;
+    await _cancelSliceSubscription(event.slice);
+    final streamErrors = Map<TournamentDetailSlice, String>.of(
+      state.streamErrors,
+    )..[event.slice] = event.error.toString();
+    emit(
+      state.copyWith(
+        leagueSliceStatus: event.slice == TournamentDetailSlice.league
+            ? DetailSliceStatus.failed
+            : null,
+        statsSliceStatus: event.slice == TournamentDetailSlice.stats
+            ? DetailSliceStatus.failed
+            : null,
+        matchesSliceStatus: event.slice == TournamentDetailSlice.matches
+            ? DetailSliceStatus.failed
+            : null,
+        streamErrors: streamErrors,
+      ),
+    );
+    _scheduleRetry(event.slice);
+  }
+
+  Future<void> _onDetailStreamCompleted(
+    _DetailStreamCompleted event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    if (!_isCurrentEvent(event, event.slice)) return;
+    await _cancelSliceSubscription(event.slice);
+  }
+
+  void _scheduleRetry(TournamentDetailSlice slice) {
+    final leagueId = _activeLeagueId;
+    if (leagueId == null) return;
+    final attempt = _retryAttempts[slice] ?? 0;
+    if (attempt >= 3) return;
+    _retryAttempts[slice] = attempt + 1;
+    _retryTimers[slice]?.cancel();
+    _retryTimers[slice] = Timer(Duration(seconds: 1 << attempt), () {
+      if (!isClosed && _activeLeagueId == leagueId) {
+        add(RetryDetailSlice(slice));
+      }
+    });
+  }
+
+  void _onRetryDetailSlice(
+    RetryDetailSlice event,
+    Emitter<TournamentDetailState> emit,
   ) {
-    if (!kDebugMode || !_enableStatsAudit) {
+    _retryTimers[event.slice] = null;
+    final leagueId = _activeLeagueId;
+    if (leagueId == null) return;
+    switch (event.slice) {
+      case TournamentDetailSlice.league:
+        if (_leagueSubscription == null) _bindLeagueStream(leagueId);
+      case TournamentDetailSlice.stats:
+        if (_statsSubscription == null) _bindStatsStream(leagueId);
+      case TournamentDetailSlice.matches:
+        if (_matchesSubscription == null) _bindMatchesStream(leagueId);
+    }
+  }
+
+  void _markSliceSuccessful(TournamentDetailSlice slice) {
+    _retryTimers[slice]?.cancel();
+    _retryTimers[slice] = null;
+    _retryAttempts[slice] = 0;
+  }
+
+  bool _isCurrentEvent(
+    TournamentDetailEvent event,
+    TournamentDetailSlice slice,
+  ) {
+    final sourceLeagueId = _sourceLeagueId(event);
+    if (sourceLeagueId != null && sourceLeagueId != _activeLeagueId) {
+      return false;
+    }
+    final sourceGeneration = _sourceGeneration(event);
+    if (sourceGeneration == null) return _activeLeagueId != null;
+    return sourceGeneration == _generationFor(slice);
+  }
+
+  String? _sourceLeagueId(TournamentDetailEvent event) {
+    return switch (event) {
+      _SourcedLeagueSnapshotReceived e => e.sourceLeagueId,
+      _SourcedStatsSnapshotReceived e => e.sourceLeagueId,
+      _SourcedMatchesSnapshotReceived e => e.sourceLeagueId,
+      _SourcedDetailStreamFailed e => e.sourceLeagueId,
+      _DetailStreamCompleted e => e.sourceLeagueId,
+      _ => null,
+    };
+  }
+
+  int? _sourceGeneration(TournamentDetailEvent event) {
+    return switch (event) {
+      _SourcedLeagueSnapshotReceived e => e.generation,
+      _SourcedStatsSnapshotReceived e => e.generation,
+      _SourcedMatchesSnapshotReceived e => e.generation,
+      _SourcedDetailStreamFailed e => e.generation,
+      _DetailStreamCompleted e => e.generation,
+      _ => null,
+    };
+  }
+
+  int _generationFor(TournamentDetailSlice slice) {
+    return switch (slice) {
+      TournamentDetailSlice.league => _leagueGeneration,
+      TournamentDetailSlice.stats => _statsGeneration,
+      TournamentDetailSlice.matches => _matchesGeneration,
+    };
+  }
+
+  Future<void> _cancelSliceSubscription(TournamentDetailSlice slice) async {
+    switch (slice) {
+      case TournamentDetailSlice.league:
+        final subscription = _leagueSubscription;
+        _leagueSubscription = null;
+        await subscription?.cancel();
+      case TournamentDetailSlice.stats:
+        final subscription = _statsSubscription;
+        _statsSubscription = null;
+        await subscription?.cancel();
+      case TournamentDetailSlice.matches:
+        final subscription = _matchesSubscription;
+        _matchesSubscription = null;
+        await subscription?.cancel();
+    }
+  }
+
+  Future<void> _cancelLifecycle({required bool clearActiveLeague}) async {
+    for (final timer in _retryTimers.values) {
+      timer?.cancel();
+    }
+    for (final slice in TournamentDetailSlice.values) {
+      _retryTimers[slice] = null;
+    }
+    final league = _leagueSubscription;
+    final stats = _statsSubscription;
+    final matches = _matchesSubscription;
+    _leagueSubscription = null;
+    _statsSubscription = null;
+    _matchesSubscription = null;
+    if (clearActiveLeague) _activeLeagueId = null;
+    await Future.wait<void>([
+      if (league != null) league.cancel(),
+      if (stats != null) stats.cancel(),
+      if (matches != null) matches.cancel(),
+    ]);
+  }
+
+  Future<void> _cleanupDeletedLeagueLifecycle() async {
+    try {
+      await _cancelLifecycle(clearActiveLeague: true);
+    } catch (error) {
+      debugPrint('Unable to clean up deleted league subscriptions: $error');
+    }
+  }
+
+  void _resetRetryState() {
+    for (final slice in TournamentDetailSlice.values) {
+      _retryAttempts[slice] = 0;
+      _retryTimers[slice]?.cancel();
+      _retryTimers[slice] = null;
+    }
+  }
+
+  Future<void> _onUpdateMatch(
+    UpdateEsportMatch event,
+    Emitter<TournamentDetailState> emit,
+  ) async {
+    if (state.league == null ||
+        state.pendingMatchIds.contains(event.match.id)) {
       return;
     }
-    final tag =
-        '[AUDIT][${league?.name.isNotEmpty == true ? league!.name : league?.id ?? "?"}]';
-    final finished = matches.where((m) => m.isFinished).toList();
-    debugPrint(
-      '$tag matches=${matches.length} finished=${finished.length} '
-      'participants=${participants.length}',
-    );
 
-    final computed = <String, _AuditTotals>{
-      for (final p in participants) p.userId: _AuditTotals(),
-    };
-    final orphanMatches = <GNEsportMatch>[];
-
-    for (final m in finished) {
-      final h = m.homeScore;
-      final a = m.awayScore;
-      if (h == null || a == null) continue;
-      final ch = computed[m.homeTeamId];
-      final ca = computed[m.awayTeamId];
-      if (ch == null || ca == null) {
-        orphanMatches.add(m);
-        // Still record into the side that exists, if any, to surface the
-        // mismatch on that player too.
-      }
-      if (ch != null) ch.add(scoredFor: h, scoredAgainst: a);
-      if (ca != null) ca.add(scoredFor: a, scoredAgainst: h);
-    }
-
-    if (orphanMatches.isNotEmpty) {
-      debugPrint('$tag ⚠ ORPHAN matches (player not in stats):');
-      for (final m in orphanMatches) {
-        debugPrint(
-          '$tag   matchId=${m.id} home=${m.homeTeamId} away=${m.awayTeamId} '
-          'score=${m.homeScore}-${m.awayScore}',
-        );
-      }
-    }
-
-    var anyMismatch = false;
-    for (final p in participants) {
-      final c = computed[p.userId]!;
-      final ok =
-          p.matchesPlayed == c.mp &&
-          p.goals == c.gf &&
-          p.goalsConceded == c.ga &&
-          p.wins == c.w &&
-          p.draws == c.d &&
-          p.losses == c.l;
-      final name = p.user?.displayName ?? p.userId;
-      if (!ok) {
-        anyMismatch = true;
-        debugPrint(
-          '$tag ❌ $name '
-          'DB(MP:${p.matchesPlayed} W:${p.wins} D:${p.draws} L:${p.losses} '
-          'GF:${p.goals} GA:${p.goalsConceded}) '
-          'vs Computed(MP:${c.mp} W:${c.w} D:${c.d} L:${c.l} '
-          'GF:${c.gf} GA:${c.ga})',
-        );
-      }
-    }
-
-    if (!anyMismatch && orphanMatches.isEmpty) {
-      debugPrint('$tag ✅ stats consistent');
-    }
-
-    debugPrint('$tag --- finished match list ---');
-    for (final m in finished) {
-      final hName = m.homeTeam?.displayName ?? m.homeTeamId;
-      final aName = m.awayTeam?.displayName ?? m.awayTeamId;
-      debugPrint(
-        '$tag   ${m.id}: $hName ${m.homeScore}-${m.awayScore} $aName '
-        '(updatedAt=${m.updatedAt?.toDate().toIso8601String() ?? "—"})',
+    final pending = Set<String>.of(state.pendingMatchIds)..add(event.match.id);
+    final errors = Map<String, String>.of(state.matchErrorsById)
+      ..remove(event.match.id);
+    emit(state.copyWith(pendingMatchIds: pending, matchErrorsById: errors));
+    try {
+      await _leagueRepository.updateMatchAtomically(event.match);
+      final nextPending = Set<String>.of(state.pendingMatchIds)
+        ..remove(event.match.id);
+      emit(state.copyWith(pendingMatchIds: nextPending));
+      showToast(appText.tournamentMatchUpdated);
+    } on ConcurrentMatchUpdateException {
+      final nextPending = Set<String>.of(state.pendingMatchIds)
+        ..remove(event.match.id);
+      final nextErrors = Map<String, String>.of(state.matchErrorsById)
+        ..[event.match.id] = appText.tournamentMatchConcurrentUpdate;
+      emit(
+        state.copyWith(
+          pendingMatchIds: nextPending,
+          matchErrorsById: nextErrors,
+        ),
+      );
+      showToast(appText.tournamentMatchConcurrentUpdate);
+    } catch (_) {
+      final nextPending = Set<String>.of(state.pendingMatchIds)
+        ..remove(event.match.id);
+      final nextErrors = Map<String, String>.of(state.matchErrorsById)
+        ..[event.match.id] = appText.commonErrorTitle;
+      emit(
+        state.copyWith(
+          pendingMatchIds: nextPending,
+          matchErrorsById: nextErrors,
+        ),
       );
     }
-    debugPrint('$tag ---------------------------');
   }
 
   Future<void> _onRecomputeStats(
@@ -288,43 +723,17 @@ class TournamentDetailBloc
     if (leagueId == null) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.recomputeLeagueStats(leagueId);
-      // Reload from server so the UI reflects the freshly written totals.
-      // The participants stream will also catch the writes, but pulling
-      // explicitly avoids relying on stream timing.
-      add(GetParticipantsAndMatches(leagueId));
+      await _leagueRepository.recomputeLeagueStats(leagueId);
+      emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentStatsSynced);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
-  }
-
-  Future<void> _onUpdateLeague(
-    UpdateLeague event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    final newLeague = event.league.copyWith(group: state.league?.group);
-    emit(state.copyWith(league: newLeague));
-    if (event.league.isActive) {
-      add(GetParticipantsAndMatches(event.league.id));
-    }
-  }
-
-  void _onLeagueDeleted(
-    LeagueDeleted event,
-    Emitter<TournamentDetailState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        viewStatus: ViewStatus.failure,
-        errorMessage: 'Không tìm thấy giải đấu',
-      ),
-    );
   }
 
   Future<void> _onUpdateLeagueCostConfig(
@@ -342,49 +751,40 @@ class TournamentDetailBloc
         defaultPerGoalEnabled: event.defaultPerGoalEnabled,
         defaultCostPerGoal: event.defaultCostPerGoal,
       );
-      await _esportLeagueRepository.updateLeague(updated);
+      await _leagueRepository.updateLeague(updated);
       emit(state.copyWith(viewStatus: ViewStatus.success, league: updated));
       showToast(appText.tournamentCostUpdated);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
   }
 
-  Future<void> _onUpdateMatches(
-    UpdateMatches event,
+  void _onLeagueDeleted(
+    LeagueDeleted event,
     Emitter<TournamentDetailState> emit,
-  ) async {
-    final usersById = {for (final u in state.users) u.id: u};
+  ) {
     emit(
       state.copyWith(
-        matches: event.matches
-            .map(
-              (e) => e.copyWith(
-                homeTeam: usersById[e.homeTeamId],
-                awayTeam: usersById[e.awayTeamId],
-              ),
-            )
-            .toList(),
+        clearLeague: true,
+        leagueDeleted: true,
+        leagueSliceStatus: DetailSliceStatus.failed,
+        errorMessage: appText.commonErrorTitle,
       ),
     );
   }
 
-  void _onCreateCustomMatch(
+  Future<void> _onCreateCustomMatch(
     CreateCustomMatch event,
     Emitter<TournamentDetailState> emit,
   ) async {
-    if (state.viewStatus == ViewStatus.loading) {
-      return;
-    }
+    if (state.viewStatus == ViewStatus.loading) return;
     final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
+    if (leagueId == null) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
       final match = GNEsportMatch(
@@ -397,60 +797,55 @@ class TournamentDetailBloc
         isFinished: false,
         leagueId: leagueId,
       );
-      await _esportLeagueRepository.createCustomMatch(match);
-      add(GetMatches(leagueId));
+      await _leagueRepository.createCustomMatch(match);
+      emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentCustomMatchCreated);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
   }
 
-  void _onDeleteMatch(
+  Future<void> _onDeleteMatch(
     DeleteEsportMatch event,
     Emitter<TournamentDetailState> emit,
   ) async {
-    final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
+    if (state.league == null) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.deleteMatch(event.match);
-      add(GetParticipantStats(leagueId));
+      await _leagueRepository.deleteMatch(event.match);
+      emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentMatchDeleted);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
   }
 
-  void _onInactiveLeague(
+  Future<void> _onInactiveLeague(
     InactiveLeague event,
     Emitter<TournamentDetailState> emit,
   ) async {
     final league = state.league;
-    if (league == null) {
-      return;
-    }
+    if (league == null) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.inactiveLeague(league);
+      await _leagueRepository.inactiveLeague(league);
       emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentDeleted);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
@@ -459,205 +854,78 @@ class TournamentDetailBloc
   void _onChangeLeagueStatus(
     ChangeLeagueStatus event,
     Emitter<TournamentDetailState> emit,
-  ) async {
-    final newLeague = state.league?.copyWith(status: event.status.value);
-    emit(state.copyWith(league: newLeague));
+  ) {
+    emit(
+      state.copyWith(
+        league: state.league?.copyWith(status: event.status.value),
+      ),
+    );
   }
 
-  void _onSubmitLeagueStatus(
+  Future<void> _onSubmitLeagueStatus(
     SubmitLeagueStatus event,
     Emitter<TournamentDetailState> emit,
   ) async {
     final league = state.league;
-    if (league == null) {
-      return;
-    }
+    if (league == null) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.updateLeague(league);
+      await _leagueRepository.updateLeague(league);
       emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentStatusUpdated);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
   }
 
-  void _onGetParticipants(
-    GetParticipantStats event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
-    try {
-      final participants = await _esportLeagueRepository.getLeagueStats(
-        event.tournamentId,
-      );
-      List<GNUser> users = [];
-      for (var participant in participants) {
-        final user = participant.user;
-        if (user != null) users.add(user);
-      }
-      // sort participants by point, then goal difference, then goals scored, then match played
-      participants.sort((a, b) {
-        if (a.points != b.points) return b.points.compareTo(a.points);
-        if (a.goalDifference != b.goalDifference) {
-          return b.goalDifference.compareTo(a.goalDifference);
-        }
-        if (a.goals != b.goals) return b.goals.compareTo(a.goals);
-        return b.matchesPlayed.compareTo(a.matchesPlayed);
-      });
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.success,
-          participants: participants,
-          users: users,
-        ),
-      );
-      add(GetMatches(event.tournamentId));
-    } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  void _onGetMatches(
-    GetMatches event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
-    try {
-      final matches = await _esportLeagueRepository.getMatches(
-        event.tournamentId,
-      );
-      final users = state.users;
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.success,
-          matches: matches
-              .map(
-                (e) => e.copyWith(
-                  homeTeam: users.firstWhere(
-                    (element) => element.id == e.homeTeamId,
-                  ),
-                  awayTeam: users.firstWhere(
-                    (element) => element.id == e.awayTeamId,
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  Future<void> _onGetParticipantsAndMatches(
-    GetParticipantsAndMatches event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    // Only show the loading bar on the initial load. Reactive refreshes
-    // (stream-triggered or pull-to-refresh) keep the existing data on
-    // screen so the user doesn't see a spinner flash on every match update.
-    final isInitial = state.participants.isEmpty;
-    if (isInitial) {
-      emit(state.copyWith(viewStatus: ViewStatus.loading));
-    }
-    try {
-      var data = await _esportLeagueRepository.getParticipantsAndMatches(
-        event.leagueId,
-      );
-
-      final users = <GNUser>[
-        for (final p in data.participants)
-          if (p.user != null) p.user!,
-      ];
-
-      _auditStats(state.league, data.participants, data.matches);
-
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.success,
-          participants: _sortParticipants(data.participants),
-          users: users,
-          matches: data.matches,
-          refreshTick: state.refreshTick + 1,
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
-          refreshTick: state.refreshTick + 1,
-        ),
-      );
-    }
-  }
-
-  void _onAddParticipant(
+  Future<void> _onAddParticipant(
     AddParticipant event,
     Emitter<TournamentDetailState> emit,
   ) async {
     final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
+    if (leagueId == null) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.addParticipant(
+      await _leagueRepository.addParticipant(
         leagueId: leagueId,
         userId: event.userId,
       );
-      add(GetParticipantStats(leagueId));
+      emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentPlayerAdded);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
   }
 
-  void _onAddMultipleParticipants(
+  Future<void> _onAddMultipleParticipants(
     AddMultipleParticipants event,
     Emitter<TournamentDetailState> emit,
   ) async {
     final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
-    if (event.userIds.isEmpty) {
-      return;
-    }
+    if (leagueId == null || event.userIds.isEmpty) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.addMultipleParticipants(
+      await _leagueRepository.addMultipleParticipants(
         leagueId: leagueId,
         userIds: event.userIds,
       );
-      add(GetParticipantStats(leagueId));
+      emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentPlayersAdded(event.userIds.length));
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
@@ -670,120 +938,62 @@ class TournamentDetailBloc
     final leagueId = state.league?.id;
     if (leagueId == null || state.viewStatus == ViewStatus.loading) return;
     final teamIds = state.participants
-        .where((p) => p.groupId == event.groupId)
-        .map((p) => p.userId)
-        .toList();
+        .where((participant) => participant.groupId == event.groupId)
+        .map((participant) => participant.userId)
+        .toList(growable: false);
     if (teamIds.length < 2) {
       showToast(appText.tournamentGroupRoundMinimum);
       return;
     }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.generateGroupRound(
+      await _leagueRepository.generateGroupRound(
         leagueId: leagueId,
         groupId: event.groupId,
         teamIds: teamIds,
       );
-      add(GetParticipantsAndMatches(leagueId));
+      emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentRoundCreated);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
   }
 
-  void _onGenerateRound(
+  Future<void> _onGenerateRound(
     GenerateRound event,
     Emitter<TournamentDetailState> emit,
   ) async {
     final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
-    if (state.participants.length < 2 ||
+    if (leagueId == null ||
+        state.participants.length < 2 ||
         state.viewStatus == ViewStatus.loading) {
       return;
     }
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.generateRound(
+      await _leagueRepository.generateRound(
         leagueId: leagueId,
-        teamIds: state.participants.map((e) => e.userId).toList(),
+        teamIds: state.participants
+            .map((participant) => participant.userId)
+            .toList(growable: false),
       );
-      add(GetMatches(leagueId));
-      showToast(appText.tournamentRoundCreated);
-    } on RoundTooLargeException catch (e) {
-      // Nothing was written, so this is a plain rejection rather than a
-      // failure state — tell the user the limit instead of leaking the
-      // exception's toString() into errorMessage.
-      emit(state.copyWith(viewStatus: ViewStatus.initial));
-      showToast(appText.tournamentRoundTooLarge(e.maxParticipants));
-    } catch (e) {
-      emit(
-        state.copyWith(
-          viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  void _onUpdateMatch(
-    UpdateEsportMatch event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    final leagueId = state.league?.id;
-    if (leagueId == null) {
-      return;
-    }
-    emit(state.copyWith(viewStatus: ViewStatus.loading));
-    try {
-      // Match write only — stats are reconciled on the ApplyMatchStatDelta
-      // handler below so this path stays fast (no stat queries, no extra
-      // transaction reads). UX returns as soon as the match doc is saved.
-      final result = await _esportLeagueRepository.updateMatch(event.match);
-      add(
-        ApplyMatchStatDelta(previous: result.previous, updated: result.updated),
-      );
-      showToast(appText.tournamentMatchUpdated);
-    } on ConcurrentMatchUpdateException {
-      // Another admin updated this match while the dialog was open. The
-      // listener stream has already pulled the new values into state, so
-      // the user just needs to be told their submission was rejected.
-      showToast(appText.tournamentMatchConcurrentUpdate);
       emit(state.copyWith(viewStatus: ViewStatus.success));
-    } catch (e) {
+      showToast(appText.tournamentRoundCreated);
+    } on RoundTooLargeException catch (error) {
+      emit(state.copyWith(viewStatus: ViewStatus.initial));
+      showToast(appText.tournamentRoundTooLarge(error.maxParticipants));
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
-    }
-  }
-
-  Future<void> _onApplyMatchStatDelta(
-    ApplyMatchStatDelta event,
-    Emitter<TournamentDetailState> emit,
-  ) async {
-    final leagueId = state.league?.id;
-    if (leagueId == null) return;
-    try {
-      await _esportLeagueRepository.applyMatchStatDelta(
-        previous: event.previous,
-        updated: event.updated,
-      );
-      // Refresh leaderboard once stats settle. Failure path skips this —
-      // listenForLeagueStats will still surface any reconciled writes.
-      add(GetParticipantStats(leagueId));
-    } catch (e) {
-      // Don't surface to UI: the match save already succeeded, and stat
-      // drift is recoverable via the manual "đồng bộ điểm số" action.
-      debugPrint('ApplyMatchStatDelta failed: $e');
     }
   }
 
@@ -795,17 +1005,17 @@ class TournamentDetailBloc
     if (leagueId == null || state.viewStatus == ViewStatus.loading) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.generateCupBracket(
+      await _leagueRepository.generateCupBracket(
         leagueId: leagueId,
         seededTeamIds: event.seededTeamIds,
       );
-      add(GetMatches(leagueId));
+      emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentBracketCreated);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
@@ -819,52 +1029,171 @@ class TournamentDetailBloc
     if (leagueId == null || state.viewStatus == ViewStatus.loading) return;
     emit(state.copyWith(viewStatus: ViewStatus.loading));
     try {
-      await _esportLeagueRepository.generateFullTournament(
+      await _leagueRepository.generateFullTournament(
         leagueId: leagueId,
         groups: event.groups,
         advanceCount: event.advanceCount,
       );
-      add(GetParticipantsAndMatches(leagueId));
+      emit(state.copyWith(viewStatus: ViewStatus.success));
       showToast(appText.tournamentFullCreated);
-    } catch (e) {
+    } catch (error) {
       emit(
         state.copyWith(
           viewStatus: ViewStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: error.toString(),
         ),
       );
     }
   }
 
+  /// Debug-only audit: recompute stats from the finished matches and compare
+  /// them with the streamed standings documents.
+  void _auditStats(
+    GNEsportLeague? league,
+    List<GNEsportLeagueStat> participants,
+    List<GNEsportMatch> matches,
+  ) {
+    if (!kDebugMode || !_enableStatsAudit) return;
+    final tag =
+        '[AUDIT][${league?.name.isNotEmpty == true ? league!.name : league?.id ?? "?"}]';
+    final finished = matches.where((match) => match.isFinished).toList();
+    debugPrint(
+      '$tag matches=${matches.length} finished=${finished.length} '
+      'participants=${participants.length}',
+    );
+
+    final computed = <String, _AuditTotals>{
+      for (final participant in participants)
+        participant.userId: _AuditTotals(),
+    };
+    final orphanMatches = <GNEsportMatch>[];
+    for (final match in finished) {
+      final homeScore = match.homeScore;
+      final awayScore = match.awayScore;
+      if (homeScore == null || awayScore == null) continue;
+      final home = computed[match.homeTeamId];
+      final away = computed[match.awayTeamId];
+      if (home == null || away == null) orphanMatches.add(match);
+      home?.add(scoredFor: homeScore, scoredAgainst: awayScore);
+      away?.add(scoredFor: awayScore, scoredAgainst: homeScore);
+    }
+
+    var mismatch = orphanMatches.isNotEmpty;
+    for (final participant in participants) {
+      final total = computed[participant.userId]!;
+      final matches =
+          participant.matchesPlayed == total.matchesPlayed &&
+          participant.goals == total.goalsFor &&
+          participant.goalsConceded == total.goalsAgainst &&
+          participant.wins == total.wins &&
+          participant.draws == total.draws &&
+          participant.losses == total.losses;
+      mismatch = mismatch || !matches;
+    }
+    debugPrint('$tag ${mismatch ? "stats mismatch" : "stats consistent"}');
+  }
+
   @override
-  Future<void> close() {
-    _matchesSubscription?.cancel();
-    _leagueSubscription?.cancel();
-    _participantsSubscription?.cancel();
-    return super.close();
+  Future<void> close() async {
+    await _cancelLifecycle(clearActiveLeague: true);
+    _groupsById.clear();
+    _resolvedGroupIds.clear();
+    _loadingGroups.clear();
+    _loadingUserIds.clear();
+    await super.close();
   }
 }
 
-/// Mutable accumulator used by the debug audit to recompute per-player
-/// totals from the finished-match list.
+class _SourcedLeagueSnapshotReceived extends LeagueSnapshotReceived {
+  final String sourceLeagueId;
+  final int generation;
+
+  const _SourcedLeagueSnapshotReceived(
+    this.sourceLeagueId,
+    this.generation,
+    super.league,
+  );
+
+  @override
+  List<Object?> get props => [sourceLeagueId, generation, league];
+}
+
+class _SourcedStatsSnapshotReceived extends StatsSnapshotReceived {
+  final String sourceLeagueId;
+  final int generation;
+
+  const _SourcedStatsSnapshotReceived(
+    this.sourceLeagueId,
+    this.generation,
+    super.stats,
+  );
+
+  @override
+  List<Object?> get props => [sourceLeagueId, generation, stats];
+}
+
+class _SourcedMatchesSnapshotReceived extends MatchesSnapshotReceived {
+  final String sourceLeagueId;
+  final int generation;
+
+  const _SourcedMatchesSnapshotReceived(
+    this.sourceLeagueId,
+    this.generation,
+    super.matches,
+  );
+
+  @override
+  List<Object?> get props => [sourceLeagueId, generation, matches];
+}
+
+class _SourcedDetailStreamFailed extends DetailStreamFailed {
+  final String sourceLeagueId;
+  final int generation;
+
+  const _SourcedDetailStreamFailed(
+    this.sourceLeagueId,
+    this.generation,
+    super.slice,
+    super.error,
+  );
+
+  @override
+  List<Object?> get props => [sourceLeagueId, generation, slice, error];
+}
+
+class _DetailStreamCompleted extends TournamentDetailEvent {
+  final String sourceLeagueId;
+  final int generation;
+  final TournamentDetailSlice slice;
+
+  const _DetailStreamCompleted(
+    this.sourceLeagueId,
+    this.generation,
+    this.slice,
+  );
+
+  @override
+  List<Object?> get props => [sourceLeagueId, generation, slice];
+}
+
 class _AuditTotals {
-  int mp = 0;
-  int gf = 0;
-  int ga = 0;
-  int w = 0;
-  int d = 0;
-  int l = 0;
+  int matchesPlayed = 0;
+  int goalsFor = 0;
+  int goalsAgainst = 0;
+  int wins = 0;
+  int draws = 0;
+  int losses = 0;
 
   void add({required int scoredFor, required int scoredAgainst}) {
-    mp++;
-    gf += scoredFor;
-    ga += scoredAgainst;
+    matchesPlayed++;
+    goalsFor += scoredFor;
+    goalsAgainst += scoredAgainst;
     if (scoredFor > scoredAgainst) {
-      w++;
+      wins++;
     } else if (scoredFor == scoredAgainst) {
-      d++;
+      draws++;
     } else {
-      l++;
+      losses++;
     }
   }
 }

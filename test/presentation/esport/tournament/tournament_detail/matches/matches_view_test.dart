@@ -20,13 +20,13 @@ class _MockBloc extends MockBloc<TournamentDetailEvent, TournamentDetailState>
 class _MemberState extends TournamentDetailState {
   final bool member;
 
-  const _MemberState({
+  _MemberState({
     super.league,
     super.matches,
     super.participants,
-    super.users,
+    List<GNUser> users = const [],
     this.member = false,
-  });
+  }) : super(usersById: {for (final user in users) user.id: user});
 
   @override
   bool get currentUserIsMember => member;
