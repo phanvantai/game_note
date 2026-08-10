@@ -534,8 +534,8 @@ void main() {
 
       verifyNever(
         () => leagueRepo.addMultipleParticipants(
-          leagueId: 'league-league',
-          userIds: const ['u1', 'u2'],
+          leagueId: any(named: 'leagueId'),
+          userIds: any(named: 'userIds'),
         ),
       );
       verifyNever(
@@ -631,6 +631,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('tournament league-cup'), findsOneWidget);
+    verifyNever(() => tournamentBloc.add(any(that: isA<LoadMyLeagues>())));
+    verifyNever(
+      () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
+    );
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
     verify(
       () => leagueRepo.addLeague(
         name: 'Test League',
@@ -674,6 +682,12 @@ void main() {
         knockoutSeeding: any(named: 'knockoutSeeding'),
       ),
     );
+    verify(
+      () => tournamentBloc.add(any(that: isA<LoadMyLeagues>())),
+    ).called(1);
+    verify(
+      () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
+    ).called(1);
   });
 
   testWidgets(
@@ -749,6 +763,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('tournament league-full'), findsOneWidget);
+      verifyNever(() => tournamentBloc.add(any(that: isA<LoadMyLeagues>())));
+      verifyNever(
+        () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
       verify(
         () => leagueRepo.addLeague(
           name: 'Test League',
@@ -795,6 +817,12 @@ void main() {
           seededTeamIds: any(named: 'seededTeamIds'),
         ),
       );
+      verify(
+        () => tournamentBloc.add(any(that: isA<LoadMyLeagues>())),
+      ).called(1);
+      verify(
+        () => tournamentBloc.add(any(that: isA<LoadManagedLeagues>())),
+      ).called(1);
     },
   );
 
