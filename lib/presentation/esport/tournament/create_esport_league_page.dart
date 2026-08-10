@@ -265,6 +265,7 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
       }
     }
 
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _isSubmitting = true);
     try {
       final leagueId = await widget.onAddLeague(
@@ -546,41 +547,35 @@ class _CreateEsportLeaguePageState extends State<CreateEsportLeaguePage> {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: ExcludeFocus(
-              excluding: _isSubmitting,
-              child: Semantics(
-                container: _isSubmitting,
-                button: _isSubmitting,
-                enabled: !_isSubmitting,
-                focusable: false,
-                label: _isSubmitting ? actionLabel : null,
-                excludeSemantics: _isSubmitting,
-                child: FilledButton.icon(
-                  onPressed: _isSubmitting || !_canProceed ? null : _goNext,
-                  icon: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: _isSubmitting
-                        ? const ExcludeSemantics(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(
-                            isLast
-                                ? Icons.check_circle_outline_rounded
-                                : Icons.arrow_forward_rounded,
-                            size: 20,
-                          ),
+            child: Semantics(
+              button: true,
+              enabled: !_isSubmitting,
+              label: actionLabel,
+              child: FilledButton.icon(
+                onPressed: _isSubmitting || !_canProceed ? null : _goNext,
+                icon: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: _isSubmitting
+                      ? const ExcludeSemantics(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          isLast
+                              ? Icons.check_circle_outline_rounded
+                              : Icons.arrow_forward_rounded,
+                          size: 20,
+                        ),
+                ),
+                label: Text(actionLabel),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  backgroundColor: colorScheme.secondary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  label: Text(actionLabel),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                    backgroundColor: colorScheme.secondary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    textStyle: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                  textStyle: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

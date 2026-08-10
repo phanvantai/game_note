@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show SemanticsAction, SemanticsFlag;
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -636,8 +637,13 @@ void main() {
         );
         final createButton = find.widgetWithText(FilledButton, 'Tạo giải đấu');
         final buttonSize = tester.getSize(createButton);
-        FocusManager.instance.primaryFocus?.unfocus();
-        await tester.pump();
+        final nameInput = tester.widget<EditableText>(
+          find.descendant(
+            of: find.widgetWithText(TextField, 'Tên giải đấu'),
+            matching: find.byType(EditableText),
+          ),
+        );
+        expect(nameInput.focusNode.hasFocus, isTrue);
 
         await tester.tap(createButton);
         await tester.pump();
@@ -648,18 +654,35 @@ void main() {
         expect(calls, 1);
         expect(toasts, isEmpty);
 
-        final semanticsHandle = tester.ensureSemantics();
+        tester.testTextInput.enterText('Tên không được đổi khi đang tạo');
+        await tester.pump();
         expect(
-          tester.getSemantics(find.text('Đang tạo giải…')),
-          matchesSemantics(
-            label: 'Đang tạo giải…',
-            isButton: true,
-            hasEnabledState: true,
-            isEnabled: false,
-            hasTapAction: false,
-            hasFocusAction: true,
-            isFocusable: true,
+          tester
+              .widget<TextField>(find.widgetWithText(TextField, 'Tên giải đấu'))
+              .controller!
+              .text,
+          'Giải chờ xử lý',
+        );
+
+        final semanticsHandle = tester.ensureSemantics();
+        final loadingButtonSemantics = tester.getSemantics(
+          find.text('Đang tạo giải…'),
+        );
+        expect(loadingButtonSemantics.label, 'Đang tạo giải…');
+        expect(loadingButtonSemantics.hasFlag(SemanticsFlag.isButton), isTrue);
+        expect(
+          loadingButtonSemantics.hasFlag(SemanticsFlag.hasEnabledState),
+          isTrue,
+        );
+        expect(
+          loadingButtonSemantics.hasFlag(SemanticsFlag.isEnabled),
+          isFalse,
+        );
+        expect(
+          loadingButtonSemantics.getSemanticsData().hasAction(
+            SemanticsAction.tap,
           ),
+          isFalse,
         );
         semanticsHandle.dispose();
 
@@ -681,12 +704,6 @@ void main() {
           warnIfMissed: false,
         );
         await tester.pump();
-        final nameInput = tester.widget<EditableText>(
-          find.descendant(
-            of: find.widgetWithText(TextField, 'Tên giải đấu'),
-            matching: find.byType(EditableText),
-          ),
-        );
         expect(nameInput.focusNode.hasFocus, isFalse);
         expect(
           tester
