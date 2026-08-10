@@ -398,6 +398,11 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
   /// before entering the transaction. The transaction then re-reads their
   /// contents, allowing Firestore to retry safely when another match updates
   /// a shared player's standing at the same time.
+  ///
+  /// [expectedUpdatedAt] is the caller's nullable version, not an opt-out from
+  /// optimistic locking. Two null versions match for the first write to a
+  /// legacy document; once that write assigns a server timestamp, another
+  /// caller still holding null is rejected.
   Future<void> updateMatchAtomically({
     required String matchId,
     required String leagueId,
@@ -449,9 +454,7 @@ extension GnFirestoreEsportLeagueMatch on GNFirestore {
         throw Exception('Match participants changed during update');
       }
 
-      if (expectedUpdatedAt != null &&
-          current.updatedAt != null &&
-          current.updatedAt != expectedUpdatedAt) {
+      if (current.updatedAt != expectedUpdatedAt) {
         throw ConcurrentMatchUpdateException(matchId);
       }
 

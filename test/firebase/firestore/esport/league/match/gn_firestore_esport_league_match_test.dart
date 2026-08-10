@@ -1258,6 +1258,95 @@ void main() {
     );
 
     test(
+      'concurrent legacy null version allows one success and one conflict',
+      () async {
+        final controlled = _ControlledTransactionFirestore();
+        fakeFirestore = controlled;
+        fs = GNFirestore(controlled);
+        final matchId = await seedMatch(leagueId: 'atomic-legacy-race');
+        await seedStat(
+          id: 'legacy-race-home-random',
+          leagueId: 'atomic-legacy-race',
+          userId: 'u1',
+        );
+        await seedStat(
+          id: 'legacy-race-away-random',
+          leagueId: 'atomic-legacy-race',
+          userId: 'u2',
+        );
+
+        final outcomes = await Future.wait([
+          capture(
+            fs.updateMatchAtomically(
+              matchId: matchId,
+              leagueId: 'atomic-legacy-race',
+              homeScore: 2,
+              awayScore: 0,
+              expectedUpdatedAt: null,
+            ),
+          ),
+          capture(
+            fs.updateMatchAtomically(
+              matchId: matchId,
+              leagueId: 'atomic-legacy-race',
+              homeScore: 4,
+              awayScore: 1,
+              expectedUpdatedAt: null,
+            ),
+          ),
+        ]);
+
+        expect(outcomes.where((result) => result == null), hasLength(1));
+        expect(
+          outcomes.whereType<ConcurrentMatchUpdateException>(),
+          hasLength(1),
+        );
+        final match = (await matchesCollection(
+          'atomic-legacy-race',
+        ).doc(matchId).get()).data()!;
+        final homeStat = await statFor('atomic-legacy-race', 'u1');
+        final awayStat = await statFor('atomic-legacy-race', 'u2');
+        expect(match[GNEsportMatch.fieldUpdatedAt], isA<Timestamp>());
+        expect(
+          (
+            homeScore: match[GNEsportMatch.fieldHomeScore],
+            awayScore: match[GNEsportMatch.fieldAwayScore],
+            homeGoals: homeStat[GNEsportLeagueStat.fieldGoals],
+            homeConceded: homeStat[GNEsportLeagueStat.fieldGoalsConceded],
+            awayGoals: awayStat[GNEsportLeagueStat.fieldGoals],
+            awayConceded: awayStat[GNEsportLeagueStat.fieldGoalsConceded],
+          ),
+          anyOf(
+            (
+              homeScore: 2,
+              awayScore: 0,
+              homeGoals: 2,
+              homeConceded: 0,
+              awayGoals: 0,
+              awayConceded: 2,
+            ),
+            (
+              homeScore: 4,
+              awayScore: 1,
+              homeGoals: 4,
+              homeConceded: 1,
+              awayGoals: 1,
+              awayConceded: 4,
+            ),
+          ),
+        );
+        expect(homeStat[GNEsportLeagueStat.fieldMatchesPlayed], 1);
+        expect(homeStat[GNEsportLeagueStat.fieldWins], 1);
+        expect(homeStat[GNEsportLeagueStat.fieldDraws], 0);
+        expect(homeStat[GNEsportLeagueStat.fieldLosses], 0);
+        expect(awayStat[GNEsportLeagueStat.fieldMatchesPlayed], 1);
+        expect(awayStat[GNEsportLeagueStat.fieldWins], 0);
+        expect(awayStat[GNEsportLeagueStat.fieldDraws], 0);
+        expect(awayStat[GNEsportLeagueStat.fieldLosses], 1);
+      },
+    );
+
+    test(
       'concurrent different matches sharing a player preserve both deltas',
       () async {
         final controlled = _ControlledTransactionFirestore();
