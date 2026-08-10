@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui' show SemanticsAction, SemanticsFlag;
+import 'dart:ui' show SemanticsAction, Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -669,14 +669,14 @@ void main() {
           find.text('Đang tạo giải…'),
         );
         expect(loadingButtonSemantics.label, 'Đang tạo giải…');
-        expect(loadingButtonSemantics.hasFlag(SemanticsFlag.isButton), isTrue);
+        expect(loadingButtonSemantics.flagsCollection.isButton, isTrue);
         expect(
-          loadingButtonSemantics.hasFlag(SemanticsFlag.hasEnabledState),
-          isTrue,
+          loadingButtonSemantics.flagsCollection.isEnabled,
+          isNot(Tristate.none),
         );
         expect(
-          loadingButtonSemantics.hasFlag(SemanticsFlag.isEnabled),
-          isFalse,
+          loadingButtonSemantics.flagsCollection.isEnabled,
+          Tristate.isFalse,
         );
         expect(
           loadingButtonSemantics.getSemanticsData().hasAction(
