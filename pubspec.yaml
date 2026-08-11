@@ -2,7 +2,7 @@ name: pes_arena
 description: Social platform for PES players - create groups, tournaments, and
   compete with your crew.
 publish_to: "none"
-version: 3.5.0+47
+version: 3.6.0+48
 
 environment:
   sdk: ">=3.10.0 <4.0.0"

@@ -114,6 +114,11 @@ Existing repo guidance targets very high coverage for production code under `lib
 - Never push directly to `main`. All changes go through a pull request targeting `main`.
 - After a PR is merged, delete the remote branch and any local branches that are no longer needed, keeping `main` as the clean baseline.
 - Before opening or updating a PR, verify the relevant checks for the change, such as `flutter analyze`, targeted tests, or docs-only review.
+- Every merge to `main` is a production release: `.github/workflows/android-release.yml` publishes every push to `main` to Google Play production.
+- A PR touching `lib/`, `android/`, or `ios/` must update `pubspec.yaml` and add a dated `[X.Y.Z+N]` entry to `CHANGELOG.md`; docs-only and test-only PRs are exempt.
+- Increase `+N` by exactly one. Use a minor semantic bump for user-facing features and a patch bump for fixes or internal work.
+- Authorization to implement or commit does not authorize pushing, opening or updating a PR, merging, or any other remote action. Each remote action requires an explicit user request.
+- Do not merge until required CI checks pass. If a merged change regresses, open a new revert PR; do not force-push or rewrite `main`.
 
 ## Area-Specific Tips
 
