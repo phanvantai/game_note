@@ -17,7 +17,7 @@
 - The changelog must begin this repair's entry with exactly `## [3.6.0+48] - 2026-08-11` and explicitly say offline tournament behavior is unchanged.
 - Every merge to `main` is a production release; do not merge this repair until required CI checks pass.
 - Authorization to implement or commit does not authorize push, PR creation/update, merge, or any other remote action; each remote action needs an explicit user request.
-- For this repair only, the user has explicitly authorized implementation, PR creation, and merge.
+- For this repair only, the user has explicitly authorized implementation, the necessary branch push, PR creation, and merge.
 - If a post-merge regression is found, open a new PR that reverts the faulty commit; never force-push or rewrite `main`.
 
 ---
@@ -236,7 +236,7 @@ git push -u origin HEAD
 gh pr create --base main --title "chore: release 3.6.0+48" --body "Ships the missing release metadata and contributor guardrails for the already-deployed online-league work. Includes version 3.6.0+48, dated changelog notes, and explicit remote-action authorization rules."
 ```
 
-Expected: the branch is pushed and a PR targeting `main` is created. This remote work is permitted only because the user explicitly authorized implementation, PR creation, and merge for this repair.
+Expected: the branch is pushed and a PR targeting `main` is created. This remote work is permitted only because the user explicitly authorized implementation, the necessary branch push, PR creation, and merge for this repair.
 
 - [ ] **Step 5: Verify PR checks, merge only after they pass, and clean up**
 

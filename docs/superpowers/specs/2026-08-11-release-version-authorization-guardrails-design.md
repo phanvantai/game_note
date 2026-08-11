@@ -35,7 +35,7 @@ The same section will state the authorization boundary: authorization to
 implement or commit never authorizes pushing, opening/updating a PR, merging,
 or any other remote action. Each remote action requires an explicit user
 request. For this repair only, the user has explicitly authorized
-implementation, PR creation, and merge.
+implementation, the necessary branch push, PR creation, and merge.
 
 ## Verification and rollback
 
