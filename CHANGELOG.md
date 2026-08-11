@@ -2,6 +2,22 @@
 
 All notable changes to PES Arena are documented here.
 
+## [3.6.0+48] - 2026-08-11
+
+### Added
+
+- Phản hồi tải kịp thời khi tạo giải league online.
+
+### Changed
+
+- Chi tiết giải league cập nhật thời gian thực giữa nhiều thiết bị.
+- Cập nhật trận dùng ghi lạc quan nguyên tử để giữ điểm số nhất quán khi có thao tác đồng thời.
+
+### Fixed
+
+- Phản hồi đang chờ và xung đột theo từng hàng giúp hiển thị rõ các cập nhật trận đang xử lý hoặc cạnh tranh.
+- Hành vi giải đấu offline không thay đổi.
+
 ## [3.5.0+47] - 2026-08-09
 
 ### Added
