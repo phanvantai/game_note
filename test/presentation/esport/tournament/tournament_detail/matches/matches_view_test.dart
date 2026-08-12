@@ -50,7 +50,6 @@ GNUser _user(String id, String name) {
     email: '$id@example.com',
     photoUrl: null,
     role: 'user',
-    fcmToken: '',
   );
 }
 

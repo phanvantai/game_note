@@ -4,8 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/core/common/view_status.dart';
-import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
-import 'package:pes_arena/firebase/firestore/notification/gn_notification.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/generated/app_localizations.dart';
@@ -16,7 +14,6 @@ import 'package:pes_arena/presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/models/dashboard_stats.dart';
 import 'package:pes_arena/presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
 import 'package:pes_arena/presentation/main/main_view.dart';
-import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:pes_arena/presentation/profile/bloc/profile_bloc.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -36,12 +33,6 @@ class _MockOngoingBloc
     extends MockBloc<OngoingTournamentsEvent, OngoingTournamentsState>
     implements OngoingTournamentsBloc {}
 
-class _MockNotificationBloc
-    extends MockBloc<NotificationEvent, NotificationState>
-    implements NotificationBloc {}
-
-class _MockMessaging extends Mock implements GNFirebaseMessaging {}
-
 class _MockRemoteConfig extends Mock implements GNRemoteConfig {}
 
 Widget _wrap({
@@ -50,7 +41,6 @@ Widget _wrap({
   required ProfileBloc profileBloc,
   required DashboardBloc dashboardBloc,
   required OngoingTournamentsBloc ongoingBloc,
-  required NotificationBloc notificationBloc,
   Locale locale = const Locale('vi'),
 }) {
   return MultiBlocProvider(
@@ -61,7 +51,6 @@ Widget _wrap({
       BlocProvider<ProfileBloc>.value(value: profileBloc),
       BlocProvider<DashboardBloc>.value(value: dashboardBloc),
       BlocProvider<OngoingTournamentsBloc>.value(value: ongoingBloc),
-      BlocProvider<NotificationBloc>.value(value: notificationBloc),
     ],
     child: MaterialApp(
       locale: locale,
@@ -81,23 +70,21 @@ void main() {
   setUp(() async {
     VisibilityDetectorController.instance.updateInterval = Duration.zero;
     await getIt.reset();
-    final messaging = _MockMessaging();
     final remoteConfig = _MockRemoteConfig();
-    when(() => messaging.initialize()).thenAnswer((_) async {});
     when(() => remoteConfig.adsEnabled).thenReturn(false);
-    getIt.registerSingleton<GNFirebaseMessaging>(messaging);
     getIt.registerSingleton<GNRemoteConfig>(remoteConfig);
   });
 
   tearDown(() => getIt.reset());
 
-  testWidgets('MainView render 5 tab và chuyển tab', (tester) async {
+  testWidgets('MainView renders four destinations and switches tabs', (
+    tester,
+  ) async {
     final groupBloc = _MockGroupBloc();
     final tournamentBloc = _MockTournamentBloc();
     final profileBloc = _MockProfileBloc();
     final dashboardBloc = _MockDashboardBloc();
     final ongoingBloc = _MockOngoingBloc();
-    final notificationBloc = _MockNotificationBloc();
     when(() => groupBloc.state).thenReturn(const GroupState());
     when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
     when(() => tournamentBloc.state).thenReturn(const TournamentState());
@@ -115,8 +102,6 @@ void main() {
         ),
       ),
     );
-    when(() => notificationBloc.state).thenReturn(const NotificationState());
-
     await tester.pumpWidget(
       _wrap(
         groupBloc: groupBloc,
@@ -124,15 +109,11 @@ void main() {
         profileBloc: profileBloc,
         dashboardBloc: dashboardBloc,
         ongoingBloc: ongoingBloc,
-        notificationBloc: notificationBloc,
       ),
     );
 
-    expect(find.text('Arena'), findsWidgets);
-    expect(find.text('Nhóm'), findsWidgets);
-    expect(find.text('Giải đấu'), findsOneWidget);
-    expect(find.text('Thông báo'), findsWidgets);
-    expect(find.text('Cá nhân'), findsOneWidget);
+    expect(find.byType(NavigationDestination), findsNWidgets(4));
+    expect(find.text('Thông báo'), findsNothing);
     verify(() => groupBloc.add(any(that: isA<GetEsportGroups>()))).called(1);
 
     await tester.tap(find.text('Giải đấu'));
@@ -144,11 +125,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Nhóm của tôi'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.notifications_outlined));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Thông báo'), findsWidgets);
 
     await tester.tap(find.text('Cá nhân'));
     await tester.pumpAndSettle();
@@ -162,7 +138,6 @@ void main() {
     final profileBloc = _MockProfileBloc();
     final dashboardBloc = _MockDashboardBloc();
     final ongoingBloc = _MockOngoingBloc();
-    final notificationBloc = _MockNotificationBloc();
     when(() => groupBloc.state).thenReturn(const GroupState());
     when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
     when(() => tournamentBloc.state).thenReturn(const TournamentState());
@@ -180,8 +155,6 @@ void main() {
         ),
       ),
     );
-    when(() => notificationBloc.state).thenReturn(const NotificationState());
-
     await tester.pumpWidget(
       _wrap(
         groupBloc: groupBloc,
@@ -189,79 +162,17 @@ void main() {
         profileBloc: profileBloc,
         dashboardBloc: dashboardBloc,
         ongoingBloc: ongoingBloc,
-        notificationBloc: notificationBloc,
         locale: const Locale('en'),
       ),
     );
 
-    expect(find.text('Arena'), findsWidgets);
-    expect(find.text('Groups'), findsWidgets);
+    expect(find.text('Arena'), findsOneWidget);
+    expect(find.text('Groups'), findsOneWidget);
     expect(find.text('Tournaments'), findsOneWidget);
-    expect(find.text('Notifications'), findsWidgets);
+    expect(find.text('Notifications'), findsNothing);
     expect(find.text('Profile'), findsOneWidget);
+    expect(find.byType(NavigationDestination), findsNWidgets(4));
     expect(find.text('Nhóm'), findsNothing);
     expect(find.text('Giải đấu'), findsNothing);
-  });
-
-  testWidgets('MainView shows unread notification badge', (tester) async {
-    final groupBloc = _MockGroupBloc();
-    final tournamentBloc = _MockTournamentBloc();
-    final profileBloc = _MockProfileBloc();
-    final dashboardBloc = _MockDashboardBloc();
-    final ongoingBloc = _MockOngoingBloc();
-    final notificationBloc = _MockNotificationBloc();
-    when(() => groupBloc.state).thenReturn(const GroupState());
-    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
-    when(() => tournamentBloc.state).thenReturn(const TournamentState());
-    when(() => profileBloc.state).thenReturn(const ProfileState());
-    when(() => dashboardBloc.state).thenReturn(
-      const DashboardState(
-        viewStatus: ViewStatus.success,
-        stats: DashboardStats(
-          tournamentsJoined: 0,
-          finishedTournaments: 0,
-          championCount: 0,
-          runnerUpCount: 0,
-          lastChampionAt: null,
-          recentMatches: [],
-        ),
-      ),
-    );
-    when(() => notificationBloc.state).thenReturn(
-      NotificationState(
-        notifications: [
-          GNNotification(
-            id: 'n1',
-            userId: 'u1',
-            title: 'Unread',
-            message: 'Unread message',
-            type: GNNotificationType.esportsLeague.value,
-            timestamp: DateTime(2026, 1, 1),
-            isRead: false,
-          ),
-        ],
-      ),
-    );
-
-    await tester.pumpWidget(
-      _wrap(
-        groupBloc: groupBloc,
-        tournamentBloc: tournamentBloc,
-        profileBloc: profileBloc,
-        dashboardBloc: dashboardBloc,
-        ongoingBloc: ongoingBloc,
-        notificationBloc: notificationBloc,
-      ),
-    );
-
-    expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Container &&
-            widget.constraints?.minWidth == 8 &&
-            widget.constraints?.minHeight == 8,
-      ),
-      findsOneWidget,
-    );
   });
 }

@@ -7,7 +7,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
-import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/injection_container.dart';
 
 class _MockFirebaseAuth extends Mock implements FirebaseAuth {}
@@ -353,32 +352,29 @@ void main() {
   );
 
   test(
-    'signOut removes FCM token through getIt<GNFirestore>() then calls _auth.signOut',
+    'signOut calls FirebaseAuth without reading or mutating legacy fcmToken data',
     () async {
       final fakeFirestore = FakeFirebaseFirestore();
-      final userForTokenRemoval = _MockUser();
-      final getItAuth = _MockGNAuth();
+      final legacyUser = _MockUser();
+      final registeredAuth = _MockGNAuth();
 
-      when(() => getItAuth.currentUser).thenReturn(userForTokenRemoval);
-      when(() => userForTokenRemoval.uid).thenReturn('u-1');
+      when(() => registeredAuth.currentUser).thenReturn(legacyUser);
+      when(() => legacyUser.uid).thenReturn('u-1');
 
-      getIt.registerSingleton<GNAuth>(getItAuth);
+      getIt.registerSingleton<GNAuth>(registeredAuth);
       getIt.registerSingleton<GNFirestore>(GNFirestore(fakeFirestore));
 
-      await fakeFirestore.collection(GNUser.collectionName).doc('u-1').set({
-        GNUser.fcmTokenKey: 'token',
+      await fakeFirestore.collection('users').doc('u-1').set({
+        'fcmToken': 'legacy-token',
       });
 
       when(() => firebaseAuth.signOut()).thenAnswer((_) async {});
 
       await sut.signOut();
 
-      final userDoc = await fakeFirestore
-          .collection(GNUser.collectionName)
-          .doc('u-1')
-          .get();
+      final userDoc = await fakeFirestore.collection('users').doc('u-1').get();
 
-      expect(userDoc.data()?.containsKey(GNUser.fcmTokenKey), isFalse);
+      expect(userDoc.data()?['fcmToken'], 'legacy-token');
       verify(() => firebaseAuth.signOut()).called(1);
       verifyNever(
         () => firebaseAuth.signInWithEmailAndPassword(

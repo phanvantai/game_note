@@ -30,7 +30,6 @@ GNUser _user(
   email: email,
   photoUrl: null,
   role: 'user',
-  fcmToken: '',
 );
 
 GNEsportGroup _group({String description = ''}) => GNEsportGroup(

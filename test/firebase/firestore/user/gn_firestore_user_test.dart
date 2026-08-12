@@ -126,7 +126,7 @@ void main() {
         GNUser.phoneNumberKey: '090',
         GNUser.photoUrlKey: 'https://avatar',
         GNUser.roleKey: 'user',
-        GNUser.fcmTokenKey: 'token',
+        'fcmToken': 'legacy-token',
       });
 
       await fs.deleteCurrentUser();
@@ -140,7 +140,7 @@ void main() {
       expect(data[GNUser.deletedAtKey], isA<Timestamp>());
       expect(data[GNUser.emailKey], isNull);
       expect(data[GNUser.phoneNumberKey], isNull);
-      expect(data[GNUser.fcmTokenKey], '');
+      expect(data['fcmToken'], 'legacy-token');
       expect(data[GNUser.displayNameKey], 'Tai');
       expect(data[GNUser.photoUrlKey], 'https://avatar');
       verify(() => mockUser.delete()).called(1);

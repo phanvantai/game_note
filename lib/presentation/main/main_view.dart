@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/helpers/admob_helper.dart';
-import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
 import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
@@ -12,8 +11,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../esport/groups/groups_view.dart';
 import '../esport/tournament/tournament_view.dart';
 import '../home/home_page.dart';
-import '../notification/bloc/notification_bloc.dart';
-import '../notification/notification_view.dart';
 import '../profile/profile_view.dart';
 
 class MainView extends StatefulWidget {
@@ -56,13 +53,6 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
         page: TournamentView(),
       ),
       _TabSpec(
-        icon: Icons.notifications_outlined,
-        activeIcon: Icons.notifications,
-        tab: _MainTab.notifications,
-        page: NotificationView(),
-        showUnreadBadge: true,
-      ),
-      _TabSpec(
         icon: Icons.person_outline,
         activeIcon: Icons.person,
         tab: _MainTab.profile,
@@ -77,62 +67,42 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
     );
 
     context.read<GroupBloc>().add(GetEsportGroups());
-
-    if (!kIsWeb) {
-      getIt<GNFirebaseMessaging>().initialize();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NotificationBloc, NotificationState>(
-      buildWhen: (prev, curr) =>
-          prev.unreadNotificationsCount != curr.unreadNotificationsCount,
-      builder: (context, notificationState) {
-        return Scaffold(
-          body: TabBarView(
-            physics: const NeverScrollableScrollPhysics(),
-            controller: _tabController,
-            children: _tabs.map((t) => t.page).toList(),
+    return Scaffold(
+      body: TabBarView(
+        physics: const NeverScrollableScrollPhysics(),
+        controller: _tabController,
+        children: _tabs.map((t) => t.page).toList(),
+      ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // coverage:ignore-start
+          if (!kIsWeb && _bannerAd != null)
+            SizedBox(
+              width: _bannerAd!.size.width.toDouble(),
+              height: _bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            ),
+          // coverage:ignore-end
+          NavigationBar(
+            selectedIndex: _tabController.index,
+            onDestinationSelected: _onItemTapped,
+            destinations: _tabs
+                .map(
+                  (t) => NavigationDestination(
+                    icon: _TabIcon(icon: t.icon),
+                    selectedIcon: _TabIcon(icon: t.activeIcon),
+                    label: _labelFor(context, t.tab),
+                  ),
+                )
+                .toList(),
           ),
-          bottomNavigationBar: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // coverage:ignore-start
-              if (!kIsWeb && _bannerAd != null)
-                SizedBox(
-                  width: _bannerAd!.size.width.toDouble(),
-                  height: _bannerAd!.size.height.toDouble(),
-                  child: AdWidget(ad: _bannerAd!),
-                ),
-              // coverage:ignore-end
-              NavigationBar(
-                selectedIndex: _tabController.index,
-                onDestinationSelected: _onItemTapped,
-                destinations: _tabs
-                    .map(
-                      (t) => NavigationDestination(
-                        icon: _TabIcon(
-                          icon: t.icon,
-                          showBadge:
-                              t.showUnreadBadge &&
-                              notificationState.unreadNotificationsCount > 0,
-                        ),
-                        selectedIcon: _TabIcon(
-                          icon: t.activeIcon,
-                          showBadge:
-                              t.showUnreadBadge &&
-                              notificationState.unreadNotificationsCount > 0,
-                        ),
-                        label: _labelFor(context, t.tab),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -199,58 +169,32 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
       _MainTab.arena => l10n.mainTabArena,
       _MainTab.groups => l10n.mainTabGroups,
       _MainTab.tournaments => l10n.mainTabTournaments,
-      _MainTab.notifications => l10n.mainTabNotifications,
       _MainTab.profile => l10n.mainTabProfile,
     };
   }
 }
 
-enum _MainTab { arena, groups, tournaments, notifications, profile }
+enum _MainTab { arena, groups, tournaments, profile }
 
 class _TabSpec {
   final IconData icon;
   final IconData activeIcon;
   final _MainTab tab;
   final Widget page;
-  final bool showUnreadBadge;
 
   const _TabSpec({
     required this.icon,
     required this.activeIcon,
     required this.tab,
     required this.page,
-    this.showUnreadBadge = false,
   });
 }
 
 class _TabIcon extends StatelessWidget {
   final IconData icon;
-  final bool showBadge;
 
-  const _TabIcon({required this.icon, required this.showBadge});
+  const _TabIcon({required this.icon});
 
   @override
-  Widget build(BuildContext context) {
-    final iconWidget = Icon(icon);
-    if (!showBadge) return iconWidget;
-    final colorScheme = Theme.of(context).colorScheme;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        iconWidget,
-        Positioned(
-          right: -2,
-          top: -2,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: colorScheme.error,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => Icon(icon);
 }

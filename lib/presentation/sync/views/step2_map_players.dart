@@ -113,7 +113,7 @@ class _PlayerRow extends StatelessWidget {
       MapToExisting(uid: final uid) =>
         '→ ${members.firstWhere(
               (m) => m.id == uid,
-              orElse: () => GNUser(id: uid, displayName: uid, phoneNumber: null, email: null, photoUrl: null, role: 'user', fcmToken: ''),
+              orElse: () => GNUser(id: uid, displayName: uid, phoneNumber: null, email: null, photoUrl: null, role: 'user'),
             ).displayName ?? uid}',
       CreatePlaceholder(displayName: final n) =>
         '→ $n (${context.l10n.syncNewTargetSuffix})',

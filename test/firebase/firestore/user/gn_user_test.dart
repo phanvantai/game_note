@@ -16,7 +16,6 @@ void main() {
       email: 'tai@example.com',
       photoUrl: 'https://avatar',
       role: 'user',
-      fcmToken: 'token',
       deleted: true,
       deletedAt: deletedAt,
     );
@@ -25,6 +24,19 @@ void main() {
 
     expect(map[GNUser.deletedKey], true);
     expect((map[GNUser.deletedAtKey] as Timestamp).toDate(), deletedAt);
+  });
+
+  test('toMap does not write legacy fcmToken', () {
+    const user = GNUser(
+      id: 'u1',
+      displayName: 'Tai',
+      phoneNumber: null,
+      email: null,
+      photoUrl: null,
+      role: 'user',
+    );
+
+    expect(user.toMap().containsKey('fcmToken'), isFalse);
   });
 
   test('fromFireStore defaults tombstone fields for legacy docs', () {
@@ -41,6 +53,17 @@ void main() {
     expect(user.deletedAt, isNull);
   });
 
+  test('fromFireStore ignores literal legacy fcmToken', () {
+    final doc = _MockDoc();
+    when(() => doc.id).thenReturn('u1');
+    when(() => doc.data()).thenReturn(<String, dynamic>{
+      GNUser.displayNameKey: 'Tai',
+      'fcmToken': 'legacy',
+    });
+
+    expect(() => GNUser.fromFireStore(doc), returnsNormally);
+  });
+
   test('effectiveDisplayName handles deleted and null names', () {
     const active = GNUser(
       id: 'u1',
@@ -49,7 +72,6 @@ void main() {
       email: null,
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
     );
     final deleted = active.copyWith(deleted: true);
     const unnamed = GNUser(
@@ -59,7 +81,6 @@ void main() {
       email: null,
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
     );
 
     expect(active.effectiveDisplayName, 'Tai');
@@ -75,7 +96,6 @@ void main() {
       email: null,
       photoUrl: null,
       role: 'admin',
-      fcmToken: '',
       deleted: true,
     );
 

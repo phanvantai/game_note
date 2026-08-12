@@ -69,7 +69,6 @@ class SyncRemoteGatewayImpl implements SyncRemoteGateway {
         GNUser.emailKey: null,
         GNUser.photoUrlKey: null,
         GNUser.roleKey: 'user',
-        GNUser.fcmTokenKey: '',
         GNUser.isPlaceholderKey: true,
         GNCommonFields.createdAt: FieldValue.serverTimestamp(),
         GNCommonFields.updatedAt: FieldValue.serverTimestamp(),

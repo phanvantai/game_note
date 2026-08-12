@@ -247,7 +247,6 @@ void main() {
       email: 'tai@example.com',
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
     );
     final replacementUser = GNUser(
       id: 'user-2',
@@ -256,7 +255,6 @@ void main() {
       email: 'linh@example.com',
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
     );
     final state = AppState(
       status: AppStatus.authenticated,

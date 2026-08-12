@@ -64,7 +64,6 @@ extension GNFirestoreUser on GNFirestore {
       GNUser.deletedAtKey: FieldValue.serverTimestamp(),
       GNUser.emailKey: null,
       GNUser.phoneNumberKey: null,
-      GNUser.fcmTokenKey: '',
       GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
     });
     await user.delete();
@@ -111,7 +110,8 @@ extension GNFirestoreUser on GNFirestore {
     });
   }
 
-  /// Tạo user "placeholder" cho người chơi offline chưa có account online.
+  /// Tạo user "placeholder" cho người chơi chưa có account online.
+  /// Placeholder users có thể tham gia các nhóm online.
   /// id có prefix `placeholder_` để Firestore rules có thể nhận diện
   /// và cho phép tạo (rule cần allow create khi id startsWith 'placeholder_').
   Future<GNUser> createPlaceholderUser({required String displayName}) async {
@@ -124,7 +124,6 @@ extension GNFirestoreUser on GNFirestore {
       email: null,
       photoUrl: null,
       role: UserRole.user.name,
-      fcmToken: '',
       isPlaceholder: true,
     );
     await col.doc(id).set({
@@ -241,30 +240,6 @@ extension GNFirestoreUser on GNFirestore {
               !group.deactivatedMembers.contains(user.id),
         )
         .toList();
-  }
-
-  // update fcm token
-  Future<void> updateFcmToken(String fcmToken) async {
-    final user = getIt<GNAuth>().currentUser;
-    if (user == null) {
-      throw Exception('User is not signed in');
-    }
-    await firestore.collection(GNUser.collectionName).doc(user.uid).update({
-      GNUser.fcmTokenKey: fcmToken,
-      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
-    });
-  }
-
-  // remove fcm token
-  Future<void> removeFcmToken() async {
-    final user = getIt<GNAuth>().currentUser;
-    if (user == null) {
-      throw Exception('User is not signed in');
-    }
-    await firestore.collection(GNUser.collectionName).doc(user.uid).update({
-      GNUser.fcmTokenKey: FieldValue.delete(),
-      GNCommonFields.updatedAt: FieldValue.serverTimestamp(),
-    });
   }
 
   // update user profile

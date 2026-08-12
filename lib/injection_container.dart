@@ -31,14 +31,11 @@ import 'data/sync/sync_remote_gateway.dart';
 import 'data/sync/sync_remote_gateway_impl.dart';
 import 'data/repositories/esport/esport_group_repository_impl.dart';
 import 'data/repositories/esport/esport_league_repository_impl.dart';
-import 'data/repositories/notification_repository_impl.dart';
 import 'data/repositories/user_repository_impl.dart';
 import 'domain/repositories/esport/esport_group_repository.dart';
 import 'domain/repositories/esport/esport_league_repository.dart';
-import 'domain/repositories/notification_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'firebase/firestore/gn_firestore.dart';
-import 'firebase/messaging/gn_firebase_messaging.dart';
 import 'firebase/remote_config/gn_remote_config.dart';
 import 'firebase/storage/gn_storage.dart';
 import 'presentation/app/bloc/app_bloc.dart';
@@ -51,7 +48,6 @@ import 'presentation/esport/groups/bloc/group_bloc.dart';
 import 'presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
-import 'presentation/notification/bloc/notification_bloc.dart';
 import 'presentation/profile/bloc/profile_bloc.dart';
 import 'presentation/sync/bloc/sync_bloc.dart';
 import 'presentation/users/bloc/user_bloc.dart';
@@ -122,9 +118,6 @@ Future<void> init() async {
   getIt.registerSingleton(GNFirestore());
   getIt.registerSingleton(GNAuth());
   getIt.registerSingleton(GNStorage());
-  if (!kIsWeb) {
-    getIt.registerSingleton(GNFirebaseMessaging());
-  }
 
   getIt.registerSingleton(
     AppBloc(auth: getIt(), firestore: getIt(), permissionUtil: getIt()),
@@ -145,9 +138,6 @@ Future<void> init() async {
     () => EsportGroupStatsRepositoryImpl(),
   );
 
-  getIt.registerFactory<NotificationRepository>(
-    () => NotificationRepositoryImpl(),
-  );
   // blocs
   getIt.registerFactory(() => SignInBloc());
   getIt.registerFactory<ThirdPartyBloc>(() => ThirdPartyBloc());
@@ -168,7 +158,6 @@ Future<void> init() async {
   );
 
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
-  getIt.registerSingleton<NotificationBloc>(NotificationBloc(getIt()));
 
   getIt.registerFactory<ChangePasswordBloc>(() => ChangePasswordBloc(getIt()));
 

@@ -428,7 +428,6 @@ void main() {
       phoneNumber: null,
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
       isPlaceholder: true,
     );
 

@@ -37,7 +37,6 @@ GNUser _user(String id, String name) => GNUser(
       email: null,
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
     );
 
 GNEsportLeagueStat _stat(

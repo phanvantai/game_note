@@ -1,10 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
-
-import '../../injection_container.dart';
-import '../firestore/gn_firestore.dart';
 
 class GNAuth {
   final FirebaseAuth _auth;
@@ -215,11 +211,7 @@ class GNAuth {
   }
 
   // sign out
-  Future<void> signOut() async {
-    // remove fcm token from Firestore
-    await getIt<GNFirestore>().removeFcmToken();
-    return _auth.signOut();
-  }
+  Future<void> signOut() => _auth.signOut();
 
   void checkLoginMethod() {
     final user = _auth.currentUser;

@@ -9,7 +9,6 @@ class SharedPreferencesHelper {
   static const String usageTime = "usage_time";
   static const String lastPostUsageTime = "last_post_usage_time";
   static const String lastUpdatedAccessToken = 'last_updated_access_token';
-  static const String fcmToken = 'fcm_token';
 
   static const String communityMode = 'community_mode';
   static const String loggedIn = 'logged_in';
@@ -80,18 +79,6 @@ class SharedPreferencesHelper {
     return _sharedPreferences.setString(
       SharedPreferencesHelper.lastUpdatedAccessToken,
       dateTime.toIso8601String(),
-    );
-  }
-
-  // fcm token
-  String get getFcmToken {
-    return _sharedPreferences.getString(SharedPreferencesHelper.fcmToken) ?? '';
-  }
-
-  Future<bool> setFcmToken(String fcmToken) {
-    return _sharedPreferences.setString(
-      SharedPreferencesHelper.fcmToken,
-      fcmToken,
     );
   }
 

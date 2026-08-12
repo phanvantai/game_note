@@ -70,7 +70,6 @@ GNUser onlineUser(
   email: null,
   photoUrl: null,
   role: 'user',
-  fcmToken: '',
   isPlaceholder: isPlaceholder,
 );
 

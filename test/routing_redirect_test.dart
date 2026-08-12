@@ -21,7 +21,6 @@ void main() {
       expect(Routing.setting, '/setting');
       expect(Routing.changePassword, '/change-password');
       expect(Routing.dashboardDetail, '/dashboard');
-      expect(Routing.notification, '/notification');
       expect(Routing.feedback, '/feedback');
       expect(Routing.syncOfflineData, '/sync-offline-data');
     });
@@ -63,7 +62,6 @@ void main() {
         Routing.setting,
         Routing.changePassword,
         Routing.dashboardDetail,
-        Routing.notification,
         Routing.feedback,
         Routing.syncOfflineData,
       ]) {
@@ -95,6 +93,7 @@ void main() {
       expect(Routing.safeNextLocation('/legacy-route'), '/');
       expect(Routing.safeNextLocation('/create-team'), '/');
       expect(Routing.safeNextLocation('/legacy-route#unknown'), '/');
+      expect(Routing.safeNextLocation('/notification'), Routing.app);
     });
   });
 }

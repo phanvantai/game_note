@@ -21,7 +21,6 @@ import 'presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/home/dashboard/detail/dashboard_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
-import 'presentation/notification/notification_page.dart';
 import 'presentation/profile/change_password/change_password_page.dart';
 import 'presentation/profile/feedback/feedback_view.dart';
 import 'presentation/profile/setting/setting_page.dart';
@@ -58,9 +57,6 @@ class Routing {
 
   // dashboard
   static const String dashboardDetail = '/dashboard';
-
-  // notification
-  static const String notification = '/notification';
 
   // sync offline → online
   static const String syncOfflineData = '/sync-offline-data';
@@ -145,6 +141,7 @@ const _publicPaths = <String>{
   Routing.completeProfile,
 };
 int _redirectCount = 0;
+const _retiredPaths = <String>{'/notification'};
 
 void _logRouteFlow(String message) {
   if (kDebugMode) {
@@ -164,6 +161,7 @@ String _safeNextLocation(String? next) {
   if (uri == null || uri.hasScheme || uri.hasAuthority) return Routing.app;
 
   final path = uri.path.isEmpty ? Routing.app : uri.path;
+  if (_retiredPaths.contains(path)) return Routing.app;
   if (_isKnownRoutePath(path)) return uri.toString();
   return Routing.app;
 }
@@ -180,7 +178,6 @@ bool _isKnownRoutePath(String path) {
     Routing.setting,
     Routing.changePassword,
     Routing.dashboardDetail,
-    Routing.notification,
     Routing.feedback,
     Routing.syncOfflineData,
   };
@@ -466,11 +463,6 @@ final List<RouteBase> _appRoutes = [
       state: state,
       child: const DashboardDetailPage(),
     ),
-  ),
-  GoRoute(
-    path: Routing.notification,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const NotificationPage()),
   ),
   GoRoute(
     path: Routing.feedback,

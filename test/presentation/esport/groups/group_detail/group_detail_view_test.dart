@@ -61,7 +61,6 @@ GNUser _user(String id, {bool isPlaceholder = false}) => GNUser(
   phoneNumber: null,
   photoUrl: null,
   role: 'user',
-  fcmToken: '',
   isPlaceholder: isPlaceholder,
 );
 

@@ -175,7 +175,6 @@ void main() {
         email: email,
         photoUrl: photoUrl,
         role: 'user',
-        fcmToken: '',
       ),
     );
   }

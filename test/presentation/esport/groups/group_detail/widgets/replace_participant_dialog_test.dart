@@ -30,7 +30,6 @@ GNUser _user(String id, {String name = '', bool isPlaceholder = false}) =>
       email: null,
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
       isPlaceholder: isPlaceholder,
     );
 

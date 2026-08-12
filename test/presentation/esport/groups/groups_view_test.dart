@@ -10,16 +10,11 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/groups_view.dart';
-import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 
 class _MockGroupBloc extends MockBloc<GroupEvent, GroupState>
     implements GroupBloc {}
 
 class _MockGroupState extends Mock implements GroupState {}
-
-class _MockNotificationBloc
-    extends MockBloc<NotificationEvent, NotificationState>
-    implements NotificationBloc {}
 
 GNEsportGroup _group(String id, String name) {
   return GNEsportGroup(
@@ -34,23 +29,13 @@ GNEsportGroup _group(String id, String name) {
   );
 }
 
-Widget _wrap({
-  required GroupBloc groupBloc,
-  required NotificationBloc notificationBloc,
-}) {
-  return MultiBlocProvider(
-    providers: [
-      BlocProvider<GroupBloc>.value(value: groupBloc),
-      BlocProvider<NotificationBloc>.value(value: notificationBloc),
-    ],
+Widget _wrap({required GroupBloc groupBloc}) {
+  return BlocProvider<GroupBloc>.value(
+    value: groupBloc,
     child: MaterialApp.router(
       routerConfig: GoRouter(
         routes: [
           GoRoute(path: '/', builder: (context, state) => const GroupsView()),
-          GoRoute(
-            path: '/notification',
-            builder: (context, state) => const Text('notification page'),
-          ),
           GoRoute(
             path: '/group/:groupId',
             builder: (context, state) => Scaffold(
@@ -90,14 +75,10 @@ void main() {
 
   testWidgets('standalone render hero và tabs', (tester) async {
     final groupBloc = _MockGroupBloc();
-    final notificationBloc = _MockNotificationBloc();
     final state = _state();
     when(() => groupBloc.state).thenReturn(state);
-    when(() => notificationBloc.state).thenReturn(const NotificationState());
 
-    await tester.pumpWidget(
-      _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
-    );
+    await tester.pumpWidget(_wrap(groupBloc: groupBloc));
 
     expect(find.byType(AppBar), findsNothing);
     expect(find.text('Community hub'), findsOneWidget);
@@ -107,14 +88,10 @@ void main() {
 
   testWidgets('loading và empty states', (tester) async {
     final groupBloc = _MockGroupBloc();
-    final notificationBloc = _MockNotificationBloc();
     final state = _state(status: ViewStatus.loading);
     when(() => groupBloc.state).thenReturn(state);
-    when(() => notificationBloc.state).thenReturn(const NotificationState());
 
-    await tester.pumpWidget(
-      _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
-    );
+    await tester.pumpWidget(_wrap(groupBloc: groupBloc));
 
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(find.text('Không có nhóm nào'), findsOneWidget);
@@ -125,14 +102,10 @@ void main() {
 
   testWidgets('create group dialog gửi event và đóng dialog', (tester) async {
     final groupBloc = _MockGroupBloc();
-    final notificationBloc = _MockNotificationBloc();
     final state = _state();
     when(() => groupBloc.state).thenReturn(state);
-    when(() => notificationBloc.state).thenReturn(const NotificationState());
 
-    await tester.pumpWidget(
-      _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
-    );
+    await tester.pumpWidget(_wrap(groupBloc: groupBloc));
 
     await tester.tap(find.byTooltip('Tạo nhóm'));
     await tester.pumpAndSettle();
@@ -155,18 +128,14 @@ void main() {
     tester,
   ) async {
     final groupBloc = _MockGroupBloc();
-    final notificationBloc = _MockNotificationBloc();
     final state = _state();
     var toastMessage = '';
     setShowToastImpl(
       (message, {gravity = ToastGravity.BOTTOM}) => toastMessage = message,
     );
     when(() => groupBloc.state).thenReturn(state);
-    when(() => notificationBloc.state).thenReturn(const NotificationState());
 
-    await tester.pumpWidget(
-      _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
-    );
+    await tester.pumpWidget(_wrap(groupBloc: groupBloc));
 
     await tester.tap(find.byTooltip('Tạo nhóm'));
     await tester.pumpAndSettle();
@@ -187,17 +156,13 @@ void main() {
     tester,
   ) async {
     final groupBloc = _MockGroupBloc();
-    final notificationBloc = _MockNotificationBloc();
     final state = _state(
       userGroups: [_group('g1', 'Group One')],
       otherGroups: [_group('g2', 'Group Two')],
     );
     when(() => groupBloc.state).thenReturn(state);
-    when(() => notificationBloc.state).thenReturn(const NotificationState());
 
-    await tester.pumpWidget(
-      _wrap(groupBloc: groupBloc, notificationBloc: notificationBloc),
-    );
+    await tester.pumpWidget(_wrap(groupBloc: groupBloc));
 
     expect(find.text('Group One'), findsOneWidget);
     expect(find.text('1 thành viên'), findsOneWidget);

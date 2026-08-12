@@ -51,7 +51,6 @@ GNUser _user(String id) => GNUser(
   phoneNumber: null,
   photoUrl: null,
   role: 'user',
-  fcmToken: '',
   isPlaceholder: false,
 );
 

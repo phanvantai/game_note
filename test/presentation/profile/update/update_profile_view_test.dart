@@ -95,7 +95,6 @@ GNUser _user({
     email: email,
     photoUrl: null,
     role: 'user',
-    fcmToken: '',
   );
 }
 

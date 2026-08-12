@@ -86,7 +86,6 @@ Future<void> _createUser(String id, {required String? photoUrl}) async {
         GNUser.emailKey: null,
         GNUser.photoUrlKey: photoUrl,
         GNUser.roleKey: 'user',
-        GNUser.fcmTokenKey: '',
       });
 }
 
