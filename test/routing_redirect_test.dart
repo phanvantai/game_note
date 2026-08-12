@@ -10,9 +10,7 @@ void main() {
       expect(Routing.language, '/language');
       expect(Routing.login, '/login');
       expect(Routing.completeProfile, '/complete-profile');
-      expect(Routing.offline, '/offline');
       expect(Routing.groups, '/groups');
-      expect(Routing.offlineLeague, '/offline/league');
       expect(Routing.league, '/league');
       expect(Routing.createTeam, '/create-team');
       expect(Routing.groupDetail, '/group');
@@ -22,7 +20,6 @@ void main() {
       expect(Routing.changePassword, '/change-password');
       expect(Routing.dashboardDetail, '/dashboard');
       expect(Routing.feedback, '/feedback');
-      expect(Routing.syncOfflineData, '/sync-offline-data');
     });
   });
 
@@ -55,15 +52,12 @@ void main() {
         Routing.splash,
         Routing.completeProfile,
         Routing.app,
-        Routing.offline,
-        Routing.offlineLeague,
         Routing.groups,
         Routing.updateProfile,
         Routing.setting,
         Routing.changePassword,
         Routing.dashboardDetail,
         Routing.feedback,
-        Routing.syncOfflineData,
       ]) {
         expect(Routing.safeNextLocation(path), path);
       }
@@ -93,6 +87,9 @@ void main() {
       expect(Routing.safeNextLocation('/legacy-route'), '/');
       expect(Routing.safeNextLocation('/create-team'), '/');
       expect(Routing.safeNextLocation('/legacy-route#unknown'), '/');
+      expect(Routing.safeNextLocation('/offline'), Routing.app);
+      expect(Routing.safeNextLocation('/offline/league'), Routing.app);
+      expect(Routing.safeNextLocation('/sync-offline-data'), Routing.app);
       expect(Routing.safeNextLocation('/notification'), Routing.app);
     });
   });

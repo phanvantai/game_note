@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/localization/locale_notifier.dart';
 import 'core/theme/theme_provider.dart';
 import 'firebase/remote_config/gn_remote_config.dart';
-import 'offline/data/database/database_manager.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'firebase_options.dart';
 import 'injection_container.dart';
@@ -45,12 +44,6 @@ void main() async {
   }
   if (!kIsWeb && di.getIt<GNRemoteConfig>().adsEnabled) {
     MobileAds.instance.initialize();
-  }
-  if (!kIsWeb) {
-    await di.getIt<DatabaseManager>().open();
-    if (kDebugMode) {
-      debugPrint('[BootFlow] main: offline database opened');
-    }
   }
 
   final prefs = await SharedPreferences.getInstance();

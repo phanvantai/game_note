@@ -76,20 +76,6 @@ class _ProfileViewState extends State<ProfileView>
                   title: context.l10n.profileAppSection,
                   icon: Icons.tune_outlined,
                   children: [
-                    if (!kIsWeb) ...[
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.wifi_off_outlined,
-                        title: context.l10n.profileOfflineMode,
-                        onTap: () => _switchToOffline(context),
-                      ),
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.sync_outlined,
-                        title: context.l10n.profileSyncOfflineData,
-                        onTap: () => context.push(Routing.syncOfflineData),
-                      ),
-                    ],
                     _buildMenuItem(
                       context,
                       icon: Icons.settings_outlined,
@@ -226,18 +212,6 @@ class _ProfileViewState extends State<ProfileView>
     await context.push(Routing.updateProfile, extra: state.user);
     if (context.mounted) {
       context.read<ProfileBloc>().add(LoadProfileEvent());
-    }
-  }
-
-  void _switchToOffline(BuildContext context) async {
-    final confirmed = await showAppConfirmDialog(
-      context: context,
-      title: context.l10n.profileOfflineModeTitle,
-      message: context.l10n.profileOfflineModeMessage,
-      confirmText: context.l10n.profileAccept,
-    );
-    if (confirmed == true && context.mounted) {
-      context.go(Routing.offline);
     }
   }
 

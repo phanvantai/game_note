@@ -79,6 +79,9 @@ void main() {
       expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
       expect(find.text('Or'), findsOneWidget);
       expect(find.text('Continue with Google'), findsOneWidget);
+
+      expect(find.byIcon(Icons.wifi_off_outlined), findsNothing);
+      expect(find.text('Offline'), findsNothing);
     },
   );
 }

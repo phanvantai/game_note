@@ -91,32 +91,6 @@ void main() {
               builder: (context, state) => const ProfileView(),
             ),
             GoRoute(
-              path: Routing.offline,
-              builder: (context, _) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('Offline page'),
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => context.go('/'),
-                  ),
-                ),
-                body: const Center(child: Text('Offline destination')),
-              ),
-            ),
-            GoRoute(
-              path: Routing.syncOfflineData,
-              builder: (context, _) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('Sync offline page'),
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => context.go('/'),
-                  ),
-                ),
-                body: const Center(child: Text('Sync offline destination')),
-              ),
-            ),
-            GoRoute(
               path: Routing.setting,
               builder: (context, _) => Scaffold(
                 appBar: AppBar(
@@ -296,9 +270,7 @@ void main() {
     ).called(1);
   });
 
-  testWidgets('profile tile offline confirm cancel does not navigate', (
-    tester,
-  ) async {
+  testWidgets('profile excludes retired offline actions', (tester) async {
     final profileBloc = _MockProfileBloc();
     final appBloc = _MockAppBloc();
 
@@ -312,37 +284,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Offline mode'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Offline page'), findsNothing);
-    verifyNever(() => appBloc.add(any(that: isA<UpdateFootballFeature>())));
-  });
-
-  testWidgets('profile tile offline confirm accept navigates to offline', (
-    tester,
-  ) async {
-    final profileBloc = _MockProfileBloc();
-    final appBloc = _MockAppBloc();
-
-    await tester.pumpWidget(
-      buildProfile(
-        profileBloc: profileBloc,
-        appBloc: appBloc,
-        profileInitialState: successProfile(),
-        appState: const AppState(),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Offline mode'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Accept'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Offline destination'), findsOneWidget);
+    expect(find.text('Offline mode'), findsNothing);
+    expect(find.text('Sync offline data'), findsNothing);
   });
 
   testWidgets('sign-out confirm cancel does not dispatch', (tester) async {
@@ -394,9 +337,7 @@ void main() {
     ).called(1);
   });
 
-  testWidgets('menu tiles navigate to sync offline, setting, and feedback', (
-    tester,
-  ) async {
+  testWidgets('menu tiles navigate to setting and feedback', (tester) async {
     final profileBloc = _MockProfileBloc();
     final appBloc = _MockAppBloc();
 
@@ -408,13 +349,6 @@ void main() {
         appState: const AppState(),
       ),
     );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Sync offline data'));
-    await tester.pumpAndSettle();
-    expect(find.text('Sync offline destination'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.arrow_back));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Other options'));

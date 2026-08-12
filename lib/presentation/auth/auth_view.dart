@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pes_arena/core/constants/assets_path.dart';
 import 'package:pes_arena/l10n/l10n.dart';
-import 'package:pes_arena/presentation/app/offline_button.dart';
 
 import 'sign_in/sign_in_page.dart';
 import 'third_party/auth_buttons_view.dart';
@@ -18,7 +17,6 @@ class AuthView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: const [OfflineButton()],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

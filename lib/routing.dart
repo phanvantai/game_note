@@ -9,7 +9,6 @@ import 'firebase/firestore/user/gn_user.dart';
 import 'injection_container.dart';
 import 'core/localization/locale_notifier.dart';
 import 'l10n/l10n.dart';
-import 'offline/presentation/offline_view.dart';
 import 'presentation/app/app_view.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'presentation/app/language_selection_page.dart';
@@ -25,7 +24,6 @@ import 'presentation/profile/change_password/change_password_page.dart';
 import 'presentation/profile/feedback/feedback_view.dart';
 import 'presentation/profile/setting/setting_page.dart';
 import 'presentation/profile/update/update_profile_page.dart';
-import 'presentation/sync/sync_page.dart';
 
 class Routing {
   static const String app = '/';
@@ -33,9 +31,7 @@ class Routing {
   static const String language = '/language';
   static const String login = '/login';
   static const String completeProfile = '/complete-profile';
-  static const String offline = '/offline';
   static const String groups = '/groups';
-  static const String offlineLeague = '/offline/league';
   static const String league = '/league';
 
   // community
@@ -57,9 +53,6 @@ class Routing {
 
   // dashboard
   static const String dashboardDetail = '/dashboard';
-
-  // sync offline → online
-  static const String syncOfflineData = '/sync-offline-data';
 
   static String safeNextLocation(String? next) => _safeNextLocation(next);
 }
@@ -141,7 +134,12 @@ const _publicPaths = <String>{
   Routing.completeProfile,
 };
 int _redirectCount = 0;
-const _retiredPaths = <String>{'/notification'};
+const _retiredPaths = <String>{
+  '/notification',
+  '/offline',
+  '/offline/league',
+  '/sync-offline-data',
+};
 
 void _logRouteFlow(String message) {
   if (kDebugMode) {
@@ -171,15 +169,12 @@ bool _isKnownRoutePath(String path) {
 
   const fixedPaths = <String>{
     Routing.app,
-    Routing.offline,
-    Routing.offlineLeague,
     Routing.groups,
     Routing.updateProfile,
     Routing.setting,
     Routing.changePassword,
     Routing.dashboardDetail,
     Routing.feedback,
-    Routing.syncOfflineData,
   };
   if (fixedPaths.contains(path)) return true;
 
@@ -225,16 +220,6 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
       return _redirectResult(seq, 'missing-locale', target);
     }
   }
-
-  // coverage:ignore-start
-  if (kIsWeb) {
-    if (location == Routing.offline ||
-        location == Routing.offlineLeague ||
-        location == Routing.syncOfflineData) {
-      return _redirectResult(seq, 'web-blocked-route', Routing.app);
-    }
-  }
-  // coverage:ignore-end
 
   // Auth not yet known — park every protected route on /splash with the
   // intended URL preserved, so the bounceback after auth resolves can land
@@ -391,18 +376,6 @@ final List<RouteBase> _appRoutes = [
     ),
   ),
   GoRoute(
-    path: Routing.offline,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const OfflineView()),
-    routes: [
-      GoRoute(
-        path: 'league',
-        pageBuilder: (context, state) =>
-            _slide(context: context, state: state, child: const OfflineView()),
-      ),
-    ],
-  ),
-  GoRoute(
     path: '/group/:groupId',
     pageBuilder: (context, state) => _slide(
       context: context,
@@ -468,11 +441,6 @@ final List<RouteBase> _appRoutes = [
     path: Routing.feedback,
     pageBuilder: (context, state) =>
         _slide(context: context, state: state, child: const FeedbackView()),
-  ),
-  GoRoute(
-    path: Routing.syncOfflineData,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const SyncPage()),
   ),
 ];
 // coverage:ignore-end
