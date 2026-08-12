@@ -2,6 +2,14 @@
 
 All notable changes to PES Arena are documented here.
 
+## [4.0.0+49] - 2026-08-12
+
+### Changed
+
+- Giữ nguyên nhóm online và các luồng giải League/Cup/Full, gồm cập nhật trận đa thiết bị theo thời gian thực cùng bảng xếp hạng và kết quả.
+- Loại bỏ thông báo/push, dữ liệu offline cùng UI migration/đồng bộ, quảng cáo di động, ứng dụng Flutter Web (không ảnh hưởng landing site), phản hồi/đánh giá và các chỉ số dashboard cá nhân dư thừa.
+- Dashboard cá nhân giữ phong độ gần đây, lần vô địch gần nhất, tỷ lệ vô địch/á quân và đối đầu/khắc tinh/mồi ngon.
+
 ## [3.6.0+48] - 2026-08-11
 
 ### Added
