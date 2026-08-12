@@ -112,7 +112,7 @@ class AuthButtonsView extends StatelessWidget {
                       ),
               ),
             ),
-            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
+            if (defaultTargetPlatform == TargetPlatform.iOS) ...[
               const SizedBox(height: 12),
               // Apple sign-in button
               Builder(

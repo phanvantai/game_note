@@ -15,8 +15,7 @@ import 'package:pes_arena/presentation/users/bloc/user_bloc.dart';
 // Mocks
 // ---------------------------------------------------------------------------
 
-class _MockGroupDetailBloc
-    extends MockBloc<GroupDetailEvent, GroupDetailState>
+class _MockGroupDetailBloc extends MockBloc<GroupDetailEvent, GroupDetailState>
     implements GroupDetailBloc {}
 
 class _MockUserBloc extends MockBloc<UserEvent, UserState>
@@ -32,20 +31,18 @@ class _FakeUserEvent extends Fake implements UserEvent {}
 // ---------------------------------------------------------------------------
 
 GNEsportGroup _group() => GNEsportGroup(
-      id: 'G1',
-      groupName: 'Test',
-      ownerId: 'owner1',
-      members: const ['owner1'],
-      description: '',
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-      status: 'active',
-    );
+  id: 'G1',
+  groupName: 'Test',
+  ownerId: 'owner1',
+  members: const ['owner1'],
+  description: '',
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+  status: 'active',
+);
 
-GroupDetailState _detailState() => GroupDetailState(
-      group: _group(),
-      currentUserId: 'owner1',
-    );
+GroupDetailState _detailState() =>
+    GroupDetailState(group: _group(), currentUserId: 'owner1');
 
 UserState _userState({List<GNUser> users = const []}) =>
     UserState(viewStatus: ViewStatus.success, users: users);
@@ -54,17 +51,15 @@ GNUser _user({
   required String id,
   required String displayName,
   bool isPlaceholder = false,
-}) =>
-    GNUser(
-      id: id,
-      displayName: displayName,
-      phoneNumber: null,
-      email: null,
-      photoUrl: null,
-      role: 'user',
-      fcmToken: '',
-      isPlaceholder: isPlaceholder,
-    );
+}) => GNUser(
+  id: id,
+  displayName: displayName,
+  phoneNumber: null,
+  email: null,
+  photoUrl: null,
+  role: 'user',
+  isPlaceholder: isPlaceholder,
+);
 
 Widget _wrap(AddMemberPage page) => MaterialApp(home: page);
 
@@ -90,10 +85,10 @@ void main() {
   });
 
   AddMemberPage page({Set<String> memberIds = const {}}) => AddMemberPage(
-        bloc: groupBloc,
-        currentMemberIds: memberIds,
-        userBloc: userBloc,
-      );
+    bloc: groupBloc,
+    currentMemberIds: memberIds,
+    userBloc: userBloc,
+  );
 
   group('AddMemberPage', () {
     testWidgets('render AppBar Thêm thành viên', (tester) async {
@@ -148,8 +143,9 @@ void main() {
       expect(find.text('Huỷ'), findsNothing);
     });
 
-    testWidgets('form expanded: Tạo với tên rỗng không dispatch',
-        (tester) async {
+    testWidgets('form expanded: Tạo với tên rỗng không dispatch', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(page()));
       await tester.pump();
 
@@ -161,54 +157,55 @@ void main() {
       await tester.tap(find.text('Tạo'));
       await tester.pump();
 
-      verifyNever(
-          () => groupBloc.add(any(that: isA<AddPlaceholderMember>())));
+      verifyNever(() => groupBloc.add(any(that: isA<AddPlaceholderMember>())));
     });
 
     testWidgets(
-        'form expanded: Tạo với tên hợp lệ dispatch AddPlaceholderMember và pop',
-        (tester) async {
-      await tester.pumpWidget(_wrap(page()));
-      await tester.pump();
+      'form expanded: Tạo với tên hợp lệ dispatch AddPlaceholderMember và pop',
+      (tester) async {
+        await tester.pumpWidget(_wrap(page()));
+        await tester.pump();
 
-      // Expand
-      await tester.tap(find.text('Tạo người chơi mới (placeholder)'));
-      await tester.pump();
+        // Expand
+        await tester.tap(find.text('Tạo người chơi mới (placeholder)'));
+        await tester.pump();
 
-      // Enter text
-      final nameField =
-          find.widgetWithText(TextField, 'Tên người chơi');
-      await tester.enterText(nameField, 'Test Player');
-      await tester.pump();
+        // Enter text
+        final nameField = find.widgetWithText(TextField, 'Tên người chơi');
+        await tester.enterText(nameField, 'Test Player');
+        await tester.pump();
 
-      // Tap Tạo
-      await tester.tap(find.text('Tạo'));
-      await tester.pump();
+        // Tap Tạo
+        await tester.tap(find.text('Tạo'));
+        await tester.pump();
 
-      verify(() => groupBloc
-          .add(const AddPlaceholderMember('G1', 'Test Player'))).called(1);
-    });
+        verify(
+          () => groupBloc.add(const AddPlaceholderMember('G1', 'Test Player')),
+        ).called(1);
+      },
+    );
 
     testWidgets(
-        'form expanded: submit keyboard dispatch AddPlaceholderMember và pop',
-        (tester) async {
-      await tester.pumpWidget(_wrap(page()));
-      await tester.pump();
+      'form expanded: submit keyboard dispatch AddPlaceholderMember và pop',
+      (tester) async {
+        await tester.pumpWidget(_wrap(page()));
+        await tester.pump();
 
-      // Expand
-      await tester.tap(find.text('Tạo người chơi mới (placeholder)'));
-      await tester.pump();
+        // Expand
+        await tester.tap(find.text('Tạo người chơi mới (placeholder)'));
+        await tester.pump();
 
-      // Enter text and submit via keyboard
-      final nameField =
-          find.widgetWithText(TextField, 'Tên người chơi');
-      await tester.enterText(nameField, 'Test Player');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
+        // Enter text and submit via keyboard
+        final nameField = find.widgetWithText(TextField, 'Tên người chơi');
+        await tester.enterText(nameField, 'Test Player');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pump();
 
-      verify(() => groupBloc
-          .add(const AddPlaceholderMember('G1', 'Test Player'))).called(1);
-    });
+        verify(
+          () => groupBloc.add(const AddPlaceholderMember('G1', 'Test Player')),
+        ).called(1);
+      },
+    );
 
     testWidgets('user list hiển thị user không phải member', (tester) async {
       final user = _user(id: 'u1', displayName: 'Alice');
@@ -231,20 +228,20 @@ void main() {
     });
 
     testWidgets(
-        'user list ẩn user đã là member (kiểm tra qua currentMemberIds)',
-        (tester) async {
-      // isCurrentUser is always false in tests (no Firebase Auth).
-      // Filtering current user is tested via currentMemberIds instead.
-      final currentUser = _user(id: 'owner1', displayName: 'Owner');
-      when(() => userBloc.state)
-          .thenReturn(_userState(users: [currentUser]));
+      'user list ẩn user đã là member (kiểm tra qua currentMemberIds)',
+      (tester) async {
+        // isCurrentUser is always false in tests (no Firebase Auth).
+        // Filtering current user is tested via currentMemberIds instead.
+        final currentUser = _user(id: 'owner1', displayName: 'Owner');
+        when(() => userBloc.state).thenReturn(_userState(users: [currentUser]));
 
-      // owner1 is in currentMemberIds → should be filtered out
-      await tester.pumpWidget(_wrap(page(memberIds: {'owner1'})));
-      await tester.pump();
+        // owner1 is in currentMemberIds → should be filtered out
+        await tester.pumpWidget(_wrap(page(memberIds: {'owner1'})));
+        await tester.pump();
 
-      expect(find.text('Owner'), findsNothing);
-    });
+        expect(find.text('Owner'), findsNothing);
+      },
+    );
 
     testWidgets('tap user dispatch AddMember và pop', (tester) async {
       final user = _user(id: 'u2', displayName: 'Carol');

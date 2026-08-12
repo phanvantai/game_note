@@ -125,8 +125,12 @@ void main() {
     await tester.pumpWidget(_wrap(bloc));
 
     expect(find.text('Xem chi tiết'), findsOneWidget);
-    expect(find.text('50%'), findsOneWidget);
-    expect(find.text('+2'), findsOneWidget);
+    expect(find.text('Tỉ lệ vô địch'), findsOneWidget);
+    expect(find.text('Tỉ lệ á quân'), findsOneWidget);
+    expect(find.text('Vô địch gần nhất'), findsOneWidget);
+    expect(find.text('Tỉ lệ thắng'), findsNothing);
+    expect(find.text('Hiệu số'), findsNothing);
+    expect(find.text('Trận'), findsNothing);
     await tester.drag(find.byType(ListView), const Offset(0, -500));
     await tester.pump();
     expect(find.text('Phong độ 10 trận gần nhất'), findsOneWidget);

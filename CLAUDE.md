@@ -1,198 +1,50 @@
-# CLAUDE.md
+# Game Note Companion Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+`AGENTS.md` is the canonical contributor guide. This document is a compact orientation for Game Note 4.0; when the two differ, follow `AGENTS.md`.
 
-## Project Overview
+## Product and Architecture
 
-Game Note is a Flutter mobile application for football and esports communities that provides:
+Game Note is an Android/iOS Flutter application for online football and esports groups and tournaments. The app uses Firebase Auth, Cloud Firestore, Storage, BLoC, and `get_it`; SharedPreferences supports local preferences and caches. Firestore is the tournament source of truth.
 
-- **Offline Mode**: Local tournament management with SQLite database
-- **Online Mode**: Social features with Firebase integration
-- **Dual Focus**: Traditional football and esports (PES) gaming communities
+Production Dart code is organized as follows:
 
-## Development Commands
+- `lib/core/`: shared helpers, theme, cache, localization support, and widgets.
+- `lib/domain/`: contracts, entities, and use cases.
+- `lib/data/`: repository implementations and data coordination.
+- `lib/firebase/`: Auth, Firestore, and Storage adapters/models.
+- `lib/presentation/`: routes, screens, components, and BLoCs.
 
-### Build & Test
+Tests mirror these paths under `test/`. Native projects are `android/` and `ios/`; Cloud Functions run from `functions/` on Node 20; and `game-note-landing/` is a retained standalone static site. Keep landing-site changes independent from the mobile app.
+
+The retained product surface includes Apple, Google, and email/password authentication; group membership and ownership; protected account deletion; settings; English/Vietnamese localization; and League, Cup, and Full tournament formats. Preserve realtime subscriptions, fixtures, results, standings, brackets, history, costs, and aggregated statistics. Before changing a Firestore operation, trace its read/write path. Do not weaken transactions, idempotency, ownership checks, or concurrent score/result-update behavior.
+
+## Working Practices
+
+Keep presentation widgets focused on rendering and interactions. Put business rules in BLoC handlers, use cases, repositories, or Firebase adapters, and add runtime dependencies through `lib/injection_container.dart`. Follow existing feature BLoC grouping and repository contracts rather than introducing global state.
+
+Use standard Dart formatting: two spaces, `snake_case.dart` files, `PascalCase` types, and `lowerCamelCase` members. Use generated localization APIs through the build context; update ARB-backed behavior with localization tests rather than hard-coded display strings.
+
+Work TDD-first: add or revise a focused observable test, observe the intended failure, make the smallest implementation change, then rerun the target. Use `flutter_test`, `bloc_test`, `mocktail`, and `fake_cloud_firestore` as needed. Production changes require matching tests; target full line coverage for testable `lib/` code, with generated output, `main.dart`, DI, and platform glue exempt. State exactly which checks were run.
+
+## Commands
+
+Run Flutter commands from the repository root:
+
 ```bash
-flutter pub get              # Install dependencies
-flutter analyze             # Run static analysis (uses flutter_lints)
-flutter test                # Run unit tests
-flutter build apk           # Build Android APK
-flutter build ios           # Build iOS app
+flutter pub get
+flutter run
+dart format .
+flutter analyze
+flutter test
+flutter test --coverage
+flutter build appbundle --release
+flutter build ios --release --no-codesign
 ```
 
-### Development
-```bash
-flutter run                  # Run in debug mode
-flutter run --release       # Run in release mode
-flutter clean               # Clean build artifacts
-```
+For Functions, run `cd functions && npm install`, then `npm test`, `npm run lint`, or `npm run serve`. Prefer a targeted test before the full suite.
 
-## Architecture
+## Pull Requests and Releases
 
-The project follows **Clean Architecture** principles with clear layer separation:
+Use focused Conventional Commit subjects and short-lived branches. All changes go through a PR to `main`; never push directly to `main`. Describe scope, verification, and visual evidence when relevant. Required CI must be green.
 
-### Core Structure
-- **Domain Layer** (`lib/domain/`): Entities, repository interfaces, use cases
-- **Data Layer** (`lib/data/`): Repository implementations, Firebase data sources
-- **Presentation Layer** (`lib/presentation/`): UI components, BLoC state management
-- **Offline Module** (`lib/offline/`): Complete clean architecture for local features
-
-### Key Technologies
-- **State Management**: BLoC pattern with `flutter_bloc`, secondary `provider`
-- **Dependency Injection**: `get_it` service locator (configured in `lib/injection_container.dart`)
-- **Local Database**: SQLite with `sqflite` (managed by `DatabaseManager`)
-- **Firebase**: Auth, Firestore, Storage, Messaging, Analytics
-- **Navigation**: Centralized in `lib/routing.dart` with custom page transitions
-
-### Offline vs Online Architecture
-- **Offline**: Complete clean architecture in `lib/offline/` with local SQLite storage
-- **Online**: Firebase-based repositories in `lib/data/repositories/` with real-time sync
-
-## Code Conventions
-
-### File Structure
-- **Feature-based organization**: Group files by domain/feature
-- **BLoC Pattern**: Each feature has `bloc/`, `events/`, `states/` structure
-- **Repository Pattern**: All data access through repository interfaces
-
-### Naming Conventions
-- **Classes**: PascalCase (`LeagueDetailBloc`, `PlayerModel`)
-- **Files**: snake_case (`league_detail_bloc.dart`, `player_model.dart`)
-- **BLoC Events**: `[Feature][Action]Event` (e.g., `LoadLeagueEvent`)
-- **BLoC Methods**: `_on[EventName]` (e.g., `_onLoadLeague`)
-
-### Core Patterns
-- **Use Case Pattern**: Business logic encapsulated in use cases
-- **Failure Handling**: `Either<Failure, Success>` pattern with `dartz`
-- **Real-time Data**: Firebase listeners for online features
-- **Dependency Injection**: Register all services in `injection_container.dart`
-
-## Database Management
-
-### Local Database (SQLite)
-- **Manager**: `DatabaseManager` in `lib/offline/data/database/`
-- **Initialization**: Called in `main.dart` before app start
-- **Features**: Tournament data, match results, player statistics
-
-### Firebase Integration
-- **Collections**: `users`, `esportGroups`, `esportLeagues`, `esportChats`,
-  `group_deletion_requests` (owner-initiated group deletion, gated by
-  `isGroupOwner` + create-only rules), `group_deletion_league_tombstones`
-  (suppresses delta-stat triggers during cascade)
-- **Authentication**: Email/password and Google Sign-In
-- **Real-time**: Firestore listeners for live updates
-- **Storage**: Image uploads for avatars and tournament media
-
-## Performance Considerations
-
-### Optimization Strategies
-- **Batch Loading**: Use batch queries to avoid N+1 problems (see `PERFORMANCE_OPTIMIZATIONS.md`)
-- **Parallel Loading**: Load independent data simultaneously with `Future.wait()`
-- **Image Caching**: Use `cached_network_image` for remote images
-- **Memory Management**: Properly dispose BLoC instances and streams
-
-### Common Performance Patterns
-- **User Batch Loading**: `getUsersById()` for loading multiple users efficiently
-- **Parallel Data Loading**: `getParticipantsAndMatches()` for simultaneous API calls
-- **Real-time Optimization**: Minimize concurrent Firestore listeners
-
-## Git Workflow
-
-- The repository uses a simple PR-first workflow for every change.
-- Always start from the latest `main`, then create a short-lived branch before editing code or documentation.
-- Never commit or push directly to `main`.
-- Open a pull request targeting `main`, wait for review/checks, then merge.
-- After merge, delete the remote branch and any local branches that are no longer needed so `main` stays the clean baseline.
-
-### Releasing — every merge to `main` ships to production
-
-`.github/workflows/android-release.yml` runs on **every push to `main`** and
-uploads the AAB straight to the Google Play **production** track. There is no
-separate release step: merging a PR *is* a release.
-
-**Every PR that touches `lib/`, `android/`, or `ios/` MUST bump `version:` in
-`pubspec.yaml` in the same PR.** The build number after `+` must increase by at
-least 1 — Google Play rejects a re-used version code and the release job fails
-*after* the merge has already landed, so a forgotten bump can only be fixed by
-another PR.
-
-- Build number (`+N`): always `+1`. Never reuse, never go backwards.
-- Semantic part: minor bump (`3.4.2` → `3.5.0`) for a user-facing feature,
-  patch bump (`3.4.2` → `3.4.3`) for fixes and internal work.
-- Add a matching `CHANGELOG.md` entry under the new `[X.Y.Z+N]` heading.
-
-Docs-only or test-only PRs don't need a bump — nothing shippable changed.
-
-## Key Features
-
-### Tournament System
-- **League Creation**: Automatic round-robin generation with configurable formats
-- **Match Management**: Score tracking with automatic statistics calculation
-- **Player Statistics**: Real-time wins/draws/losses, goal difference calculations
-- **Data Persistence**: All tournament data stored locally with SQLite
-
-### Social Features
-- **Groups**: Create/join esports groups with member management
-- **Online Tournaments**: Real-time tournament updates via Firestore
-- **Chat System**: Group-based messaging with Firebase
-- **Push Notifications**: Firebase Messaging for tournament updates
-
-### Firebase Configuration
-- **Authentication**: Configured in `lib/firebase/auth/gn_auth.dart`
-- **Firestore**: Service layer in `lib/firebase/firestore/gn_firestore.dart`
-- **Storage**: File uploads in `lib/firebase/storage/gn_storage.dart`
-- **Messaging**: Push notifications in `lib/firebase/messaging/gn_firebase_messaging.dart`
-
-## Testing & Quality
-
-### Coverage Policy
-- **Target: 100% line coverage** for all production code under `lib/`. Every PR
-  that adds or modifies code must include tests that maintain this bar.
-- **Test-with-code rule**: any code change MUST be accompanied by a matching
-  test update in the same change (add tests for new code, update assertions
-  for changed behavior, delete tests for removed code). Don't ship a code
-  edit and leave the test for "next PR" — coverage drops and behavioral
-  drift creep in immediately. Before declaring a task done, run
-  `flutter test --coverage` and verify no new uncovered lines under `lib/`.
-- **Exclusions** (allowed to skip): `main.dart`, `injection_container.dart`,
-  generated files, ad/analytics integrations, and pure-platform-channel glue
-  that requires a real device. Everything else — entities, repositories, blocs,
-  use cases, pure widgets — is in scope.
-- **Run locally**: `flutter test --coverage` produces `coverage/lcov.info`. To
-  view as HTML: `genhtml coverage/lcov.info -o coverage/html && open
-  coverage/html/index.html`.
-- **Refactor for testability**: if existing code blocks tests (global state,
-  hard-wired side effects, missing DI seams), refactor it as part of the test
-  PR. Don't write tests around untestable code.
-
-### Test Layering
-- **Unit tests** (most of the suite): pure logic, entity serialization, blocs.
-  Use `bloc_test` for blocs and `mocktail` for repository fakes.
-- **Widget tests**: every widget that has branching/conditional rendering or
-  computed display values. Skip widgets that are pure layout passthroughs.
-- **Test naming**: describe behavior in Vietnamese where the team prefers it
-  (matches existing tests under `test/`).
-
-### Test Structure
-- Mirror `lib/` paths under `test/`. Example: `lib/presentation/foo/bar.dart`
-  → `test/presentation/foo/bar_test.dart`.
-- Pure factories that need testing (e.g. Firestore deserialization) should
-  expose a `fromMap(Map, String id)` next to `fromFirestore(DocumentSnapshot)`
-  so tests don't need to mock `DocumentSnapshot`.
-
-### Code Quality
-- **Linting**: Uses `flutter_lints` (configured in `analysis_options.yaml`)
-- **Error Handling**: Proper exception handling with user-friendly messages
-- **Input Validation**: Form validation for tournament creation and user data
-
-### Common Development Tasks
-- **Adding Features**: Start with domain layer (entities/use cases), then data layer, finally presentation
-- **BLoC Integration**: Register new BLoCs in `injection_container.dart`
-- **Database Changes**: Update `DatabaseManager` for schema modifications
-- **Firebase Integration**: Add new collections following existing patterns in `lib/firebase/firestore/`
-
-## Monetization & Analytics
-- **Google Mobile Ads**: Integrated throughout the app with proper ad loading
-- **Firebase Analytics**: User behavior tracking for feature usage
-- **Premium Features**: Feature flags for advanced functionality
+Every merge to `main` is a production release. A PR touching `lib/`, `android/`, or `ios/` must bump `version:` in `pubspec.yaml` and add a matching dated `[X.Y.Z+N]` entry to `CHANGELOG.md`. Increment `+N` by exactly one from latest `main` and never reuse it. Use a minor version for user-facing features, a patch for fixes/internal work, and a major version only for an intentionally planned breaking release. Docs-only and test-only PRs are exempt.

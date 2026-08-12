@@ -7,7 +7,6 @@ import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/routing.dart';
 
 import 'bloc/dashboard_bloc.dart';
-import 'models/dashboard_stats.dart';
 import 'widgets/form_dots_row.dart';
 import 'widgets/recent_matches_list.dart';
 import 'widgets/stat_card_grid.dart';
@@ -52,7 +51,7 @@ class _DashboardViewState extends State<DashboardView> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 96),
           children: [
-            _DashboardHero(stats: stats),
+            const _DashboardHero(),
             const SizedBox(height: 14),
             StatCardGrid(stats: stats),
             const SizedBox(height: 20),
@@ -80,17 +79,12 @@ class _DashboardViewState extends State<DashboardView> {
 }
 
 class _DashboardHero extends StatelessWidget {
-  final DashboardStats stats;
-
-  const _DashboardHero({required this.stats});
+  const _DashboardHero();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final winRate = stats.winRate == null
-        ? '—'
-        : '${(stats.winRate! * 100).round()}%';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -135,73 +129,7 @@ class _DashboardHero extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 18),
-        Row(
-          children: [
-            Expanded(
-              child: _HeroMetric(
-                label: context.l10n.dashboardWinRate,
-                value: winRate,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _HeroMetric(
-                label: context.l10n.dashboardGoalDifference,
-                value: _signed(stats.goalDifference),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _HeroMetric(
-                label: context.l10n.dashboardMatches,
-                value: '${stats.matchesPlayed}',
-              ),
-            ),
-          ],
-        ),
       ],
-    );
-  }
-}
-
-class _HeroMetric extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _HeroMetric({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -323,9 +251,4 @@ class _DashboardError extends StatelessWidget {
       ),
     );
   }
-}
-
-String _signed(int n) {
-  if (n > 0) return '+$n';
-  return '$n';
 }

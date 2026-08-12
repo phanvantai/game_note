@@ -227,7 +227,6 @@ class GroupOverviewCalculator {
       email: null,
       photoUrl: e.photoUrl,
       role: 'user',
-      fcmToken: '',
       // Mark as placeholder when the server hasn't filled in a real
       // displayName yet — keeps the existing widget behaviour from
       // the prior client-side version.

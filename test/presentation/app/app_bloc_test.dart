@@ -204,21 +204,6 @@ void main() {
     expect(bloc.state.status, AppStatus.profileIncomplete);
   });
 
-  test(
-    'updates football feature flag from UpdateFootballFeature event',
-    () async {
-      final bloc = await buildBloc();
-
-      bloc.add(UpdateFootballFeature(true));
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.enableFootballFeature, isTrue);
-
-      bloc.add(UpdateFootballFeature(false));
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.enableFootballFeature, isFalse);
-    },
-  );
-
   test('AppEvent props: InitApp has no props', () {
     expect(InitApp().props, isEmpty);
   });
@@ -234,11 +219,6 @@ void main() {
     expect(RefreshCurrentUser().props, isEmpty);
   });
 
-  test('AppEvent props: UpdateFootballFeature exposes bool', () {
-    expect(UpdateFootballFeature(true).props, equals([true]));
-    expect(UpdateFootballFeature(false).props, equals([false]));
-  });
-
   test('keeps and clears currentUser through AppState.copyWith branches', () {
     final baselineUser = GNUser(
       id: 'user-1',
@@ -247,7 +227,6 @@ void main() {
       email: 'tai@example.com',
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
     );
     final replacementUser = GNUser(
       id: 'user-2',
@@ -256,11 +235,9 @@ void main() {
       email: 'linh@example.com',
       photoUrl: null,
       role: 'user',
-      fcmToken: '',
     );
     final state = AppState(
       status: AppStatus.authenticated,
-      enableFootballFeature: false,
       currentUser: baselineUser,
     );
 
@@ -268,10 +245,6 @@ void main() {
     expect(
       state.copyWith(currentUser: replacementUser).currentUser,
       same(replacementUser),
-    );
-    expect(
-      state.copyWith(enableFootballFeature: true).enableFootballFeature,
-      isTrue,
     );
     expect(state.copyWith(clearCurrentUser: true).currentUser, isNull);
     expect(

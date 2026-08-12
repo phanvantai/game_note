@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/home/dashboard/models/dashboard_stats.dart';
 import 'package:pes_arena/presentation/home/dashboard/widgets/stat_card_grid.dart';
 
-Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+Widget _wrap(Widget child) => MaterialApp(
+  locale: const Locale('en'),
+  supportedLocales: AppLocalizations.supportedLocales,
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  home: Scaffold(body: child),
+);
 
 void main() {
   testWidgets('hiển thị phần trăm và ngày vô địch gần nhất', (tester) async {
@@ -22,10 +28,13 @@ void main() {
       ),
     );
 
-    expect(find.text('12'), findsOneWidget);
+    expect(find.text('Champion rate'), findsOneWidget);
+    expect(find.text('Runner-up rate'), findsOneWidget);
+    expect(find.text('Latest championship'), findsOneWidget);
+    expect(find.text('Tournaments joined'), findsNothing);
     expect(find.text('25%'), findsOneWidget);
     expect(find.text('50%'), findsOneWidget);
-    expect(find.text('3 ngày trước'), findsOneWidget);
+    expect(find.text('3 days ago'), findsOneWidget);
   });
 
   testWidgets('hiển thị dấu gạch khi chưa có giải finished', (tester) async {
@@ -62,7 +71,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('Hôm nay'), findsOneWidget);
+    expect(find.text('Today'), findsOneWidget);
 
     await tester.pumpWidget(
       _wrap(

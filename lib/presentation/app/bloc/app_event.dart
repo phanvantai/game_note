@@ -29,12 +29,3 @@ class _FirebaseAuthUserChanged extends AppEvent {
   List<Object?> get props => [user];
   // coverage:ignore-end
 }
-
-class UpdateFootballFeature extends AppEvent {
-  final bool enableFootballFeature;
-
-  const UpdateFootballFeature(this.enableFootballFeature);
-
-  @override
-  List<Object?> get props => [enableFootballFeature];
-}

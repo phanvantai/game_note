@@ -4,16 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:pes_arena/core/common/view_status.dart';
-import 'package:pes_arena/firebase/messaging/gn_firebase_messaging.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
+import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/models/dashboard_stats.dart';
 import 'package:pes_arena/presentation/home/ongoing_tournaments/bloc/ongoing_tournaments_bloc.dart';
 import 'package:pes_arena/presentation/main/main_page.dart';
-import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:pes_arena/presentation/profile/bloc/profile_bloc.dart';
 
 class _MockGroupBloc extends MockBloc<GroupEvent, GroupState>
@@ -32,18 +30,9 @@ class _MockOngoingBloc
     extends MockBloc<OngoingTournamentsEvent, OngoingTournamentsState>
     implements OngoingTournamentsBloc {}
 
-class _MockNotificationBloc
-    extends MockBloc<NotificationEvent, NotificationState>
-    implements NotificationBloc {}
-
-class _MockMessaging extends Mock implements GNFirebaseMessaging {}
-
-class _MockRemoteConfig extends Mock implements GNRemoteConfig {}
-
 void main() {
   setUpAll(() {
     registerFallbackValue(GetEsportGroups());
-    registerFallbackValue(NotificationEventFetch());
   });
 
   setUp(() async {
@@ -54,9 +43,6 @@ void main() {
     final profileBloc = _MockProfileBloc();
     final dashboardBloc = _MockDashboardBloc();
     final ongoingBloc = _MockOngoingBloc();
-    final notificationBloc = _MockNotificationBloc();
-    final messaging = _MockMessaging();
-    final remoteConfig = _MockRemoteConfig();
 
     when(() => groupBloc.state).thenReturn(const GroupState());
     when(() => tournamentBloc.state).thenReturn(const TournamentState());
@@ -75,31 +61,33 @@ void main() {
       ),
     );
     when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
-    when(() => notificationBloc.state).thenReturn(const NotificationState());
-    when(() => messaging.initialize()).thenAnswer((_) async {});
-    when(() => remoteConfig.adsEnabled).thenReturn(false);
-
     getIt.registerFactory<ProfileBloc>(() => profileBloc);
     getIt.registerFactory<GroupBloc>(() => groupBloc);
     getIt.registerFactory<TournamentBloc>(() => tournamentBloc);
     getIt.registerFactory<DashboardBloc>(() => dashboardBloc);
     getIt.registerFactory<OngoingTournamentsBloc>(() => ongoingBloc);
-    getIt.registerSingleton<NotificationBloc>(notificationBloc);
-    getIt.registerSingleton<GNFirebaseMessaging>(messaging);
-    getIt.registerSingleton<GNRemoteConfig>(remoteConfig);
   });
 
   tearDown(() => getIt.reset());
 
-  testWidgets('MainPage provide các bloc và render MainView', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: MainPage()));
+  testWidgets(
+    'MainPage provides retained blocs and renders four destinations',
+    (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          locale: Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: MainPage(),
+        ),
+      );
 
-    expect(find.text('Arena'), findsWidgets);
-    expect(find.text('Giải đấu'), findsOneWidget);
-    expect(find.text('Cá nhân'), findsOneWidget);
-    final notificationBloc = getIt<NotificationBloc>();
-    verify(
-      () => notificationBloc.add(any(that: isA<NotificationEventFetch>())),
-    ).called(1);
-  });
+      expect(find.text('Arena'), findsWidgets);
+      expect(find.text('Groups'), findsOneWidget);
+      expect(find.text('Tournaments'), findsOneWidget);
+      expect(find.text('Profile'), findsOneWidget);
+      expect(find.text('Notifications'), findsNothing);
+      expect(find.byType(NavigationDestination), findsNWidgets(4));
+    },
+  );
 }

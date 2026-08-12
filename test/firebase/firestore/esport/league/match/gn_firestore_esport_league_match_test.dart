@@ -110,7 +110,6 @@ void main() {
       GNUser.emailKey: '$id@example.com',
       GNUser.photoUrlKey: null,
       GNUser.roleKey: 'user',
-      GNUser.fcmTokenKey: '',
     });
   }
 

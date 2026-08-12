@@ -13,7 +13,6 @@ GNUser _user(String id, String name) {
     email: '$id@example.com',
     photoUrl: null,
     role: 'user',
-    fcmToken: '',
   );
 }
 
@@ -84,7 +83,6 @@ GNEsportLeagueStat _statWithUser({
         email: '$userId@example.com',
         photoUrl: null,
         role: 'user',
-        fcmToken: '',
       );
 
   return GNEsportLeagueStat(
@@ -316,7 +314,6 @@ void main() {
             email: 'email-only@example.com',
             photoUrl: null,
             role: 'user',
-            fcmToken: '',
           ),
         ),
         _statWithUser(
@@ -365,7 +362,6 @@ void main() {
             email: null,
             photoUrl: null,
             role: 'user',
-            fcmToken: '',
           ),
         ),
         _statWithUser(

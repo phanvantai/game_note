@@ -46,6 +46,7 @@ void main() {
   });
 
   tearDown(() async {
+    debugDefaultTargetPlatformOverride = null;
     await getIt.reset();
   });
 
@@ -185,6 +186,23 @@ void main() {
         await tester.pump();
 
         verify(() => bloc.add(const ThirdPartySignInApple())).called(1);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('does not show Apple button on Android', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() {
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      try {
+        await tester.pumpWidget(_buildAuthButtonsView());
+        await tester.pump();
+
+        expect(find.text('Continue with Google'), findsOneWidget);
+        expect(find.text('Continue with Apple'), findsNothing);
       } finally {
         debugDefaultTargetPlatformOverride = null;
       }

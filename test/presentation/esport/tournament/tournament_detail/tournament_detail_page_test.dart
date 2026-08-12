@@ -13,7 +13,6 @@ import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
@@ -23,8 +22,6 @@ import 'package:pes_arena/presentation/esport/tournament/tournament_detail/tourn
 class _MockLeagueRepository extends Mock implements EsportLeagueRepository {}
 
 class _MockGroupRepository extends Mock implements EsportGroupRepository {}
-
-class _MockRemoteConfig extends Mock implements GNRemoteConfig {}
 
 class _DetailStreams {
   final league = StreamController<GNEsportLeague?>.broadcast();
@@ -187,7 +184,6 @@ TournamentDetailBloc _detailBloc(WidgetTester tester) {
 void main() {
   late _MockLeagueRepository leagueRepository;
   late _MockGroupRepository groupRepository;
-  late _MockRemoteConfig remoteConfig;
   late _DetailStreams streams;
   late List<String> toasts;
   late int leagueRepositoryResolutions;
@@ -197,13 +193,11 @@ void main() {
     await getIt.reset();
     leagueRepository = _MockLeagueRepository();
     groupRepository = _MockGroupRepository();
-    remoteConfig = _MockRemoteConfig();
     streams = _DetailStreams();
     toasts = [];
     leagueRepositoryResolutions = 0;
     groupRepositoryResolutions = 0;
 
-    when(() => remoteConfig.adsEnabled).thenReturn(false);
     when(
       () => leagueRepository.listenForLeagueUpdated('L1'),
     ).thenAnswer((_) => streams.league.stream);
@@ -226,7 +220,6 @@ void main() {
       groupRepositoryResolutions++;
       return groupRepository;
     });
-    getIt.registerSingleton<GNRemoteConfig>(remoteConfig);
     setShowToastImpl(
       (message, {gravity = ToastGravity.BOTTOM}) => toasts.add(message),
     );

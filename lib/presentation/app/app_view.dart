@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../routing.dart';
 import '../main/main_page.dart';
-import 'bloc/app_bloc.dart';
 
 /// Home route widget. The router's redirect callback guarantees that anyone
 /// reaching `/` has [AppStatus.authenticated], so this just renders the
@@ -16,13 +12,6 @@ class AppView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AppBloc, AppState>(
-      listenWhen: (previous, current) =>
-          previous.enableFootballFeature != current.enableFootballFeature,
-      listener: (context, state) {
-        context.go(Routing.app);
-      },
-      child: MainPage(initialTabIndex: initialTabIndex),
-    );
+    return MainPage(initialTabIndex: initialTabIndex);
   }
 }

@@ -8,8 +8,6 @@ import 'firebase/firestore/esport/group/gn_esport_group.dart';
 import 'firebase/firestore/user/gn_user.dart';
 import 'injection_container.dart';
 import 'core/localization/locale_notifier.dart';
-import 'l10n/l10n.dart';
-import 'offline/presentation/offline_view.dart';
 import 'presentation/app/app_view.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'presentation/app/language_selection_page.dart';
@@ -21,12 +19,9 @@ import 'presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/home/dashboard/detail/dashboard_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
-import 'presentation/notification/notification_page.dart';
 import 'presentation/profile/change_password/change_password_page.dart';
-import 'presentation/profile/feedback/feedback_view.dart';
 import 'presentation/profile/setting/setting_page.dart';
 import 'presentation/profile/update/update_profile_page.dart';
-import 'presentation/sync/sync_page.dart';
 
 class Routing {
   static const String app = '/';
@@ -34,9 +29,7 @@ class Routing {
   static const String language = '/language';
   static const String login = '/login';
   static const String completeProfile = '/complete-profile';
-  static const String offline = '/offline';
   static const String groups = '/groups';
-  static const String offlineLeague = '/offline/league';
   static const String league = '/league';
 
   // community
@@ -54,16 +47,9 @@ class Routing {
   static const String updateProfile = '/update-profile';
   static const String setting = '/setting';
   static const String changePassword = '/change-password';
-  static const String feedback = '/feedback';
 
   // dashboard
   static const String dashboardDetail = '/dashboard';
-
-  // notification
-  static const String notification = '/notification';
-
-  // sync offline → online
-  static const String syncOfflineData = '/sync-offline-data';
 
   static String safeNextLocation(String? next) => _safeNextLocation(next);
 }
@@ -78,11 +64,8 @@ CustomTransitionPage<T> _slide<T>({
   return CustomTransitionPage<T>(
     key: state.pageKey,
     child: child,
-    transitionDuration: Duration(milliseconds: kIsWeb ? 120 : duration),
+    transitionDuration: Duration(milliseconds: duration),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      if (kIsWeb) {
-        return FadeTransition(opacity: animation, child: child);
-      }
       const begin = Offset(1.0, 0.0);
       const end = Offset.zero;
       return SlideTransition(
@@ -94,39 +77,13 @@ CustomTransitionPage<T> _slide<T>({
 }
 // coverage:ignore-end
 
-// coverage:ignore-start
-class _NotFoundPage extends StatelessWidget {
-  const _NotFoundPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(context.l10n.pageNotFound),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => GoRouter.of(context).go(Routing.app),
-              child: Text(context.l10n.backHome),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-// coverage:ignore-end
-
 GoRouter createAppRouter({String initialLocation = Routing.app}) {
   return GoRouter(
     initialLocation: initialLocation,
     redirect: _appRedirect,
     refreshListenable: _AppBlocListenable(getIt<AppBloc>()),
     // coverage:ignore-start
-    errorBuilder: (context, state) => const _NotFoundPage(),
+    onException: (_, _, router) => router.go(Routing.app),
     // coverage:ignore-end
     routes: _appRoutes, // coverage:ignore-line
   );
@@ -145,6 +102,13 @@ const _publicPaths = <String>{
   Routing.completeProfile,
 };
 int _redirectCount = 0;
+const _retiredPaths = <String>{
+  '/notification',
+  '/offline',
+  '/offline/league',
+  '/sync-offline-data',
+  '/feedback',
+};
 
 void _logRouteFlow(String message) {
   if (kDebugMode) {
@@ -164,6 +128,7 @@ String _safeNextLocation(String? next) {
   if (uri == null || uri.hasScheme || uri.hasAuthority) return Routing.app;
 
   final path = uri.path.isEmpty ? Routing.app : uri.path;
+  if (_retiredPaths.contains(path)) return Routing.app;
   if (_isKnownRoutePath(path)) return uri.toString();
   return Routing.app;
 }
@@ -173,16 +138,11 @@ bool _isKnownRoutePath(String path) {
 
   const fixedPaths = <String>{
     Routing.app,
-    Routing.offline,
-    Routing.offlineLeague,
     Routing.groups,
     Routing.updateProfile,
     Routing.setting,
     Routing.changePassword,
     Routing.dashboardDetail,
-    Routing.notification,
-    Routing.feedback,
-    Routing.syncOfflineData,
   };
   if (fixedPaths.contains(path)) return true;
 
@@ -228,16 +188,6 @@ String? _appRedirect(BuildContext context, GoRouterState state) {
       return _redirectResult(seq, 'missing-locale', target);
     }
   }
-
-  // coverage:ignore-start
-  if (kIsWeb) {
-    if (location == Routing.offline ||
-        location == Routing.offlineLeague ||
-        location == Routing.syncOfflineData) {
-      return _redirectResult(seq, 'web-blocked-route', Routing.app);
-    }
-  }
-  // coverage:ignore-end
 
   // Auth not yet known — park every protected route on /splash with the
   // intended URL preserved, so the bounceback after auth resolves can land
@@ -350,6 +300,19 @@ class _AppBlocListenable extends ChangeNotifier {
 
 // coverage:ignore-start
 final List<RouteBase> _appRoutes = [
+  GoRoute(path: '/notification', redirect: (context, state) => Routing.app),
+  GoRoute(path: '/feedback', redirect: (context, state) => Routing.app),
+  GoRoute(
+    path: '/offline',
+    redirect: (context, state) => Routing.app,
+    routes: [
+      GoRoute(path: 'league', redirect: (context, state) => Routing.app),
+    ],
+  ),
+  GoRoute(
+    path: '/sync-offline-data',
+    redirect: (context, state) => Routing.app,
+  ),
   GoRoute(
     path: Routing.language,
     pageBuilder: (context, state) => _slide(
@@ -392,18 +355,6 @@ final List<RouteBase> _appRoutes = [
       state: state,
       child: const AppView(initialTabIndex: 1),
     ),
-  ),
-  GoRoute(
-    path: Routing.offline,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const OfflineView()),
-    routes: [
-      GoRoute(
-        path: 'league',
-        pageBuilder: (context, state) =>
-            _slide(context: context, state: state, child: const OfflineView()),
-      ),
-    ],
   ),
   GoRoute(
     path: '/group/:groupId',
@@ -466,21 +417,6 @@ final List<RouteBase> _appRoutes = [
       state: state,
       child: const DashboardDetailPage(),
     ),
-  ),
-  GoRoute(
-    path: Routing.notification,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const NotificationPage()),
-  ),
-  GoRoute(
-    path: Routing.feedback,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const FeedbackView()),
-  ),
-  GoRoute(
-    path: Routing.syncOfflineData,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const SyncPage()),
   ),
 ];
 // coverage:ignore-end

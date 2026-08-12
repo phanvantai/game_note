@@ -1,5 +1,4 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pes_arena/core/constants/constants.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/l10n/generated/app_localizations.dart';
@@ -28,16 +26,12 @@ void main() {
   const MethodChannel packageInfoChannel = MethodChannel(
     'dev.fluttercommunity.plus/package_info',
   );
-  const MethodChannel urlLauncherChannel = MethodChannel(
-    'plugins.flutter.io/url_launcher',
-  );
-
   setUpAll(() {
+    registerFallbackValue(InitApp());
     registerFallbackValue(LoadProfileEvent());
     registerFallbackValue(ChangeAvatarProfileEvent());
     registerFallbackValue(DeleteAvatarProfileEvent());
     registerFallbackValue(SignOutProfileEvent());
-    registerFallbackValue(UpdateFootballFeature(false));
   });
 
   setUp(() {
@@ -66,6 +60,7 @@ void main() {
     required ProfileState profileInitialState,
     required AppState appState,
     Stream<ProfileState>? profileStateStream,
+    Locale locale = const Locale('en'),
   }) {
     when(() => profileBloc.state).thenReturn(profileInitialState);
     when(() => appBloc.state).thenReturn(appState);
@@ -81,7 +76,7 @@ void main() {
         BlocProvider<ProfileBloc>.value(value: profileBloc),
       ],
       child: MaterialApp.router(
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: GoRouter(
@@ -89,32 +84,6 @@ void main() {
             GoRoute(
               path: '/',
               builder: (context, state) => const ProfileView(),
-            ),
-            GoRoute(
-              path: Routing.offline,
-              builder: (context, _) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('Offline page'),
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => context.go('/'),
-                  ),
-                ),
-                body: const Center(child: Text('Offline destination')),
-              ),
-            ),
-            GoRoute(
-              path: Routing.syncOfflineData,
-              builder: (context, _) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('Sync offline page'),
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => context.go('/'),
-                  ),
-                ),
-                body: const Center(child: Text('Sync offline destination')),
-              ),
             ),
             GoRoute(
               path: Routing.setting,
@@ -127,19 +96,6 @@ void main() {
                   ),
                 ),
                 body: const Center(child: Text('Setting destination')),
-              ),
-            ),
-            GoRoute(
-              path: Routing.feedback,
-              builder: (context, _) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('Feedback page'),
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => context.go('/'),
-                  ),
-                ),
-                body: const Center(child: Text('Feedback destination')),
               ),
             ),
             GoRoute(
@@ -175,30 +131,8 @@ void main() {
         email: email,
         photoUrl: photoUrl,
         role: 'user',
-        fcmToken: '',
       ),
     );
-  }
-
-  void setLaunchUrlMock(List<MethodCall> calls) {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(urlLauncherChannel, (call) async {
-          calls.add(call);
-          return true;
-        });
-  }
-
-  Future<void> runWithPlatform(
-    TargetPlatform platform,
-    Future<void> Function() run,
-  ) async {
-    final previousPlatform = debugDefaultTargetPlatformOverride;
-    debugDefaultTargetPlatformOverride = platform;
-    try {
-      await run();
-    } finally {
-      debugDefaultTargetPlatformOverride = previousPlatform;
-    }
   }
 
   testWidgets('shows loading indicator when profile state is loading', (
@@ -297,9 +231,7 @@ void main() {
     ).called(1);
   });
 
-  testWidgets('profile tile offline confirm cancel does not navigate', (
-    tester,
-  ) async {
+  testWidgets('profile shows only approved account actions', (tester) async {
     final profileBloc = _MockProfileBloc();
     final appBloc = _MockAppBloc();
 
@@ -313,37 +245,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Offline mode'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Offline page'), findsNothing);
-    verifyNever(() => appBloc.add(any(that: isA<UpdateFootballFeature>())));
-  });
-
-  testWidgets('profile tile offline confirm accept navigates to offline', (
-    tester,
-  ) async {
-    final profileBloc = _MockProfileBloc();
-    final appBloc = _MockAppBloc();
-
-    await tester.pumpWidget(
-      buildProfile(
-        profileBloc: profileBloc,
-        appBloc: appBloc,
-        profileInitialState: successProfile(),
-        appState: const AppState(),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Offline mode'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Accept'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Offline destination'), findsOneWidget);
+    expect(find.text('Offline mode'), findsNothing);
+    expect(find.text('Sync offline data'), findsNothing);
+    expect(find.text('Rate'), findsNothing);
+    expect(find.text('Feedback'), findsNothing);
+    expect(find.text('Other options'), findsOneWidget);
+    expect(find.text('Version'), findsOneWidget);
+    expect(find.text('Sign out'), findsOneWidget);
   });
 
   testWidgets('sign-out confirm cancel does not dispatch', (tester) async {
@@ -395,9 +303,7 @@ void main() {
     ).called(1);
   });
 
-  testWidgets('menu tiles navigate to sync offline, setting, and feedback', (
-    tester,
-  ) async {
+  testWidgets('Other options navigates to settings', (tester) async {
     final profileBloc = _MockProfileBloc();
     final appBloc = _MockAppBloc();
 
@@ -411,23 +317,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Sync offline data'));
-    await tester.pumpAndSettle();
-    expect(find.text('Sync offline destination'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.arrow_back));
-    await tester.pumpAndSettle();
-
     await tester.tap(find.text('Other options'));
     await tester.pumpAndSettle();
     expect(find.text('Setting destination'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.arrow_back));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Feedback'));
-    await tester.pumpAndSettle();
-    expect(find.text('Feedback destination'), findsOneWidget);
   });
 
   testWidgets(
@@ -459,64 +351,6 @@ void main() {
       ).called(2);
     },
   );
-
-  testWidgets('rate app opens play store URL on Android', (tester) async {
-    final profileBloc = _MockProfileBloc();
-    final appBloc = _MockAppBloc();
-    final launchedCalls = <MethodCall>[];
-    await runWithPlatform(TargetPlatform.android, () async {
-      setLaunchUrlMock(launchedCalls);
-
-      await tester.pumpWidget(
-        buildProfile(
-          profileBloc: profileBloc,
-          appBloc: appBloc,
-          profileInitialState: successProfile(),
-          appState: const AppState(),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Rate'));
-      await tester.pumpAndSettle();
-
-      expect(launchedCalls, hasLength(1));
-      expect(launchedCalls.first.method, 'launch');
-      expect(launchedCalls.first.arguments['url'], playStoreUrl);
-    });
-
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(urlLauncherChannel, null);
-  });
-
-  testWidgets('rate app opens app store URL on iOS', (tester) async {
-    final profileBloc = _MockProfileBloc();
-    final appBloc = _MockAppBloc();
-    final launchedCalls = <MethodCall>[];
-    await runWithPlatform(TargetPlatform.iOS, () async {
-      setLaunchUrlMock(launchedCalls);
-
-      await tester.pumpWidget(
-        buildProfile(
-          profileBloc: profileBloc,
-          appBloc: appBloc,
-          profileInitialState: successProfile(),
-          appState: const AppState(),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Rate'));
-      await tester.pumpAndSettle();
-
-      expect(launchedCalls, hasLength(1));
-      expect(launchedCalls.first.method, 'launch');
-      expect(launchedCalls.first.arguments['url'], appStoreUrl);
-    });
-
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(urlLauncherChannel, null);
-  });
 
   testWidgets(
     'avatar error fallback displays default icon when image load fails',
@@ -564,7 +398,25 @@ void main() {
     },
   );
 
-  testWidgets('hiding counter enables football feature after 10 taps', (
+  testWidgets('Version label is localized in Vietnamese', (tester) async {
+    final profileBloc = _MockProfileBloc();
+    final appBloc = _MockAppBloc();
+
+    await tester.pumpWidget(
+      buildProfile(
+        profileBloc: profileBloc,
+        appBloc: appBloc,
+        profileInitialState: successProfile(),
+        appState: const AppState(),
+        locale: const Locale('vi'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Phiên bản'), findsOneWidget);
+  });
+
+  testWidgets('tapping Version repeatedly keeps Profile passive', (
     tester,
   ) async {
     final profileBloc = _MockProfileBloc();
@@ -575,45 +427,19 @@ void main() {
         profileBloc: profileBloc,
         appBloc: appBloc,
         profileInitialState: successProfile(),
-        appState: const AppState(enableFootballFeature: false),
+        appState: const AppState(),
       ),
     );
     await tester.pumpAndSettle();
 
     for (var i = 0; i < 10; i++) {
-      await tester.tap(find.byIcon(Icons.info_outline).at(1));
+      await tester.tap(find.text('Version'));
       await tester.pump();
     }
 
-    verify(
-      () => appBloc.add(any(that: isA<UpdateFootballFeature>())),
-    ).called(1);
+    expect(find.text('Player profile'), findsOneWidget);
+    expect(find.text('Other options'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    verifyNever(() => appBloc.add(any()));
   });
-
-  testWidgets(
-    'hiding counter disables football feature when currently enabled',
-    (tester) async {
-      final profileBloc = _MockProfileBloc();
-      final appBloc = _MockAppBloc();
-
-      await tester.pumpWidget(
-        buildProfile(
-          profileBloc: profileBloc,
-          appBloc: appBloc,
-          profileInitialState: successProfile(),
-          appState: const AppState(enableFootballFeature: true),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      for (var i = 0; i < 10; i++) {
-        await tester.tap(find.byIcon(Icons.info_outline).at(1));
-        await tester.pump();
-      }
-
-      verify(
-        () => appBloc.add(any(that: isA<UpdateFootballFeature>())),
-      ).called(1);
-    },
-  );
 }

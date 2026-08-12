@@ -9,7 +9,6 @@ class GNUser extends Equatable {
   final String? email;
   final String? photoUrl;
   final String role;
-  final String fcmToken;
   final bool isPlaceholder;
   final bool deleted;
   final DateTime? deletedAt;
@@ -22,7 +21,6 @@ class GNUser extends Equatable {
   static const String phoneNumberKey = 'phoneNumber';
   static const String emailKey = 'email';
   static const String photoUrlKey = 'photoUrl';
-  static const String fcmTokenKey = 'fcmToken';
   static const String isPlaceholderKey = 'isPlaceholder';
   static const String deletedKey = 'deleted';
   static const String deletedAtKey = 'deletedAt';
@@ -34,7 +32,6 @@ class GNUser extends Equatable {
     required this.email,
     required this.photoUrl,
     required this.role,
-    required this.fcmToken,
     this.isPlaceholder = false,
     this.deleted = false,
     this.deletedAt,
@@ -46,7 +43,6 @@ class GNUser extends Equatable {
     String? email,
     String? photoUrl,
     String? role,
-    String? fcmToken,
     bool? isPlaceholder,
     bool? deleted,
     DateTime? deletedAt,
@@ -58,7 +54,6 @@ class GNUser extends Equatable {
       email: email ?? this.email,
       photoUrl: photoUrl ?? this.photoUrl,
       role: role ?? this.role,
-      fcmToken: fcmToken ?? this.fcmToken,
       isPlaceholder: isPlaceholder ?? this.isPlaceholder,
       deleted: deleted ?? this.deleted,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -72,7 +67,6 @@ class GNUser extends Equatable {
       emailKey: email,
       photoUrlKey: photoUrl,
       roleKey: role,
-      fcmTokenKey: fcmToken,
       isPlaceholderKey: isPlaceholder,
       deletedKey: deleted,
       deletedAtKey: deletedAt == null ? null : Timestamp.fromDate(deletedAt!),
@@ -88,7 +82,6 @@ class GNUser extends Equatable {
       email: data[emailKey],
       photoUrl: data[photoUrlKey],
       role: data[roleKey] ?? 'user',
-      fcmToken: data[fcmTokenKey] ?? '',
       isPlaceholder: data[isPlaceholderKey] ?? false,
       deleted: data[deletedKey] ?? false,
       deletedAt: (data[deletedAtKey] as Timestamp?)?.toDate(),
@@ -103,7 +96,6 @@ class GNUser extends Equatable {
     email,
     photoUrl,
     role,
-    fcmToken,
     isPlaceholder,
     deleted,
     deletedAt,

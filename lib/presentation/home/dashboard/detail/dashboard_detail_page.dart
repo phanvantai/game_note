@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:pes_arena/core/cache/h2h_preferences.dart';
 import 'package:pes_arena/core/common/view_status.dart';
-import 'package:pes_arena/core/theme/app_colors.dart';
 import 'package:pes_arena/core/widgets/shimmer.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
@@ -12,11 +10,10 @@ import 'package:pes_arena/presentation/common/smart_back.dart';
 import '../../../../../widgets/gn_circle_avatar.dart';
 import '../bloc/dashboard_bloc.dart';
 import 'h2h_detail_page.dart';
-import '../models/dashboard_stats.dart';
 import '../models/opponent_stat.dart';
 import '../widgets/form_dots_row.dart';
-import '../widgets/league_performance_chart.dart';
 import '../widgets/recent_matches_list.dart';
+import '../widgets/stat_card_grid.dart';
 
 /// Full dashboard view — every metric the summary doc carries.
 ///
@@ -84,20 +81,11 @@ class _DashboardDetailScaffold extends StatelessWidget {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                 children: [
-                  _DetailHero(stats: stats),
-                  const SizedBox(height: 14),
-                  _SectionHeader(context.l10n.dashboardOverview),
-                  _OverviewBlock(stats: stats),
+                  _DetailHeader(),
+                  const SizedBox(height: 16),
+                  StatCardGrid(stats: stats),
                   const SizedBox(height: 16),
                   _HeadToHeadSection(opponents: stats.opponents),
-                  const SizedBox(height: 18),
-                  _SectionShell(
-                    title: context.l10n.dashboardRecentLeagueForm5,
-                    icon: Icons.show_chart_outlined,
-                    child: LeaguePerformanceChart(
-                      points: stats.leaguePerformance,
-                    ),
-                  ),
                   const SizedBox(height: 24),
                   _SectionShell(
                     title: context.l10n.dashboardRecentForm10,
@@ -132,18 +120,13 @@ class _DashboardDetailScaffold extends StatelessWidget {
   }
 }
 
-class _DetailHero extends StatelessWidget {
-  final DashboardStats stats;
-
-  const _DetailHero({required this.stats});
+class _DetailHeader extends StatelessWidget {
+  const _DetailHeader();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final winRate = stats.winRate == null
-        ? context.l10n.dashboardNoData
-        : '${(stats.winRate! * 100).round()}%';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -177,83 +160,7 @@ class _DetailHero extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _HeroPill(
-                label: context.l10n.dashboardWinRate,
-                value: winRate,
-                color: AppColors.success(context),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _HeroPill(
-                label: context.l10n.dashboardGoalDifference,
-                value: _signed(stats.goalDifference),
-                color: colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _HeroPill(
-                label: context.l10n.dashboardMatches,
-                value: context.l10n.dashboardMatchesCount(stats.matchesPlayed),
-                color: colorScheme.primary,
-              ),
-            ),
-          ],
-        ),
       ],
-    );
-  }
-}
-
-class _HeroPill extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _HeroPill({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -326,19 +233,6 @@ Future<void> _confirmAndRefresh(BuildContext context) async {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader(this.title);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-    );
-  }
-}
-
 class _SectionShell extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -367,52 +261,6 @@ class _SectionShell extends StatelessWidget {
         const SizedBox(height: 12),
         child,
       ],
-    );
-  }
-}
-
-class _OverviewBlock extends StatelessWidget {
-  final DashboardStats stats;
-  const _OverviewBlock({required this.stats});
-
-  @override
-  Widget build(BuildContext context) {
-    final played = stats.matchesPlayed;
-    final wdlCount = '${stats.wins} / ${stats.draws} / ${stats.losses}';
-    final wdlPct =
-        '${_pctOf(stats.wins, played)} / '
-        '${_pctOf(stats.draws, played)} / '
-        '${_pctOf(stats.losses, played)}';
-    final goalsLine =
-        '${stats.goals} / ${stats.goalsConceded} / '
-        '${_signed(stats.goalDifference)}';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        children: [
-          _MetricRow(
-            context.l10n.dashboardMetricTournamentsJoined,
-            '${stats.tournamentsJoined}',
-          ),
-          _MetricRow(context.l10n.dashboardMetricMatches, '$played'),
-          _MetricRow(
-            context.l10n.dashboardMetricLatestChampion,
-            _lastChampionLabel(context, stats.lastChampionAt),
-          ),
-          _MetricRow(context.l10n.dashboardMetricWdlCount, wdlCount),
-          _MetricRow(context.l10n.dashboardMetricWdlRate, wdlPct),
-          _MetricRow(context.l10n.dashboardMetricGoals, goalsLine),
-          _MetricRow(
-            context.l10n.dashboardMetricChampion,
-            _countAndRate(stats.championCount, stats.championRate),
-          ),
-          _MetricRow(
-            context.l10n.dashboardMetricRunnerUp,
-            _countAndRate(stats.runnerUpCount, stats.runnerUpRate),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -920,31 +768,6 @@ OpponentStat? pickTopByRate(
   return best;
 }
 
-class _MetricRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const _MetricRow(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _InitialsAvatar extends StatelessWidget {
   final String name;
   final double size;
@@ -1014,28 +837,4 @@ class _ErrorState extends StatelessWidget {
       ),
     );
   }
-}
-
-String _pct(double? rate) {
-  if (rate == null) return '—';
-  return '${(rate * 100).round()}%';
-}
-
-String _pctOf(int part, int total) {
-  if (total == 0) return '—';
-  return '${(part / total * 100).round()}%';
-}
-
-String _countAndRate(int count, double? rate) {
-  return '$count - ${_pct(rate)}';
-}
-
-String _signed(int n) {
-  if (n > 0) return '+$n';
-  return '$n';
-}
-
-String _lastChampionLabel(BuildContext context, DateTime? date) {
-  if (date == null) return context.l10n.dashboardNoValue;
-  return DateFormat('dd/MM/yyyy').format(date);
 }

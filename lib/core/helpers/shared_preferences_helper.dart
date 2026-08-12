@@ -9,9 +9,7 @@ class SharedPreferencesHelper {
   static const String usageTime = "usage_time";
   static const String lastPostUsageTime = "last_post_usage_time";
   static const String lastUpdatedAccessToken = 'last_updated_access_token';
-  static const String fcmToken = 'fcm_token';
 
-  static const String communityMode = 'community_mode';
   static const String loggedIn = 'logged_in';
 
   // shared pref instance
@@ -27,17 +25,6 @@ class SharedPreferencesHelper {
 
   Future<bool> setLoggedIn(bool value) {
     return _sharedPreferences.setBool(SharedPreferencesHelper.loggedIn, value);
-  }
-
-  bool? get isCommunityMode {
-    return _sharedPreferences.getBool(SharedPreferencesHelper.communityMode);
-  }
-
-  Future<bool> setCommunityMode(bool value) {
-    return _sharedPreferences.setBool(
-      SharedPreferencesHelper.communityMode,
-      value,
-    );
   }
 
   String get getLastPostUsageTime {
@@ -80,18 +67,6 @@ class SharedPreferencesHelper {
     return _sharedPreferences.setString(
       SharedPreferencesHelper.lastUpdatedAccessToken,
       dateTime.toIso8601String(),
-    );
-  }
-
-  // fcm token
-  String get getFcmToken {
-    return _sharedPreferences.getString(SharedPreferencesHelper.fcmToken) ?? '';
-  }
-
-  Future<bool> setFcmToken(String fcmToken) {
-    return _sharedPreferences.setString(
-      SharedPreferencesHelper.fcmToken,
-      fcmToken,
     );
   }
 

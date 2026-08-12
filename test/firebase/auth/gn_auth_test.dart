@@ -7,7 +7,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
-import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/injection_container.dart';
 
 class _MockFirebaseAuth extends Mock implements FirebaseAuth {}
@@ -353,32 +352,29 @@ void main() {
   );
 
   test(
-    'signOut removes FCM token through getIt<GNFirestore>() then calls _auth.signOut',
+    'signOut calls FirebaseAuth without reading or mutating legacy fcmToken data',
     () async {
       final fakeFirestore = FakeFirebaseFirestore();
-      final userForTokenRemoval = _MockUser();
-      final getItAuth = _MockGNAuth();
+      final legacyUser = _MockUser();
+      final registeredAuth = _MockGNAuth();
 
-      when(() => getItAuth.currentUser).thenReturn(userForTokenRemoval);
-      when(() => userForTokenRemoval.uid).thenReturn('u-1');
+      when(() => registeredAuth.currentUser).thenReturn(legacyUser);
+      when(() => legacyUser.uid).thenReturn('u-1');
 
-      getIt.registerSingleton<GNAuth>(getItAuth);
+      getIt.registerSingleton<GNAuth>(registeredAuth);
       getIt.registerSingleton<GNFirestore>(GNFirestore(fakeFirestore));
 
-      await fakeFirestore.collection(GNUser.collectionName).doc('u-1').set({
-        GNUser.fcmTokenKey: 'token',
+      await fakeFirestore.collection('users').doc('u-1').set({
+        'fcmToken': 'legacy-token',
       });
 
       when(() => firebaseAuth.signOut()).thenAnswer((_) async {});
 
       await sut.signOut();
 
-      final userDoc = await fakeFirestore
-          .collection(GNUser.collectionName)
-          .doc('u-1')
-          .get();
+      final userDoc = await fakeFirestore.collection('users').doc('u-1').get();
 
-      expect(userDoc.data()?.containsKey(GNUser.fcmTokenKey), isFalse);
+      expect(userDoc.data()?['fcmToken'], 'legacy-token');
       verify(() => firebaseAuth.signOut()).called(1);
       verifyNever(
         () => firebaseAuth.signInWithEmailAndPassword(
@@ -440,39 +436,7 @@ void main() {
     );
 
     test(
-      'FirebaseAuth popup/closed user exceptions normalize to ERROR_ABORTED_BY_USER',
-      () async {
-        for (final code in const [
-          'popup-closed-by-user',
-          'cancelled-popup-request',
-        ]) {
-          clearInteractions(firebaseAuth);
-          when(
-            () => firebaseAuth.signInWithCredential(any()),
-          ).thenThrow(FirebaseAuthException(code: code));
-
-          final authWithPopupFailure = GNAuth(
-            auth: firebaseAuth,
-            googleSignInInitialized: () async {},
-            googleAuthenticate: defaultGoogleAuthenticate,
-          );
-
-          await expectLater(
-            authWithPopupFailure.signInWithGoogle(),
-            throwsA(
-              isA<FirebaseAuthException>().having(
-                (error) => error.code,
-                'code',
-                'ERROR_ABORTED_BY_USER',
-              ),
-            ),
-          );
-        }
-      },
-    );
-
-    test(
-      'successful injected Google token path signs in with provider credential',
+      'native Google sign-in authenticates and signs into Firebase',
       () async {
         final authWithGoogleAuth = GNAuth(
           auth: firebaseAuth,
@@ -489,8 +453,9 @@ void main() {
           return Future.value(userCredential);
         });
 
-        await authWithGoogleAuth.signInWithGoogle();
+        final result = await authWithGoogleAuth.signInWithGoogle();
 
+        expect(result, same(userCredential));
         expect(passedCredential, isNotNull);
         expect(passedCredential?.providerId, 'google.com');
         verify(() => firebaseAuth.signInWithCredential(any())).called(1);
@@ -499,29 +464,6 @@ void main() {
   });
 
   group('Google sign-in seams', () {
-    test(
-      'GNAuth can be forced to web behavior for tests and uses signInWithPopup',
-      () async {
-        final authInWebModeForTest = GNAuth(
-          auth: firebaseAuth,
-          isWebForTesting: true,
-        );
-
-        when(
-          () => firebaseAuth.signInWithPopup(any()),
-        ).thenAnswer((_) async => userCredential);
-
-        final result = await authInWebModeForTest.signInWithGoogle();
-
-        expect(result, same(userCredential));
-        verify(
-          () => firebaseAuth.signInWithPopup(
-            any(that: isA<GoogleAuthProvider>()),
-          ),
-        ).called(1);
-      },
-    );
-
     test(
       'default native flow can use injected googleAuthenticate callback without initializer',
       () async {
@@ -549,52 +491,30 @@ void main() {
         expect(capturedCredential?.providerId, 'google.com');
         expect(capturedCredential?.signInMethod, 'google.com');
         verify(() => firebaseAuth.signInWithCredential(any())).called(1);
-        verifyNever(() => firebaseAuth.signInWithPopup(any()));
       },
     );
 
-    test(
-      'googleSignInInitializer is invoked for native flow and skipped for web-for-testing',
-      () async {
-        final initOrder = <String>[];
+    test('googleSignInInitializer is invoked for native flow', () async {
+      final initOrder = <String>[];
 
-        final nativeAuth = GNAuth(
-          auth: firebaseAuth,
-          googleAuthenticate: defaultGoogleAuthenticate,
-          googleSignInInitializer: () async {
-            initOrder.add('initialized');
-          },
-        );
+      final nativeAuth = GNAuth(
+        auth: firebaseAuth,
+        googleAuthenticate: defaultGoogleAuthenticate,
+        googleSignInInitializer: () async {
+          initOrder.add('initialized');
+        },
+      );
 
-        when(() => firebaseAuth.signInWithCredential(any())).thenAnswer((
-          invocation,
-        ) {
-          initOrder.add('credential');
-          return Future.value(userCredential);
-        });
+      when(() => firebaseAuth.signInWithCredential(any())).thenAnswer((
+        invocation,
+      ) {
+        initOrder.add('credential');
+        return Future.value(userCredential);
+      });
 
-        await nativeAuth.signInWithGoogle();
+      await nativeAuth.signInWithGoogle();
 
-        expect(initOrder, equals(['initialized', 'credential']));
-
-        final webAuth = GNAuth(
-          auth: firebaseAuth,
-          isWebForTesting: true,
-          googleAuthenticate: defaultGoogleAuthenticate,
-          googleSignInInitializer: () async {
-            initOrder.add('web-initialized');
-          },
-        );
-
-        when(
-          () => firebaseAuth.signInWithPopup(any()),
-        ).thenAnswer((_) async => userCredential);
-        initOrder.clear();
-
-        await webAuth.signInWithGoogle();
-
-        expect(initOrder, isNot(contains('web-initialized')));
-      },
-    );
+      expect(initOrder, equals(['initialized', 'credential']));
+    });
   });
 }

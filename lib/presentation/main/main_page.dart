@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/bloc/tournament_bloc.dart';
-import 'package:pes_arena/presentation/notification/bloc/notification_bloc.dart';
 import 'package:provider/provider.dart';
 
 import '../../injection_container.dart';
@@ -25,9 +24,6 @@ class MainPage extends StatelessWidget {
         BlocProvider(create: (_) => getIt<TournamentBloc>()),
         BlocProvider(create: (_) => getIt<DashboardBloc>()),
         BlocProvider(create: (_) => getIt<OngoingTournamentsBloc>()),
-        BlocProvider<NotificationBloc>.value(
-          value: getIt<NotificationBloc>()..add(NotificationEventFetch()),
-        ),
       ],
       child: MainView(initialTabIndex: initialTabIndex),
     );

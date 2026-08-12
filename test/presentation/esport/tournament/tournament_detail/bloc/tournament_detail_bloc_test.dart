@@ -151,7 +151,6 @@ GNUser _user(String id, {String? name}) {
     photoUrl: null,
     phoneNumber: null,
     role: 'user',
-    fcmToken: '',
   );
 }
 
@@ -1712,7 +1711,6 @@ void main() {
       photoUrl: null,
       phoneNumber: null,
       role: 'user',
-      fcmToken: '',
     );
     final user2 = const GNUser(
       id: 'B',
@@ -1721,7 +1719,6 @@ void main() {
       photoUrl: null,
       phoneNumber: null,
       role: 'user',
-      fcmToken: '',
     );
 
     blocTest<TournamentDetailBloc, TournamentDetailState>(
