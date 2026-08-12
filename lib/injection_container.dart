@@ -35,7 +35,11 @@ import 'presentation/users/bloc/user_bloc.dart';
 
 final getIt = GetIt.instance;
 
-Future<void> init() async {
+Future<void> init({
+  GNFirestore? firestore,
+  GNAuth? auth,
+  GNStorage? storage,
+}) async {
   getIt.registerSingletonAsync<SharedPreferences>(
     () => SharedPreferences.getInstance(),
   );
@@ -60,9 +64,9 @@ Future<void> init() async {
   getIt.registerSingleton(PermissionUtil());
 
   // firebase service
-  getIt.registerSingleton(GNFirestore());
-  getIt.registerSingleton(GNAuth());
-  getIt.registerSingleton(GNStorage());
+  getIt.registerSingleton(firestore ?? GNFirestore());
+  getIt.registerSingleton(auth ?? GNAuth());
+  getIt.registerSingleton(storage ?? GNStorage());
 
   getIt.registerSingleton(
     AppBloc(auth: getIt(), firestore: getIt(), permissionUtil: getIt()),
