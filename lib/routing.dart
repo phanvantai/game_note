@@ -332,6 +332,18 @@ class _AppBlocListenable extends ChangeNotifier {
 
 // coverage:ignore-start
 final List<RouteBase> _appRoutes = [
+  GoRoute(path: '/notification', redirect: (context, state) => Routing.app),
+  GoRoute(
+    path: '/offline',
+    redirect: (context, state) => Routing.app,
+    routes: [
+      GoRoute(path: 'league', redirect: (context, state) => Routing.app),
+    ],
+  ),
+  GoRoute(
+    path: '/sync-offline-data',
+    redirect: (context, state) => Routing.app,
+  ),
   GoRoute(
     path: Routing.language,
     pageBuilder: (context, state) => _slide(
