@@ -4,7 +4,6 @@
   "mainTabArena": "Arena",
   "mainTabGroups": "Groups",
   "mainTabTournaments": "Tournaments",
-  "mainTabNotifications": "Notifications",
   "mainTabProfile": "Profile",
   "languageTitle": "Choose your language",
   "languageSubtitle": "You can change this later in settings.",
@@ -72,169 +71,6 @@
   "commonRetryLater": "Please try again later",
   "commonDone": "Done",
   "commonSearchByName": "Search by name",
-  "appOnline": "Online",
-  "appOffline": "Offline",
-  "offlineLeagueTitle": "Tournaments",
-  "offlinePlayersTitle": "Players",
-  "offlineStatisticsTitle": "Statistics",
-  "offlineCreateLeagueTitle": "Create tournament",
-  "offlineLeagueNameHint": "Tournament name",
-  "offlineAddLeagueTooltip": "Add new tournament",
-  "offlineNoLeaguesTitle": "No tournaments have been created.",
-  "offlineNoLeaguesSubtitle": "Tap the + button below to create a tournament",
-  "offlineDeleteLeagueTitle": "Delete tournament",
-  "offlineDeleteLeagueMessage": "Are you sure you want to delete tournament {name}?",
-  "@offlineDeleteLeagueMessage": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "offlineShareStandingsTitle": "Standings - {name}",
-  "@offlineShareStandingsTitle": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "offlineLeagueNotSetupTitle": "Tournament is not set up.",
-  "offlineLeagueNotSetupSubtitle": "Tap the + button below to add players and start the tournament",
-  "offlineLoadLeagueFailed": "Could not load tournament data",
-  "offlineShareStandings": "Share standings",
-  "offlineSchedule": "Schedule",
-  "offlineResults": "Results",
-  "offlineAddPlayerTitle": "Add player",
-  "offlinePlayerNameHint": "Player name",
-  "offlineNoPlayersTitle": "No players yet.",
-  "offlineNoPlayersSubtitle": "Tap the + button below to add a player.",
-  "offlineAddPlayerTooltip": "Add player",
-  "offlinePlayerDeleted": "Deleted {name}",
-  "@offlinePlayerDeleted": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "offlineUpdateScoreTitle": "Update score",
-  "offlineAddRoundTooltip": "Add round",
-  "offlineSelectingPlayers": "Selecting 2 players. Selected: {count}",
-  "@offlineSelectingPlayers": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "offlineSelectedPlayers": "Selected: {count}",
-  "@offlineSelectedPlayers": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "offlineDataTitle": "DATA",
-  "offlineImportData": "Import data",
-  "offlineExportData": "Export data",
-  "offlineInvalidImportFile": "Invalid file.\nPlease use a game_note_database.db database file",
-  "offlineImportSuccess": "Data imported successfully",
-  "offlineStatPointsGoalDiff": "Points/GD",
-  "offlineStatChampionRunnerUp": "Champion/Runner-up",
-  "offlineStatWinDrawLoss": "Win/Draw/Loss",
-  "syncNoOfflineLeague": "No offline league available to sync",
-  "syncNoGroup": "You have not joined any group",
-  "syncNoLeagueSelected": "No league selected",
-  "syncChoose": "Choose",
-  "syncNoGroupMembers": "Group has no members",
-  "syncCreatePlaceholderUser": "Create new user (placeholder)",
-  "syncNewPlayerName": "New player name",
-  "syncDisplayNameHint": "Display name",
-  "syncMissingData": "Missing data",
-  "syncDateLabel": "Date: {date}",
-  "@syncDateLabel": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "syncTargetGroupLabel": "Target group: {group}",
-  "@syncTargetGroupLabel": {
-    "placeholders": {
-      "group": {
-        "type": "String"
-      }
-    }
-  },
-  "syncNoPlayedMatches": "No played matches",
-  "syncSuccess": "Sync completed",
-  "syncRetry": "Retry",
-  "syncBack": "Back",
-  "syncExit": "Exit",
-  "syncContinue": "Continue",
-  "syncOfflineLeagueSection": "Offline league",
-  "syncOnlineGroupSection": "Online group",
-  "syncLeagueDescription": "{players} players · {date}",
-  "@syncLeagueDescription": {
-    "placeholders": {
-      "players": {
-        "type": "int"
-      },
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "syncPreview": "Preview",
-  "syncDuplicateMapping": "Error: 2 players map to the same user",
-  "syncNotMapped": "Not mapped",
-  "syncNewTargetSuffix": "new",
-  "syncMapPlayerTitle": "Map \"{name}\"",
-  "@syncMapPlayerTitle": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "syncWritingData": "Writing data to server...",
-  "syncDoNotClose": "Please do not close the app until it is complete",
-  "syncSelectSourceTitle": "Choose league & group",
-  "syncMapPlayersTitle": "Map players",
-  "syncConfirmTitle": "Confirm",
-  "syncExecutingTitle": "Syncing",
-  "syncOriginalOfflineTab": "Offline (original)",
-  "syncOnlineWillCreateTab": "Online (will create)",
-  "syncRun": "Sync",
-  "syncNewSuffix": "new",
-  "syncWritesCount": "Will write {count} records to server",
-  "@syncWritesCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "syncStandingsTitle": "Standings",
-  "syncMatchResultsTitle": "Match results ({count})",
-  "@syncMatchResultsTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "syncNewPlayersWillBeCreated": "New players will be created ({count})",
-  "@syncNewPlayersWillBeCreated": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "tablePlayer": "Player",
   "tableMatchesPlayedShort": "MP",
   "tableWinsShort": "W",
@@ -658,15 +494,7 @@
       }
     }
   },
-  "dashboardMatchesUnit": "matches"
-  ,"feedbackTitle": "Feedback",
-  "feedbackSignInRequired": "You need to sign in to send feedback.",
-  "feedbackCreateTitle": "Create feedback",
-  "feedbackTitleHint": "Title",
-  "feedbackContentHint": "Content",
-  "feedbackRequired": "Please fill in all information.",
-  "feedbackMinimumLength": "Title must have at least 5 characters\nContent must have at least 10 characters.",
-  "feedbackSent": "Feedback sent successfully!",
+  "dashboardMatchesUnit": "matches",
   "profileUpdateSuccess": "Profile updated successfully",
   "profileUpdateTitle": "Update profile",
   "profileSetupEyebrow": "Profile setup",
@@ -677,33 +505,15 @@
   "profileDisplayInfoSubtitle": "Update your name, phone number, and email.",
   "profileFullNameHint": "Full name",
   "profilePhoneHint": "Phone number",
-  "notificationActivityEyebrow": "Activity feed",
-  "notificationAllRead": "All caught up",
-  "notificationUnreadCount": "{count} new notifications",
-  "@notificationUnreadCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "notificationMarkAllRead": "Mark all as read",
-  "notificationRead": "Read"
-  ,"profileAppSection": "App",
-  "profileOfflineMode": "Offline mode",
-  "profileSyncOfflineData": "Sync offline data",
+  "profileAppSection": "App",
   "profileOtherOptions": "Other options",
   "profileInfoSection": "Info",
-  "profileRateApp": "Rate",
-  "profileFeedback": "Feedback",
+  "profileVersion": "Version",
   "profileSessionSection": "Session",
   "profileSignOut": "Sign out",
   "profileChangeAvatar": "Change avatar",
   "profileDeleteAvatar": "Delete avatar",
   "profileEditTooltip": "Edit profile",
-  "profileOfflineModeTitle": "Offline mode",
-  "profileOfflineModeMessage": "Offline mode lets you create data on this device only. Data is stored locally and will not be synced.\n\nAre you sure you want to switch to offline mode?",
-  "profileAccept": "Accept",
   "profileSignOutMessage": "Are you sure you want to sign out?"
   ,"ownershipProcessFailed": "Could not process ownership: {error}",
   "@ownershipProcessFailed": {

@@ -21,9 +21,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get mainTabTournaments => 'Giải đấu';
 
   @override
-  String get mainTabNotifications => 'Thông báo';
-
-  @override
   String get mainTabProfile => 'Cá nhân';
 
   @override
@@ -207,262 +204,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get commonSearchByName => 'Tìm theo tên';
-
-  @override
-  String get appOnline => 'Online';
-
-  @override
-  String get appOffline => 'Offline';
-
-  @override
-  String get offlineLeagueTitle => 'Giải đấu';
-
-  @override
-  String get offlinePlayersTitle => 'Người chơi';
-
-  @override
-  String get offlineStatisticsTitle => 'Thống kê';
-
-  @override
-  String get offlineCreateLeagueTitle => 'Tạo giải đấu';
-
-  @override
-  String get offlineLeagueNameHint => 'Tên giải đấu';
-
-  @override
-  String get offlineAddLeagueTooltip => 'Thêm giải đấu mới';
-
-  @override
-  String get offlineNoLeaguesTitle => 'Chưa có giải đấu nào được tạo.';
-
-  @override
-  String get offlineNoLeaguesSubtitle =>
-      'Bấm nút + bên dưới để tạo một giải đấu';
-
-  @override
-  String get offlineDeleteLeagueTitle => 'Xoá giải đấu';
-
-  @override
-  String offlineDeleteLeagueMessage(String name) {
-    return 'Bạn có chắc muốn xoá giải đấu $name?';
-  }
-
-  @override
-  String offlineShareStandingsTitle(String name) {
-    return 'Bảng xếp hạng - $name';
-  }
-
-  @override
-  String get offlineLeagueNotSetupTitle => 'Giải đấu chưa được thiết lập.';
-
-  @override
-  String get offlineLeagueNotSetupSubtitle =>
-      'Bấm nút + bên dưới để thêm người chơi và bắt đầu giải đấu';
-
-  @override
-  String get offlineLoadLeagueFailed => 'Không thể tải dữ liệu giải đấu';
-
-  @override
-  String get offlineShareStandings => 'Chia sẻ BXH';
-
-  @override
-  String get offlineSchedule => 'Lịch thi đấu';
-
-  @override
-  String get offlineResults => 'Kết quả';
-
-  @override
-  String get offlineAddPlayerTitle => 'Thêm người chơi';
-
-  @override
-  String get offlinePlayerNameHint => 'Tên người chơi';
-
-  @override
-  String get offlineNoPlayersTitle => 'Chưa có người chơi nào.';
-
-  @override
-  String get offlineNoPlayersSubtitle =>
-      'Bấm nút + bên dưới để thêm người chơi.';
-
-  @override
-  String get offlineAddPlayerTooltip => 'Thêm người chơi';
-
-  @override
-  String offlinePlayerDeleted(String name) {
-    return 'Đã xóa $name';
-  }
-
-  @override
-  String get offlineUpdateScoreTitle => 'Cập nhật tỉ số';
-
-  @override
-  String get offlineAddRoundTooltip => 'Thêm vòng đấu';
-
-  @override
-  String offlineSelectingPlayers(int count) {
-    return 'Selecting 2 player. Selected: $count';
-  }
-
-  @override
-  String offlineSelectedPlayers(int count) {
-    return 'Selected: $count';
-  }
-
-  @override
-  String get offlineDataTitle => 'DỮ LIỆU';
-
-  @override
-  String get offlineImportData => 'Nhập dữ liệu';
-
-  @override
-  String get offlineExportData => 'Xuất dữ liệu';
-
-  @override
-  String get offlineInvalidImportFile =>
-      'Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db';
-
-  @override
-  String get offlineImportSuccess => 'Dữ liệu đã được nhập thành công';
-
-  @override
-  String get offlineStatPointsGoalDiff => 'Điểm/Hiệu số';
-
-  @override
-  String get offlineStatChampionRunnerUp => 'Vô địch/Á quân';
-
-  @override
-  String get offlineStatWinDrawLoss => 'Thắng/Hoà/Thua';
-
-  @override
-  String get syncNoOfflineLeague => 'Không có league offline nào để đồng bộ';
-
-  @override
-  String get syncNoGroup => 'Bạn chưa tham gia group nào';
-
-  @override
-  String get syncNoLeagueSelected => 'Chưa chọn league';
-
-  @override
-  String get syncChoose => 'Chọn';
-
-  @override
-  String get syncNoGroupMembers => 'Group chưa có thành viên nào';
-
-  @override
-  String get syncCreatePlaceholderUser => 'Tạo user mới (placeholder)';
-
-  @override
-  String get syncNewPlayerName => 'Tên người chơi mới';
-
-  @override
-  String get syncDisplayNameHint => 'Tên hiển thị';
-
-  @override
-  String get syncMissingData => 'Thiếu dữ liệu';
-
-  @override
-  String syncDateLabel(String date) {
-    return 'Ngày: $date';
-  }
-
-  @override
-  String syncTargetGroupLabel(String group) {
-    return 'Group đích: $group';
-  }
-
-  @override
-  String get syncNoPlayedMatches => 'Không có trận nào đã đấu';
-
-  @override
-  String get syncSuccess => 'Đồng bộ thành công';
-
-  @override
-  String get syncRetry => 'Thử lại';
-
-  @override
-  String get syncBack => 'Quay lại';
-
-  @override
-  String get syncExit => 'Thoát';
-
-  @override
-  String get syncContinue => 'Tiếp tục';
-
-  @override
-  String get syncOfflineLeagueSection => 'League offline';
-
-  @override
-  String get syncOnlineGroupSection => 'Group online';
-
-  @override
-  String syncLeagueDescription(int players, String date) {
-    return '$players người chơi · $date';
-  }
-
-  @override
-  String get syncPreview => 'Xem trước';
-
-  @override
-  String get syncDuplicateMapping => 'Lỗi: 2 người chơi cùng map vào 1 user';
-
-  @override
-  String get syncNotMapped => 'Chưa map';
-
-  @override
-  String get syncNewTargetSuffix => 'mới';
-
-  @override
-  String syncMapPlayerTitle(String name) {
-    return 'Map \"$name\"';
-  }
-
-  @override
-  String get syncWritingData => 'Đang ghi dữ liệu lên server...';
-
-  @override
-  String get syncDoNotClose => 'Vui lòng không đóng app cho đến khi hoàn tất';
-
-  @override
-  String get syncSelectSourceTitle => 'Chọn league & group';
-
-  @override
-  String get syncMapPlayersTitle => 'Map người chơi';
-
-  @override
-  String get syncConfirmTitle => 'Xác nhận';
-
-  @override
-  String get syncExecutingTitle => 'Đang đồng bộ';
-
-  @override
-  String get syncOriginalOfflineTab => 'Offline (gốc)';
-
-  @override
-  String get syncOnlineWillCreateTab => 'Online (sẽ tạo)';
-
-  @override
-  String get syncRun => 'Đồng bộ';
-
-  @override
-  String get syncNewSuffix => 'mới';
-
-  @override
-  String syncWritesCount(int count) {
-    return 'Sẽ ghi $count bản ghi lên server';
-  }
-
-  @override
-  String get syncStandingsTitle => 'Bảng xếp hạng';
-
-  @override
-  String syncMatchResultsTitle(int count) {
-    return 'Kết quả trận đấu ($count)';
-  }
-
-  @override
-  String syncNewPlayersWillBeCreated(int count) {
-    return 'Người chơi mới sẽ được tạo ($count)';
-  }
 
   @override
   String get tablePlayer => 'Người chơi';
@@ -1359,31 +1100,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dashboardMatchesUnit => 'trận';
 
   @override
-  String get feedbackTitle => 'Góp ý';
-
-  @override
-  String get feedbackSignInRequired => 'Bạn cần đăng nhập để gửi phản hồi.';
-
-  @override
-  String get feedbackCreateTitle => 'Tạo phản hồi';
-
-  @override
-  String get feedbackTitleHint => 'Tiêu đề';
-
-  @override
-  String get feedbackContentHint => 'Nội dung';
-
-  @override
-  String get feedbackRequired => 'Vui lòng điền đầy đủ thông tin.';
-
-  @override
-  String get feedbackMinimumLength =>
-      'Tiêu đề phải có ít nhất 5 ký tự\nNội dung phải có ít nhất 10 ký tự.';
-
-  @override
-  String get feedbackSent => 'Góp ý đã được gửi thành công!';
-
-  @override
   String get profileUpdateSuccess => 'Cập nhật thông tin thành công';
 
   @override
@@ -1416,30 +1132,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get profilePhoneHint => 'Số điện thoại';
 
   @override
-  String get notificationActivityEyebrow => 'Activity feed';
-
-  @override
-  String get notificationAllRead => 'Tất cả đã được đọc';
-
-  @override
-  String notificationUnreadCount(int count) {
-    return '$count thông báo mới';
-  }
-
-  @override
-  String get notificationMarkAllRead => 'Đánh dấu tất cả đã đọc';
-
-  @override
-  String get notificationRead => 'Đã đọc';
-
-  @override
   String get profileAppSection => 'Ứng dụng';
-
-  @override
-  String get profileOfflineMode => 'Chế độ offline';
-
-  @override
-  String get profileSyncOfflineData => 'Đồng bộ dữ liệu offline';
 
   @override
   String get profileOtherOptions => 'Tuỳ chọn khác';
@@ -1448,10 +1141,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get profileInfoSection => 'Thông tin';
 
   @override
-  String get profileRateApp => 'Đánh giá';
-
-  @override
-  String get profileFeedback => 'Nhận xét góp ý';
+  String get profileVersion => 'Phiên bản';
 
   @override
   String get profileSessionSection => 'Phiên làm việc';
@@ -1467,16 +1157,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get profileEditTooltip => 'Cập nhật thông tin';
-
-  @override
-  String get profileOfflineModeTitle => 'Chế độ Offline';
-
-  @override
-  String get profileOfflineModeMessage =>
-      'Chế độ offline là bạn tự tạo dữ liệu trên máy và dữ liệu sẽ chỉ được lưu trên máy của bạn, không được đồng bộ.\n\nBạn có chắc chắn muốn chuyển sang chế độ offline không?';
-
-  @override
-  String get profileAccept => 'Chấp nhận';
 
   @override
   String get profileSignOutMessage => 'Bạn có chắc chắn muốn đăng xuất không?';

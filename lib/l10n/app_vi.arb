@@ -4,7 +4,6 @@
   "mainTabArena": "Arena",
   "mainTabGroups": "Nhóm",
   "mainTabTournaments": "Giải đấu",
-  "mainTabNotifications": "Thông báo",
   "mainTabProfile": "Cá nhân",
   "languageTitle": "Chọn ngôn ngữ",
   "languageSubtitle": "Bạn có thể thay đổi sau trong phần cài đặt.",
@@ -72,169 +71,6 @@
   "commonRetryLater": "Vui lòng thử lại sau",
   "commonDone": "Done",
   "commonSearchByName": "Tìm theo tên",
-  "appOnline": "Online",
-  "appOffline": "Offline",
-  "offlineLeagueTitle": "Giải đấu",
-  "offlinePlayersTitle": "Người chơi",
-  "offlineStatisticsTitle": "Thống kê",
-  "offlineCreateLeagueTitle": "Tạo giải đấu",
-  "offlineLeagueNameHint": "Tên giải đấu",
-  "offlineAddLeagueTooltip": "Thêm giải đấu mới",
-  "offlineNoLeaguesTitle": "Chưa có giải đấu nào được tạo.",
-  "offlineNoLeaguesSubtitle": "Bấm nút + bên dưới để tạo một giải đấu",
-  "offlineDeleteLeagueTitle": "Xoá giải đấu",
-  "offlineDeleteLeagueMessage": "Bạn có chắc muốn xoá giải đấu {name}?",
-  "@offlineDeleteLeagueMessage": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "offlineShareStandingsTitle": "Bảng xếp hạng - {name}",
-  "@offlineShareStandingsTitle": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "offlineLeagueNotSetupTitle": "Giải đấu chưa được thiết lập.",
-  "offlineLeagueNotSetupSubtitle": "Bấm nút + bên dưới để thêm người chơi và bắt đầu giải đấu",
-  "offlineLoadLeagueFailed": "Không thể tải dữ liệu giải đấu",
-  "offlineShareStandings": "Chia sẻ BXH",
-  "offlineSchedule": "Lịch thi đấu",
-  "offlineResults": "Kết quả",
-  "offlineAddPlayerTitle": "Thêm người chơi",
-  "offlinePlayerNameHint": "Tên người chơi",
-  "offlineNoPlayersTitle": "Chưa có người chơi nào.",
-  "offlineNoPlayersSubtitle": "Bấm nút + bên dưới để thêm người chơi.",
-  "offlineAddPlayerTooltip": "Thêm người chơi",
-  "offlinePlayerDeleted": "Đã xóa {name}",
-  "@offlinePlayerDeleted": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "offlineUpdateScoreTitle": "Cập nhật tỉ số",
-  "offlineAddRoundTooltip": "Thêm vòng đấu",
-  "offlineSelectingPlayers": "Selecting 2 player. Selected: {count}",
-  "@offlineSelectingPlayers": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "offlineSelectedPlayers": "Selected: {count}",
-  "@offlineSelectedPlayers": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "offlineDataTitle": "DỮ LIỆU",
-  "offlineImportData": "Nhập dữ liệu",
-  "offlineExportData": "Xuất dữ liệu",
-  "offlineInvalidImportFile": "Tệp tin không đúng.\nVui lòng sử dụng 1 tệp tin database game_note_database.db",
-  "offlineImportSuccess": "Dữ liệu đã được nhập thành công",
-  "offlineStatPointsGoalDiff": "Điểm/Hiệu số",
-  "offlineStatChampionRunnerUp": "Vô địch/Á quân",
-  "offlineStatWinDrawLoss": "Thắng/Hoà/Thua",
-  "syncNoOfflineLeague": "Không có league offline nào để đồng bộ",
-  "syncNoGroup": "Bạn chưa tham gia group nào",
-  "syncNoLeagueSelected": "Chưa chọn league",
-  "syncChoose": "Chọn",
-  "syncNoGroupMembers": "Group chưa có thành viên nào",
-  "syncCreatePlaceholderUser": "Tạo user mới (placeholder)",
-  "syncNewPlayerName": "Tên người chơi mới",
-  "syncDisplayNameHint": "Tên hiển thị",
-  "syncMissingData": "Thiếu dữ liệu",
-  "syncDateLabel": "Ngày: {date}",
-  "@syncDateLabel": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "syncTargetGroupLabel": "Group đích: {group}",
-  "@syncTargetGroupLabel": {
-    "placeholders": {
-      "group": {
-        "type": "String"
-      }
-    }
-  },
-  "syncNoPlayedMatches": "Không có trận nào đã đấu",
-  "syncSuccess": "Đồng bộ thành công",
-  "syncRetry": "Thử lại",
-  "syncBack": "Quay lại",
-  "syncExit": "Thoát",
-  "syncContinue": "Tiếp tục",
-  "syncOfflineLeagueSection": "League offline",
-  "syncOnlineGroupSection": "Group online",
-  "syncLeagueDescription": "{players} người chơi · {date}",
-  "@syncLeagueDescription": {
-    "placeholders": {
-      "players": {
-        "type": "int"
-      },
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "syncPreview": "Xem trước",
-  "syncDuplicateMapping": "Lỗi: 2 người chơi cùng map vào 1 user",
-  "syncNotMapped": "Chưa map",
-  "syncNewTargetSuffix": "mới",
-  "syncMapPlayerTitle": "Map \"{name}\"",
-  "@syncMapPlayerTitle": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "syncWritingData": "Đang ghi dữ liệu lên server...",
-  "syncDoNotClose": "Vui lòng không đóng app cho đến khi hoàn tất",
-  "syncSelectSourceTitle": "Chọn league & group",
-  "syncMapPlayersTitle": "Map người chơi",
-  "syncConfirmTitle": "Xác nhận",
-  "syncExecutingTitle": "Đang đồng bộ",
-  "syncOriginalOfflineTab": "Offline (gốc)",
-  "syncOnlineWillCreateTab": "Online (sẽ tạo)",
-  "syncRun": "Đồng bộ",
-  "syncNewSuffix": "mới",
-  "syncWritesCount": "Sẽ ghi {count} bản ghi lên server",
-  "@syncWritesCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "syncStandingsTitle": "Bảng xếp hạng",
-  "syncMatchResultsTitle": "Kết quả trận đấu ({count})",
-  "@syncMatchResultsTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "syncNewPlayersWillBeCreated": "Người chơi mới sẽ được tạo ({count})",
-  "@syncNewPlayersWillBeCreated": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "tablePlayer": "Người chơi",
   "tableMatchesPlayedShort": "MP",
   "tableWinsShort": "W",
@@ -658,15 +494,7 @@
       }
     }
   },
-  "dashboardMatchesUnit": "trận"
-  ,"feedbackTitle": "Góp ý",
-  "feedbackSignInRequired": "Bạn cần đăng nhập để gửi phản hồi.",
-  "feedbackCreateTitle": "Tạo phản hồi",
-  "feedbackTitleHint": "Tiêu đề",
-  "feedbackContentHint": "Nội dung",
-  "feedbackRequired": "Vui lòng điền đầy đủ thông tin.",
-  "feedbackMinimumLength": "Tiêu đề phải có ít nhất 5 ký tự\nNội dung phải có ít nhất 10 ký tự.",
-  "feedbackSent": "Góp ý đã được gửi thành công!",
+  "dashboardMatchesUnit": "trận",
   "profileUpdateSuccess": "Cập nhật thông tin thành công",
   "profileUpdateTitle": "Cập nhật thông tin",
   "profileSetupEyebrow": "Profile setup",
@@ -677,35 +505,17 @@
   "profileDisplayInfoSubtitle": "Cập nhật tên, số điện thoại và email.",
   "profileFullNameHint": "Họ và tên",
   "profilePhoneHint": "Số điện thoại",
-  "notificationActivityEyebrow": "Activity feed",
-  "notificationAllRead": "Tất cả đã được đọc",
-  "notificationUnreadCount": "{count} thông báo mới",
-  "@notificationUnreadCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "notificationMarkAllRead": "Đánh dấu tất cả đã đọc",
-  "notificationRead": "Đã đọc"
-  ,"profileAppSection": "Ứng dụng",
-  "profileOfflineMode": "Chế độ offline",
-  "profileSyncOfflineData": "Đồng bộ dữ liệu offline",
+  "profileAppSection": "Ứng dụng",
   "profileOtherOptions": "Tuỳ chọn khác",
   "profileInfoSection": "Thông tin",
-  "profileRateApp": "Đánh giá",
-  "profileFeedback": "Nhận xét góp ý",
+  "profileVersion": "Phiên bản",
   "profileSessionSection": "Phiên làm việc",
   "profileSignOut": "Đăng xuất",
   "profileChangeAvatar": "Thay đổi ảnh đại diện",
   "profileDeleteAvatar": "Xoá ảnh đại diện",
   "profileEditTooltip": "Cập nhật thông tin",
-  "profileOfflineModeTitle": "Chế độ Offline",
-  "profileOfflineModeMessage": "Chế độ offline là bạn tự tạo dữ liệu trên máy và dữ liệu sẽ chỉ được lưu trên máy của bạn, không được đồng bộ.\n\nBạn có chắc chắn muốn chuyển sang chế độ offline không?",
-  "profileAccept": "Chấp nhận",
-  "profileSignOutMessage": "Bạn có chắc chắn muốn đăng xuất không?"
-  ,"ownershipProcessFailed": "Không thể xử lý quyền sở hữu: {error}",
+  "profileSignOutMessage": "Bạn có chắc chắn muốn đăng xuất không?",
+  "ownershipProcessFailed": "Không thể xử lý quyền sở hữu: {error}",
   "@ownershipProcessFailed": {
     "placeholders": {
       "error": {

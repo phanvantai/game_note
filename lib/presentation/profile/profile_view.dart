@@ -437,7 +437,7 @@ class _VersionMenuItem extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Version',
+              context.l10n.profileVersion,
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),

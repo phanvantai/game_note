@@ -21,9 +21,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mainTabTournaments => 'Tournaments';
 
   @override
-  String get mainTabNotifications => 'Notifications';
-
-  @override
   String get mainTabProfile => 'Profile';
 
   @override
@@ -207,263 +204,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonSearchByName => 'Search by name';
-
-  @override
-  String get appOnline => 'Online';
-
-  @override
-  String get appOffline => 'Offline';
-
-  @override
-  String get offlineLeagueTitle => 'Tournaments';
-
-  @override
-  String get offlinePlayersTitle => 'Players';
-
-  @override
-  String get offlineStatisticsTitle => 'Statistics';
-
-  @override
-  String get offlineCreateLeagueTitle => 'Create tournament';
-
-  @override
-  String get offlineLeagueNameHint => 'Tournament name';
-
-  @override
-  String get offlineAddLeagueTooltip => 'Add new tournament';
-
-  @override
-  String get offlineNoLeaguesTitle => 'No tournaments have been created.';
-
-  @override
-  String get offlineNoLeaguesSubtitle =>
-      'Tap the + button below to create a tournament';
-
-  @override
-  String get offlineDeleteLeagueTitle => 'Delete tournament';
-
-  @override
-  String offlineDeleteLeagueMessage(String name) {
-    return 'Are you sure you want to delete tournament $name?';
-  }
-
-  @override
-  String offlineShareStandingsTitle(String name) {
-    return 'Standings - $name';
-  }
-
-  @override
-  String get offlineLeagueNotSetupTitle => 'Tournament is not set up.';
-
-  @override
-  String get offlineLeagueNotSetupSubtitle =>
-      'Tap the + button below to add players and start the tournament';
-
-  @override
-  String get offlineLoadLeagueFailed => 'Could not load tournament data';
-
-  @override
-  String get offlineShareStandings => 'Share standings';
-
-  @override
-  String get offlineSchedule => 'Schedule';
-
-  @override
-  String get offlineResults => 'Results';
-
-  @override
-  String get offlineAddPlayerTitle => 'Add player';
-
-  @override
-  String get offlinePlayerNameHint => 'Player name';
-
-  @override
-  String get offlineNoPlayersTitle => 'No players yet.';
-
-  @override
-  String get offlineNoPlayersSubtitle =>
-      'Tap the + button below to add a player.';
-
-  @override
-  String get offlineAddPlayerTooltip => 'Add player';
-
-  @override
-  String offlinePlayerDeleted(String name) {
-    return 'Deleted $name';
-  }
-
-  @override
-  String get offlineUpdateScoreTitle => 'Update score';
-
-  @override
-  String get offlineAddRoundTooltip => 'Add round';
-
-  @override
-  String offlineSelectingPlayers(int count) {
-    return 'Selecting 2 players. Selected: $count';
-  }
-
-  @override
-  String offlineSelectedPlayers(int count) {
-    return 'Selected: $count';
-  }
-
-  @override
-  String get offlineDataTitle => 'DATA';
-
-  @override
-  String get offlineImportData => 'Import data';
-
-  @override
-  String get offlineExportData => 'Export data';
-
-  @override
-  String get offlineInvalidImportFile =>
-      'Invalid file.\nPlease use a game_note_database.db database file';
-
-  @override
-  String get offlineImportSuccess => 'Data imported successfully';
-
-  @override
-  String get offlineStatPointsGoalDiff => 'Points/GD';
-
-  @override
-  String get offlineStatChampionRunnerUp => 'Champion/Runner-up';
-
-  @override
-  String get offlineStatWinDrawLoss => 'Win/Draw/Loss';
-
-  @override
-  String get syncNoOfflineLeague => 'No offline league available to sync';
-
-  @override
-  String get syncNoGroup => 'You have not joined any group';
-
-  @override
-  String get syncNoLeagueSelected => 'No league selected';
-
-  @override
-  String get syncChoose => 'Choose';
-
-  @override
-  String get syncNoGroupMembers => 'Group has no members';
-
-  @override
-  String get syncCreatePlaceholderUser => 'Create new user (placeholder)';
-
-  @override
-  String get syncNewPlayerName => 'New player name';
-
-  @override
-  String get syncDisplayNameHint => 'Display name';
-
-  @override
-  String get syncMissingData => 'Missing data';
-
-  @override
-  String syncDateLabel(String date) {
-    return 'Date: $date';
-  }
-
-  @override
-  String syncTargetGroupLabel(String group) {
-    return 'Target group: $group';
-  }
-
-  @override
-  String get syncNoPlayedMatches => 'No played matches';
-
-  @override
-  String get syncSuccess => 'Sync completed';
-
-  @override
-  String get syncRetry => 'Retry';
-
-  @override
-  String get syncBack => 'Back';
-
-  @override
-  String get syncExit => 'Exit';
-
-  @override
-  String get syncContinue => 'Continue';
-
-  @override
-  String get syncOfflineLeagueSection => 'Offline league';
-
-  @override
-  String get syncOnlineGroupSection => 'Online group';
-
-  @override
-  String syncLeagueDescription(int players, String date) {
-    return '$players players · $date';
-  }
-
-  @override
-  String get syncPreview => 'Preview';
-
-  @override
-  String get syncDuplicateMapping => 'Error: 2 players map to the same user';
-
-  @override
-  String get syncNotMapped => 'Not mapped';
-
-  @override
-  String get syncNewTargetSuffix => 'new';
-
-  @override
-  String syncMapPlayerTitle(String name) {
-    return 'Map \"$name\"';
-  }
-
-  @override
-  String get syncWritingData => 'Writing data to server...';
-
-  @override
-  String get syncDoNotClose =>
-      'Please do not close the app until it is complete';
-
-  @override
-  String get syncSelectSourceTitle => 'Choose league & group';
-
-  @override
-  String get syncMapPlayersTitle => 'Map players';
-
-  @override
-  String get syncConfirmTitle => 'Confirm';
-
-  @override
-  String get syncExecutingTitle => 'Syncing';
-
-  @override
-  String get syncOriginalOfflineTab => 'Offline (original)';
-
-  @override
-  String get syncOnlineWillCreateTab => 'Online (will create)';
-
-  @override
-  String get syncRun => 'Sync';
-
-  @override
-  String get syncNewSuffix => 'new';
-
-  @override
-  String syncWritesCount(int count) {
-    return 'Will write $count records to server';
-  }
-
-  @override
-  String get syncStandingsTitle => 'Standings';
-
-  @override
-  String syncMatchResultsTitle(int count) {
-    return 'Match results ($count)';
-  }
-
-  @override
-  String syncNewPlayersWillBeCreated(int count) {
-    return 'New players will be created ($count)';
-  }
 
   @override
   String get tablePlayer => 'Player';
@@ -1363,31 +1103,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardMatchesUnit => 'matches';
 
   @override
-  String get feedbackTitle => 'Feedback';
-
-  @override
-  String get feedbackSignInRequired => 'You need to sign in to send feedback.';
-
-  @override
-  String get feedbackCreateTitle => 'Create feedback';
-
-  @override
-  String get feedbackTitleHint => 'Title';
-
-  @override
-  String get feedbackContentHint => 'Content';
-
-  @override
-  String get feedbackRequired => 'Please fill in all information.';
-
-  @override
-  String get feedbackMinimumLength =>
-      'Title must have at least 5 characters\nContent must have at least 10 characters.';
-
-  @override
-  String get feedbackSent => 'Feedback sent successfully!';
-
-  @override
   String get profileUpdateSuccess => 'Profile updated successfully';
 
   @override
@@ -1420,30 +1135,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePhoneHint => 'Phone number';
 
   @override
-  String get notificationActivityEyebrow => 'Activity feed';
-
-  @override
-  String get notificationAllRead => 'All caught up';
-
-  @override
-  String notificationUnreadCount(int count) {
-    return '$count new notifications';
-  }
-
-  @override
-  String get notificationMarkAllRead => 'Mark all as read';
-
-  @override
-  String get notificationRead => 'Read';
-
-  @override
   String get profileAppSection => 'App';
-
-  @override
-  String get profileOfflineMode => 'Offline mode';
-
-  @override
-  String get profileSyncOfflineData => 'Sync offline data';
 
   @override
   String get profileOtherOptions => 'Other options';
@@ -1452,10 +1144,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileInfoSection => 'Info';
 
   @override
-  String get profileRateApp => 'Rate';
-
-  @override
-  String get profileFeedback => 'Feedback';
+  String get profileVersion => 'Version';
 
   @override
   String get profileSessionSection => 'Session';
@@ -1471,16 +1160,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileEditTooltip => 'Edit profile';
-
-  @override
-  String get profileOfflineModeTitle => 'Offline mode';
-
-  @override
-  String get profileOfflineModeMessage =>
-      'Offline mode lets you create data on this device only. Data is stored locally and will not be synced.\n\nAre you sure you want to switch to offline mode?';
-
-  @override
-  String get profileAccept => 'Accept';
 
   @override
   String get profileSignOutMessage => 'Are you sure you want to sign out?';

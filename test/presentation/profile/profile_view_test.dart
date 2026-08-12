@@ -60,6 +60,7 @@ void main() {
     required ProfileState profileInitialState,
     required AppState appState,
     Stream<ProfileState>? profileStateStream,
+    Locale locale = const Locale('en'),
   }) {
     when(() => profileBloc.state).thenReturn(profileInitialState);
     when(() => appBloc.state).thenReturn(appState);
@@ -75,7 +76,7 @@ void main() {
         BlocProvider<ProfileBloc>.value(value: profileBloc),
       ],
       child: MaterialApp.router(
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: GoRouter(
@@ -396,6 +397,24 @@ void main() {
       }
     },
   );
+
+  testWidgets('Version label is localized in Vietnamese', (tester) async {
+    final profileBloc = _MockProfileBloc();
+    final appBloc = _MockAppBloc();
+
+    await tester.pumpWidget(
+      buildProfile(
+        profileBloc: profileBloc,
+        appBloc: appBloc,
+        profileInitialState: successProfile(),
+        appState: const AppState(),
+        locale: const Locale('vi'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Phiên bản'), findsOneWidget);
+  });
 
   testWidgets('tapping Version repeatedly keeps Profile passive', (
     tester,
