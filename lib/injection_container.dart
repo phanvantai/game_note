@@ -21,7 +21,6 @@ import 'domain/repositories/esport/esport_group_repository.dart';
 import 'domain/repositories/esport/esport_league_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'firebase/firestore/gn_firestore.dart';
-import 'firebase/remote_config/gn_remote_config.dart';
 import 'firebase/storage/gn_storage.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'presentation/auth/sign_in/bloc/sign_in_bloc.dart';
@@ -59,8 +58,6 @@ Future<void> init() async {
   getIt.registerSingleton(LocaleNotifier(getIt()));
 
   getIt.registerSingleton(PermissionUtil());
-
-  getIt.registerSingleton(GNRemoteConfig());
 
   // firebase service
   getIt.registerSingleton(GNFirestore());
@@ -108,5 +105,4 @@ Future<void> init() async {
   getIt.registerFactory<UserBloc>(() => UserBloc(getIt()));
 
   getIt.registerFactory<ChangePasswordBloc>(() => ChangePasswordBloc(getIt()));
-
 }

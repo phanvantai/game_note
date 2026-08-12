@@ -4,8 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/core/common/view_status.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
-import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
@@ -32,8 +30,6 @@ class _MockDashboardBloc extends MockBloc<DashboardEvent, DashboardState>
 class _MockOngoingBloc
     extends MockBloc<OngoingTournamentsEvent, OngoingTournamentsState>
     implements OngoingTournamentsBloc {}
-
-class _MockRemoteConfig extends Mock implements GNRemoteConfig {}
 
 Widget _wrap({
   required GroupBloc groupBloc,
@@ -69,13 +65,7 @@ void main() {
 
   setUp(() async {
     VisibilityDetectorController.instance.updateInterval = Duration.zero;
-    await getIt.reset();
-    final remoteConfig = _MockRemoteConfig();
-    when(() => remoteConfig.adsEnabled).thenReturn(false);
-    getIt.registerSingleton<GNRemoteConfig>(remoteConfig);
   });
-
-  tearDown(() => getIt.reset());
 
   testWidgets('MainView renders four destinations and switches tabs', (
     tester,
@@ -113,6 +103,7 @@ void main() {
     );
 
     expect(find.byType(NavigationDestination), findsNWidgets(4));
+    expect(find.byType(BottomAppBar), findsNothing);
     expect(find.text('Thông báo'), findsNothing);
     verify(() => groupBloc.add(any(that: isA<GetEsportGroups>()))).called(1);
 

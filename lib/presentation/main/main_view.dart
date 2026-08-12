@@ -1,12 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pes_arena/core/helpers/admob_helper.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
-import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../esport/groups/groups_view.dart';
 import '../esport/tournament/tournament_view.dart';
@@ -23,9 +18,6 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> with TickerProviderStateMixin {
-  BannerAd? _bannerAd;
-  bool isAdsLoaded = false;
-
   late final List<_TabSpec> _tabs;
 
   late TabController _tabController;
@@ -77,31 +69,18 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
         controller: _tabController,
         children: _tabs.map((t) => t.page).toList(),
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // coverage:ignore-start
-          if (!kIsWeb && _bannerAd != null)
-            SizedBox(
-              width: _bannerAd!.size.width.toDouble(),
-              height: _bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            ),
-          // coverage:ignore-end
-          NavigationBar(
-            selectedIndex: _tabController.index,
-            onDestinationSelected: _onItemTapped,
-            destinations: _tabs
-                .map(
-                  (t) => NavigationDestination(
-                    icon: _TabIcon(icon: t.icon),
-                    selectedIcon: _TabIcon(icon: t.activeIcon),
-                    label: _labelFor(context, t.tab),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tabController.index,
+        onDestinationSelected: _onItemTapped,
+        destinations: _tabs
+            .map(
+              (t) => NavigationDestination(
+                icon: _TabIcon(icon: t.icon),
+                selectedIcon: _TabIcon(icon: t.activeIcon),
+                label: _labelFor(context, t.tab),
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -115,52 +94,7 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   @override
   void dispose() {
     _tabController.dispose();
-    _bannerAd?.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadAd();
-  }
-
-  void _loadAd() async {
-    if (kIsWeb || isAdsLoaded || !getIt<GNRemoteConfig>().adsEnabled) {
-      return;
-    }
-    // coverage:ignore-start
-    final AnchoredAdaptiveBannerAdSize? size =
-        await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
-          MediaQuery.of(context).size.width.truncate(),
-        );
-    _bannerAd = BannerAd(
-      adUnitId: AdmobHelper.bannerUnitIDHomeBottom,
-      request: const AdRequest(),
-      size: size ?? AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          debugPrint('$ad loaded.');
-          setState(() {
-            isAdsLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, err) {
-          debugPrint('BannerAd failed to load: $err');
-          ad.dispose();
-        },
-        onAdOpened: (Ad ad) {
-          debugPrint('on Ad Opened');
-        },
-        onAdClosed: (Ad ad) {
-          debugPrint('on Ad Closed');
-        },
-        onAdImpression: (Ad ad) {
-          debugPrint('on Ad Impression');
-        },
-      ),
-    )..load();
-    // coverage:ignore-end
   }
 
   String _labelFor(BuildContext context, _MainTab tab) {

@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:pes_arena/core/common/view_status.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
@@ -31,8 +30,6 @@ class _MockOngoingBloc
     extends MockBloc<OngoingTournamentsEvent, OngoingTournamentsState>
     implements OngoingTournamentsBloc {}
 
-class _MockRemoteConfig extends Mock implements GNRemoteConfig {}
-
 void main() {
   setUpAll(() {
     registerFallbackValue(GetEsportGroups());
@@ -46,7 +43,6 @@ void main() {
     final profileBloc = _MockProfileBloc();
     final dashboardBloc = _MockDashboardBloc();
     final ongoingBloc = _MockOngoingBloc();
-    final remoteConfig = _MockRemoteConfig();
 
     when(() => groupBloc.state).thenReturn(const GroupState());
     when(() => tournamentBloc.state).thenReturn(const TournamentState());
@@ -65,14 +61,11 @@ void main() {
       ),
     );
     when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
-    when(() => remoteConfig.adsEnabled).thenReturn(false);
-
     getIt.registerFactory<ProfileBloc>(() => profileBloc);
     getIt.registerFactory<GroupBloc>(() => groupBloc);
     getIt.registerFactory<TournamentBloc>(() => tournamentBloc);
     getIt.registerFactory<DashboardBloc>(() => dashboardBloc);
     getIt.registerFactory<OngoingTournamentsBloc>(() => ongoingBloc);
-    getIt.registerSingleton<GNRemoteConfig>(remoteConfig);
   });
 
   tearDown(() => getIt.reset());

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,15 +5,11 @@ import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/l10n/l10n.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
-import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/common/smart_back.dart';
 import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/routing.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../../../../core/helpers/admob_helper.dart';
 import '../../../users/user_item.dart';
 import 'widgets/group_overview_tab.dart';
 
@@ -27,8 +22,6 @@ class GroupDetailView extends StatefulWidget {
 
 class _GroupDetailViewState extends State<GroupDetailView>
     with SingleTickerProviderStateMixin {
-  BannerAd? _bannerAd;
-  bool isAdsLoaded = false;
   late final TabController _tabController;
   bool _overviewLoaded = false;
 
@@ -68,7 +61,6 @@ class _GroupDetailViewState extends State<GroupDetailView>
     _tabController
       ..removeListener(_onTabChanged)
       ..dispose();
-    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -183,15 +175,6 @@ class _GroupDetailViewState extends State<GroupDetailView>
             ),
           ),
         ),
-        // coverage:ignore-start
-        bottomNavigationBar: (!kIsWeb && _bannerAd != null)
-            ? SizedBox(
-                width: _bannerAd!.size.width.toDouble(),
-                height: _bannerAd!.size.height.toDouble(),
-                child: AdWidget(ad: _bannerAd!),
-              )
-            : null,
-        // coverage:ignore-end
       ),
       listener: (context, state) {
         // coverage:ignore-start
@@ -214,40 +197,6 @@ class _GroupDetailViewState extends State<GroupDetailView>
       },
     );
   }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadAd();
-  }
-
-  // coverage:ignore-start
-  void _loadAd() async {
-    if (kIsWeb || isAdsLoaded || !getIt<GNRemoteConfig>().adsEnabled) return;
-    final AnchoredAdaptiveBannerAdSize? size =
-        await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
-          MediaQuery.of(context).size.width.truncate(),
-        );
-    _bannerAd = BannerAd(
-      adUnitId: AdmobHelper.bannerUnitIDDetailBottom,
-      request: const AdRequest(),
-      size: size ?? AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          debugPrint('$ad loaded.');
-          setState(() => isAdsLoaded = true);
-        },
-        onAdFailedToLoad: (ad, err) {
-          debugPrint('BannerAd failed to load: $err');
-          ad.dispose();
-        },
-        onAdOpened: (Ad ad) => debugPrint('on Ad Opened'),
-        onAdClosed: (Ad ad) => debugPrint('on Ad Closed'),
-        onAdImpression: (Ad ad) => debugPrint('on Ad Impression'),
-      ),
-    )..load();
-  }
-  // coverage:ignore-end
 
   void _addMember(BuildContext context, GroupDetailState state) {
     context.push(

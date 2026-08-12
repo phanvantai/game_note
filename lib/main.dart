@@ -7,12 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:pes_arena/app.dart';
 import 'package:pes_arena/injection_container.dart' as di;
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/localization/locale_notifier.dart';
 import 'core/theme/theme_provider.dart';
-import 'firebase/remote_config/gn_remote_config.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'firebase_options.dart';
 import 'injection_container.dart';
@@ -38,14 +36,6 @@ void main() async {
       'hasSavedLocale=${localeNotifier.hasSavedLocale}',
     );
   }
-  await di.getIt<GNRemoteConfig>().initialize();
-  if (kDebugMode) {
-    debugPrint('[BootFlow] main: RemoteConfig initialized');
-  }
-  if (!kIsWeb && di.getIt<GNRemoteConfig>().adsEnabled) {
-    MobileAds.instance.initialize();
-  }
-
   final prefs = await SharedPreferences.getInstance();
   final themeNotifier = ThemeNotifier(prefs);
   if (kDebugMode) {

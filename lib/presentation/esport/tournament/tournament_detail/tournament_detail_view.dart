@@ -9,13 +9,9 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
-import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/helpers/admob_helper.dart';
 import 'add_player_popup.dart';
 import 'bloc/tournament_detail_bloc.dart';
 import 'bracket/bracket_view.dart';
@@ -52,8 +48,6 @@ class TournamentDetailView extends StatefulWidget {
 
 class _TournamentDetailViewState extends State<TournamentDetailView>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
-  BannerAd? _bannerAd;
-  bool isAdsLoaded = false;
   bool _renderShareCards = false;
   _ShareRenderPayload? _sharePayload;
 
@@ -246,15 +240,6 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                       ),
                     ),
                   ),
-                  // coverage:ignore-start
-                  bottomNavigationBar: (!kIsWeb && _bannerAd != null)
-                      ? SizedBox(
-                          width: _bannerAd!.size.width.toDouble(),
-                          height: _bannerAd!.size.height.toDouble(),
-                          child: AdWidget(ad: _bannerAd!),
-                        )
-                      : null,
-                  // coverage:ignore-end
                 ),
               ),
             );
@@ -487,43 +472,8 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _bannerAd?.dispose();
     super.dispose();
   }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadAd();
-  }
-
-  // coverage:ignore-start
-  void _loadAd() async {
-    if (kIsWeb || isAdsLoaded || !getIt<GNRemoteConfig>().adsEnabled) return;
-    final AnchoredAdaptiveBannerAdSize? size =
-        await AdSize.getLargeAnchoredAdaptiveBannerAdSize(
-          MediaQuery.of(context).size.width.truncate(),
-        );
-    _bannerAd = BannerAd(
-      adUnitId: AdmobHelper.bannerUnitIDDetailBottom,
-      request: const AdRequest(),
-      size: size ?? AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          debugPrint('$ad loaded.');
-          setState(() => isAdsLoaded = true);
-        },
-        onAdFailedToLoad: (ad, err) {
-          debugPrint('BannerAd failed to load: $err');
-          ad.dispose();
-        },
-        onAdOpened: (Ad ad) => debugPrint('on Ad Opened'),
-        onAdClosed: (Ad ad) => debugPrint('on Ad Closed'),
-        onAdImpression: (Ad ad) => debugPrint('on Ad Impression'),
-      ),
-    )..load();
-  }
-  // coverage:ignore-end
 
   // coverage:ignore-start
   void _addParticipant(BuildContext context, TournamentDetailState state) {

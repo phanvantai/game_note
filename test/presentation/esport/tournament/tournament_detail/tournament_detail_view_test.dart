@@ -4,7 +4,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
@@ -12,7 +11,6 @@ import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart
 import 'package:pes_arena/firebase/firestore/esport/league/match/gn_esport_match.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/l10n/generated/app_localizations.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/bloc/tournament_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/tournament/tournament_detail/table/table_view.dart';
@@ -21,8 +19,6 @@ import 'package:pes_arena/presentation/esport/tournament/tournament_detail/widge
 
 class _MockBloc extends MockBloc<TournamentDetailEvent, TournamentDetailState>
     implements TournamentDetailBloc {}
-
-class _MockRemoteConfig extends Mock implements GNRemoteConfig {}
 
 class _DetailState extends TournamentDetailState {
   final bool member;
@@ -196,7 +192,6 @@ Future<void> _selectShare(WidgetTester tester) async {
 
 void main() {
   late _MockBloc bloc;
-  late _MockRemoteConfig remoteConfig;
 
   setUpAll(() {
     registerFallbackValue(ChangeLeagueStatus(GNEsportLeagueStatus.ongoing));
@@ -209,19 +204,10 @@ void main() {
 
   setUp(() {
     bloc = _MockBloc();
-    remoteConfig = _MockRemoteConfig();
-    when(() => remoteConfig.adsEnabled).thenReturn(false);
-    if (GetIt.instance.isRegistered<GNRemoteConfig>()) {
-      GetIt.instance.unregister<GNRemoteConfig>();
-    }
-    GetIt.instance.registerSingleton<GNRemoteConfig>(remoteConfig);
   });
 
   tearDown(() async {
     await bloc.close();
-    if (GetIt.instance.isRegistered<GNRemoteConfig>()) {
-      GetIt.instance.unregister<GNRemoteConfig>();
-    }
   });
 
   testWidgets(
@@ -248,6 +234,7 @@ void main() {
 
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
       expect(find.byKey(const Key('tournament-detail-shell')), findsOneWidget);
+      expect(find.byType(BottomAppBar), findsNothing);
       expect(find.textContaining('Group One'), findsWidgets);
       expect(find.text('BXH'), findsOneWidget);
       expect(find.text('Lịch'), findsOneWidget);

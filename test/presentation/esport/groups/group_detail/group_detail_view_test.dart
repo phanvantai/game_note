@@ -11,7 +11,6 @@ import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart'; // ignore: unused_import
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
-import 'package:pes_arena/firebase/remote_config/gn_remote_config.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/group_detail_view.dart';
@@ -24,8 +23,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockGroupDetailBloc extends MockBloc<GroupDetailEvent, GroupDetailState>
     implements GroupDetailBloc {}
-
-class _MockRemoteConfig extends Mock implements GNRemoteConfig {}
 
 class _MockGroupBloc extends MockBloc<GroupEvent, GroupState>
     implements GroupBloc {}
@@ -142,7 +139,6 @@ GroupDetailState _nonMemberState({String currentUserId = 'u2'}) =>
 
 void main() {
   late _MockGroupDetailBloc bloc;
-  late _MockRemoteConfig remoteConfig;
 
   setUpAll(() {
     registerFallbackValue(_FakeGroupDetailEvent());
@@ -152,9 +148,6 @@ void main() {
 
   setUp(() {
     bloc = _MockGroupDetailBloc();
-    remoteConfig = _MockRemoteConfig();
-    when(() => remoteConfig.adsEnabled).thenReturn(false);
-    getIt.registerSingleton<GNRemoteConfig>(remoteConfig);
   });
 
   tearDown(() => getIt.reset());
@@ -168,6 +161,20 @@ void main() {
     expect(find.text('Tổng quan'), findsOneWidget);
     expect(find.text('Thành viên'), findsOneWidget);
     expect(find.text('Giải đấu'), findsNothing);
+  });
+
+  testWidgets('renders group shell and content without a bottom banner ad', (
+    tester,
+  ) async {
+    when(() => bloc.state).thenReturn(_ownerState());
+
+    await tester.pumpWidget(_wrapWithRouter(bloc));
+    await tester.pump();
+
+    expect(find.byType(Scaffold), findsOneWidget);
+    expect(find.text('Test Group'), findsWidgets);
+    expect(find.text('Tổng quan'), findsOneWidget);
+    expect(find.byType(BottomAppBar), findsNothing);
   });
 
   testWidgets('initState dispatch LoadGroupOverview', (tester) async {
