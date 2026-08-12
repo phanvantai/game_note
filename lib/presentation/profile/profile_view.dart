@@ -1,16 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/l10n/l10n.dart';
-import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/common/app_info.dart';
 import '../../core/common/view_status.dart';
-import '../../core/constants/constants.dart';
 import '../../core/ultils.dart';
 import '../../routing.dart';
 import 'bloc/profile_bloc.dart';
@@ -24,26 +20,6 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView>
     with AutomaticKeepAliveClientMixin {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    final appBloc = context.read<AppBloc>();
-
-    setState(() {
-      if (!appBloc.state.enableFootballFeature) {
-        _counter++;
-      } else {
-        _counter--;
-      }
-    });
-    if (_counter == 10) {
-      context.read<AppBloc>().add(const UpdateFootballFeature(true));
-    }
-    if (_counter == -10) {
-      context.read<AppBloc>().add(const UpdateFootballFeature(false));
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -86,27 +62,7 @@ class _ProfileViewState extends State<ProfileView>
                 _ProfileSection(
                   title: context.l10n.profileInfoSection,
                   icon: Icons.info_outline,
-                  children: [
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.star_outline,
-                      title: context.l10n.profileRateApp,
-                      onTap: () {
-                        final url =
-                            defaultTargetPlatform == TargetPlatform.android
-                            ? Uri.parse(playStoreUrl)
-                            : Uri.parse(appStoreUrl);
-                        launchUrl(url);
-                      },
-                    ),
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.chat_bubble_outline,
-                      title: context.l10n.profileFeedback,
-                      onTap: () => context.push(Routing.feedback),
-                    ),
-                    _VersionMenuItem(onTap: _incrementCounter),
-                  ],
+                  children: [const _VersionMenuItem()],
                 ),
                 const SizedBox(height: 16),
                 _ProfileSection(
@@ -459,56 +415,47 @@ class _ProfileActionTile extends StatelessWidget {
 }
 
 class _VersionMenuItem extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _VersionMenuItem({required this.onTap});
+  const _VersionMenuItem();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: colorScheme.onSurfaceVariant,
+            size: 20,
           ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                color: colorScheme.onSurfaceVariant,
-                size: 20,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Version',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Phiên bản',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+            ),
+          ),
+          FutureBuilder<AppInfo>(
+            future: appInfo(),
+            builder: (context, snapshot) {
+              return Text(
+                snapshot.hasData ? snapshot.data!.versionNumber : '1.0.0',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
                 ),
-              ),
-              FutureBuilder<AppInfo>(
-                future: appInfo(),
-                builder: (context, snapshot) {
-                  return Text(
-                    snapshot.hasData ? snapshot.data!.versionNumber : '1.0.0',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  );
-                },
-              ),
-            ],
+              );
+            },
           ),
-        ),
+        ],
       ),
     );
   }

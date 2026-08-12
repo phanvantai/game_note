@@ -28,7 +28,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
     on<AuthStatusChanged>(_onAuthStatusChanged);
     on<InitApp>(_onInitApp);
-    on<UpdateFootballFeature>(_onUpdateFootballFeature);
     on<_FirebaseAuthUserChanged>(_onFirebaseAuthUserChanged);
     on<RefreshCurrentUser>(_onRefreshCurrentUser);
 
@@ -40,13 +39,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   PermissionUtil? _permissionUtil;
   StreamSubscription<User?>? _authSubscription;
   User? _lastFirebaseUser;
-
-  void _onUpdateFootballFeature(
-    UpdateFootballFeature event,
-    Emitter<AppState> emit,
-  ) {
-    emit(state.copyWith(enableFootballFeature: event.enableFootballFeature));
-  }
 
   void _onInitApp(InitApp event, Emitter<AppState> emit) {
     if (kDebugMode) {

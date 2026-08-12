@@ -21,7 +21,6 @@ import 'presentation/esport/groups/group_detail/group_detail_page.dart';
 import 'presentation/home/dashboard/detail/dashboard_detail_page.dart';
 import 'presentation/esport/tournament/tournament_detail/tournament_detail_page.dart';
 import 'presentation/profile/change_password/change_password_page.dart';
-import 'presentation/profile/feedback/feedback_view.dart';
 import 'presentation/profile/setting/setting_page.dart';
 import 'presentation/profile/update/update_profile_page.dart';
 
@@ -49,7 +48,6 @@ class Routing {
   static const String updateProfile = '/update-profile';
   static const String setting = '/setting';
   static const String changePassword = '/change-password';
-  static const String feedback = '/feedback';
 
   // dashboard
   static const String dashboardDetail = '/dashboard';
@@ -136,6 +134,7 @@ const _retiredPaths = <String>{
   '/offline',
   '/offline/league',
   '/sync-offline-data',
+  '/feedback',
 };
 
 void _logRouteFlow(String message) {
@@ -171,7 +170,6 @@ bool _isKnownRoutePath(String path) {
     Routing.setting,
     Routing.changePassword,
     Routing.dashboardDetail,
-    Routing.feedback,
   };
   if (fixedPaths.contains(path)) return true;
 
@@ -330,6 +328,7 @@ class _AppBlocListenable extends ChangeNotifier {
 // coverage:ignore-start
 final List<RouteBase> _appRoutes = [
   GoRoute(path: '/notification', redirect: (context, state) => Routing.app),
+  GoRoute(path: '/feedback', redirect: (context, state) => Routing.app),
   GoRoute(
     path: '/offline',
     redirect: (context, state) => Routing.app,
@@ -445,11 +444,6 @@ final List<RouteBase> _appRoutes = [
       state: state,
       child: const DashboardDetailPage(),
     ),
-  ),
-  GoRoute(
-    path: Routing.feedback,
-    pageBuilder: (context, state) =>
-        _slide(context: context, state: state, child: const FeedbackView()),
   ),
 ];
 // coverage:ignore-end

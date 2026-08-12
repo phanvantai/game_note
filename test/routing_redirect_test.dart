@@ -145,7 +145,6 @@ void main() {
       expect(Routing.setting, '/setting');
       expect(Routing.changePassword, '/change-password');
       expect(Routing.dashboardDetail, '/dashboard');
-      expect(Routing.feedback, '/feedback');
     });
   });
 
@@ -183,7 +182,6 @@ void main() {
         Routing.setting,
         Routing.changePassword,
         Routing.dashboardDetail,
-        Routing.feedback,
       ]) {
         expect(Routing.safeNextLocation(path), path);
       }
@@ -217,6 +215,7 @@ void main() {
       expect(Routing.safeNextLocation('/offline/league'), Routing.app);
       expect(Routing.safeNextLocation('/sync-offline-data'), Routing.app);
       expect(Routing.safeNextLocation('/notification'), Routing.app);
+      expect(Routing.safeNextLocation('/feedback'), Routing.app);
     });
   });
 
@@ -227,6 +226,7 @@ void main() {
       '/offline',
       '/offline/league',
       '/sync-offline-data',
+      '/feedback',
     ]) {
       final router = await pumpRouter(tester, path);
 

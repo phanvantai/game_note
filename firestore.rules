@@ -43,12 +43,6 @@ service cloud.firestore {
           && isGroupMemberAfter(getAfter(leaguePath(leagueId)).data.groupId);
     }
 
-    match /feedbacks/{feedbackId} {
-      allow create: if signedIn() && request.resource.data.status in [0, 1, 2];
-      allow read: if signedIn();
-      allow update, delete: if false;
-    }
-
     match /users/{userId} {
       allow read: if signedIn();
       allow write: if signedIn() && request.auth.uid == userId;

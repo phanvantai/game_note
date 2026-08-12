@@ -26,29 +26,21 @@ extension AppStatusX on AppStatus {
 
 class AppState extends Equatable {
   final AppStatus status;
-  final bool enableFootballFeature;
   final GNUser? currentUser;
 
-  const AppState({
-    this.status = AppStatus.initializing,
-    this.enableFootballFeature = false,
-    this.currentUser,
-  });
+  const AppState({this.status = AppStatus.initializing, this.currentUser});
 
   AppState copyWith({
     AppStatus? status,
-    bool? enableFootballFeature,
     GNUser? currentUser,
     bool clearCurrentUser = false,
   }) {
     return AppState(
       status: status ?? this.status,
-      enableFootballFeature:
-          enableFootballFeature ?? this.enableFootballFeature,
       currentUser: clearCurrentUser ? null : currentUser ?? this.currentUser,
     );
   }
 
   @override
-  List<Object?> get props => [status, enableFootballFeature, currentUser];
+  List<Object?> get props => [status, currentUser];
 }
