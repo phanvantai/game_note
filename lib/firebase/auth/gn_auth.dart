@@ -6,7 +6,6 @@ class GNAuth {
   final FirebaseAuth _auth;
   final Future<void>? _googleSignInInitialized;
   final Future<GoogleSignInAuthentication> Function()? _googleAuthenticate;
-  final bool _isWebForTesting;
   static const _googleWebClientId =
       '256841801977-drek49bb40r0be92722cp4iuoah8mtni.apps.googleusercontent.com';
 
@@ -20,23 +19,17 @@ class GNAuth {
 
   GNAuth({
     FirebaseAuth? auth,
-    bool? isWebForTesting,
     Future<void> Function()? googleSignInInitialized,
     Future<void> Function()? googleSignInInitializer,
     Future<GoogleSignInAuthentication> Function()? googleAuthenticate,
-  }) : _isWebForTesting = isWebForTesting ?? kIsWeb,
-       _auth = auth ?? FirebaseAuth.instance, // coverage:ignore-line
+  }) : _auth = auth ?? FirebaseAuth.instance, // coverage:ignore-line
        _googleSignInInitialized =
-           (((isWebForTesting ?? kIsWeb) == false &&
-                   (googleSignInInitializer ?? googleSignInInitialized) != null)
-               ? (googleSignInInitializer ?? googleSignInInitialized)!()
-               : null) ??
-           (((isWebForTesting ?? kIsWeb) == false && googleAuthenticate == null)
+           (googleSignInInitializer ?? googleSignInInitialized)?.call() ??
+           (googleAuthenticate == null
                ? _initializeGoogleSignIn() // coverage:ignore-line
                : null),
        _googleAuthenticate = googleAuthenticate {
-    if (!_isWebForTesting &&
-        googleSignInInitialized == null &&
+    if (googleSignInInitialized == null &&
         googleSignInInitializer == null &&
         googleAuthenticate == null) {
       // coverage:ignore-start
@@ -65,11 +58,6 @@ class GNAuth {
     }
 
     try {
-      if (_isWebForTesting) {
-        final provider = GoogleAuthProvider();
-        return await _auth.signInWithPopup(provider);
-      }
-
       final googleSignInInitialized = _googleSignInInitialized;
       if (googleSignInInitialized != null) {
         await googleSignInInitialized;
@@ -141,23 +129,6 @@ class GNAuth {
             '⚠️ GNAuth: code=canceled but has description → likely config error, not real cancel',
           );
         }
-      }
-      rethrow;
-    } on FirebaseAuthException catch (e) {
-      if (kDebugMode) {
-        print('🔥 GNAuth: Firebase Auth Exception:');
-        print('   - Code: ${e.code}');
-        print('   - Message: ${e.message}');
-        print('   - Plugin: ${e.plugin}');
-      }
-      // Web signInWithPopup throws these when the user closes/blocks the popup.
-      // Normalise to the same code native flow uses so callers handle uniformly.
-      if (e.code == 'popup-closed-by-user' ||
-          e.code == 'cancelled-popup-request') {
-        throw FirebaseAuthException(
-          code: 'ERROR_ABORTED_BY_USER',
-          message: 'Sign in aborted by user',
-        );
       }
       rethrow;
     } catch (e) {

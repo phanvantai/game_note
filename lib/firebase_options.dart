@@ -2,7 +2,7 @@
 // ignore_for_file: lines_longer_than_80_chars, avoid_classes_with_only_static_members
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show defaultTargetPlatform, TargetPlatform;
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -16,9 +16,6 @@ import 'package:flutter/foundation.dart'
 /// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
-    if (kIsWeb) {
-      return web;
-    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
@@ -65,15 +62,5 @@ class DefaultFirebaseOptions {
     iosClientId:
         '256841801977-j6gpu5cq3etlp5pgsrclkd0m9iddrbl3.apps.googleusercontent.com',
     iosBundleId: 'com.november.gameNote',
-  );
-
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBvFiCXJNYWZTF3hkaJyvqspXY6b40zgX0',
-    appId: '1:256841801977:web:8d6e12f22c5175a36b8228',
-    messagingSenderId: '256841801977',
-    projectId: 'gamenoteapp',
-    authDomain: 'gamenoteapp.firebaseapp.com',
-    storageBucket: 'gamenoteapp.appspot.com',
-    measurementId: 'G-L85M3EVLFZ',
   );
 }

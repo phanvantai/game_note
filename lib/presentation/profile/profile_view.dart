@@ -66,9 +66,7 @@ class _ProfileViewState extends State<ProfileView>
                   const LinearProgressIndicator(minHeight: 3),
                 _ProfileHero(
                   state: state,
-                  onAvatarTap: kIsWeb
-                      ? null
-                      : () => _showAvatarOptions(context),
+                  onAvatarTap: () => _showAvatarOptions(context),
                   onEditTap: () => _navigateToUpdateProfile(context, state),
                 ),
                 const SizedBox(height: 16),

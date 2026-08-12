@@ -1,6 +1,6 @@
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -171,8 +171,7 @@ class _TournamentDetailViewState extends State<TournamentDetailView>
                                   state.currentUserIsMember &&
                                   state.league?.status !=
                                       GNEsportLeagueStatus.finished.value,
-                              canShare:
-                                  !kIsWeb && state.participants.isNotEmpty,
+                              canShare: state.participants.isNotEmpty,
                               isAdmin: state.currentUserIsLeagueAdmin,
                             ),
                             builder: (context, header) => _TournamentDetailHero(

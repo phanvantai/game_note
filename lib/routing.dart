@@ -67,11 +67,8 @@ CustomTransitionPage<T> _slide<T>({
   return CustomTransitionPage<T>(
     key: state.pageKey,
     child: child,
-    transitionDuration: Duration(milliseconds: kIsWeb ? 120 : duration),
+    transitionDuration: Duration(milliseconds: duration),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      if (kIsWeb) {
-        return FadeTransition(opacity: animation, child: child);
-      }
       const begin = Offset(1.0, 0.0);
       const end = Offset.zero;
       return SlideTransition(
