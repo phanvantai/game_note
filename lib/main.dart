@@ -13,7 +13,6 @@ import 'presentation/app/bloc/app_bloc.dart';
 import 'firebase_options.dart';
 import 'injection_container.dart';
 
-var dataFile = '';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kDebugMode) {

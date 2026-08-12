@@ -8,7 +8,6 @@ import 'firebase/firestore/esport/group/gn_esport_group.dart';
 import 'firebase/firestore/user/gn_user.dart';
 import 'injection_container.dart';
 import 'core/localization/locale_notifier.dart';
-import 'l10n/l10n.dart';
 import 'presentation/app/app_view.dart';
 import 'presentation/app/bloc/app_bloc.dart';
 import 'presentation/app/language_selection_page.dart';
@@ -78,39 +77,13 @@ CustomTransitionPage<T> _slide<T>({
 }
 // coverage:ignore-end
 
-// coverage:ignore-start
-class _NotFoundPage extends StatelessWidget {
-  const _NotFoundPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(context.l10n.pageNotFound),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => GoRouter.of(context).go(Routing.app),
-              child: Text(context.l10n.backHome),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-// coverage:ignore-end
-
 GoRouter createAppRouter({String initialLocation = Routing.app}) {
   return GoRouter(
     initialLocation: initialLocation,
     redirect: _appRedirect,
     refreshListenable: _AppBlocListenable(getIt<AppBloc>()),
     // coverage:ignore-start
-    errorBuilder: (context, state) => const _NotFoundPage(),
+    onException: (_, _, router) => router.go(Routing.app),
     // coverage:ignore-end
     routes: _appRoutes, // coverage:ignore-line
   );

@@ -152,12 +152,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get or => 'Or';
 
   @override
-  String get pageNotFound => 'Page not found';
-
-  @override
-  String get backHome => 'Back home';
-
-  @override
   String get commonOk => 'OK';
 
   @override

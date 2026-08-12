@@ -374,18 +374,6 @@ abstract class AppLocalizations {
   /// **'Or'**
   String get or;
 
-  /// No description provided for @pageNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Page not found'**
-  String get pageNotFound;
-
-  /// No description provided for @backHome.
-  ///
-  /// In en, this message translates to:
-  /// **'Back home'**
-  String get backHome;
-
   /// No description provided for @commonOk.
   ///
   /// In en, this message translates to:

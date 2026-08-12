@@ -152,12 +152,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get or => 'Hoặc';
 
   @override
-  String get pageNotFound => 'Không tìm thấy trang';
-
-  @override
-  String get backHome => 'Về trang chủ';
-
-  @override
   String get commonOk => 'OK';
 
   @override

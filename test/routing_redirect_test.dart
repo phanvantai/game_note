@@ -238,4 +238,16 @@ void main() {
       await getIt.reset();
     }
   });
+
+  testWidgets('direct unknown route resolves home instead of not found', (
+    tester,
+  ) async {
+    final router = await pumpRouter(tester, '/legacy-route');
+
+    expect(router.routeInformationProvider.value.uri.path, Routing.app);
+    expect(find.text('Page not found'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    router.dispose();
+  });
 }
