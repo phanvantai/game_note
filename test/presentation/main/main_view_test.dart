@@ -38,6 +38,7 @@ Widget _wrap({
   required DashboardBloc dashboardBloc,
   required OngoingTournamentsBloc ongoingBloc,
   Locale locale = const Locale('vi'),
+  int initialTabIndex = 0,
 }) {
   return MultiBlocProvider(
     providers: [
@@ -52,7 +53,7 @@ Widget _wrap({
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      home: const MainView(),
+      home: MainView(initialTabIndex: initialTabIndex),
     ),
   );
 }
@@ -165,5 +166,50 @@ void main() {
     expect(find.byType(NavigationDestination), findsNWidgets(4));
     expect(find.text('Nhóm'), findsNothing);
     expect(find.text('Giải đấu'), findsNothing);
+  });
+
+  testWidgets('MainView clamps a high initial tab index to Profile', (
+    tester,
+  ) async {
+    final groupBloc = _MockGroupBloc();
+    final tournamentBloc = _MockTournamentBloc();
+    final profileBloc = _MockProfileBloc();
+    final dashboardBloc = _MockDashboardBloc();
+    final ongoingBloc = _MockOngoingBloc();
+    when(() => groupBloc.state).thenReturn(const GroupState());
+    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
+    when(() => tournamentBloc.state).thenReturn(const TournamentState());
+    when(() => profileBloc.state).thenReturn(const ProfileState());
+    when(() => dashboardBloc.state).thenReturn(
+      const DashboardState(
+        viewStatus: ViewStatus.success,
+        stats: DashboardStats(
+          tournamentsJoined: 0,
+          finishedTournaments: 0,
+          championCount: 0,
+          runnerUpCount: 0,
+          lastChampionAt: null,
+          recentMatches: [],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        groupBloc: groupBloc,
+        tournamentBloc: tournamentBloc,
+        profileBloc: profileBloc,
+        dashboardBloc: dashboardBloc,
+        ongoingBloc: ongoingBloc,
+        initialTabIndex: 99,
+      ),
+    );
+
+    expect(find.byType(NavigationDestination), findsNWidgets(4));
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      3,
+    );
+    verify(() => profileBloc.add(any(that: isA<LoadProfileEvent>()))).called(1);
   });
 }
