@@ -14,8 +14,7 @@ import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/widgets/replace_participant_dialog.dart';
 
-class _MockGroupDetailBloc
-    extends MockBloc<GroupDetailEvent, GroupDetailState>
+class _MockGroupDetailBloc extends MockBloc<GroupDetailEvent, GroupDetailState>
     implements GroupDetailBloc {}
 
 class _MockLeagueRepo extends Mock implements EsportLeagueRepository {}
@@ -34,17 +33,17 @@ GNUser _user(String id, {String name = '', bool isPlaceholder = false}) =>
     );
 
 GNEsportLeagueStat _stat(String userId, {GNUser? user}) => GNEsportLeagueStat(
-      id: 'S_$userId',
-      userId: userId,
-      leagueId: 'L1',
-      matchesPlayed: 0,
-      goals: 0,
-      goalsConceded: 0,
-      wins: 0,
-      draws: 0,
-      losses: 0,
-      user: user ?? _user(userId),
-    );
+  id: 'S_$userId',
+  userId: userId,
+  leagueId: 'L1',
+  matchesPlayed: 0,
+  goals: 0,
+  goalsConceded: 0,
+  wins: 0,
+  draws: 0,
+  losses: 0,
+  user: user ?? _user(userId),
+);
 
 GNEsportLeague _league({List<String> participants = const ['p1']}) =>
     GNEsportLeague(
@@ -59,26 +58,25 @@ GNEsportLeague _league({List<String> participants = const ['p1']}) =>
     );
 
 GNEsportGroup _group() => GNEsportGroup(
-      id: 'G1',
-      groupName: 'Group',
-      ownerId: 'owner',
-      members: const ['owner', 'p1', 'p2'],
-      description: '',
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-      status: 'active',
-    );
+  id: 'G1',
+  groupName: 'Group',
+  ownerId: 'owner',
+  members: const ['owner', 'p1', 'p2'],
+  description: '',
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+  status: 'active',
+);
 
 // currentUserId = 'owner' → isOwner = true (matches group.ownerId)
 GroupDetailState _state({
   ViewStatus replaceParticipantStatus = ViewStatus.initial,
   String? currentUserId = 'owner',
-}) =>
-    GroupDetailState(
-      group: _group(),
-      replaceParticipantStatus: replaceParticipantStatus,
-      currentUserId: currentUserId,
-    );
+}) => GroupDetailState(
+  group: _group(),
+  replaceParticipantStatus: replaceParticipantStatus,
+  currentUserId: currentUserId,
+);
 
 Widget _wrap({
   required GroupDetailBloc bloc,
@@ -126,25 +124,32 @@ void main() {
     leagueRepo = _MockLeagueRepo();
   });
 
-  Future<void> openDialog(WidgetTester tester,
-      {GNEsportLeague? league, List<GNUser>? members}) async {
+  Future<void> openDialog(
+    WidgetTester tester, {
+    GNEsportLeague? league,
+    List<GNUser>? members,
+  }) async {
     when(() => bloc.state).thenReturn(_state());
     when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
-    when(() => leagueRepo.getLeagueStats('L1'))
-        .thenAnswer((_) async => [_stat('p1'), _stat('p2')]);
+    when(
+      () => leagueRepo.getLeagueStats('L1'),
+    ).thenAnswer((_) async => [_stat('p1'), _stat('p2')]);
 
-    await tester.pumpWidget(_wrap(
-      bloc: bloc,
-      league: league ?? _league(),
-      groupMembers: members ?? [_user('p1'), _user('p2', name: 'Player 2')],
-      leagueRepo: leagueRepo,
-    ));
+    await tester.pumpWidget(
+      _wrap(
+        bloc: bloc,
+        league: league ?? _league(),
+        groupMembers: members ?? [_user('p1'), _user('p2', name: 'Player 2')],
+        leagueRepo: leagueRepo,
+      ),
+    );
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
   }
 
-  testWidgets('step 1: hiển thị tiêu đề và danh sách participants',
-      (tester) async {
+  testWidgets('step 1: hiển thị tiêu đề và danh sách participants', (
+    tester,
+  ) async {
     await openDialog(tester);
 
     expect(find.text('Chọn người cần thay'), findsOneWidget);
@@ -175,11 +180,10 @@ void main() {
     expect(find.text('Xác nhận'), findsOneWidget);
   });
 
-  testWidgets('hiện cảnh báo merge khi newUser đã có trong giải', (tester) async {
-    await openDialog(
-      tester,
-      league: _league(participants: ['p1', 'p2']),
-    );
+  testWidgets('hiện cảnh báo merge khi newUser đã có trong giải', (
+    tester,
+  ) async {
+    await openDialog(tester, league: _league(participants: ['p1', 'p2']));
 
     await tester.tap(find.text('User p1'));
     await tester.pumpAndSettle();
@@ -188,17 +192,16 @@ void main() {
 
     expect(
       find.text(
-          'Người này đã có trong giải. Thống kê của 2 người sẽ được cộng gộp lại.'),
+        'Người này đã có trong giải. Thống kê của 2 người sẽ được cộng gộp lại.',
+      ),
       findsOneWidget,
     );
   });
 
-  testWidgets('không hiện cảnh báo merge khi newUser chưa có trong giải',
-      (tester) async {
-    await openDialog(
-      tester,
-      league: _league(participants: ['p1']),
-    );
+  testWidgets('không hiện cảnh báo merge khi newUser chưa có trong giải', (
+    tester,
+  ) async {
+    await openDialog(tester, league: _league(participants: ['p1']));
 
     await tester.tap(find.text('User p1'));
     await tester.pumpAndSettle();
@@ -207,7 +210,8 @@ void main() {
 
     expect(
       find.text(
-          'Người này đã có trong giải. Thống kê của 2 người sẽ được cộng gộp lại.'),
+        'Người này đã có trong giải. Thống kê của 2 người sẽ được cộng gộp lại.',
+      ),
       findsNothing,
     );
   });
@@ -224,8 +228,9 @@ void main() {
     expect(find.text('Chọn người cần thay'), findsOneWidget);
   });
 
-  testWidgets('dispatch ReplaceLeagueParticipant khi bấm Xác nhận',
-      (tester) async {
+  testWidgets('dispatch ReplaceLeagueParticipant khi bấm Xác nhận', (
+    tester,
+  ) async {
     when(() => bloc.add(any())).thenReturn(null);
 
     await openDialog(tester);
@@ -237,27 +242,39 @@ void main() {
     await tester.tap(find.text('Xác nhận'));
     await tester.pumpAndSettle();
 
-    verify(() => bloc.add(const ReplaceLeagueParticipant(
+    verify(
+      () => bloc.add(
+        const ReplaceLeagueParticipant(
           leagueId: 'L1',
           oldUserId: 'p1',
           newUserId: 'p2',
-        ))).called(1);
+        ),
+      ),
+    ).called(1);
   });
 
-  testWidgets('hiển thị loading khi replaceParticipantStatus là loading',
-      (tester) async {
-    when(() => bloc.state)
-        .thenReturn(_state(replaceParticipantStatus: ViewStatus.loading));
+  testWidgets('hiển thị loading khi replaceParticipantStatus là loading', (
+    tester,
+  ) async {
+    when(
+      () => bloc.state,
+    ).thenReturn(_state(replaceParticipantStatus: ViewStatus.loading));
     when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
-    when(() => leagueRepo.getLeagueStats('L1'))
-        .thenAnswer((_) async => [_stat('p1'), _stat('p2')]);
+    when(
+      () => leagueRepo.getLeagueStats('L1'),
+    ).thenAnswer((_) async => [_stat('p1'), _stat('p2')]);
 
-    await tester.pumpWidget(_wrap(
-      bloc: bloc,
-      league: _league(),
-      groupMembers: [_user('p1'), _user('p2', name: 'Player 2')],
-      leagueRepo: leagueRepo,
-    ));
+    await tester.pumpWidget(
+      _wrap(
+        bloc: bloc,
+        league: _league(),
+        groupMembers: [
+          _user('p1'),
+          _user('p2', name: 'Player 2'),
+        ],
+        leagueRepo: leagueRepo,
+      ),
+    );
     await tester.tap(find.text('Open'));
     await tester.pump();
     await tester.pump();

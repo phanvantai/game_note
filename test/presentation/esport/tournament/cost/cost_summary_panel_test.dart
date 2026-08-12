@@ -31,13 +31,13 @@ GNEsportLeague _league({
 }
 
 GNUser _user(String id, String name) => GNUser(
-      id: id,
-      displayName: name,
-      phoneNumber: null,
-      email: null,
-      photoUrl: null,
-      role: 'user',
-    );
+  id: id,
+  displayName: name,
+  phoneNumber: null,
+  email: null,
+  photoUrl: null,
+  role: 'user',
+);
 
 GNEsportLeagueStat _stat(
   String userId,
@@ -94,9 +94,7 @@ GNEsportMatch _match({
 
 Widget _wrap(Widget child) {
   return MaterialApp(
-    home: Scaffold(
-      body: SingleChildScrollView(child: child),
-    ),
+    home: Scaffold(body: SingleChildScrollView(child: child)),
   );
 }
 
@@ -104,226 +102,302 @@ void main() {
   testWidgets(
     'render SizedBox rỗng khi không có rank payout và không có match cost',
     (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(),
-        sortedStats: [_stat('A', 'Alice')],
-        matches: const [],
-      )));
+      await tester.pumpWidget(
+        _wrap(
+          CostSummaryPanel(
+            league: _league(),
+            sortedStats: [_stat('A', 'Alice')],
+            matches: const [],
+          ),
+        ),
+      );
 
       expect(find.text('Chi phí'), findsNothing);
     },
   );
 
-  testWidgets(
-    'render rank section khi rankPayoutEnabled = true',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [50000, 100000],
-          status: 'ongoing',
+  testWidgets('render rank section khi rankPayoutEnabled = true', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [50000, 100000],
+            status: 'ongoing',
+          ),
+          sortedStats: [
+            _stat('A', 'Alice', wins: 2),
+            _stat('B', 'Bob', wins: 1),
+            _stat('C', 'Charlie'),
+          ],
+          matches: const [],
         ),
-        sortedStats: [
-          _stat('A', 'Alice', wins: 2),
-          _stat('B', 'Bob', wins: 1),
-          _stat('C', 'Charlie'),
-        ],
-        matches: const [],
-      )));
+      ),
+    );
 
-      expect(find.text('Chi phí'), findsOneWidget);
-      // 2 transfer (B → A: 50k, C → A: 100k)
-      expect(find.text('50k'), findsOneWidget);
-      expect(find.text('100k'), findsOneWidget);
-      // Net section
-      expect(find.text('Tổng ròng'), findsOneWidget);
-      // Alice nhận tổng 150k
-      expect(find.text('+150k'), findsOneWidget);
-    },
-  );
+    expect(find.text('Chi phí'), findsOneWidget);
+    // 2 transfer (B → A: 50k, C → A: 100k)
+    expect(find.text('50k'), findsOneWidget);
+    expect(find.text('100k'), findsOneWidget);
+    // Net section
+    expect(find.text('Tổng ròng'), findsOneWidget);
+    // Alice nhận tổng 150k
+    expect(find.text('+150k'), findsOneWidget);
+  });
 
-  testWidgets(
-    'render match cost section khi có match có cost > 0',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(),
-        sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
-        matches: [
-          _match(home: 'A', away: 'B', homeScore: 2, awayScore: 0,
-              matchCost: 50000),
-        ],
-      )));
-
-      expect(find.text('Chi phí'), findsOneWidget);
-      expect(find.text('50k'), findsOneWidget);
-      expect(find.text('+50k'), findsOneWidget);
-      expect(find.text('-50k'), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'hiện "(tạm tính)" khi giải chưa kết thúc',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [50000],
-          status: 'ongoing',
+  testWidgets('render match cost section khi có match có cost > 0', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(),
+          sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
+          matches: [
+            _match(
+              home: 'A',
+              away: 'B',
+              homeScore: 2,
+              awayScore: 0,
+              matchCost: 50000,
+            ),
+          ],
         ),
-        sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
-        matches: const [],
-      )));
+      ),
+    );
 
-      expect(find.text('(tạm tính)'), findsOneWidget);
-    },
-  );
+    expect(find.text('Chi phí'), findsOneWidget);
+    expect(find.text('50k'), findsOneWidget);
+    expect(find.text('+50k'), findsOneWidget);
+    expect(find.text('-50k'), findsOneWidget);
+  });
 
-  testWidgets(
-    'ẩn "(tạm tính)" khi giải đã finished',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [50000],
-          status: GNEsportLeagueStatus.finished.value,
+  testWidgets('hiện "(tạm tính)" khi giải chưa kết thúc', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [50000],
+            status: 'ongoing',
+          ),
+          sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
+          matches: const [],
         ),
-        sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
-        matches: const [],
-      )));
+      ),
+    );
 
-      expect(find.text('(tạm tính)'), findsNothing);
-      expect(find.text('Chi phí'), findsOneWidget);
-    },
-  );
+    expect(find.text('(tạm tính)'), findsOneWidget);
+  });
 
-  testWidgets(
-    'hiện "Chưa có khoản nào" khi rank payout bật nhưng < 2 người',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [50000],
-          status: 'ongoing',
+  testWidgets('ẩn "(tạm tính)" khi giải đã finished', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [50000],
+            status: GNEsportLeagueStatus.finished.value,
+          ),
+          sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
+          matches: const [],
         ),
-        sortedStats: [_stat('A', 'Alice')],
-        matches: const [],
-      )));
+      ),
+    );
 
-      expect(find.text('Chưa có khoản nào'), findsOneWidget);
-      // Section "Tổng ròng" cũng không hiện vì không có transfer
-      expect(find.text('Tổng ròng'), findsNothing);
-    },
-  );
+    expect(find.text('(tạm tính)'), findsNothing);
+    expect(find.text('Chi phí'), findsOneWidget);
+  });
 
-  testWidgets(
-    'không render khi tất cả match có matchCost null/0',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(),
-        sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
-        matches: [
-          _match(home: 'A', away: 'B', homeScore: 1, awayScore: 0),
-          _match(
-              home: 'A', away: 'B', homeScore: 1, awayScore: 0, matchCost: 0),
-        ],
-      )));
-
-      expect(find.text('Chi phí'), findsNothing);
-    },
-  );
-
-  testWidgets(
-    'rank + match cost cộng dồn vào net per-user',
-    (tester) async {
-      // Alice rank 1 (nhận 50k từ B). B thắng A 1 trận với cost 30k.
-      // Net Alice: +50k -30k = +20k
-      // Net Bob: -50k +30k = -20k
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [50000],
-          status: GNEsportLeagueStatus.finished.value,
+  testWidgets('hiện "Chưa có khoản nào" khi rank payout bật nhưng < 2 người', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [50000],
+            status: 'ongoing',
+          ),
+          sortedStats: [_stat('A', 'Alice')],
+          matches: const [],
         ),
-        sortedStats: [
-          _stat('A', 'Alice', wins: 1),
-          _stat('B', 'Bob', wins: 1),
-        ],
-        matches: [
-          _match(home: 'B', away: 'A', homeScore: 2, awayScore: 0,
-              matchCost: 30000),
-        ],
-      )));
+      ),
+    );
 
-      expect(find.text('+20k'), findsOneWidget);
-      expect(find.text('-20k'), findsOneWidget);
-    },
-  );
+    expect(find.text('Chưa có khoản nào'), findsOneWidget);
+    // Section "Tổng ròng" cũng không hiện vì không có transfer
+    expect(find.text('Tổng ròng'), findsNothing);
+  });
 
-  testWidgets(
-    'bracket mode: bracketRankPayouts tính từ knockout matches',
-    (tester) async {
-      // Cup 4 người: semi(r=0) → final(r=1). Champion=A, runner-up=B, losers C,D
-      final knockoutMatches = [
-        _match(home: 'A', away: 'C', homeScore: 2, awayScore: 0, knockoutRound: 0,
-            homeTeam: _user('A', 'Alice'), awayTeam: _user('C', 'Charlie')),
-        _match(home: 'B', away: 'D', homeScore: 1, awayScore: 0, knockoutRound: 0,
-            homeTeam: _user('B', 'Bob'), awayTeam: _user('D', 'Dave')),
-        _match(home: 'A', away: 'B', homeScore: 2, awayScore: 1, knockoutRound: 1,
-            homeTeam: _user('A', 'Alice'), awayTeam: _user('B', 'Bob')),
-      ];
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(rankPayoutEnabled: true, rankPayouts: [100000, 50000]),
-        sortedStats: const [],
-        matches: const [],
-        isBracketMode: true,
-        knockoutMatches: knockoutMatches,
-      )));
+  testWidgets('không render khi tất cả match có matchCost null/0', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(),
+          sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
+          matches: [
+            _match(home: 'A', away: 'B', homeScore: 1, awayScore: 0),
+            _match(
+              home: 'A',
+              away: 'B',
+              homeScore: 1,
+              awayScore: 0,
+              matchCost: 0,
+            ),
+          ],
+        ),
+      ),
+    );
 
-      expect(find.text('Chi phí'), findsOneWidget);
-      // Runner-up (B=Bob) trả 100k
-      expect(find.text('100k'), findsOneWidget);
-      // Semi-losers C,D trả 50k mỗi người → 2 dòng 50k
-      expect(find.text('50k'), findsNWidgets(2));
-    },
-  );
+    expect(find.text('Chi phí'), findsNothing);
+  });
 
-  testWidgets(
-    'bracket mode: final chưa xong → không có transfer rank',
-    (tester) async {
-      final knockoutMatches = [
-        _match(home: 'A', away: 'B', homeScore: null, awayScore: null,
-            isFinished: false, knockoutRound: 0),
-      ];
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(rankPayoutEnabled: true, rankPayouts: [100000]),
-        sortedStats: const [],
-        matches: const [],
-        isBracketMode: true,
-        knockoutMatches: knockoutMatches,
-      )));
+  testWidgets('rank + match cost cộng dồn vào net per-user', (tester) async {
+    // Alice rank 1 (nhận 50k từ B). B thắng A 1 trận với cost 30k.
+    // Net Alice: +50k -30k = +20k
+    // Net Bob: -50k +30k = -20k
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [50000],
+            status: GNEsportLeagueStatus.finished.value,
+          ),
+          sortedStats: [
+            _stat('A', 'Alice', wins: 1),
+            _stat('B', 'Bob', wins: 1),
+          ],
+          matches: [
+            _match(
+              home: 'B',
+              away: 'A',
+              homeScore: 2,
+              awayScore: 0,
+              matchCost: 30000,
+            ),
+          ],
+        ),
+      ),
+    );
 
-      expect(find.text('Chưa có khoản nào'), findsOneWidget);
-    },
-  );
+    expect(find.text('+20k'), findsOneWidget);
+    expect(find.text('-20k'), findsOneWidget);
+  });
+
+  testWidgets('bracket mode: bracketRankPayouts tính từ knockout matches', (
+    tester,
+  ) async {
+    // Cup 4 người: semi(r=0) → final(r=1). Champion=A, runner-up=B, losers C,D
+    final knockoutMatches = [
+      _match(
+        home: 'A',
+        away: 'C',
+        homeScore: 2,
+        awayScore: 0,
+        knockoutRound: 0,
+        homeTeam: _user('A', 'Alice'),
+        awayTeam: _user('C', 'Charlie'),
+      ),
+      _match(
+        home: 'B',
+        away: 'D',
+        homeScore: 1,
+        awayScore: 0,
+        knockoutRound: 0,
+        homeTeam: _user('B', 'Bob'),
+        awayTeam: _user('D', 'Dave'),
+      ),
+      _match(
+        home: 'A',
+        away: 'B',
+        homeScore: 2,
+        awayScore: 1,
+        knockoutRound: 1,
+        homeTeam: _user('A', 'Alice'),
+        awayTeam: _user('B', 'Bob'),
+      ),
+    ];
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: [100000, 50000],
+          ),
+          sortedStats: const [],
+          matches: const [],
+          isBracketMode: true,
+          knockoutMatches: knockoutMatches,
+        ),
+      ),
+    );
+
+    expect(find.text('Chi phí'), findsOneWidget);
+    // Runner-up (B=Bob) trả 100k
+    expect(find.text('100k'), findsOneWidget);
+    // Semi-losers C,D trả 50k mỗi người → 2 dòng 50k
+    expect(find.text('50k'), findsNWidgets(2));
+  });
+
+  testWidgets('bracket mode: final chưa xong → không có transfer rank', (
+    tester,
+  ) async {
+    final knockoutMatches = [
+      _match(
+        home: 'A',
+        away: 'B',
+        homeScore: null,
+        awayScore: null,
+        isFinished: false,
+        knockoutRound: 0,
+      ),
+    ];
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(rankPayoutEnabled: true, rankPayouts: [100000]),
+          sortedStats: const [],
+          matches: const [],
+          isBracketMode: true,
+          knockoutMatches: knockoutMatches,
+        ),
+      ),
+    );
+
+    expect(find.text('Chưa có khoản nào'), findsOneWidget);
+  });
 
   testWidgets(
     'tách 2 sub-section "Theo thứ hạng" và "Theo trận" khi cả hai cùng có dữ liệu',
     (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [50000],
-          status: GNEsportLeagueStatus.finished.value,
+      await tester.pumpWidget(
+        _wrap(
+          CostSummaryPanel(
+            league: _league(
+              rankPayoutEnabled: true,
+              rankPayouts: const [50000],
+              status: GNEsportLeagueStatus.finished.value,
+            ),
+            sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
+            matches: [
+              _match(
+                home: 'B',
+                away: 'A',
+                homeScore: 0,
+                awayScore: 2,
+                matchCost: 30000,
+              ),
+            ],
+          ),
         ),
-        sortedStats: [
-          _stat('A', 'Alice', wins: 1),
-          _stat('B', 'Bob'),
-        ],
-        matches: [
-          _match(home: 'B', away: 'A', homeScore: 0, awayScore: 2,
-              matchCost: 30000),
-        ],
-      )));
+      );
 
       expect(find.text('Theo thứ hạng'), findsOneWidget);
       expect(find.text('Theo trận'), findsOneWidget);
@@ -333,81 +407,101 @@ void main() {
     },
   );
 
-  testWidgets(
-    'chỉ rank ⇒ không hiện heading "Theo trận"',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [50000],
-          status: 'ongoing',
+  testWidgets('chỉ rank ⇒ không hiện heading "Theo trận"', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [50000],
+            status: 'ongoing',
+          ),
+          sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
+          matches: const [],
         ),
-        sortedStats: [
-          _stat('A', 'Alice', wins: 1),
-          _stat('B', 'Bob'),
-        ],
-        matches: const [],
-      )));
+      ),
+    );
 
-      expect(find.text('Theo thứ hạng'), findsOneWidget);
-      expect(find.text('Theo trận'), findsNothing);
-    },
-  );
+    expect(find.text('Theo thứ hạng'), findsOneWidget);
+    expect(find.text('Theo trận'), findsNothing);
+  });
 
-  testWidgets(
-    'chỉ match cost ⇒ không hiện heading "Theo thứ hạng"',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(),
-        sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
-        matches: [
-          _match(home: 'A', away: 'B', homeScore: 1, awayScore: 0,
-              matchCost: 50000),
-        ],
-      )));
+  testWidgets('chỉ match cost ⇒ không hiện heading "Theo thứ hạng"', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(),
+          sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
+          matches: [
+            _match(
+              home: 'A',
+              away: 'B',
+              homeScore: 1,
+              awayScore: 0,
+              matchCost: 50000,
+            ),
+          ],
+        ),
+      ),
+    );
 
-      expect(find.text('Theo thứ hạng'), findsNothing);
-      expect(find.text('Theo trận'), findsOneWidget);
-    },
-  );
+    expect(find.text('Theo thứ hạng'), findsNothing);
+    expect(find.text('Theo trận'), findsOneWidget);
+  });
 
-  testWidgets(
-    'bracket mode ⇒ heading section là "Theo bracket"',
-    (tester) async {
-      final knockoutMatches = [
-        _match(home: 'A', away: 'B', homeScore: 2, awayScore: 1, knockoutRound: 0,
-            homeTeam: _user('A', 'Alice'), awayTeam: _user('B', 'Bob')),
-      ];
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(rankPayoutEnabled: true, rankPayouts: [100000]),
-        sortedStats: const [],
-        matches: const [],
-        isBracketMode: true,
-        knockoutMatches: knockoutMatches,
-      )));
+  testWidgets('bracket mode ⇒ heading section là "Theo bracket"', (
+    tester,
+  ) async {
+    final knockoutMatches = [
+      _match(
+        home: 'A',
+        away: 'B',
+        homeScore: 2,
+        awayScore: 1,
+        knockoutRound: 0,
+        homeTeam: _user('A', 'Alice'),
+        awayTeam: _user('B', 'Bob'),
+      ),
+    ];
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(rankPayoutEnabled: true, rankPayouts: [100000]),
+          sortedStats: const [],
+          matches: const [],
+          isBracketMode: true,
+          knockoutMatches: knockoutMatches,
+        ),
+      ),
+    );
 
-      expect(find.text('Theo bracket'), findsOneWidget);
-      expect(find.text('Theo thứ hạng'), findsNothing);
-    },
-  );
+    expect(find.text('Theo bracket'), findsOneWidget);
+    expect(find.text('Theo thứ hạng'), findsNothing);
+  });
 
   testWidgets(
     'per-goal addon: 3-1 với base 50k + perGoal 50k → loser trả 150k',
     (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(),
-        sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
-        matches: [
-          _match(
-            home: 'A',
-            away: 'B',
-            homeScore: 3,
-            awayScore: 1,
-            matchCost: 50000,
-            costPerGoal: 50000,
+      await tester.pumpWidget(
+        _wrap(
+          CostSummaryPanel(
+            league: _league(),
+            sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
+            matches: [
+              _match(
+                home: 'A',
+                away: 'B',
+                homeScore: 3,
+                awayScore: 1,
+                matchCost: 50000,
+                costPerGoal: 50000,
+              ),
+            ],
           ),
-        ],
-      )));
+        ),
+      );
 
       expect(find.text('150k'), findsOneWidget);
       expect(find.text('+150k'), findsOneWidget);
@@ -415,86 +509,99 @@ void main() {
     },
   );
 
-  testWidgets(
-    'fallback display name khi user là null (đề phòng dữ liệu cũ)',
-    (tester) async {
-      // sortedStat KHÔNG có user attached → fallback
-      final stats = [
-        GNEsportLeagueStat(
-          id: 'S_X',
-          userId: 'X',
-          leagueId: 'L1',
-          matchesPlayed: 1,
-          goals: 1,
-          goalsConceded: 0,
-          wins: 1,
-          draws: 0,
-          losses: 0,
+  testWidgets('fallback display name khi user là null (đề phòng dữ liệu cũ)', (
+    tester,
+  ) async {
+    // sortedStat KHÔNG có user attached → fallback
+    final stats = [
+      GNEsportLeagueStat(
+        id: 'S_X',
+        userId: 'X',
+        leagueId: 'L1',
+        matchesPlayed: 1,
+        goals: 1,
+        goalsConceded: 0,
+        wins: 1,
+        draws: 0,
+        losses: 0,
+      ),
+      GNEsportLeagueStat(
+        id: 'S_Y',
+        userId: 'Y',
+        leagueId: 'L1',
+        matchesPlayed: 1,
+        goals: 0,
+        goalsConceded: 1,
+        wins: 0,
+        draws: 0,
+        losses: 1,
+      ),
+    ];
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [50000],
+            status: GNEsportLeagueStatus.finished.value,
+          ),
+          sortedStats: stats,
+          matches: const [],
         ),
-        GNEsportLeagueStat(
-          id: 'S_Y',
-          userId: 'Y',
-          leagueId: 'L1',
-          matchesPlayed: 1,
-          goals: 0,
-          goalsConceded: 1,
-          wins: 0,
-          draws: 0,
-          losses: 1,
+      ),
+    );
+
+    // Hai dòng "Người chơi" (placeholder name) — ít nhất 2.
+    expect(find.text('Người chơi'), findsAtLeastNWidgets(2));
+  });
+
+  testWidgets('format amount round half-up: 49,500 → 50k (không phải 49k)', (
+    tester,
+  ) async {
+    // Pre-fix: truncate ~/ 1000 → 49k. Sau fix: round half-up → 50k.
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [49500],
+            status: 'finished',
+          ),
+          sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
+          matches: const [],
         ),
-      ];
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [50000],
-          status: GNEsportLeagueStatus.finished.value,
+      ),
+    );
+
+    expect(
+      find.text('50k'),
+      findsOneWidget,
+      reason: '49,500 phải round lên 50k',
+    );
+    expect(
+      find.text('49k'),
+      findsNothing,
+      reason: 'không được hiện 49k cho 49,500',
+    );
+  });
+
+  testWidgets('format amount round half-up: 49,499 → 49k', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        CostSummaryPanel(
+          league: _league(
+            rankPayoutEnabled: true,
+            rankPayouts: const [49499],
+            status: 'finished',
+          ),
+          sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
+          matches: const [],
         ),
-        sortedStats: stats,
-        matches: const [],
-      )));
+      ),
+    );
 
-      // Hai dòng "Người chơi" (placeholder name) — ít nhất 2.
-      expect(find.text('Người chơi'), findsAtLeastNWidgets(2));
-    },
-  );
-
-  testWidgets(
-    'format amount round half-up: 49,500 → 50k (không phải 49k)',
-    (tester) async {
-      // Pre-fix: truncate ~/ 1000 → 49k. Sau fix: round half-up → 50k.
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [49500],
-          status: 'finished',
-        ),
-        sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
-        matches: const [],
-      )));
-
-      expect(find.text('50k'), findsOneWidget,
-          reason: '49,500 phải round lên 50k');
-      expect(find.text('49k'), findsNothing,
-          reason: 'không được hiện 49k cho 49,500');
-    },
-  );
-
-  testWidgets(
-    'format amount round half-up: 49,499 → 49k',
-    (tester) async {
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(
-          rankPayoutEnabled: true,
-          rankPayouts: const [49499],
-          status: 'finished',
-        ),
-        sortedStats: [_stat('A', 'Alice', wins: 1), _stat('B', 'Bob')],
-        matches: const [],
-      )));
-
-      expect(find.text('49k'), findsOneWidget);
-    },
-  );
+    expect(find.text('49k'), findsOneWidget);
+  });
 
   testWidgets(
     'hasMatchCost filter unfinished: trận chưa đá xong → không show section',
@@ -503,23 +610,30 @@ void main() {
       // → panel render với section "Theo trận" trống.
       // Sau fix: cần isFinished mới count → panel ẩn hoàn toàn nếu rank cũng
       // disabled.
-      await tester.pumpWidget(_wrap(CostSummaryPanel(
-        league: _league(), // rankPayoutEnabled = false
-        sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
-        matches: [
-          _match(
-            home: 'A',
-            away: 'B',
-            homeScore: null,
-            awayScore: null,
-            isFinished: false,
-            matchCost: 50000,
+      await tester.pumpWidget(
+        _wrap(
+          CostSummaryPanel(
+            league: _league(), // rankPayoutEnabled = false
+            sortedStats: [_stat('A', 'Alice'), _stat('B', 'Bob')],
+            matches: [
+              _match(
+                home: 'A',
+                away: 'B',
+                homeScore: null,
+                awayScore: null,
+                isFinished: false,
+                matchCost: 50000,
+              ),
+            ],
           ),
-        ],
-      )));
+        ),
+      );
 
-      expect(find.text('Chi phí'), findsNothing,
-          reason: 'không trận nào đã finished + rank tắt → ẩn panel');
+      expect(
+        find.text('Chi phí'),
+        findsNothing,
+        reason: 'không trận nào đã finished + rank tắt → ẩn panel',
+      );
     },
   );
 }
