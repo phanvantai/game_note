@@ -97,7 +97,15 @@ void main() {
     ),
   );
 
-  testWidgets('render đầy đủ các metric trong section Tổng quan', (
+  Future<void> scrollToHeadToHead(WidgetTester tester) {
+    return tester.scrollUntilVisible(
+      find.text('Đối đầu'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+  }
+
+  testWidgets('render approved summary sections without overview or chart', (
     tester,
   ) async {
     when(() => bloc.state).thenReturn(
@@ -114,25 +122,31 @@ void main() {
 
     await tester.pumpWidget(wrap());
 
-    // Labels
-    expect(find.text('Số giải tham gia'), findsOneWidget);
-    expect(find.text('Số trận'), findsOneWidget);
+    expect(find.text('Tỉ lệ vô địch'), findsOneWidget);
+    expect(find.text('Tỉ lệ á quân'), findsOneWidget);
     expect(find.text('Vô địch gần nhất'), findsOneWidget);
-    expect(find.text('Thắng / Hoà / Thua'), findsOneWidget);
-    expect(find.text('Tỉ lệ T / H / T'), findsOneWidget);
-    expect(find.text('BT / BB / Hiệu số'), findsOneWidget);
-    expect(find.text('Vô địch'), findsOneWidget);
-    expect(find.text('Á quân'), findsOneWidget);
 
-    // Computed values
-    expect(find.text('12'), findsOneWidget); // joined
-    expect(find.text('106'), findsOneWidget); // matches
-    expect(find.text('60 / 20 / 26'), findsOneWidget); // W/D/L counts
-    expect(find.text('57% / 19% / 25%'), findsOneWidget); // W/D/L pct (rounded)
-    expect(find.text('180 / 90 / +90'), findsOneWidget); // goals diff
-    expect(find.text('39 - 37%'), findsOneWidget); // champion 39/105
-    expect(find.text('22 - 21%'), findsOneWidget); // runner-up 22/105
-    expect(find.text('03/05/2026'), findsOneWidget); // last champion date
+    await scrollToHeadToHead(tester);
+    expect(find.text('Đối đầu'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Phong độ 10 trận gần nhất'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Phong độ 10 trận gần nhất'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Trận gần đây'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Trận gần đây'), findsOneWidget);
+
+    expect(find.text('Tổng quan'), findsNothing);
+    expect(find.text('Số giải tham gia'), findsNothing);
+    expect(find.text('Số trận'), findsNothing);
+    expect(find.text('Thắng / Hoà / Thua'), findsNothing);
+    expect(find.text('Tỉ lệ T / H / T'), findsNothing);
+    expect(find.text('BT / BB / Hiệu số'), findsNothing);
   });
 
   testWidgets('hiển thị "—" khi chưa đấu trận / chưa kết thúc giải nào', (
@@ -154,19 +168,11 @@ void main() {
 
     await tester.pumpWidget(wrap());
 
-    expect(find.text('— / — / —'), findsOneWidget); // win-rate row
-    expect(find.text('0 - —'), findsNWidgets(2)); // champion + runner-up
-    // 1 lastChampionAt + 2 H2H rows (no opponents qualify).
     expect(find.text('—'), findsNWidgets(3));
+    await scrollToHeadToHead(tester);
+    expect(find.text('—'), findsNWidgets(5));
     // Empty H2H placeholder hint.
     expect(find.textContaining('Cần ≥ 50 trận'), findsNWidgets(2));
-    // Scroll to reveal chart placeholder + recent-matches section.
-    await tester.scrollUntilVisible(
-      find.text('Chưa đủ dữ liệu để vẽ biểu đồ'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('Chưa đủ dữ liệu để vẽ biểu đồ'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Trận gần đây'),
       300,
@@ -174,28 +180,6 @@ void main() {
     );
     // FormDotsRow shows its own empty placeholder; detail page adds one.
     expect(find.text('Chưa có trận nào'), findsNWidgets(2));
-  });
-
-  testWidgets('hiệu số 0 không hiển thị dấu cộng', (tester) async {
-    when(() => bloc.state).thenReturn(
-      DashboardState(
-        viewStatus: ViewStatus.success,
-        stats: _stats(goals: 50, goalsConceded: 50),
-      ),
-    );
-    await tester.pumpWidget(wrap());
-    expect(find.text('50 / 50 / 0'), findsOneWidget);
-  });
-
-  testWidgets('hiệu số âm hiển thị dấu trừ', (tester) async {
-    when(() => bloc.state).thenReturn(
-      DashboardState(
-        viewStatus: ViewStatus.success,
-        stats: _stats(goals: 30, goalsConceded: 50),
-      ),
-    );
-    await tester.pumpWidget(wrap());
-    expect(find.text('30 / 50 / -20'), findsOneWidget);
   });
 
   testWidgets('loading + null stats render shimmer skeleton', (tester) async {
@@ -360,6 +344,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(wrap());
+    await scrollToHeadToHead(tester);
     expect(find.text('Đối đầu'), findsOneWidget);
     expect(find.text('KHẮC TINH'), findsOneWidget);
     expect(find.text('MỒI NGON'), findsOneWidget);
@@ -393,6 +378,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(wrap());
+    await scrollToHeadToHead(tester);
 
     final viewAllButton = tester.widget<OutlinedButton>(
       find.widgetWithText(OutlinedButton, 'Xem tất cả đối thủ'),
@@ -425,6 +411,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(wrap());
+    await scrollToHeadToHead(tester);
 
     expect(find.text('Bob Smith'), findsWidgets);
     expect(find.text('BS'), findsNothing);
@@ -451,6 +438,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(wrap());
+    await scrollToHeadToHead(tester);
 
     expect(find.text('?'), findsNWidgets(2));
   });
@@ -476,6 +464,7 @@ void main() {
         ),
       );
       await tester.pumpWidget(wrap());
+      await scrollToHeadToHead(tester);
       // 2 H2H rows show "—" và placeholder hint.
       expect(find.text('—'), findsNWidgets(2));
       expect(find.textContaining('Cần ≥ 50 trận'), findsNWidgets(2));
@@ -503,6 +492,7 @@ void main() {
       ),
     );
     await tester.pumpWidget(wrap());
+    await scrollToHeadToHead(tester);
     expect(find.text('(≥ 50 trận)'), findsOneWidget);
     expect(find.text('Andy'), findsAtLeastNWidgets(1));
     expect(find.text('24 / 60 trận thắng'), findsOneWidget);
@@ -532,6 +522,7 @@ void main() {
       DashboardState(viewStatus: ViewStatus.success, stats: _stats()),
     );
     await tester.pumpWidget(wrap());
+    await scrollToHeadToHead(tester);
     await tester.tap(find.byIcon(Icons.tune));
     await tester.pumpAndSettle();
     await tester.drag(find.byType(Slider), const Offset(500, 0));
@@ -555,6 +546,7 @@ void main() {
       DashboardState(viewStatus: ViewStatus.success, stats: _stats()),
     );
     await tester.pumpWidget(wrap());
+    await scrollToHeadToHead(tester);
     expect(find.text('(≥ 50 trận)'), findsOneWidget);
     expect(find.textContaining('Cần ≥ 50 trận'), findsNWidgets(2));
   });
@@ -602,54 +594,6 @@ void main() {
       minMatches: 20,
     );
     expect(result, isNull);
-  });
-
-  testWidgets(
-    'render section "Phong độ 5 giải gần nhất" và chart placeholder',
-    (tester) async {
-      when(() => bloc.state).thenReturn(
-        DashboardState(viewStatus: ViewStatus.success, stats: _stats()),
-      );
-      await tester.pumpWidget(wrap());
-      await tester.scrollUntilVisible(
-        find.text('Phong độ 5 giải gần nhất'),
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Phong độ 5 giải gần nhất'), findsOneWidget);
-      expect(find.text('Chưa đủ dữ liệu để vẽ biểu đồ'), findsOneWidget);
-    },
-  );
-
-  testWidgets('chart hiện khi có league performance', (tester) async {
-    when(() => bloc.state).thenReturn(
-      DashboardState(
-        viewStatus: ViewStatus.success,
-        stats: _stats(
-          leaguePerformance: [
-            LeaguePerformancePoint(
-              leagueId: 'l1',
-              leagueName: 'Cup',
-              lastPlayedAt: DateTime(2026, 1, 1),
-              matchesPlayed: 5,
-              wins: 3,
-              draws: 1,
-              losses: 1,
-              pointsPerMatch: 2.0,
-              goalDifferencePerMatch: 0.6,
-            ),
-          ],
-        ),
-      ),
-    );
-    await tester.pumpWidget(wrap());
-    await tester.scrollUntilVisible(
-      find.text('Điểm / trận'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('Điểm / trận'), findsOneWidget);
-    expect(find.text('Hiệu số / trận'), findsOneWidget);
   });
 
   testWidgets('tap match item → push route tournament detail', (tester) async {

@@ -21,11 +21,6 @@ class StatCardGrid extends StatelessWidget {
       childAspectRatio: 1.65,
       children: [
         _StatCard(
-          title: context.l10n.dashboardTournamentsJoined,
-          value: '${stats.tournamentsJoined}',
-          icon: Icons.emoji_events_outlined,
-        ),
-        _StatCard(
           title: context.l10n.dashboardChampionRate,
           value: _percent(stats.championCount, finishedCount),
           icon: Icons.workspace_premium_outlined,
