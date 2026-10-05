@@ -5,6 +5,7 @@ import 'package:pes_arena/presentation/esport/groups/bloc/group_bloc.dart';
 
 import '../esport/groups/groups_view.dart';
 import '../esport/tournament/tournament_view.dart';
+import '../home/dashboard/bloc/dashboard_bloc.dart';
 import '../home/home_page.dart';
 import '../profile/profile_view.dart';
 
@@ -86,6 +87,11 @@ class _MainViewState extends State<MainView> with TickerProviderStateMixin {
   }
 
   void _onItemTapped(int index) {
+    // The dashboard summary is cheap to compute server-side, so coming back
+    // to Arena reloads it instead of showing the stats from app start.
+    if (_tabs[index].tab == _MainTab.arena && _tabController.index != index) {
+      context.read<DashboardBloc>().add(RefreshDashboard());
+    }
     setState(() {
       _tabController.index = index;
     });

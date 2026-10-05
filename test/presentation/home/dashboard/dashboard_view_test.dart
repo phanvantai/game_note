@@ -215,26 +215,33 @@ void main() {
     expect(find.text('detail-route'), findsOneWidget);
   });
 
-  testWidgets('không có RefreshIndicator (refresh chỉ ở detail)', (
-    tester,
-  ) async {
+  testWidgets('pull-to-refresh dispatches RefreshDashboard', (tester) async {
     final bloc = _MockDashboardBloc();
-    when(() => bloc.state).thenReturn(
-      DashboardState(
-        viewStatus: ViewStatus.success,
-        stats: DashboardStats(
-          tournamentsJoined: 1,
-          finishedTournaments: 1,
-          championCount: 1,
-          runnerUpCount: 0,
-          lastChampionAt: DateTime.now(),
-          recentMatches: const [],
-        ),
+    const loaded = DashboardState(
+      viewStatus: ViewStatus.success,
+      stats: DashboardStats(
+        tournamentsJoined: 1,
+        finishedTournaments: 0,
+        championCount: 0,
+        runnerUpCount: 0,
+        lastChampionAt: null,
+        recentMatches: [],
       ),
+    );
+    whenListen(
+      bloc,
+      Stream<DashboardState>.fromIterable(const [
+        DashboardState(viewStatus: ViewStatus.loading),
+        loaded,
+      ]),
+      initialState: loaded,
     );
 
     await tester.pumpWidget(_wrap(bloc));
+    await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+    await tester.pumpAndSettle();
 
-    expect(find.byType(RefreshIndicator), findsNothing);
+    verify(() => bloc.add(any(that: isA<RefreshDashboard>()))).called(1);
+    expect(find.byType(RefreshIndicator), findsOneWidget);
   });
 }

@@ -47,34 +47,48 @@ class _DashboardViewState extends State<DashboardView> {
         final stats = state.stats;
         if (stats == null) return const SizedBox.shrink();
 
-        return ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 96),
-          children: [
-            const _DashboardHero(),
-            const SizedBox(height: 14),
-            StatCardGrid(stats: stats),
-            const SizedBox(height: 20),
-            _SectionBlock(
-              title: context.l10n.dashboardRecentForm10,
-              icon: Icons.timeline_outlined,
-              child: FormDotsRow(matches: stats.recentMatches),
-            ),
-            const SizedBox(height: 14),
-            _SectionBlock(
-              title: context.l10n.dashboardRecentMatches,
-              icon: Icons.sports_soccer_outlined,
-              child: RecentMatchesList(matches: stats.recentMatches),
-            ),
-            if (stats.recentMatches.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(context.l10n.dashboardNoMatches),
+        return RefreshIndicator(
+          onRefresh: () => _refresh(context.read<DashboardBloc>()),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 96),
+            children: [
+              const _DashboardHero(),
+              const SizedBox(height: 14),
+              StatCardGrid(stats: stats),
+              const SizedBox(height: 20),
+              _SectionBlock(
+                title: context.l10n.dashboardRecentForm10,
+                icon: Icons.timeline_outlined,
+                child: FormDotsRow(matches: stats.recentMatches),
               ),
-          ],
+              const SizedBox(height: 14),
+              _SectionBlock(
+                title: context.l10n.dashboardRecentMatches,
+                icon: Icons.sports_soccer_outlined,
+                child: RecentMatchesList(matches: stats.recentMatches),
+              ),
+              if (stats.recentMatches.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(context.l10n.dashboardNoMatches),
+                ),
+            ],
+          ),
         );
       },
     );
+  }
+
+  /// Keeps the spinner up until the reload settles (or gives up).
+  Future<void> _refresh(DashboardBloc bloc) async {
+    bloc.add(RefreshDashboard());
+    await bloc.stream
+        .firstWhere(
+          (s) => s.viewStatus != ViewStatus.loading,
+          orElse: () => bloc.state,
+        )
+        .timeout(const Duration(seconds: 20), onTimeout: () => bloc.state);
   }
 }
 
