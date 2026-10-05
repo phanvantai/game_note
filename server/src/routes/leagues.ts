@@ -222,7 +222,10 @@ export function leagueRoutes({ db, events }: AppDeps): FastifyPluginAsync {
     app.post<LeagueParams>("/v1/leagues/:id/transfer-ownership", async (req, reply) => {
       const { uid } = caller(req);
       const { newOwnerId } = parse(z.object({ newOwnerId: z.string().min(1) }), req.body);
-      await requireLeagueEditor(db, req.params.id, uid);
+      const league = await requireLeagueEditor(db, req.params.id, uid);
+      if (!league.participants.includes(newOwnerId)) {
+        throw validation("New owner must be a league participant");
+      }
       await db.query("UPDATE leagues SET owner_id = $2, updated_at = now() WHERE id = $1", [
         req.params.id,
         newOwnerId,

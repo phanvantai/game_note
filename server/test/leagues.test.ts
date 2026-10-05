@@ -57,7 +57,8 @@ describe("league CRUD", () => {
 
   it("transfers ownership and toggles mergeCompleted", async () => {
     const g = await setup();
-    const id = await seedLeague(ctx, "o", g);
+    const id = await seedLeague(ctx, "o", g, { participants: ["a"] });
+    expect((await call(ctx, "o", "POST", `/v1/leagues/${id}/transfer-ownership`, { newOwnerId: "b" })).status).toBe(400);
     await ok(ctx, "o", "POST", `/v1/leagues/${id}/transfer-ownership`, { newOwnerId: "a" });
     await ok(ctx, "o", "PUT", `/v1/leagues/${id}/merge-completed`, { completed: true });
     expect(await ok(ctx, "o", "GET", `/v1/leagues/${id}`)).toMatchObject({ ownerId: "a", mergeCompleted: true });
