@@ -1,0 +1,22 @@
+name: _Flutter Checks (reusable)
+
+# flutter analyze + flutter test. Called by android-build.yml (PRs) and
+# release.yml (push to main) so both gate on exactly the same checks.
+
+on:
+  workflow_call:
+
+jobs:
+  checks:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.6"
+          channel: "stable"
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test

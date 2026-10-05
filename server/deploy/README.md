@@ -5,6 +5,11 @@ The API and its Postgres run as a small docker compose project on the
 through container labels. Both containers are capped at 256 MB because the
 VPS also hosts examino dev and staging.
 
+Every push to `main` deploys automatically (`.github/workflows/release.yml`:
+Flutter checks + server tests → deploy server → health check → Android
+release). CI logs in with a dedicated key stored as the `VPS_SSH_KEY` and
+`VPS_KNOWN_HOSTS` repo secrets. Manual deploy:
+
 ```bash
 server/deploy/deploy.sh          # rsync + docker compose up -d --build
 ssh examino-dev 'cd /opt/game-note/server/deploy && docker compose logs -f api'

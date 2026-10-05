@@ -7,10 +7,11 @@ services:
   db:
     image: postgres:17-alpine
     restart: unless-stopped
+    # POSTGRES_PASSWORD comes from .env on the VPS (created by deploy.sh).
+    env_file: .env
     environment:
       POSTGRES_DB: game_note
       POSTGRES_USER: game_note
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
     volumes:
       - db-data:/var/lib/postgresql/data
     command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30"]

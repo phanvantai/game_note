@@ -1,0 +1,88 @@
+name: Release
+
+# Every push to main is a production release (see AGENTS.md):
+#
+#   flutter checks ─┐
+#                   ├─▶ deploy server ─▶ build Android ─▶ Play Store (production)
+#   server tests ───┘
+#
+# Any failed check stops everything, and the API is always live before the
+# app that depends on it. The landing page ships separately
+# (deploy-landing.yml).
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+# A newer push waits for the running release instead of cancelling it
+# halfway through a deploy.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  flutter-checks:
+    uses: ./.github/workflows/_flutter-checks.yml
+
+  server-test:
+    uses: ./.github/workflows/_server-test.yml
+
+  deploy-server:
+    name: Deploy server
+    needs: [flutter-checks, server-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH for the VPS
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'CFG'
+          Host examino-dev
+            HostName 103.116.38.177
+            User root
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+          CFG
+
+      - name: Deploy
+        run: server/deploy/deploy.sh
+
+      - name: Wait for the API to be healthy
+        run: |
+          for _ in $(seq 1 30); do
+            curl -fsS https://gamenote-api.taiphanvan.dev/health && exit 0
+            sleep 5
+          done
+          echo "API did not become healthy" >&2
+          exit 1
+
+  build-android:
+    needs: deploy-server
+    uses: ./.github/workflows/_android-build.yml
+    secrets: inherit
+
+  release-android:
+    name: Release to Play Store
+    needs: build-android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Android Build from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release
+      - name: Upload to the production track
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+          packageName: com.november.game_note
+          releaseFiles: app-release.aab
+          track: production
+          status: completed

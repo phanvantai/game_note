@@ -1,8 +1,9 @@
 name: Android PR Build
 
-# Build verification cho pull requests vào main: chạy đúng cùng pipeline build
-# như release (gọi _android-build.yml) nhưng KHÔNG deploy. Mục đích là bắt sớm
-# signing, Gradle, hoặc lỗi build trước khi merge.
+# Build verification cho pull requests vào main: chạy đúng cùng checks và
+# pipeline build như release (gọi _flutter-checks.yml + _android-build.yml)
+# nhưng KHÔNG deploy. Mục đích là bắt sớm lỗi test, signing, Gradle, hoặc lỗi
+# build trước khi merge.
 
 on:
   pull_request:
@@ -10,6 +11,10 @@ on:
   workflow_dispatch:
 
 jobs:
+  checks:
+    uses: ./.github/workflows/_flutter-checks.yml
+
   build:
+    needs: checks
     uses: ./.github/workflows/_android-build.yml
     secrets: inherit

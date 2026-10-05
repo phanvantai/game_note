@@ -3,33 +3,12 @@ name: Server CI
 on:
   pull_request:
     branches: ["main"]
-    paths: ["server/**", ".github/workflows/server-ci.yml"]
+    paths:
+      - "server/**"
+      - ".github/workflows/server-ci.yml"
+      - ".github/workflows/_server-test.yml"
   workflow_dispatch:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: server
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: game_note_test
-        ports: ["54329:5432"]
-        options: >-
-          --health-cmd "pg_isready -U postgres" --health-interval 5s
-          --health-timeout 3s --health-retries 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: server/package-lock.json
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - run: docker build -q .
+    uses: ./.github/workflows/_server-test.yml
