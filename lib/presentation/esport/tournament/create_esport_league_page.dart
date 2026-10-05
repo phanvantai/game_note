@@ -6,7 +6,7 @@ import 'package:pes_arena/core/widgets/app_ui_helpers.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/match/round_robin_scheduler.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
 import 'package:pes_arena/presentation/esport/tournament/cost/collapsible_cost_config.dart';
@@ -38,7 +38,7 @@ typedef MemberNameLoader =
     Future<Map<String, MemberInfo>> Function(List<String> ids);
 
 Future<Map<String, MemberInfo>> _defaultNameLoader(List<String> ids) async {
-  final users = await getIt<GNFirestore>().getUsersById(ids);
+  final users = await getIt<UserRepository>().getUsersByIds(ids);
   return users.map(
     (id, u) => MapEntry(id, (name: u.displayName ?? id, photoUrl: u.photoUrl)),
   );

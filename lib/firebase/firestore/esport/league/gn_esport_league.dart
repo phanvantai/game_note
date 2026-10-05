@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:pes_arena/api/api_json.dart';
 
 import '../group/gn_esport_group.dart';
 
@@ -276,6 +277,46 @@ class GNEsportLeague extends Equatable {
       fieldGroupCount: groupCount,
       fieldAdvanceCount: advanceCount,
       if (knockoutSeeding.isNotEmpty) fieldKnockoutSeeding: knockoutSeeding,
+    };
+  }
+
+  /// Parses a backend `League` JSON object (with its embedded `group`).
+  factory GNEsportLeague.fromApi(Map<String, dynamic> json) {
+    final league = GNEsportLeague.fromMap({
+      ...json,
+      fieldName: json[fieldName] ?? '',
+      fieldDescription: json[fieldDescription] ?? '',
+      fieldStartDate: parseApiDate(json[fieldStartDate]),
+      fieldEndDate: parseApiDate(json[fieldEndDate]),
+    }, json[fieldId] as String);
+    final group = json['group'];
+    if (group is! Map) return league;
+    return league.copyWith(
+      group: GNEsportGroup.fromApi(Map<String, dynamic>.from(group)),
+    );
+  }
+
+  /// Body for `PATCH /v1/leagues/:id` — every editable field. Identity and
+  /// ownership (`id`, `ownerId`, `groupId`) have dedicated endpoints.
+  Map<String, dynamic> toApiPatch() {
+    return {
+      fieldName: name,
+      fieldStartDate: toApiDate(startDate),
+      fieldEndDate: toApiDateOrNull(endDate),
+      fieldIsActive: isActive,
+      fieldDescription: description,
+      fieldParticipants: participants,
+      if (status != null) fieldStatus: status,
+      fieldRankPayoutEnabled: rankPayoutEnabled,
+      fieldRankPayouts: rankPayouts,
+      fieldDefaultMatchCost: defaultMatchCost,
+      fieldDefaultPerGoalEnabled: defaultPerGoalEnabled,
+      fieldDefaultCostPerGoal: defaultCostPerGoal,
+      fieldMergeCompleted: mergeCompleted,
+      fieldMode: mode.value,
+      fieldGroupCount: groupCount,
+      fieldAdvanceCount: advanceCount,
+      fieldKnockoutSeeding: knockoutSeeding,
     };
   }
 

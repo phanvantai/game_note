@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:pes_arena/api/api_json.dart';
 
 class GNEsportGroup extends Equatable {
   final String id; // This is the group document ID
@@ -73,6 +74,22 @@ class GNEsportGroup extends Equatable {
       createdAt: (data[createdAtKey] as Timestamp).toDate(),
       updatedAt: (data[updatedAtKey] as Timestamp).toDate(),
       status: data[statusKey] ?? 'active',
+    );
+  }
+
+  /// Parses a backend `Group` JSON object.
+  factory GNEsportGroup.fromApi(Map<String, dynamic> json) {
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
+    return GNEsportGroup(
+      id: json['id'] as String,
+      groupName: json[groupNameKey] as String? ?? '',
+      ownerId: json[ownerIdKey] as String? ?? '',
+      members: apiStringList(json[membersKey]),
+      deactivatedMembers: apiStringList(json[deactivatedMembersKey]),
+      description: json[descriptionKey] as String? ?? '',
+      createdAt: parseApiDate(json[createdAtKey]) ?? epoch,
+      updatedAt: parseApiDate(json[updatedAtKey]) ?? epoch,
+      status: json[statusKey] as String? ?? 'active',
     );
   }
 

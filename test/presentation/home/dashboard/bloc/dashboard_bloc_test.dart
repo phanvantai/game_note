@@ -1,14 +1,12 @@
-import 'dart:async';
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/core/cache/dashboard_cache.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/domain/repositories/user_stats_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/stats/gn_user_stats_summary.dart';
 import 'package:pes_arena/presentation/home/dashboard/bloc/dashboard_bloc.dart';
 import 'package:pes_arena/presentation/home/dashboard/models/dashboard_stats.dart';
@@ -21,7 +19,7 @@ class _MockAuth extends Mock implements GNAuth {}
 
 class _MockUser extends Mock implements User {}
 
-class _MockFirestore extends Mock implements GNFirestore {}
+class _MockUserRepository extends Mock implements UserRepository {}
 
 GNUserStatsSummary _summary({
   String userId = 'u1',
@@ -60,9 +58,7 @@ GNUserStatsSummary _summary({
 }
 
 extension on GNUserStatsSummary {
-  GNUserStatsSummary copyWithBasic({
-    List<GNUserOpponentStat>? h2hSummary,
-  }) {
+  GNUserStatsSummary copyWithBasic({List<GNUserOpponentStat>? h2hSummary}) {
     return GNUserStatsSummary(
       userId: userId,
       matchesPlayed: matchesPlayed,
@@ -133,7 +129,7 @@ void main() {
   late _MockRepo repo;
   late _MockAuth auth;
   late _MockUser user;
-  late _MockFirestore firestore;
+  late _MockUserRepository users;
   late DashboardCache cache;
 
   setUp(() async {
@@ -143,18 +139,17 @@ void main() {
     repo = _MockRepo();
     auth = _MockAuth();
     user = _MockUser();
-    firestore = _MockFirestore();
+    users = _MockUserRepository();
     when(() => auth.currentUser).thenReturn(user);
     when(() => user.uid).thenReturn('u1');
-    when(() => firestore.getUsersById(any())).thenAnswer((_) async => {});
+    when(() => users.getUsersByIds(any())).thenAnswer((_) async => {});
   });
 
   DashboardBloc build() => DashboardBloc(
     userStatsRepository: repo,
     auth: auth,
     cache: cache,
-    firestore: firestore,
-    recomputeTimeout: const Duration(milliseconds: 500),
+    userRepository: users,
   );
 
   blocTest<DashboardBloc, DashboardState>(
@@ -235,23 +230,12 @@ void main() {
   );
 
   blocTest<DashboardBloc, DashboardState>(
-    'LoadDashboard request recompute và đợi listenSummary khi summary null',
+    'LoadDashboard dùng summary rỗng khi repository trả null (legacy)',
     build: () {
       when(() => repo.getSummary('u1')).thenAnswer((_) async => null);
-      when(() => repo.requestRecompute('u1')).thenAnswer((_) async {});
-      final controller = StreamController<GNUserStatsSummary?>();
-      // Push summary 100ms later — simulating cloud function fan-out.
-      Future.delayed(const Duration(milliseconds: 50), () {
-        controller.add(null);
-        controller.add(_summary());
-      });
-      when(
-        () => repo.listenSummary('u1'),
-      ).thenAnswer((_) => controller.stream);
       return build();
     },
     act: (bloc) => bloc.add(LoadDashboard()),
-    wait: const Duration(milliseconds: 200),
     expect: () => [
       isA<DashboardState>().having(
         (s) => s.viewStatus,
@@ -260,36 +244,30 @@ void main() {
       ),
       isA<DashboardState>()
           .having((s) => s.viewStatus, 'status', ViewStatus.success)
-          .having((s) => s.stats?.matchesPlayed, 'matches', 10),
+          .having((s) => s.stats?.matchesPlayed, 'matches', 0)
+          .having((s) => s.stats?.tournamentsJoined, 'joined', 0),
     ],
     verify: (_) {
-      verify(() => repo.requestRecompute('u1')).called(1);
+      verifyNever(() => users.getUsersByIds(any()));
     },
   );
 
   blocTest<DashboardBloc, DashboardState>(
-    'LoadDashboard timeout khi recompute không phản hồi → failure (no cache)',
+    'LoadDashboard emit failure khi fetch lỗi và không có cache',
     build: () {
-      when(() => repo.getSummary('u1')).thenAnswer((_) async => null);
-      when(() => repo.requestRecompute('u1')).thenAnswer((_) async {});
-      when(
-        () => repo.listenSummary('u1'),
-      ).thenAnswer((_) => const Stream<GNUserStatsSummary?>.empty());
+      when(() => repo.getSummary('u1')).thenThrow(Exception('network'));
       return build();
     },
     act: (bloc) => bloc.add(LoadDashboard()),
-    wait: const Duration(milliseconds: 700),
     expect: () => [
       isA<DashboardState>().having(
         (s) => s.viewStatus,
         'status',
         ViewStatus.loading,
       ),
-      isA<DashboardState>().having(
-        (s) => s.viewStatus,
-        'status',
-        ViewStatus.failure,
-      ),
+      isA<DashboardState>()
+          .having((s) => s.viewStatus, 'status', ViewStatus.failure)
+          .having((s) => s.errorMessage, 'errorMessage', contains('network')),
     ],
   );
 
@@ -356,7 +334,7 @@ void main() {
   );
 
   blocTest<DashboardBloc, DashboardState>(
-    'RefreshDashboard force recompute và đợi snapshot mới (skip current)',
+    'RefreshDashboard bỏ qua cache và fetch summary mới',
     setUp: () async {
       await cache.write(
         'u1',
@@ -371,21 +349,12 @@ void main() {
       );
     },
     build: () {
-      when(() => repo.requestRecompute('u1')).thenAnswer((_) async {});
-      final controller = StreamController<GNUserStatsSummary?>();
-      // First emission = current/stale doc; bloc must skip it.
-      // Second emission = the new doc the function writes.
-      Future.delayed(const Duration(milliseconds: 30), () {
-        controller.add(_summary(tournamentsJoined: 1));
-        controller.add(_summary(tournamentsJoined: 7));
-      });
       when(
-        () => repo.listenSummary('u1'),
-      ).thenAnswer((_) => controller.stream);
+        () => repo.getSummary('u1'),
+      ).thenAnswer((_) async => _summary(tournamentsJoined: 7));
       return build();
     },
     act: (bloc) => bloc.add(RefreshDashboard()),
-    wait: const Duration(milliseconds: 200),
     expect: () => [
       isA<DashboardState>().having(
         (s) => s.viewStatus,
@@ -397,8 +366,7 @@ void main() {
           .having((s) => s.stats?.tournamentsJoined, 'joined', 7),
     ],
     verify: (_) {
-      verify(() => repo.requestRecompute('u1')).called(1);
-      verifyNever(() => repo.getSummary(any()));
+      verify(() => repo.getSummary('u1')).called(1);
     },
   );
 
@@ -436,275 +404,296 @@ void main() {
     expect(full.goalDifference, 9);
   });
 
-  test('Recent matches: chọn top 10 theo date, sort hiển thị theo updatedAt',
-      () async {
-    // Tạo 12 match với date giảm dần (newest = m0); m0..m9 vào top 10 theo date.
-    // m11 (date cũ nhất) bị loại dù updatedAt mới — đúng với "lấy theo ngày".
-    // Trong top 10: m9 có updatedAt mới nhất → phải đứng đầu.
-    final matches = <GNUserRecentMatch>[
-      for (var i = 0; i < 12; i++)
-        _recent(
-          matchId: 'm$i',
-          date: DateTime(2026, 5, 12 - i),
-          updatedAt: i == 9
-              ? DateTime(2026, 6, 1)
-              : i == 11
-                  ? DateTime(2026, 7, 1)
-                  : DateTime(2026, 5, 12 - i),
+  test(
+    'Recent matches: chọn top 10 theo date, sort hiển thị theo updatedAt',
+    () async {
+      // Tạo 12 match với date giảm dần (newest = m0); m0..m9 vào top 10 theo date.
+      // m11 (date cũ nhất) bị loại dù updatedAt mới — đúng với "lấy theo ngày".
+      // Trong top 10: m9 có updatedAt mới nhất → phải đứng đầu.
+      final matches = <GNUserRecentMatch>[
+        for (var i = 0; i < 12; i++)
+          _recent(
+            matchId: 'm$i',
+            date: DateTime(2026, 5, 12 - i),
+            updatedAt: i == 9
+                ? DateTime(2026, 6, 1)
+                : i == 11
+                ? DateTime(2026, 7, 1)
+                : DateTime(2026, 5, 12 - i),
+          ),
+      ];
+      when(
+        () => repo.getSummary('u1'),
+      ).thenAnswer((_) async => _summary(recentMatches: matches));
+      final bloc = build();
+      bloc.add(LoadDashboard());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final ids = bloc.state.stats!.recentMatches
+          .map((m) => m.matchId)
+          .toList();
+      expect(ids.length, 10);
+      expect(
+        ids.contains('m11'),
+        isFalse,
+        reason: 'm11 cũ nhất theo date → ngoài top 10',
+      );
+      expect(
+        ids.first,
+        'm9',
+        reason: 'm9 có updatedAt mới nhất trong top 10 theo date',
+      );
+      await bloc.close();
+    },
+  );
+
+  test(
+    'League performance: 2 entries không có lastPlayedAt giữ thứ tự nhập',
+    () async {
+      final history = [
+        GNUserLeaguePerformance(
+          leagueId: 'lA',
+          leagueName: 'A',
+          lastPlayedAt: null,
+          matchesPlayed: 1,
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 0,
         ),
-    ];
-    when(() => repo.getSummary('u1'))
-        .thenAnswer((_) async => _summary(recentMatches: matches));
-    final bloc = build();
-    bloc.add(LoadDashboard());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    final ids =
-        bloc.state.stats!.recentMatches.map((m) => m.matchId).toList();
-    expect(ids.length, 10);
-    expect(ids.contains('m11'), isFalse,
-        reason: 'm11 cũ nhất theo date → ngoài top 10');
-    expect(ids.first, 'm9',
-        reason: 'm9 có updatedAt mới nhất trong top 10 theo date');
-    await bloc.close();
-  });
+        GNUserLeaguePerformance(
+          leagueId: 'lB',
+          leagueName: 'B',
+          lastPlayedAt: null,
+          matchesPlayed: 1,
+          wins: 0,
+          draws: 1,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 1,
+        ),
+      ];
+      when(
+        () => repo.getSummary('u1'),
+      ).thenAnswer((_) async => _summary().copyWithHistory(history));
+      final bloc = build();
+      bloc.add(LoadDashboard());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.stats!.leaguePerformance.length, 2);
+      await bloc.close();
+    },
+  );
 
-  test('League performance: 2 entries không có lastPlayedAt giữ thứ tự nhập',
-      () async {
-    final history = [
-      GNUserLeaguePerformance(
-        leagueId: 'lA',
-        leagueName: 'A',
-        lastPlayedAt: null,
-        matchesPlayed: 1,
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 0,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lB',
-        leagueName: 'B',
-        lastPlayedAt: null,
-        matchesPlayed: 1,
-        wins: 0,
-        draws: 1,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 1,
-      ),
-    ];
-    when(
-      () => repo.getSummary('u1'),
-    ).thenAnswer((_) async => _summary().copyWithHistory(history));
-    final bloc = build();
-    bloc.add(LoadDashboard());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    expect(bloc.state.stats!.leaguePerformance.length, 2);
-    await bloc.close();
-  });
+  test(
+    'League performance: ad-null vs bd-non-null đặt null lên trước (comparator branch)',
+    () async {
+      // Two items only, ordered [hasDate, null] — sort must call
+      // comparator(hasDate, null) → +1 path on line 188 AND swap, then
+      // possibly comparator(null, hasDate) → -1 path on line 187.
+      final history = [
+        GNUserLeaguePerformance(
+          leagueId: 'lDate',
+          leagueName: 'D',
+          lastPlayedAt: DateTime(2026, 5, 1),
+          matchesPlayed: 1,
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 0,
+        ),
+        GNUserLeaguePerformance(
+          leagueId: 'lNull',
+          leagueName: 'N',
+          lastPlayedAt: null,
+          matchesPlayed: 1,
+          wins: 0,
+          draws: 0,
+          losses: 1,
+          goals: 0,
+          goalsConceded: 1,
+        ),
+      ];
+      when(
+        () => repo.getSummary('u1'),
+      ).thenAnswer((_) async => _summary().copyWithHistory(history));
+      final bloc = build();
+      bloc.add(LoadDashboard());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final ids = bloc.state.stats!.leaguePerformance
+          .map((e) => e.leagueId)
+          .toList();
+      expect(ids, ['lNull', 'lDate']);
+      await bloc.close();
+    },
+  );
 
-  test('League performance: ad-null vs bd-non-null đặt null lên trước (comparator branch)',
-      () async {
-    // Two items only, ordered [hasDate, null] — sort must call
-    // comparator(hasDate, null) → +1 path on line 188 AND swap, then
-    // possibly comparator(null, hasDate) → -1 path on line 187.
-    final history = [
-      GNUserLeaguePerformance(
-        leagueId: 'lDate',
-        leagueName: 'D',
-        lastPlayedAt: DateTime(2026, 5, 1),
-        matchesPlayed: 1,
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 0,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lNull',
-        leagueName: 'N',
-        lastPlayedAt: null,
-        matchesPlayed: 1,
-        wins: 0,
-        draws: 0,
-        losses: 1,
-        goals: 0,
-        goalsConceded: 1,
-      ),
-    ];
-    when(
-      () => repo.getSummary('u1'),
-    ).thenAnswer((_) async => _summary().copyWithHistory(history));
-    final bloc = build();
-    bloc.add(LoadDashboard());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    final ids = bloc.state.stats!.leaguePerformance
-        .map((e) => e.leagueId)
-        .toList();
-    expect(ids, ['lNull', 'lDate']);
-    await bloc.close();
-  });
+  test(
+    'League performance: 3 entries [date1, null, date2] để hit cả 2 branch null',
+    () async {
+      final history = [
+        GNUserLeaguePerformance(
+          leagueId: 'lD1',
+          leagueName: 'D1',
+          lastPlayedAt: DateTime(2026, 5, 1),
+          matchesPlayed: 1,
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 0,
+        ),
+        GNUserLeaguePerformance(
+          leagueId: 'lN',
+          leagueName: 'N',
+          lastPlayedAt: null,
+          matchesPlayed: 1,
+          wins: 0,
+          draws: 1,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 1,
+        ),
+        GNUserLeaguePerformance(
+          leagueId: 'lD2',
+          leagueName: 'D2',
+          lastPlayedAt: DateTime(2026, 6, 1),
+          matchesPlayed: 1,
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 2,
+          goalsConceded: 1,
+        ),
+      ];
+      when(
+        () => repo.getSummary('u1'),
+      ).thenAnswer((_) async => _summary().copyWithHistory(history));
+      final bloc = build();
+      bloc.add(LoadDashboard());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final ids = bloc.state.stats!.leaguePerformance
+          .map((e) => e.leagueId)
+          .toList();
+      expect(ids, ['lN', 'lD1', 'lD2']);
+      await bloc.close();
+    },
+  );
 
-  test('League performance: 3 entries [date1, null, date2] để hit cả 2 branch null',
-      () async {
-    final history = [
-      GNUserLeaguePerformance(
-        leagueId: 'lD1',
-        leagueName: 'D1',
-        lastPlayedAt: DateTime(2026, 5, 1),
-        matchesPlayed: 1,
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 0,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lN',
-        leagueName: 'N',
-        lastPlayedAt: null,
-        matchesPlayed: 1,
-        wins: 0,
-        draws: 1,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 1,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lD2',
-        leagueName: 'D2',
-        lastPlayedAt: DateTime(2026, 6, 1),
-        matchesPlayed: 1,
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goals: 2,
-        goalsConceded: 1,
-      ),
-    ];
-    when(
-      () => repo.getSummary('u1'),
-    ).thenAnswer((_) async => _summary().copyWithHistory(history));
-    final bloc = build();
-    bloc.add(LoadDashboard());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    final ids = bloc.state.stats!.leaguePerformance
-        .map((e) => e.leagueId)
-        .toList();
-    expect(ids, ['lN', 'lD1', 'lD2']);
-    await bloc.close();
-  });
+  test(
+    'League performance: 4 entries để buộc sort gọi cả 2 nhánh null',
+    () async {
+      final history = [
+        GNUserLeaguePerformance(
+          leagueId: 'lD3',
+          leagueName: 'D3',
+          lastPlayedAt: DateTime(2026, 7, 1),
+          matchesPlayed: 1,
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 0,
+        ),
+        GNUserLeaguePerformance(
+          leagueId: 'lD2',
+          leagueName: 'D2',
+          lastPlayedAt: DateTime(2026, 6, 1),
+          matchesPlayed: 1,
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 0,
+        ),
+        GNUserLeaguePerformance(
+          leagueId: 'lD1',
+          leagueName: 'D1',
+          lastPlayedAt: DateTime(2026, 5, 1),
+          matchesPlayed: 1,
+          wins: 1,
+          draws: 0,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 0,
+        ),
+        GNUserLeaguePerformance(
+          leagueId: 'lN',
+          leagueName: 'N',
+          lastPlayedAt: null,
+          matchesPlayed: 1,
+          wins: 0,
+          draws: 1,
+          losses: 0,
+          goals: 1,
+          goalsConceded: 1,
+        ),
+      ];
+      when(
+        () => repo.getSummary('u1'),
+      ).thenAnswer((_) async => _summary().copyWithHistory(history));
+      final bloc = build();
+      bloc.add(LoadDashboard());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(
+        bloc.state.stats!.leaguePerformance.map((e) => e.leagueId).toList(),
+        ['lN', 'lD1', 'lD2', 'lD3'],
+      );
+      await bloc.close();
+    },
+  );
 
-  test('League performance: 4 entries để buộc sort gọi cả 2 nhánh null', () async {
-    final history = [
-      GNUserLeaguePerformance(
-        leagueId: 'lD3',
-        leagueName: 'D3',
-        lastPlayedAt: DateTime(2026, 7, 1),
-        matchesPlayed: 1,
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 0,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lD2',
-        leagueName: 'D2',
-        lastPlayedAt: DateTime(2026, 6, 1),
-        matchesPlayed: 1,
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 0,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lD1',
-        leagueName: 'D1',
-        lastPlayedAt: DateTime(2026, 5, 1),
-        matchesPlayed: 1,
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 0,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lN',
-        leagueName: 'N',
-        lastPlayedAt: null,
-        matchesPlayed: 1,
-        wins: 0,
-        draws: 1,
-        losses: 0,
-        goals: 1,
-        goalsConceded: 1,
-      ),
-    ];
-    when(
-      () => repo.getSummary('u1'),
-    ).thenAnswer((_) async => _summary().copyWithHistory(history));
-    final bloc = build();
-    bloc.add(LoadDashboard());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    expect(
-      bloc.state.stats!.leaguePerformance.map((e) => e.leagueId).toList(),
-      ['lN', 'lD1', 'lD2', 'lD3'],
-    );
-    await bloc.close();
-  });
-
-  test('League performance: sort theo lastPlayedAt asc, null lên đầu, giữ derived',
-      () async {
-    final history = [
-      GNUserLeaguePerformance(
-        leagueId: 'lB',
-        leagueName: 'B',
-        lastPlayedAt: DateTime(2026, 5, 1),
-        matchesPlayed: 4,
-        wins: 2,
-        draws: 1,
-        losses: 1,
-        goals: 6,
-        goalsConceded: 5,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lA',
-        leagueName: 'A',
-        lastPlayedAt: DateTime(2026, 3, 1),
-        matchesPlayed: 3,
-        wins: 3,
-        draws: 0,
-        losses: 0,
-        goals: 9,
-        goalsConceded: 1,
-      ),
-      GNUserLeaguePerformance(
-        leagueId: 'lZ',
-        leagueName: 'Z',
-        lastPlayedAt: null,
-        matchesPlayed: 0,
-        wins: 0,
-        draws: 0,
-        losses: 0,
-        goals: 0,
-        goalsConceded: 0,
-      ),
-    ];
-    when(
-      () => repo.getSummary('u1'),
-    ).thenAnswer((_) async => _summary().copyWithHistory(history));
-    final bloc = build();
-    bloc.add(LoadDashboard());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    final perf = bloc.state.stats!.leaguePerformance;
-    expect(perf.map((e) => e.leagueId).toList(), ['lZ', 'lA', 'lB']);
-    expect(perf[1].pointsPerMatch, closeTo(3.0, 1e-9));
-    expect(perf[1].goalDifferencePerMatch, closeTo(8 / 3, 1e-9));
-    await bloc.close();
-  });
+  test(
+    'League performance: sort theo lastPlayedAt asc, null lên đầu, giữ derived',
+    () async {
+      final history = [
+        GNUserLeaguePerformance(
+          leagueId: 'lB',
+          leagueName: 'B',
+          lastPlayedAt: DateTime(2026, 5, 1),
+          matchesPlayed: 4,
+          wins: 2,
+          draws: 1,
+          losses: 1,
+          goals: 6,
+          goalsConceded: 5,
+        ),
+        GNUserLeaguePerformance(
+          leagueId: 'lA',
+          leagueName: 'A',
+          lastPlayedAt: DateTime(2026, 3, 1),
+          matchesPlayed: 3,
+          wins: 3,
+          draws: 0,
+          losses: 0,
+          goals: 9,
+          goalsConceded: 1,
+        ),
+        GNUserLeaguePerformance(
+          leagueId: 'lZ',
+          leagueName: 'Z',
+          lastPlayedAt: null,
+          matchesPlayed: 0,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          goals: 0,
+          goalsConceded: 0,
+        ),
+      ];
+      when(
+        () => repo.getSummary('u1'),
+      ).thenAnswer((_) async => _summary().copyWithHistory(history));
+      final bloc = build();
+      bloc.add(LoadDashboard());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final perf = bloc.state.stats!.leaguePerformance;
+      expect(perf.map((e) => e.leagueId).toList(), ['lZ', 'lA', 'lB']);
+      expect(perf[1].pointsPerMatch, closeTo(3.0, 1e-9));
+      expect(perf[1].goalDifferencePerMatch, closeTo(8 / 3, 1e-9));
+      await bloc.close();
+    },
+  );
 
   test('compareByLastPlayed: tất cả 4 nhánh null/non-null', () {
     final withDate = GNUserLeaguePerformance(
@@ -788,8 +777,9 @@ void main() {
     final bloc = build();
     bloc.add(LoadDashboard());
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    final mapped =
-        bloc.state.stats!.recentMatches.map((m) => m.result).toList();
+    final mapped = bloc.state.stats!.recentMatches
+        .map((m) => m.result)
+        .toList();
     expect(mapped, [MatchResult.win, MatchResult.draw, MatchResult.loss]);
     await bloc.close();
   });

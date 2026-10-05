@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pes_arena/api/api_json.dart';
 
 class GNUser extends Equatable {
   final String id;
@@ -85,6 +86,21 @@ class GNUser extends Equatable {
       isPlaceholder: data[isPlaceholderKey] ?? false,
       deleted: data[deletedKey] ?? false,
       deletedAt: (data[deletedAtKey] as Timestamp?)?.toDate(),
+    );
+  }
+
+  /// Parses a backend `User` JSON object.
+  factory GNUser.fromApi(Map<String, dynamic> json) {
+    return GNUser(
+      id: json[idKey] as String,
+      displayName: json[displayNameKey] as String?,
+      phoneNumber: json[phoneNumberKey] as String?,
+      email: json[emailKey] as String?,
+      photoUrl: json[photoUrlKey] as String?,
+      role: json[roleKey] as String? ?? 'user',
+      isPlaceholder: json[isPlaceholderKey] as bool? ?? false,
+      deleted: json[deletedKey] as bool? ?? false,
+      deletedAt: parseApiDate(json[deletedAtKey]),
     );
   }
 

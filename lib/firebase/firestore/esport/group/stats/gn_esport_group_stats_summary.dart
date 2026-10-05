@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:pes_arena/api/api_json.dart';
 
 /// Per-group lifetime aggregate written by the `onLeagueMatchWritten` /
 /// `onLeagueStatusChanged` / `onEsportLeagueWritten` Cloud Functions.
@@ -68,6 +69,23 @@ class GNEsportGroupStatsSummary extends Equatable {
       playerStats: players,
       updatedAt: updatedAtRaw is Timestamp ? updatedAtRaw.toDate() : null,
       schemaVersion: (map[fieldSchemaVersion] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  /// Parses a backend `GroupStatsSummary` JSON object. Distinct from
+  /// [fromJson], which reads the SharedPreferences cache format
+  /// (epoch-millisecond `updatedAt`).
+  factory GNEsportGroupStatsSummary.fromApi(Map<String, dynamic> json) {
+    return GNEsportGroupStatsSummary(
+      groupId: json['groupId'] as String? ?? '',
+      totalLeagues: (json[fieldTotalLeagues] as num?)?.toInt() ?? 0,
+      finishedLeagues: (json[fieldFinishedLeagues] as num?)?.toInt() ?? 0,
+      playerStats: apiMapList(
+        json[fieldPlayerStats],
+      ).map(GNEsportGroupPlayerEntry.fromMap).toList(),
+      updatedAt: parseApiDate(json[fieldUpdatedAt]),
+      schemaVersion:
+          (json[fieldSchemaVersion] as num?)?.toInt() ?? kCurrentSchemaVersion,
     );
   }
 
