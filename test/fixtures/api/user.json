@@ -1,0 +1,11 @@
+{
+  "id": "alice",
+  "displayName": "Alice",
+  "phoneNumber": null,
+  "email": "alice@test.dev",
+  "photoUrl": null,
+  "role": "user",
+  "isPlaceholder": false,
+  "deleted": false,
+  "deletedAt": null
+}

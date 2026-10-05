@@ -1,0 +1,94 @@
+[
+  {
+    "id": "HiyA3J5FxzcyEyPPPxMt",
+    "userId": "alice",
+    "leagueId": "udu8o8x3U7HjIGaWfbMC",
+    "groupId": "A",
+    "matchesPlayed": 1,
+    "goals": 1,
+    "goalsConceded": 2,
+    "wins": 0,
+    "draws": 0,
+    "losses": 1,
+    "user": {
+      "id": "alice",
+      "displayName": "Alice",
+      "phoneNumber": null,
+      "email": "alice@test.dev",
+      "photoUrl": null,
+      "role": "user",
+      "isPlaceholder": false,
+      "deleted": false,
+      "deletedAt": null
+    }
+  },
+  {
+    "id": "kQUYxfpgBdUuPBJwdioC",
+    "userId": "carol",
+    "leagueId": "udu8o8x3U7HjIGaWfbMC",
+    "groupId": "B",
+    "matchesPlayed": 0,
+    "goals": 0,
+    "goalsConceded": 0,
+    "wins": 0,
+    "draws": 0,
+    "losses": 0,
+    "user": {
+      "id": "carol",
+      "displayName": "Carol",
+      "phoneNumber": null,
+      "email": "carol@test.dev",
+      "photoUrl": null,
+      "role": "user",
+      "isPlaceholder": false,
+      "deleted": false,
+      "deletedAt": null
+    }
+  },
+  {
+    "id": "l7YOS7yhxfyP62h8qSbq",
+    "userId": "owner",
+    "leagueId": "udu8o8x3U7HjIGaWfbMC",
+    "groupId": "A",
+    "matchesPlayed": 1,
+    "goals": 2,
+    "goalsConceded": 1,
+    "wins": 1,
+    "draws": 0,
+    "losses": 0,
+    "user": {
+      "id": "owner",
+      "displayName": "Owner",
+      "phoneNumber": null,
+      "email": "owner@test.dev",
+      "photoUrl": null,
+      "role": "user",
+      "isPlaceholder": false,
+      "deleted": false,
+      "deletedAt": null
+    }
+  },
+  {
+    "id": "szWU6Hd7UBjoCNGN1pf1",
+    "userId": "bob",
+    "leagueId": "udu8o8x3U7HjIGaWfbMC",
+    "groupId": "B",
+    "matchesPlayed": 0,
+    "goals": 0,
+    "goalsConceded": 0,
+    "wins": 0,
+    "draws": 0,
+    "losses": 0,
+    "user": {
+      "id": "bob",
+      "displayName": "Bob",
+      "phoneNumber": null,
+      "email": "bob@test.dev",
+      "photoUrl": null,
+      "role": "user",
+      "isPlaceholder": false,
+      "deleted": false,
+      "deletedAt": null
+    }
+  }
+]
