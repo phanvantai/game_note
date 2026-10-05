@@ -122,6 +122,27 @@ class GNEsportLeagueStat extends Equatable {
     );
   }
 
+  /// Parses a backend `Stat` (standings row) JSON object.
+  factory GNEsportLeagueStat.fromApi(Map<String, dynamic> json) {
+    int n(String key) => (json[key] as num?)?.toInt() ?? 0;
+    final user = json['user'];
+    return GNEsportLeagueStat(
+      id: json[fieldId] as String,
+      userId: json[fieldUserId] as String,
+      leagueId: json[fieldLeagueId] as String,
+      matchesPlayed: n(fieldMatchesPlayed),
+      goals: n(fieldGoals),
+      goalsConceded: n(fieldGoalsConceded),
+      wins: n(fieldWins),
+      draws: n(fieldDraws),
+      losses: n(fieldLosses),
+      groupId: json[fieldGroupId] as String?,
+      user: user is Map
+          ? GNUser.fromApi(Map<String, dynamic>.from(user))
+          : null,
+    );
+  }
+
   int get points => wins * 3 + draws;
   int get goalDifference => goals - goalsConceded;
 }

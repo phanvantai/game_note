@@ -90,6 +90,13 @@ class GNUserH2H extends Equatable {
   }
 
   // coverage:ignore-start
+  /// Parses a backend `UserH2H` JSON object ([toMap] keys plus `userId`).
+  factory GNUserH2H.fromApi(Map<String, dynamic> json) => GNUserH2H.fromMap(
+    json,
+    userId: json['userId'] as String,
+    opponentId: json[fieldOpponentId] as String,
+  );
+
   factory GNUserH2H.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? const {};
     final userId = doc.reference.parent.parent?.id ?? '';
