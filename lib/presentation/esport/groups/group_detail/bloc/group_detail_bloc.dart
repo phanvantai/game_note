@@ -10,8 +10,6 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/stats/gn_esport_group_stats_summary.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
-import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/l10n/app_text.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/models/group_overview.dart';
@@ -20,6 +18,7 @@ import 'package:pes_arena/presentation/esport/groups/group_detail/services/group
 import '../../../../../domain/repositories/esport/esport_group_repository.dart';
 import '../../../../../domain/repositories/esport/esport_group_stats_repository.dart';
 import '../../../../../domain/repositories/esport/esport_league_repository.dart';
+import '../../../../../domain/repositories/user_repository.dart';
 import '../services/group_overview_year_filter.dart';
 
 part 'group_detail_event.dart';
@@ -30,8 +29,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
   final EsportLeagueRepository _leagueRepository;
   final EsportGroupStatsRepository _groupStatsRepository;
   final GroupOverviewCache _overviewCache;
-  final GNFirestore _firestore;
-  final Duration _recomputeTimeout;
+  final UserRepository _userRepository;
   late final Future<GNUser> Function({required String displayName})
   _createPlaceholderUser;
 
@@ -40,14 +38,12 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     this._leagueRepository,
     this._groupStatsRepository,
     this._overviewCache,
-    this._firestore,
+    this._userRepository,
     GNEsportGroup group, {
     String? currentUserId,
-    Duration recomputeTimeout = const Duration(seconds: 30),
     Future<GNUser> Function({required String displayName})?
     createPlaceholderUser,
-  }) : _recomputeTimeout = recomputeTimeout,
-       super(
+  }) : super(
          GroupDetailState(
            group: group,
            currentUserId:
@@ -55,7 +51,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
          ),
        ) {
     _createPlaceholderUser =
-        createPlaceholderUser ?? _firestore.createPlaceholderUser;
+        createPlaceholderUser ?? _userRepository.createPlaceholderUser;
     on<GetMembers>(_onGetMembers);
     on<AddMember>(_onAddMember);
     on<RemoveMember>(_onRemoveMember);
@@ -195,14 +191,12 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     }
   }
 
-  /// Load the group overview from a single Firestore doc
-  /// (`esports_groups/{groupId}/stats/summary`) maintained server-side
-  /// by Cloud Functions. Mirrors the dashboard pattern:
+  /// Load the group overview from the lifetime summary the backend
+  /// computes on every request (`GET /v1/groups/:id/summary`). Mirrors the
+  /// dashboard pattern:
   /// - First paint hydrates from local cache (instant), marks stale.
-  /// - Refresh writes a recompute request and waits for the server to
-  ///   rebuild the doc.
-  /// - Lazy backfill: if no summary doc exists yet, request a recompute
-  ///   and wait for the first emission.
+  /// - Refresh skips the cache and keeps the prior overview visible while
+  ///   fetching.
   Future<void> _onLoadGroupOverview(
     LoadGroupOverview event,
     Emitter<GroupDetailState> emit,
@@ -235,33 +229,11 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     }
 
     try {
-      GNEsportGroupStatsSummary? summary;
-      if (event.forceRefresh) {
-        // Trigger a server rebuild and take whatever the function writes
-        // next. We skip the first emission (the current/stale doc) so
-        // refresh always reflects fresh server state.
-        await _groupStatsRepository.requestRecompute(groupId);
-        summary = await _groupStatsRepository
-            .listenSummary(groupId)
-            .skip(1)
-            .where((s) => s != null)
-            .cast<GNEsportGroupStatsSummary>()
-            .first
-            .timeout(_recomputeTimeout);
-      } else {
-        summary = await _groupStatsRepository.getSummary(groupId);
-        if (summary == null) {
-          // Lazy backfill for groups that existed before this feature
-          // shipped.
-          await _groupStatsRepository.requestRecompute(groupId);
-          summary = await _groupStatsRepository
-              .listenSummary(groupId)
-              .where((s) => s != null)
-              .cast<GNEsportGroupStatsSummary>()
-              .first
-              .timeout(_recomputeTimeout);
-        }
-      }
+      // Only the legacy Firestore repository can return null (no summary
+      // doc yet); treat that as a group with no history.
+      final summary =
+          await _groupStatsRepository.getSummary(groupId) ??
+          GNEsportGroupStatsSummary.empty(groupId);
 
       await _overviewCache.write(groupId, summary);
       final users = await _fetchUsersFor(summary);
@@ -439,9 +411,6 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
         userId: event.userId,
         deactivate: event.deactivate,
       );
-      // Trigger server-side rebuild so the all-time summary doc excludes
-      // leagues with the newly (de)activated member.
-      unawaited(_groupStatsRepository.requestRecompute(event.groupId));
     } catch (e) {
       emit(priorState.copyWith(errorMessage: e.toString()));
     }
@@ -482,7 +451,7 @@ class GroupDetailBloc extends Bloc<GroupDetailEvent, GroupDetailState> {
     final ids = summary.playerStats.map((p) => p.userId).toList();
     if (ids.isEmpty) return const {};
     try {
-      return await _firestore.getUsersById(ids);
+      return await _userRepository.getUsersByIds(ids);
     } catch (_) {
       // Avatars are best-effort; never fail the whole load.
       return const {};

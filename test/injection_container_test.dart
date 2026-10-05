@@ -13,6 +13,17 @@ import 'package:pes_arena/domain/repositories/esport/esport_league_repository.da
 import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/domain/repositories/user_stats_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
+import 'package:pes_arena/api/api_client.dart';
+import 'package:pes_arena/api/league_events_hub.dart';
+import 'package:pes_arena/data/repositories/api/api_esport_group_repository.dart';
+import 'package:pes_arena/data/repositories/api/api_esport_league_repository.dart';
+import 'package:pes_arena/data/repositories/api/api_stats_repositories.dart';
+import 'package:pes_arena/data/repositories/api/api_user_repository.dart';
+import 'package:pes_arena/data/repositories/esport/esport_group_repository_impl.dart';
+import 'package:pes_arena/data/repositories/esport/esport_group_stats_repository_impl.dart';
+import 'package:pes_arena/data/repositories/esport/esport_league_repository_impl.dart';
+import 'package:pes_arena/data/repositories/user_repository_impl.dart';
+import 'package:pes_arena/data/repositories/user_stats_repository_impl.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/storage/gn_storage.dart';
 import 'package:pes_arena/injection_container.dart';
@@ -85,6 +96,48 @@ void main() {
       expect(getIt.isRegistered<UserBloc>(), isTrue);
     },
   );
+
+  Future<void> initWith({required bool useFirestore}) async {
+    final mockAuth = _MockGNAuth();
+    when(
+      () => mockAuth.authStateChanges(),
+    ).thenAnswer((_) => const Stream.empty());
+    await init(
+      firestore: _MockGNFirestore(),
+      auth: mockAuth,
+      storage: _MockGNStorage(),
+      apiClient: ApiClient(tokenProvider: () async => null),
+      useFirestore: useFirestore,
+    );
+  }
+
+  test('registers the API repositories by default', () async {
+    await initWith(useFirestore: false);
+
+    expect(getIt<ApiClient>(), isA<ApiClient>());
+    expect(getIt<LeagueEventsHub>(), isA<LeagueEventsHub>());
+    expect(getIt<UserRepository>(), isA<ApiUserRepository>());
+    expect(getIt<EsportGroupRepository>(), isA<ApiEsportGroupRepository>());
+    expect(getIt<EsportLeagueRepository>(), isA<ApiEsportLeagueRepository>());
+    expect(getIt<UserStatsRepository>(), isA<ApiUserStatsRepository>());
+    expect(
+      getIt<EsportGroupStatsRepository>(),
+      isA<ApiEsportGroupStatsRepository>(),
+    );
+  });
+
+  test('keeps the Firestore repositories behind USE_FIRESTORE', () async {
+    await initWith(useFirestore: true);
+
+    expect(getIt<UserRepository>(), isA<UserRepositoryImpl>());
+    expect(getIt<EsportGroupRepository>(), isA<EsportGroupRepositoryImpl>());
+    expect(getIt<EsportLeagueRepository>(), isA<EsportLeagueRepositoryImpl>());
+    expect(getIt<UserStatsRepository>(), isA<UserStatsRepositoryImpl>());
+    expect(
+      getIt<EsportGroupStatsRepository>(),
+      isA<EsportGroupStatsRepositoryImpl>(),
+    );
+  });
 
   test('does not retain retired registration markers', () {
     final source = File('lib/injection_container.dart').readAsStringSync();

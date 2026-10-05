@@ -1,18 +1,19 @@
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_group_repository.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/profile/setting/ownership_resolution_page.dart';
 
 class _MockGroupRepo extends Mock implements EsportGroupRepository {}
 
 class _MockLeagueRepo extends Mock implements EsportLeagueRepository {}
+
+class _MockUserRepo extends Mock implements UserRepository {}
 
 void main() {
   late _MockGroupRepo groupRepo;
@@ -25,7 +26,9 @@ void main() {
   setUp(() {
     groupRepo = _MockGroupRepo();
     leagueRepo = _MockLeagueRepo();
-    getIt.registerSingleton<GNFirestore>(GNFirestore(FakeFirebaseFirestore()));
+    final userRepo = _MockUserRepo();
+    when(() => userRepo.getUsersByIds(any())).thenAnswer((_) async => {});
+    getIt.registerFactory<UserRepository>(() => userRepo);
     getIt.registerFactory<EsportGroupRepository>(() => groupRepo);
     getIt.registerFactory<EsportLeagueRepository>(() => leagueRepo);
   });

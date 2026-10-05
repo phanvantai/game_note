@@ -4,9 +4,8 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
-import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/service/permission_util.dart';
@@ -17,10 +16,10 @@ part 'app_state.dart';
 class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc({
     GNAuth? auth,
-    GNFirestore? firestore,
+    UserRepository? userRepository,
     PermissionUtil? permissionUtil,
   }) : _auth = auth,
-       _firestore = firestore,
+       _userRepository = userRepository,
        _permissionUtil = permissionUtil,
        super(const AppState()) {
     if (kDebugMode) {
@@ -35,7 +34,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   GNAuth? _auth;
-  GNFirestore? _firestore;
+  UserRepository? _userRepository;
   PermissionUtil? _permissionUtil;
   StreamSubscription<User?>? _authSubscription;
   User? _lastFirebaseUser;
@@ -61,15 +60,15 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     if (_authSubscription != null) return;
 
     _auth ??= getIt.isRegistered<GNAuth>() ? getIt<GNAuth>() : null;
-    _firestore ??= getIt.isRegistered<GNFirestore>()
-        ? getIt<GNFirestore>()
+    _userRepository ??= getIt.isRegistered<UserRepository>()
+        ? getIt<UserRepository>()
         : null;
     _permissionUtil ??= getIt.isRegistered<PermissionUtil>()
         ? getIt<PermissionUtil>()
         : null;
 
     final auth = _auth;
-    if (auth == null || _firestore == null || _permissionUtil == null) {
+    if (auth == null || _userRepository == null || _permissionUtil == null) {
       if (kDebugMode) {
         debugPrint('[AuthFlow] AppBloc: auth services not ready, skip listen');
       }
@@ -115,9 +114,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
 
     try {
-      final firestore = _firestore!;
+      final userRepository = _userRepository!;
       final permissionUtil = _permissionUtil!;
-      final currentUser = await firestore.createUserIfNeeded(user);
+      final currentUser = await userRepository.ensureCurrentUser(user);
       permissionUtil.setCurrentUser(currentUser);
       _auth?.checkLoginMethod();
       final hasDisplayName =

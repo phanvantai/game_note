@@ -5,8 +5,10 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
 import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/presentation/app/bloc/app_bloc.dart';
@@ -29,6 +31,18 @@ class _FlakyFirestore extends GNFirestore {
     }
     return super.firestore;
   }
+}
+
+/// Delegates profile bootstrap to a (fake) Firestore so the existing
+/// end-to-end assertions keep exercising real document reads/writes.
+class _FirestoreUserRepository extends Mock implements UserRepository {
+  _FirestoreUserRepository(this.firestore);
+
+  final GNFirestore firestore;
+
+  @override
+  Future<GNUser> ensureCurrentUser(User firebaseUser) =>
+      firestore.createUserIfNeeded(firebaseUser);
 }
 
 User _firebaseUser({
@@ -57,8 +71,8 @@ void main() {
     if (getIt.isRegistered<GNAuth>()) {
       getIt.unregister<GNAuth>();
     }
-    if (getIt.isRegistered<GNFirestore>()) {
-      getIt.unregister<GNFirestore>();
+    if (getIt.isRegistered<UserRepository>()) {
+      getIt.unregister<UserRepository>();
     }
     if (getIt.isRegistered<PermissionUtil>()) {
       getIt.unregister<PermissionUtil>();
@@ -94,7 +108,7 @@ void main() {
     ).thenAnswer((_) => authController!.stream);
     final bloc = AppBloc(
       auth: auth,
-      firestore: firestoreOverride ?? firestore,
+      userRepository: _FirestoreUserRepository(firestoreOverride ?? firestore),
       permissionUtil: permissionUtil,
     );
     trackedBlocs.add(bloc);
@@ -166,7 +180,7 @@ void main() {
     expect(bloc.state.status, AppStatus.initializing);
   });
 
-  test('resolves GNAuth/GNFirestore/PermissionUtil from getIt and emits '
+  test('resolves GNAuth/UserRepository/PermissionUtil from getIt and emits '
       'profileIncomplete and authenticated states', () async {
     authController = StreamController<User?>();
     shouldCloseAuthController = true;
@@ -175,7 +189,9 @@ void main() {
     ).thenAnswer((_) => authController!.stream);
 
     getIt.registerSingleton<GNAuth>(auth);
-    getIt.registerSingleton<GNFirestore>(firestore);
+    getIt.registerSingleton<UserRepository>(
+      _FirestoreUserRepository(firestore),
+    );
     getIt.registerSingleton<PermissionUtil>(permissionUtil);
 
     final bloc = AppBloc();

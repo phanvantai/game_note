@@ -11,7 +11,10 @@ import 'stats/gn_esport_league_stat.dart';
 /// Paginated page of leagues with cursor info for infinite scroll.
 class LeaguesPage {
   final List<GNEsportLeague> items;
-  final DocumentSnapshot? lastDoc;
+
+  /// Opaque cursor for the next page: a Firestore `DocumentSnapshot` in the
+  /// legacy implementation, the backend's `nextCursor` string in the API one.
+  final Object? lastDoc;
   final bool hasMore;
 
   const LeaguesPage({
