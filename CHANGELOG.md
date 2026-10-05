@@ -10,6 +10,7 @@ All notable changes to PES Arena are documented here.
 - Bảng xếp hạng, dashboard cá nhân, đối đầu và tổng quan nhóm được tính trực tiếp từ kết quả trận mỗi lần mở, không còn phải chờ "tính lại" hay thấy số liệu cũ.
 - Màn hình giải dùng một kết nối realtime duy nhất thay cho ba listener; cập nhật tỉ số đồng thời vẫn được chặn xung đột như trước.
 - Ảnh đại diện chuyển từ Firebase Storage sang server.
+- Dashboard ở tab Arena hỗ trợ kéo để làm mới và tự tải lại khi quay về tab, không cần mở lại app mới thấy trận vừa đá.
 
 ### Breaking
 
