@@ -4,7 +4,7 @@ import 'package:pes_arena/domain/repositories/esport/esport_group_repository.dar
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/injection_container.dart';
 import 'package:pes_arena/l10n/l10n.dart';
@@ -66,7 +66,7 @@ class _OwnershipResolutionPageState extends State<OwnershipResolutionPage> {
       for (final group in widget.groups) ...group.members,
       for (final league in widget.leagues) ...league.participants,
     }.where((id) => id != widget.currentUserId).toList();
-    final users = await getIt<GNFirestore>().getUsersById(ids);
+    final users = await getIt<UserRepository>().getUsersByIds(ids);
     if (!mounted) return;
     setState(() {
       _usersById = users;

@@ -5,11 +5,18 @@ import 'package:pes_arena/service/permission_util.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api/api_client.dart';
+import 'api/api_config.dart';
+import 'api/league_events_hub.dart';
 import 'core/cache/dashboard_cache.dart';
 import 'core/cache/group_overview_cache.dart';
 import 'core/cache/h2h_preferences.dart';
 import 'core/helpers/shared_preferences_helper.dart';
 import 'core/localization/locale_notifier.dart';
+import 'data/repositories/api/api_esport_group_repository.dart';
+import 'data/repositories/api/api_esport_league_repository.dart';
+import 'data/repositories/api/api_stats_repositories.dart';
+import 'data/repositories/api/api_user_repository.dart';
 import 'data/repositories/esport/esport_group_stats_repository_impl.dart';
 import 'data/repositories/user_stats_repository_impl.dart';
 import 'domain/repositories/esport/esport_group_stats_repository.dart';
@@ -39,6 +46,8 @@ Future<void> init({
   GNFirestore? firestore,
   GNAuth? auth,
   GNStorage? storage,
+  ApiClient? apiClient,
+  bool useFirestore = ApiConfig.useFirestore,
 }) async {
   getIt.registerSingletonAsync<SharedPreferences>(
     () => SharedPreferences.getInstance(),
@@ -68,23 +77,44 @@ Future<void> init({
   getIt.registerSingleton(auth ?? GNAuth());
   getIt.registerSingleton(storage ?? GNStorage());
 
-  getIt.registerSingleton(
-    AppBloc(auth: getIt(), firestore: getIt(), permissionUtil: getIt()),
-  );
+  // backend
+  getIt.registerSingleton(apiClient ?? ApiClient());
+  getIt.registerSingleton(LeagueEventsHub(getIt()));
 
-  /// online mode
-  // data
-  // repositories
-  getIt.registerFactory<UserRepository>(() => UserRepositoryImpl());
-  getIt.registerFactory<EsportGroupRepository>(
-    () => EsportGroupRepositoryImpl(),
-  );
-  getIt.registerFactory<EsportLeagueRepository>(
-    () => EsportLeagueRepositoryImpl(),
-  );
-  getIt.registerFactory<UserStatsRepository>(() => UserStatsRepositoryImpl());
-  getIt.registerFactory<EsportGroupStatsRepository>(
-    () => EsportGroupStatsRepositoryImpl(),
+  // repositories — the Game Note API by default; the legacy Firestore
+  // implementations stay selectable until the data cutover.
+  if (useFirestore) {
+    getIt.registerFactory<UserRepository>(() => UserRepositoryImpl());
+    getIt.registerFactory<EsportGroupRepository>(
+      () => EsportGroupRepositoryImpl(),
+    );
+    getIt.registerFactory<EsportLeagueRepository>(
+      () => EsportLeagueRepositoryImpl(),
+    );
+    getIt.registerFactory<UserStatsRepository>(() => UserStatsRepositoryImpl());
+    getIt.registerFactory<EsportGroupStatsRepository>(
+      () => EsportGroupStatsRepositoryImpl(),
+    );
+  } else {
+    getIt.registerFactory<UserRepository>(
+      () => ApiUserRepository(client: getIt(), auth: getIt()),
+    );
+    getIt.registerFactory<EsportGroupRepository>(
+      () => ApiEsportGroupRepository(client: getIt()),
+    );
+    getIt.registerFactory<EsportLeagueRepository>(
+      () => ApiEsportLeagueRepository(client: getIt(), events: getIt()),
+    );
+    getIt.registerFactory<UserStatsRepository>(
+      () => ApiUserStatsRepository(client: getIt()),
+    );
+    getIt.registerFactory<EsportGroupStatsRepository>(
+      () => ApiEsportGroupStatsRepository(client: getIt()),
+    );
+  }
+
+  getIt.registerSingleton(
+    AppBloc(auth: getIt(), userRepository: getIt(), permissionUtil: getIt()),
   );
 
   // blocs
@@ -99,7 +129,7 @@ Future<void> init({
       userStatsRepository: getIt(),
       auth: getIt(),
       cache: getIt(),
-      firestore: getIt(),
+      userRepository: getIt(),
     ),
   );
   getIt.registerFactory<OngoingTournamentsBloc>(

@@ -1,0 +1,14 @@
+name: Server CI
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "server/**"
+      - ".github/workflows/server-ci.yml"
+      - ".github/workflows/_server-test.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: ./.github/workflows/_server-test.yml

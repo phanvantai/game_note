@@ -1,0 +1,16 @@
+{
+  "id": "jDJRX9VSCnOGq7CW8wh9",
+  "groupName": "Friends",
+  "ownerId": "owner",
+  "members": [
+    "owner",
+    "alice",
+    "bob",
+    "carol"
+  ],
+  "deactivatedMembers": [],
+  "description": "",
+  "status": "active",
+  "createdAt": "2026-10-05T10:48:04.168Z",
+  "updatedAt": "2026-10-05T10:48:04.212Z"
+}

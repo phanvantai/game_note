@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:pes_arena/api/api_json.dart';
 
 import '../../../user/gn_user.dart';
 
@@ -173,6 +174,48 @@ class GNEsportMatch extends Equatable {
       if (knockoutSlot != null) fieldKnockoutSlot: knockoutSlot,
       if (nextMatchId != null) fieldNextMatchId: nextMatchId,
       if (matchday != null) fieldMatchday: matchday,
+    };
+  }
+
+  /// Parses a backend `Match` JSON object. `updatedAt` becomes a
+  /// [Timestamp] so the optimistic-lock version keeps its existing type.
+  factory GNEsportMatch.fromApi(Map<String, dynamic> json) {
+    final updatedAt = parseApiDate(json[fieldUpdatedAt]);
+    final match = GNEsportMatch.fromMap({
+      ...json,
+      fieldDate: parseApiDate(json[fieldDate]),
+      fieldIsFinished: json[fieldIsFinished] ?? false,
+      fieldUpdatedAt: updatedAt == null ? null : Timestamp.fromDate(updatedAt),
+    }, json[fieldId] as String);
+    final home = json['homeTeam'];
+    final away = json['awayTeam'];
+    return match.copyWith(
+      homeTeam: home is Map
+          ? GNUser.fromApi(Map<String, dynamic>.from(home))
+          : null,
+      awayTeam: away is Map
+          ? GNUser.fromApi(Map<String, dynamic>.from(away))
+          : null,
+    );
+  }
+
+  /// Body for `POST /v1/leagues/:id/matches` (custom match).
+  Map<String, dynamic> toApiCreate() {
+    return {
+      fieldHomeTeamId: homeTeamId,
+      fieldAwayTeamId: awayTeamId,
+      fieldHomeScore: homeScore,
+      fieldAwayScore: awayScore,
+      fieldDate: toApiDate(date),
+      fieldIsFinished: isFinished,
+      fieldMatchCost: matchCost,
+      fieldCostPerGoal: costPerGoal,
+      fieldPhase: phase,
+      fieldGroupId: groupId,
+      fieldKnockoutRound: knockoutRound,
+      fieldKnockoutSlot: knockoutSlot,
+      fieldNextMatchId: nextMatchId,
+      fieldMatchday: matchday,
     };
   }
 

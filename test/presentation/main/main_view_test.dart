@@ -62,6 +62,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(GetEsportGroups());
     registerFallbackValue(LoadProfileEvent());
+    registerFallbackValue(RefreshDashboard());
   });
 
   setUp(() async {
@@ -122,6 +123,53 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => profileBloc.add(any(that: isA<LoadProfileEvent>()))).called(1);
+  });
+
+  testWidgets('returning to Arena refreshes the dashboard', (tester) async {
+    final groupBloc = _MockGroupBloc();
+    final tournamentBloc = _MockTournamentBloc();
+    final profileBloc = _MockProfileBloc();
+    final dashboardBloc = _MockDashboardBloc();
+    final ongoingBloc = _MockOngoingBloc();
+    when(() => groupBloc.state).thenReturn(const GroupState());
+    when(() => ongoingBloc.state).thenReturn(const OngoingTournamentsState());
+    when(() => tournamentBloc.state).thenReturn(const TournamentState());
+    when(() => profileBloc.state).thenReturn(const ProfileState());
+    when(() => dashboardBloc.state).thenReturn(
+      const DashboardState(
+        viewStatus: ViewStatus.success,
+        stats: DashboardStats(
+          tournamentsJoined: 0,
+          finishedTournaments: 0,
+          championCount: 0,
+          runnerUpCount: 0,
+          lastChampionAt: null,
+          recentMatches: [],
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      _wrap(
+        groupBloc: groupBloc,
+        tournamentBloc: tournamentBloc,
+        profileBloc: profileBloc,
+        dashboardBloc: dashboardBloc,
+        ongoingBloc: ongoingBloc,
+      ),
+    );
+
+    // Re-tapping the tab you are on does nothing.
+    await tester.tap(find.text('Arena'));
+    await tester.pumpAndSettle();
+    verifyNever(() => dashboardBloc.add(any(that: isA<RefreshDashboard>())));
+
+    await tester.tap(find.text('Giải đấu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Arena'));
+    await tester.pumpAndSettle();
+    verify(
+      () => dashboardBloc.add(any(that: isA<RefreshDashboard>())),
+    ).called(1);
   });
 
   testWidgets('MainView bottom labels use English locale', (tester) async {

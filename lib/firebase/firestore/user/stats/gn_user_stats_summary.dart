@@ -138,6 +138,11 @@ class GNUserStatsSummary extends Equatable {
   // coverage:ignore-start
   // Firestore-side adapter — exercised via integration tests against the
   // emulator; covered indirectly by `fromMap` unit tests.
+  /// Parses a backend `UserStatsSummary` JSON object (same keys as
+  /// [toMap], ISO date strings, plus `userId`).
+  factory GNUserStatsSummary.fromApi(Map<String, dynamic> json) =>
+      GNUserStatsSummary.fromMap(json, json['userId'] as String);
+
   factory GNUserStatsSummary.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? const {};
     final userId = doc.reference.parent.parent?.id ?? doc.id;
@@ -407,6 +412,8 @@ DateTime? tsToDate(dynamic value) {
   if (value == null) return null;
   if (value is Timestamp) return value.toDate();
   if (value is DateTime) return value;
+  // Backend JSON encodes timestamps as ISO-8601 strings.
+  if (value is String && value.isNotEmpty) return DateTime.tryParse(value);
   return null;
 }
 

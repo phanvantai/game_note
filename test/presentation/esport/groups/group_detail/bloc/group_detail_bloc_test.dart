@@ -8,11 +8,11 @@ import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_group_repository.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_group_stats_repository.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/stats/gn_esport_group_stats_summary.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/stats/gn_esport_league_stat.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/bloc/group_detail_bloc.dart';
 import 'package:pes_arena/presentation/esport/groups/group_detail/models/group_overview.dart';
@@ -24,9 +24,9 @@ class _MockLeagueRepo extends Mock implements EsportLeagueRepository {}
 
 class _MockStatsRepo extends Mock implements EsportGroupStatsRepository {}
 
-class _FakeFirestore extends Fake implements GNFirestore {
+class _FakeUserRepository extends Fake implements UserRepository {
   @override
-  Future<Map<String, GNUser>> getUsersById(List<String> userIds) async =>
+  Future<Map<String, GNUser>> getUsersByIds(List<String> userIds) async =>
       <String, GNUser>{};
 }
 
@@ -108,10 +108,9 @@ void main() {
     leagueRepo,
     statsRepo,
     cache,
-    _FakeFirestore(),
+    _FakeUserRepository(),
     _group(),
     currentUserId: 'owner1',
-    recomputeTimeout: const Duration(seconds: 2),
   );
 
   group('LoadGroupLeagues', () {
@@ -290,14 +289,10 @@ void main() {
     );
 
     blocTest<GroupDetailBloc, GroupDetailState>(
-      'lazy backfill: summary null → request recompute và chờ stream emit',
+      'summary null (legacy repo) → overview rỗng thay vì lỗi',
       build: bloc,
       setUp: () {
         when(() => statsRepo.getSummary('G1')).thenAnswer((_) async => null);
-        when(() => statsRepo.requestRecompute('G1')).thenAnswer((_) async {});
-        when(
-          () => statsRepo.listenSummary('G1'),
-        ).thenAnswer((_) => Stream.value(_summary(totalLeagues: 5)));
       },
       act: (b) => b.add(const LoadGroupOverview('G1')),
       expect: () => [
@@ -312,25 +307,17 @@ void main() {
               'overviewStatus',
               ViewStatus.success,
             )
-            .having((s) => s.overview?.totalLeagues, 'totalLeagues', 5),
+            .having((s) => s.overview?.totalLeagues, 'totalLeagues', 0),
       ],
-      verify: (_) {
-        verify(() => statsRepo.requestRecompute('G1')).called(1);
-      },
     );
 
     blocTest<GroupDetailBloc, GroupDetailState>(
-      'forceRefresh: skip first emission, lấy doc thứ 2 sau recompute',
+      'forceRefresh: fetch summary mới, giữ overview cũ trong lúc tải',
       build: bloc,
       setUp: () {
-        when(() => statsRepo.requestRecompute('G1')).thenAnswer((_) async {});
-        // First emit = stale; second emit = freshly computed
-        when(() => statsRepo.listenSummary('G1')).thenAnswer(
-          (_) => Stream.fromIterable([
-            _summary(totalLeagues: 1),
-            _summary(totalLeagues: 9),
-          ]),
-        );
+        when(
+          () => statsRepo.getSummary('G1'),
+        ).thenAnswer((_) async => _summary(totalLeagues: 9));
       },
       act: (b) => b.add(const LoadGroupOverview('G1', forceRefresh: true)),
       expect: () => [
@@ -348,8 +335,7 @@ void main() {
             .having((s) => s.overview?.totalLeagues, 'totalLeagues', 9),
       ],
       verify: (_) {
-        verify(() => statsRepo.requestRecompute('G1')).called(1);
-        verifyNever(() => statsRepo.getSummary('G1'));
+        verify(() => statsRepo.getSummary('G1')).called(1);
       },
     );
 
@@ -439,10 +425,9 @@ void main() {
       leagueRepo,
       statsRepo,
       cache,
-      _FakeFirestore(),
+      _FakeUserRepository(),
       _group(),
       currentUserId: 'owner1',
-      recomputeTimeout: const Duration(seconds: 2),
       createPlaceholderUser: createPlaceholderUser,
     );
 
@@ -654,7 +639,6 @@ void main() {
             deactivate: true,
           ),
         ).thenAnswer((_) async {});
-        when(() => statsRepo.requestRecompute('G1')).thenAnswer((_) async {});
       },
       act: (b) => b.add(
         const ToggleMemberDeactivation(
@@ -695,7 +679,6 @@ void main() {
             deactivate: false,
           ),
         ).thenAnswer((_) async {});
-        when(() => statsRepo.requestRecompute('G1')).thenAnswer((_) async {});
       },
       act: (b) => b.add(
         const ToggleMemberDeactivation(
@@ -728,7 +711,6 @@ void main() {
             deactivate: any(named: 'deactivate'),
           ),
         ).thenAnswer((_) async {});
-        when(() => statsRepo.requestRecompute(any())).thenAnswer((_) async {});
       },
       act: (b) => b.add(
         const ToggleMemberDeactivation(

@@ -1,0 +1,13 @@
+{
+  "userId": "owner",
+  "opponentId": "alice",
+  "opponentDisplayName": "Alice",
+  "matchesPlayed": 1,
+  "goals": 2,
+  "goalsConceded": 1,
+  "wins": 1,
+  "draws": 0,
+  "losses": 0,
+  "lastMetAt": "2026-10-05T10:48:04.225Z",
+  "updatedAt": "2026-10-05T10:48:04.326Z"
+}

@@ -11,7 +11,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pes_arena/core/common/view_status.dart';
 import 'package:pes_arena/core/ultils.dart';
 import 'package:pes_arena/domain/repositories/esport/esport_league_repository.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/firebase/firestore/esport/group/gn_esport_group.dart';
 import 'package:pes_arena/firebase/firestore/esport/league/gn_esport_league.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
@@ -28,7 +28,7 @@ class _MockGroupBloc extends MockBloc<GroupEvent, GroupState>
 
 class _MockLeagueRepository extends Mock implements EsportLeagueRepository {}
 
-class _MockFirestore extends Mock implements GNFirestore {}
+class _MockUserRepository extends Mock implements UserRepository {}
 
 GNEsportGroup _group(String id, String name) {
   return GNEsportGroup(
@@ -124,17 +124,17 @@ GroupState _groupState({
 
 void _registerCreateDependencies({
   required _MockLeagueRepository leagueRepo,
-  required _MockFirestore firestore,
+  required _MockUserRepository userRepository,
 }) {
   final getIt = GetIt.instance;
   if (getIt.isRegistered<EsportLeagueRepository>()) {
     getIt.unregister<EsportLeagueRepository>();
   }
-  if (getIt.isRegistered<GNFirestore>()) {
-    getIt.unregister<GNFirestore>();
+  if (getIt.isRegistered<UserRepository>()) {
+    getIt.unregister<UserRepository>();
   }
   getIt.registerSingleton<EsportLeagueRepository>(leagueRepo);
-  getIt.registerSingleton<GNFirestore>(firestore);
+  getIt.registerSingleton<UserRepository>(userRepository);
 }
 
 void _setCreateLeaguePageBuilder({
@@ -270,8 +270,8 @@ void _resetGetIt() {
   if (getIt.isRegistered<EsportLeagueRepository>()) {
     getIt.unregister<EsportLeagueRepository>();
   }
-  if (getIt.isRegistered<GNFirestore>()) {
-    getIt.unregister<GNFirestore>();
+  if (getIt.isRegistered<UserRepository>()) {
+    getIt.unregister<UserRepository>();
   }
 }
 
@@ -387,11 +387,14 @@ void main() {
     final tournamentBloc = _MockTournamentBloc();
     final groupBloc = _MockGroupBloc();
     final leagueRepo = _MockLeagueRepository();
-    final firestore = _MockFirestore();
+    final userRepository = _MockUserRepository();
     when(
-      () => firestore.getUsersById(any<List<String>>()),
+      () => userRepository.getUsersByIds(any<List<String>>()),
     ).thenAnswer((_) async => <String, GNUser>{});
-    _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+    _registerCreateDependencies(
+      leagueRepo: leagueRepo,
+      userRepository: userRepository,
+    );
 
     when(() => tournamentBloc.state).thenReturn(
       const TournamentState(
@@ -424,7 +427,7 @@ void main() {
       final tournamentBloc = _MockTournamentBloc();
       final groupBloc = _MockGroupBloc();
       final leagueRepo = _MockLeagueRepository();
-      final firestore = _MockFirestore();
+      final userRepository = _MockUserRepository();
       final toastMessages = <String>[];
       final addLeagueCompleter = Completer<String>();
       final fixturesCompleter = Completer<void>();
@@ -433,9 +436,12 @@ void main() {
         toastMessages.add(message);
       });
       when(
-        () => firestore.getUsersById(any<List<String>>()),
+        () => userRepository.getUsersByIds(any<List<String>>()),
       ).thenAnswer((_) async => <String, GNUser>{});
-      _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+      _registerCreateDependencies(
+        leagueRepo: leagueRepo,
+        userRepository: userRepository,
+      );
 
       when(
         () => leagueRepo.addLeague(
@@ -569,12 +575,15 @@ void main() {
     final tournamentBloc = _MockTournamentBloc();
     final groupBloc = _MockGroupBloc();
     final leagueRepo = _MockLeagueRepository();
-    final firestore = _MockFirestore();
+    final userRepository = _MockUserRepository();
 
     when(
-      () => firestore.getUsersById(any<List<String>>()),
+      () => userRepository.getUsersByIds(any<List<String>>()),
     ).thenAnswer((_) async => <String, GNUser>{});
-    _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+    _registerCreateDependencies(
+      leagueRepo: leagueRepo,
+      userRepository: userRepository,
+    );
 
     when(
       () => leagueRepo.addLeague(
@@ -692,12 +701,15 @@ void main() {
       final tournamentBloc = _MockTournamentBloc();
       final groupBloc = _MockGroupBloc();
       final leagueRepo = _MockLeagueRepository();
-      final firestore = _MockFirestore();
+      final userRepository = _MockUserRepository();
 
       when(
-        () => firestore.getUsersById(any<List<String>>()),
+        () => userRepository.getUsersByIds(any<List<String>>()),
       ).thenAnswer((_) async => <String, GNUser>{});
-      _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+      _registerCreateDependencies(
+        leagueRepo: leagueRepo,
+        userRepository: userRepository,
+      );
 
       when(
         () => leagueRepo.addLeague(
@@ -828,7 +840,7 @@ void main() {
     final tournamentBloc = _MockTournamentBloc();
     final groupBloc = _MockGroupBloc();
     final leagueRepo = _MockLeagueRepository();
-    final firestore = _MockFirestore();
+    final userRepository = _MockUserRepository();
     const createError = _CreateGenerationException('fixture generation failed');
     final createStack = StackTrace.fromString('create-generation-stack');
     Object? observedError;
@@ -840,9 +852,12 @@ void main() {
     });
 
     when(
-      () => firestore.getUsersById(any<List<String>>()),
+      () => userRepository.getUsersByIds(any<List<String>>()),
     ).thenAnswer((_) async => <String, GNUser>{});
-    _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+    _registerCreateDependencies(
+      leagueRepo: leagueRepo,
+      userRepository: userRepository,
+    );
 
     when(
       () => leagueRepo.addLeague(
@@ -917,7 +932,7 @@ void main() {
       final tournamentBloc = _MockTournamentBloc();
       final groupBloc = _MockGroupBloc();
       final leagueRepo = _MockLeagueRepository();
-      final firestore = _MockFirestore();
+      final userRepository = _MockUserRepository();
       const createError = _CreateGenerationException(
         'original fixture generation failure',
       );
@@ -937,9 +952,12 @@ void main() {
         toastMessages.add(message);
       });
       when(
-        () => firestore.getUsersById(any<List<String>>()),
+        () => userRepository.getUsersByIds(any<List<String>>()),
       ).thenAnswer((_) async => <String, GNUser>{});
-      _registerCreateDependencies(leagueRepo: leagueRepo, firestore: firestore);
+      _registerCreateDependencies(
+        leagueRepo: leagueRepo,
+        userRepository: userRepository,
+      );
 
       when(
         () => leagueRepo.addLeague(

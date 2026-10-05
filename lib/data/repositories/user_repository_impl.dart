@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_firestore_user.dart';
 import 'package:pes_arena/firebase/firestore/user/gn_user.dart';
@@ -73,5 +74,20 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<GNUser?> getUser(String userId) {
     return getIt<GNFirestore>().getUserById(userId);
+  }
+
+  @override
+  Future<GNUser> ensureCurrentUser(User firebaseUser) {
+    return getIt<GNFirestore>().createUserIfNeeded(firebaseUser);
+  }
+
+  @override
+  Future<Map<String, GNUser>> getUsersByIds(List<String> userIds) {
+    return getIt<GNFirestore>().getUsersById(userIds);
+  }
+
+  @override
+  Future<GNUser> createPlaceholderUser({required String displayName}) {
+    return getIt<GNFirestore>().createPlaceholderUser(displayName: displayName);
   }
 }

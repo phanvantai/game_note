@@ -1,0 +1,53 @@
+{
+  "userId": "owner",
+  "matchesPlayed": 1,
+  "goals": 2,
+  "goalsConceded": 1,
+  "wins": 1,
+  "draws": 0,
+  "losses": 0,
+  "tournamentsJoined": 1,
+  "tournamentsFinished": 1,
+  "championCount": 1,
+  "runnerUpCount": 0,
+  "lastChampionAt": "2026-09-30T00:00:00.000Z",
+  "recentMatches": [
+    {
+      "matchId": "KIe57CGH1afS4JsA6UJQ",
+      "leagueId": "udu8o8x3U7HjIGaWfbMC",
+      "leagueName": "Autumn Cup",
+      "date": "2026-10-05T10:48:04.225Z",
+      "userScore": 2,
+      "opponentScore": 1,
+      "opponentId": "alice",
+      "opponentDisplayName": "Alice",
+      "result": "win",
+      "updatedAt": "2026-10-05T10:48:04.252Z"
+    }
+  ],
+  "leagueHistory": [
+    {
+      "leagueId": "udu8o8x3U7HjIGaWfbMC",
+      "leagueName": "Autumn Cup",
+      "lastPlayedAt": "2026-10-05T10:48:04.225Z",
+      "matchesPlayed": 1,
+      "goals": 2,
+      "goalsConceded": 1,
+      "wins": 1,
+      "draws": 0,
+      "losses": 0
+    }
+  ],
+  "h2hSummary": [
+    {
+      "opponentId": "alice",
+      "opponentDisplayName": "Alice",
+      "matchesPlayed": 1,
+      "wins": 1,
+      "draws": 0,
+      "losses": 0
+    }
+  ],
+  "updatedAt": "2026-10-05T10:48:04.323Z",
+  "schemaVersion": 1
+}

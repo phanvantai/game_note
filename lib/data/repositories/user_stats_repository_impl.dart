@@ -14,13 +14,17 @@ import 'package:pes_arena/injection_container.dart';
 
 class UserStatsRepositoryImpl implements UserStatsRepository {
   @override
-  Future<GNUserStatsSummary?> getSummary(String uid) {
-    return getIt<GNFirestore>().getUserSummary(uid);
-  }
-
-  @override
-  Stream<GNUserStatsSummary?> listenSummary(String uid) {
-    return getIt<GNFirestore>().listenUserSummary(uid);
+  Future<GNUserStatsSummary?> getSummary(String uid) async {
+    final firestore = getIt<GNFirestore>();
+    final summary = await firestore.getUserSummary(uid);
+    if (summary != null) return summary;
+    // Lazy backfill: ask the Cloud Function to build the doc and wait for it.
+    await firestore.requestRecomputeUserSummary(uid);
+    return firestore
+        .listenUserSummary(uid)
+        .where((s) => s != null)
+        .first
+        .timeout(const Duration(seconds: 30));
   }
 
   @override
@@ -29,10 +33,5 @@ class UserStatsRepositoryImpl implements UserStatsRepository {
     required String opponentUid,
   }) {
     return getIt<GNFirestore>().getUserH2H(uid: uid, opponentUid: opponentUid);
-  }
-
-  @override
-  Future<void> requestRecompute(String uid) {
-    return getIt<GNFirestore>().requestRecomputeUserSummary(uid);
   }
 }

@@ -2,6 +2,20 @@
 
 All notable changes to PES Arena are documented here.
 
+## [5.0.0+50] - 2026-10-05
+
+### Changed
+
+- **Backend riêng thay cho Firestore**: dữ liệu nhóm, giải, trận, bảng xếp hạng và thống kê giờ nằm trên server Postgres tại Hà Nội thay vì Firestore ở Mỹ, nên mở app, mở giải và lưu tỉ số nhanh hơn rõ rệt. Firebase chỉ còn dùng để đăng nhập.
+- Bảng xếp hạng, dashboard cá nhân, đối đầu và tổng quan nhóm được tính trực tiếp từ kết quả trận mỗi lần mở, không còn phải chờ "tính lại" hay thấy số liệu cũ.
+- Màn hình giải dùng một kết nối realtime duy nhất thay cho ba listener; cập nhật tỉ số đồng thời vẫn được chặn xung đột như trước.
+- Ảnh đại diện chuyển từ Firebase Storage sang server.
+- Dashboard ở tab Arena hỗ trợ kéo để làm mới và tự tải lại khi quay về tab, không cần mở lại app mới thấy trận vừa đá.
+
+### Breaking
+
+- Bản 4.x không còn đồng bộ với dữ liệu mới sau khi chuyển; mọi người cần cập nhật lên 5.0.0.
+
 ## [4.0.0+49] - 2026-08-12
 
 ### Changed

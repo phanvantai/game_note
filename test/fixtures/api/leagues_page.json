@@ -1,0 +1,51 @@
+{
+  "items": [
+    {
+      "id": "udu8o8x3U7HjIGaWfbMC",
+      "ownerId": "owner",
+      "groupId": "jDJRX9VSCnOGq7CW8wh9",
+      "name": "Autumn Cup",
+      "startDate": "2026-09-01T00:00:00.000Z",
+      "endDate": "2026-09-30T00:00:00.000Z",
+      "isActive": true,
+      "description": "",
+      "participants": [
+        "owner",
+        "alice",
+        "bob",
+        "carol"
+      ],
+      "status": "finished",
+      "rankPayoutEnabled": true,
+      "rankPayouts": [
+        50000
+      ],
+      "defaultMatchCost": 50000,
+      "defaultPerGoalEnabled": false,
+      "defaultCostPerGoal": 50000,
+      "mergeCompleted": false,
+      "mode": "full",
+      "groupCount": 2,
+      "advanceCount": 1,
+      "knockoutSeeding": [],
+      "group": {
+        "id": "jDJRX9VSCnOGq7CW8wh9",
+        "groupName": "Friends",
+        "ownerId": "owner",
+        "members": [
+          "owner",
+          "alice",
+          "bob",
+          "carol"
+        ],
+        "deactivatedMembers": [],
+        "description": "",
+        "status": "active",
+        "createdAt": "2026-10-05T10:48:04.168Z",
+        "updatedAt": "2026-10-05T10:48:04.212Z"
+      }
+    }
+  ],
+  "nextCursor": null,
+  "hasMore": false
+}

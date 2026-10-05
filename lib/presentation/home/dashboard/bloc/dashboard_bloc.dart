@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pes_arena/core/cache/dashboard_cache.dart';
 import 'package:pes_arena/core/common/view_status.dart';
+import 'package:pes_arena/domain/repositories/user_repository.dart';
 import 'package:pes_arena/domain/repositories/user_stats_repository.dart';
 import 'package:pes_arena/firebase/auth/gn_auth.dart';
-import 'package:pes_arena/firebase/firestore/gn_firestore.dart';
 import 'package:pes_arena/firebase/firestore/user/stats/gn_user_stats_summary.dart';
 import 'package:pes_arena/l10n/app_text.dart';
 
@@ -17,10 +17,9 @@ import '../models/recent_match_summary.dart';
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';
 
-/// Loads the dashboard from a single Firestore doc
-/// (`users/{uid}/stats/summary`) instead of fanning out across every league
-/// the user has joined. The summary is maintained server-side by the
-/// `onLeagueMatchWritten` Cloud Function.
+/// Loads the dashboard from one lifetime summary computed by the backend
+/// (`GET /v1/users/:id/summary`) instead of fanning out across every league
+/// the user has joined.
 ///
 /// First-paint UX: if a cached snapshot exists locally, render it
 /// immediately with `isStale = true`, then refresh in the background.
@@ -28,20 +27,17 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final UserStatsRepository _repo;
   final GNAuth _auth;
   final DashboardCache _cache;
-  final GNFirestore _firestore;
-  final Duration _recomputeTimeout;
+  final UserRepository _users;
 
   DashboardBloc({
     required UserStatsRepository userStatsRepository,
     required GNAuth auth,
     required DashboardCache cache,
-    required GNFirestore firestore,
-    Duration recomputeTimeout = const Duration(seconds: 30),
+    required UserRepository userRepository,
   }) : _repo = userStatsRepository,
        _auth = auth,
        _cache = cache,
-       _firestore = firestore,
-       _recomputeTimeout = recomputeTimeout,
+       _users = userRepository,
        super(const DashboardState()) {
     on<LoadDashboard>(_onLoadDashboard);
     on<RefreshDashboard>(_onRefreshDashboard);
@@ -59,17 +55,14 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     RefreshDashboard event,
     Emitter<DashboardState> emit,
   ) async {
-    // Pull-to-refresh asks the server for a fresh fold of the user's
-    // matches. This is heavier than a normal load (it re-runs the backfill
-    // function) but is the only way to recover from drift or pick up
-    // schema changes for an already-built summary doc.
-    await _load(emit, fromRefresh: true, forceRecompute: true);
+    // Pull-to-refresh skips the cached first paint; the backend computes
+    // the summary fresh on every request.
+    await _load(emit, fromRefresh: true);
   }
 
   Future<void> _load(
     Emitter<DashboardState> emit, {
     required bool fromRefresh,
-    bool forceRecompute = false,
   }) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) {
@@ -109,33 +102,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     }
 
     try {
-      GNUserStatsSummary? summary;
-      if (forceRecompute) {
-        // Trigger a server rebuild and wait for the next snapshot. We skip
-        // the first emission (the current/stale doc) and take whatever the
-        // function writes next.
-        await _repo.requestRecompute(uid);
-        summary = await _repo
-            .listenSummary(uid)
-            .skip(1)
-            .where((s) => s != null)
-            .cast<GNUserStatsSummary>()
-            .first
-            .timeout(_recomputeTimeout);
-      } else {
-        summary = await _repo.getSummary(uid);
-        // Lazy backfill: users who joined before this feature shipped
-        // won't have a summary doc. Ask the server to build one.
-        if (summary == null) {
-          await _repo.requestRecompute(uid);
-          summary = await _repo
-              .listenSummary(uid)
-              .where((s) => s != null)
-              .cast<GNUserStatsSummary>()
-              .first
-              .timeout(_recomputeTimeout);
-        }
-      }
+      // Only the legacy Firestore repository can return null (no summary
+      // doc yet); treat that as a user with no history.
+      final summary =
+          await _repo.getSummary(uid) ?? GNUserStatsSummary.empty(uid);
 
       final stats = await _toDashboardStats(summary);
       await _cache.write(uid, stats);
@@ -169,7 +139,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     }.toList();
     final usersMap = allIds.isEmpty
         ? <String, dynamic>{}
-        : await _firestore.getUsersById(allIds);
+        : await _users.getUsersByIds(allIds);
 
     return DashboardStats(
       tournamentsJoined: s.tournamentsJoined,

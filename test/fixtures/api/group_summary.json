@@ -1,0 +1,65 @@
+{
+  "groupId": "jDJRX9VSCnOGq7CW8wh9",
+  "totalLeagues": 1,
+  "finishedLeagues": 1,
+  "playerStats": [
+    {
+      "userId": "owner",
+      "displayName": "Owner",
+      "photoUrl": null,
+      "matches": 1,
+      "wins": 1,
+      "draws": 0,
+      "losses": 0,
+      "goals": 2,
+      "goalsConceded": 1,
+      "championships": 1,
+      "runnerUps": 0,
+      "finishedLeaguesJoined": 1
+    },
+    {
+      "userId": "alice",
+      "displayName": "Alice",
+      "photoUrl": null,
+      "matches": 1,
+      "wins": 0,
+      "draws": 0,
+      "losses": 1,
+      "goals": 1,
+      "goalsConceded": 2,
+      "championships": 0,
+      "runnerUps": 0,
+      "finishedLeaguesJoined": 1
+    },
+    {
+      "userId": "carol",
+      "displayName": "Carol",
+      "photoUrl": null,
+      "matches": 0,
+      "wins": 0,
+      "draws": 0,
+      "losses": 0,
+      "goals": 0,
+      "goalsConceded": 0,
+      "championships": 0,
+      "runnerUps": 1,
+      "finishedLeaguesJoined": 1
+    },
+    {
+      "userId": "bob",
+      "displayName": "Bob",
+      "photoUrl": null,
+      "matches": 0,
+      "wins": 0,
+      "draws": 0,
+      "losses": 0,
+      "goals": 0,
+      "goalsConceded": 0,
+      "championships": 0,
+      "runnerUps": 0,
+      "finishedLeaguesJoined": 1
+    }
+  ],
+  "updatedAt": "2026-10-05T10:48:04.333Z",
+  "schemaVersion": 1
+}

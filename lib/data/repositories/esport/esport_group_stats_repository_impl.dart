@@ -12,17 +12,16 @@ import 'package:pes_arena/injection_container.dart';
 
 class EsportGroupStatsRepositoryImpl implements EsportGroupStatsRepository {
   @override
-  Future<GNEsportGroupStatsSummary?> getSummary(String groupId) {
-    return getIt<GNFirestore>().getGroupSummary(groupId);
-  }
-
-  @override
-  Stream<GNEsportGroupStatsSummary?> listenSummary(String groupId) {
-    return getIt<GNFirestore>().listenGroupSummary(groupId);
-  }
-
-  @override
-  Future<void> requestRecompute(String groupId) {
-    return getIt<GNFirestore>().requestRecomputeGroupSummary(groupId);
+  Future<GNEsportGroupStatsSummary?> getSummary(String groupId) async {
+    final firestore = getIt<GNFirestore>();
+    final summary = await firestore.getGroupSummary(groupId);
+    if (summary != null) return summary;
+    // Lazy backfill: ask the Cloud Function to build the doc and wait for it.
+    await firestore.requestRecomputeGroupSummary(groupId);
+    return firestore
+        .listenGroupSummary(groupId)
+        .where((s) => s != null)
+        .first
+        .timeout(const Duration(seconds: 30));
   }
 }
