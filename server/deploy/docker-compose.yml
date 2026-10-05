@@ -1,0 +1,72 @@
+# Runs on the examino-dev VPS next to Coolify. Traefik (coolify-proxy) picks
+# the API up through the labels below; nothing here touches Coolify's own
+# resources. Usage: see deploy/README.md.
+name: game-note
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: game_note
+      POSTGRES_USER: game_note
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30"]
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U game_note -d game_note"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+
+  api:
+    build: ..
+    image: game-note-api:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://game_note:${POSTGRES_PASSWORD}@db:5432/game_note
+      FIREBASE_PROJECT_ID: gamenoteapp
+      PUBLIC_BASE_URL: https://${API_HOST:?set in .env}
+      NODE_OPTIONS: --max-old-space-size=160
+    volumes:
+      - avatars:/data/avatars
+    mem_limit: 256m
+    networks: [internal, coolify]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.services.game-note-api.loadbalancer.server.port=8080
+      - traefik.http.middlewares.game-note-https.redirectscheme.scheme=https
+      # One router per host so each gets its own certificate: a host whose DNS
+      # isn't pointed here yet must not block the other's certificate.
+      - traefik.http.routers.game-note-api.rule=Host(`${API_HOST}`)
+      - traefik.http.routers.game-note-api.entrypoints=https
+      - traefik.http.routers.game-note-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.game-note-api.service=game-note-api
+      - traefik.http.routers.game-note-api-http.rule=Host(`${API_HOST}`)
+      - traefik.http.routers.game-note-api-http.entrypoints=http
+      - traefik.http.routers.game-note-api-http.middlewares=game-note-https
+      - traefik.http.routers.game-note-api-http.service=game-note-api
+      - traefik.http.routers.game-note-api-alt.rule=Host(`${API_ALT_HOST:-gamenote-api.103-116-38-177.sslip.io}`)
+      - traefik.http.routers.game-note-api-alt.entrypoints=https
+      - traefik.http.routers.game-note-api-alt.tls.certresolver=letsencrypt
+      - traefik.http.routers.game-note-api-alt.service=game-note-api
+      - traefik.http.routers.game-note-api-alt-http.rule=Host(`${API_ALT_HOST:-gamenote-api.103-116-38-177.sslip.io}`)
+      - traefik.http.routers.game-note-api-alt-http.entrypoints=http
+      - traefik.http.routers.game-note-api-alt-http.middlewares=game-note-https
+      - traefik.http.routers.game-note-api-alt-http.service=game-note-api
+
+volumes:
+  db-data:
+  avatars:
+
+networks:
+  internal:
+  coolify:
+    external: true
