@@ -1,6 +1,7 @@
 name: Release
 
-# Every push to main is a production release (see AGENTS.md):
+# Every push to main that changes the app or the server is a production
+# release (see AGENTS.md):
 #
 #   flutter checks ─┐
 #                   ├─▶ deploy server ─▶ build Android ─▶ Play Store (production)
@@ -8,11 +9,21 @@ name: Release
 #
 # Any failed check stops everything, and the API is always live before the
 # app that depends on it. The landing page ships separately
-# (deploy-landing.yml).
+# (deploy-landing.yml). Docs, tests, tooling, and CI-only pushes don't
+# release; run this manually (workflow_dispatch) if one ever needs to.
 
 on:
   push:
     branches: ["main"]
+    paths:
+      - "lib/**"
+      - "android/**"
+      - "ios/**"
+      - "assets/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "l10n.yaml"
+      - "server/**"
   workflow_dispatch:
 
 # A newer push waits for the running release instead of cancelling it
