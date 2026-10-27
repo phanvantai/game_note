@@ -48,3 +48,6 @@ app.*.map.json
 /android/app/release
 .gstack/
 .superpowers/
+
+# LLVM coverage profiles
+*.profraw

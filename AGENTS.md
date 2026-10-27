@@ -39,4 +39,4 @@ Use focused Conventional Commit-style subjects (`feat:`, `fix:`, `docs:`, `chore
 
 ## Versioning Before Merge
 
-Every merge to `main` triggers a production release. A PR touching `lib/`, `android/`, or `ios/` must bump `version:` in `pubspec.yaml` and add a matching dated `[X.Y.Z+N]` `CHANGELOG.md` entry. Increment `+N` by exactly one from latest `main`; never reuse it. Use minor for user-facing features, patch for fixes/internal work, and major only for an intentionally planned breaking release. Docs-only and test-only PRs are exempt.
+Every merge to `main` that touches the app (`lib/`, `android/`, `ios/`, `assets/`, `pubspec.*`, `l10n.yaml`) or `server/` triggers a production release; other merges do not (see `.github/workflows/release.yml`). A PR touching `lib/`, `android/`, or `ios/` must bump `version:` in `pubspec.yaml` and add a matching dated `[X.Y.Z+N]` `CHANGELOG.md` entry. Increment `+N` by exactly one from latest `main`; never reuse it. Use minor for user-facing features, patch for fixes/internal work, and major only for an intentionally planned breaking release. Docs-only and test-only PRs are exempt.

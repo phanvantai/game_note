@@ -3,6 +3,9 @@ name: Deploy Landing Page
 on:
   push:
     branches: ["main"]
+    paths:
+      - "game-note-landing/**"
+      - ".github/workflows/deploy-landing.yml"
 
 permissions:
   contents: read
