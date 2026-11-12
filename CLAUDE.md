@@ -14,7 +14,7 @@ Production Dart code is organized as follows:
 - `lib/firebase/`: Auth, Firestore, and Storage adapters/models.
 - `lib/presentation/`: routes, screens, components, and BLoCs.
 
-Tests mirror these paths under `test/`. Native projects are `android/` and `ios/`, and Cloud Functions run from `functions/` on Node 20.
+Tests mirror these paths under `test/`. Native projects are `android/` and `ios/`. The Firebase Cloud Functions were retired with the 5.0 backend move and deleted on 2026-11-13; their source is in git history (`functions/`).
 
 The landing, privacy, and support pages live in the Boolery Studio repo (`~/Developer/boolery-studio`, github.com/phanvantai/boolery-studio) under `site/public/pesarena/`, live at <https://boolery.taiphanvan.dev/pesarena/>. Edit and deploy them there (`site/deploy/deploy.sh`). The old address `pesarena.taiphanvan.dev` redirects there; keep it working for store listings and shared links.
 
@@ -43,7 +43,7 @@ flutter build appbundle --release
 flutter build ios --release --no-codesign
 ```
 
-For Functions, run `cd functions && npm install`, then `npm test`, `npm run lint`, or `npm run serve`. Prefer a targeted test before the full suite.
+Prefer a targeted test before the full suite.
 
 ## Pull Requests and Releases
 
