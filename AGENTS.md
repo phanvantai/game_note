@@ -4,7 +4,7 @@
 
 Game Note 4.0 is an Android/iOS Flutter app for online groups and tournaments. Dart source lives in `lib/`: contracts/use cases in `lib/domain/`, repositories in `lib/data/`, Firebase wrappers in `lib/firebase/`, UI and BLoCs in `lib/presentation/`, and cross-cutting helpers in `lib/core/`. Register runtime dependencies with `get_it`; keep business logic out of widgets.
 
-Tests mirror source paths under `test/`; assets belong in matching `assets/` folders. Native projects are `android/` and `ios/`. Functions are in `functions/`; `game-note-landing/` is a retained static site. No Flutter Web app.
+Tests mirror source paths under `test/`; assets belong in matching `assets/` folders. Native projects are `android/` and `ios/`. Functions are in `functions/`. The landing, privacy, and support pages live in the `boolery-studio` repo (`site/public/pesarena/`). No Flutter Web app.
 
 Firestore is the source of truth. Preserve membership, permissions, League/Cup/Full, realtime subscriptions, fixtures, results, standings, brackets, history, costs, and statistics aggregation. Trace full read/write paths before changing transactions, idempotency, or concurrent score/result updates.
 

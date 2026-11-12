@@ -14,7 +14,9 @@ Production Dart code is organized as follows:
 - `lib/firebase/`: Auth, Firestore, and Storage adapters/models.
 - `lib/presentation/`: routes, screens, components, and BLoCs.
 
-Tests mirror these paths under `test/`. Native projects are `android/` and `ios/`; Cloud Functions run from `functions/` on Node 20; and `game-note-landing/` is a retained standalone static site. Keep landing-site changes independent from the mobile app.
+Tests mirror these paths under `test/`. Native projects are `android/` and `ios/`, and Cloud Functions run from `functions/` on Node 20.
+
+The landing, privacy, and support pages live in the Boolery Studio repo (`~/Developer/boolery-studio`, github.com/phanvantai/boolery-studio) under `site/public/pesarena/`, live at <https://boolery.taiphanvan.dev/pesarena/>. Edit and deploy them there (`site/deploy/deploy.sh`). The old address `pesarena.taiphanvan.dev` redirects there; keep it working for store listings and shared links.
 
 The retained product surface includes Apple, Google, and email/password authentication; group membership and ownership; protected account deletion; settings; English/Vietnamese localization; and League, Cup, and Full tournament formats. Preserve realtime subscriptions, fixtures, results, standings, brackets, history, costs, and aggregated statistics. Before changing a Firestore operation, trace its read/write path. Do not weaken transactions, idempotency, ownership checks, or concurrent score/result-update behavior.
 

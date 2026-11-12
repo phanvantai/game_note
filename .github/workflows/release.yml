@@ -8,8 +8,8 @@ name: Release
 #   server tests ───┘
 #
 # Any failed check stops everything, and the API is always live before the
-# app that depends on it. The landing page ships separately
-# (deploy-landing.yml). Docs, tests, tooling, and CI-only pushes don't
+# app that depends on it. The landing page lives in the boolery-studio
+# repo. Docs, tests, tooling, and CI-only pushes don't
 # release; run this manually (workflow_dispatch) if one ever needs to.
 
 on:
