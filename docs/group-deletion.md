@@ -1,5 +1,7 @@
 # Group Deletion
 
+> **Đã ngừng (2026-11-13):** luồng Cloud Function mô tả dưới đây thuộc đường dữ liệu Firestore cũ. Từ bản 5.0, app xoá nhóm qua Game Note API (`server/`); các Cloud Functions đã bị xoá khỏi Firebase và khỏi repo. Tài liệu này giữ lại để tham khảo.
+
 ## Mục tiêu
 
 Owner của group có thể yêu cầu **xoá vĩnh viễn** group qua dialog confirm-by-typing-name. Server cascade xoá toàn bộ dữ liệu liên quan (leagues, matches, stats, notifications, group doc) rồi rebuild lại user summary cho mọi member bị ảnh hưởng.

@@ -8,7 +8,11 @@ Social platform for PES players - create groups, tournaments, and compete with y
 
 [App Store](https://apps.apple.com/us/app/game-note/id6443969710)
 
-[Privacy Url](https://www.freeprivacypolicy.com/live/4d018245-760a-463d-90f0-f88e6fb4c3e1)
+[Website](https://boolery.taiphanvan.dev/pesarena/)
+
+[Privacy Policy](https://boolery.taiphanvan.dev/pesarena/privacy.html)
+
+[Support](https://boolery.taiphanvan.dev/pesarena/support.html)
 
 ## OFFLIFE: Database scheme in tournament
 

@@ -41,36 +41,6 @@ allow delete: if signedIn() && request.auth.uid == resource.data.ownerId;
 
 Needs careful per-flow analysis + emulator tests for join/leave/transfer.
 
-## Cloud functions
-
-### GC `group_deletion_league_tombstones`
-
-**Priority:** P1
-**Noticed on:** v3.3.0+42 group-deletion review (2026-05-22)
-
-`functions/index.js:957` writes tombstones to `group_deletion_league_tombstones`
-to suppress delta-stat triggers during cascade, but they are never deleted.
-The collection grows unboundedly, and every `onLeagueMatchWritten` /
-`onEsportLeagueWritten` invocation reads it (`isGroupDeletionLeague` at
-`functions/index.js:391`) — a per-write read tax forever.
-
-End-of-cascade cleanup races with late-firing triggers for the deleted league,
-so the safer fix is a scheduled sweep (daily Cloud Scheduler function deletes
-tombstones whose `createdAt` is > 24h old).
-
-### Idempotent fan-out for `rebuildUserSummary`
-
-**Priority:** P2
-**Noticed on:** v3.3.0+42 group-deletion review (2026-05-22)
-
-`functions/index.js:1077` sequentially awaits `rebuildUserSummary(uid)` for
-every affected user. For groups with 50+ members and many cross-group leagues,
-this can blow past Cloud Functions' 9-minute timeout — leaving the cascade in
-`processing` with partial summary updates.
-
-Fan out by writing per-user `_recompute_request` docs and letting the existing
-`onRecomputeUserSummaryRequest` trigger pick them up in parallel.
-
 ## Group detail
 
 ### Widget tests for the delete confirmation dialog and post-delete navigation
